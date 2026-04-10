@@ -1,9 +1,7 @@
-// SignalWave.jsx - Circular Shockwave Animation
+// SignalWave.jsx - Circular Shockwave Animation (Pure CSS/JS)
 import React, { useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
 
 export default function SignalWave() {
-  const waveRef = useRef(null);
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -15,24 +13,28 @@ export default function SignalWave() {
       wave.setAttribute('fill', 'none');
       wave.setAttribute('stroke', '#9E3028');
       wave.setAttribute('stroke-width', '2');
+      wave.style.opacity = '0.6';
       
       containerRef.current.appendChild(wave);
 
-      gsap.to(wave, {
-        attr: { r: 2000 },
-        opacity: 0,
-        duration: 3,
-        ease: 'power2.out',
-        onComplete: () => {
+      // Animate with CSS
+      let start = null;
+      const duration = 3000;
+      
+      const animate = (timestamp) => {
+        if (!start) start = timestamp;
+        const progress = (timestamp - start) / duration;
+        
+        if (progress < 1) {
+          wave.setAttribute('r', progress * 2000);
+          wave.style.opacity = 0.6 * (1 - progress);
+          requestAnimationFrame(animate);
+        } else {
           wave.remove();
         }
-      });
-
-      // Pulse nearby particles (if particle system is present)
-      const event = new CustomEvent('signalWave', {
-        detail: { timestamp: Date.now() }
-      });
-      window.dispatchEvent(event);
+      };
+      
+      requestAnimationFrame(animate);
     };
 
     // Create wave every 8 seconds

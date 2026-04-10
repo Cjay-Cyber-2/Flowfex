@@ -1,0 +1,40 @@
+.loading-spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+  padding: var(--space-12);
+}
+
+.loading-spinner {
+  animation: spinnerPulse 2s ease-in-out infinite;
+}
+
+@keyframes spinnerPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+.loading-message {
+  font-family: var(--font-inter);
+  font-size: var(--text-base);
+  color: var(--color-bistre);
+  text-align: center;
+  animation: messageFade 2s ease-in-out infinite;
+}
+
+@keyframes messageFade {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

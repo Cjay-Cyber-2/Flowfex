@@ -1,0 +1,52 @@
+.canvas-renderer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  cursor: grab;
+}
+
+.canvas-renderer:active {
+  cursor: grabbing;
+}
+
+.canvas-renderer canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.canvas-empty-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.empty-state-content {
+  text-align: center;
+  pointer-events: auto;
+}
+
+.empty-state-content h2 {
+  font-family: var(--font-satoshi);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--color-velin);
+  margin-bottom: var(--space-3);
+}
+
+.empty-state-content p {
+  font-family: var(--font-inter);
+  font-size: var(--text-base);
+  color: var(--color-bistre);
+  margin-bottom: var(--space-6);
+}
+
+.empty-state-actions {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: center;
+}

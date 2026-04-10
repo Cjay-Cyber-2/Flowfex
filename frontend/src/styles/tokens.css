@@ -1,0 +1,194 @@
+/* FLOWFEX DESIGN TOKENS - Historically Rare Color Palette */
+
+:root {
+  /* === COLOR SYSTEM === */
+  /* Primary base - Eigengrau: German optical science term for color perceived in total darkness */
+  --color-eigengrau: #16161D;
+  
+  /* Surface - Wenge Ash: Named after endangered Millettia laurentii African hardwood */
+  --color-wenge-ash: #1C1812;
+  
+  /* Secondary depth - Caput Mortuum: Latin "dead head", ancient iron oxide pigment */
+  --color-caput-mortuum: #2C1620;
+  
+  /* Main accent - Sinoper: Named after ancient port city Sinop, Turkey */
+  --color-sinoper: #9E3028;
+  --color-sinoper-bright: #C23028;
+  
+  /* Secondary accent - Mummy Brown: Historical pigment from ground Egyptian mummies */
+  --color-mummy-brown: #8B5B38;
+  
+  /* Highlight - Massicot: Ancient lead monoxide yellow from medieval manuscripts */
+  --color-massicot: #C49530;
+  --color-massicot-glow: #D4A840;
+  
+  /* Text primary - Velin: Finest grade calfskin parchment */
+  --color-velin: #EDE8DF;
+  
+  /* Text muted - Bistre: Ancient brown ink from wood soot */
+  --color-bistre: #7A6A5C;
+  
+  /* Success state - Verdigris Pale: Green patina on copper */
+  --color-verdigris-pale: #3D7A6A;
+  
+  /* Warning state - Indian Yellow: Rare pigment from mango-fed cow urine */
+  --color-indian-yellow: #C78B2A;
+  
+  /* === TYPOGRAPHY === */
+  --font-geist: 'General Sans', 'SF Pro Display', system-ui, sans-serif;
+  --font-satoshi: 'Satoshi', 'Helvetica Neue', sans-serif;
+  --font-inter: 'Inter', system-ui, sans-serif;
+  --font-space-grotesk: 'Space Grotesk', 'DM Sans', sans-serif;
+  --font-jetbrains: 'JetBrains Mono', monospace;
+  
+  /* Typography scale (base 16px) */
+  --text-xs: 0.6875rem;    /* 11px */
+  --text-sm: 0.8125rem;    /* 13px */
+  --text-base: 0.9375rem;  /* 15px */
+  --text-md: 1.0625rem;    /* 17px */
+  --text-lg: 1.25rem;      /* 20px */
+  --text-xl: 1.5625rem;    /* 25px */
+  --text-2xl: 2rem;        /* 32px */
+  --text-3xl: 3rem;        /* 48px */
+  --text-hero: 5.5rem;     /* 88px */
+  
+  /* === SPACING (4px base unit) === */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-20: 5rem;     /* 80px */
+  
+  /* === BORDER RADIUS === */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 20px;
+  --radius-node: 14px;
+  
+  /* === SHADOWS === */
+  --shadow-sm: 0 1px 4px rgba(22, 22, 29, 0.8);
+  --shadow-md: 0 4px 20px rgba(22, 22, 29, 0.9), 0 0 1px rgba(198, 149, 48, 0.1);
+  --shadow-lg: 0 8px 40px rgba(22, 22, 29, 0.95), 0 0 2px rgba(158, 48, 40, 0.15);
+  --shadow-glow-sinoper: 0 0 24px rgba(158, 48, 40, 0.35), 0 0 8px rgba(158, 48, 40, 0.2);
+  --shadow-glow-massicot: 0 0 24px rgba(196, 149, 48, 0.3), 0 0 8px rgba(196, 149, 48, 0.15);
+  
+  /* === LAYOUT === */
+  --left-rail-width: 240px;
+  --top-bar-height: 48px;
+  --status-bar-height: 28px;
+  --right-drawer-width: 360px;
+  
+  /* === ICON SIZES === */
+  --icon-xs: 12px;
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 24px;
+  --icon-xl: 32px;
+  --icon-2xl: 48px;
+  
+  /* === ANIMATION === */
+  --ease-expo-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-expo-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --duration-fast: 120ms;
+  --duration-base: 220ms;
+  --duration-slow: 400ms;
+  --duration-slower: 600ms;
+  
+  /* === Z-INDEX === */
+  --z-canvas-bg: 0;
+  --z-canvas-edges: 10;
+  --z-canvas-nodes: 20;
+  --z-canvas-particles: 30;
+  --z-canvas-effects: 40;
+  --z-panels: 50;
+  --z-top-bar: 60;
+  --z-drawer: 70;
+  --z-modal: 80;
+  --z-tooltip: 90;
+}
+
+/* === GLOBAL RESETS === */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-inter);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--color-velin);
+  background-color: var(--color-eigengrau);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+/* === TYPOGRAPHY UTILITIES === */
+.font-geist { font-family: var(--font-geist); }
+.font-satoshi { font-family: var(--font-satoshi); }
+.font-inter { font-family: var(--font-inter); }
+.font-space-grotesk { font-family: var(--font-space-grotesk); }
+.font-jetbrains { font-family: var(--font-jetbrains); }
+
+/* === ACCESSIBILITY === */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* === FOCUS STYLES === */
+*:focus-visible {
+  outline: 2px solid var(--color-massicot);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-massicot);
+  outline-offset: 2px;
+}
+
+/* === SCROLLBAR STYLING === */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-eigengrau);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-bistre);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-mummy-brown);
+}

@@ -1,0 +1,87 @@
+/* PortalButton.css */
+
+.portal-button {
+  position: relative;
+  height: 56px;
+  padding: 0 var(--space-8);
+  font-family: var(--font-satoshi);
+  font-size: var(--text-md);
+  font-weight: 500;
+  color: var(--color-velin);
+  background: var(--color-sinoper);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  overflow: visible;
+  transform-style: preserve-3d;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.portal-glow {
+  position: absolute;
+  inset: -4px;
+  background: radial-gradient(
+    circle at center,
+    var(--color-sinoper) 0%,
+    var(--color-massicot) 50%,
+    var(--color-sinoper) 100%
+  );
+  border-radius: var(--radius-md);
+  opacity: 0.7;
+  filter: blur(12px);
+  z-index: -1;
+  transform-origin: center;
+}
+
+.portal-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.portal-particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: var(--color-massicot);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--color-massicot);
+  left: 50%;
+  top: 50%;
+  transform-origin: center;
+}
+
+.portal-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.portal-button:active {
+  transform: scale(0.95);
+}
+
+.burst-particle {
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* Pulse animation for idle state */
+@keyframes portalPulse {
+  0%, 100% {
+    box-shadow: 0 0 24px rgba(158, 48, 40, 0.35), 0 0 8px rgba(158, 48, 40, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 32px rgba(158, 48, 40, 0.5), 0 0 12px rgba(158, 48, 40, 0.3);
+  }
+}
+
+.portal-button {
+  animation: portalPulse 2.4s ease-in-out infinite;
+}
+
+.portal-button:hover {
+  animation: none;
+  box-shadow: 0 0 40px rgba(158, 48, 40, 0.6), 0 0 16px rgba(158, 48, 40, 0.4);
+}

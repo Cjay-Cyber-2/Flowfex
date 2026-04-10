@@ -1,0 +1,37 @@
+/* LiquidMetalText.css */
+
+.liquid-metal-text {
+  font-family: var(--font-geist);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  background: linear-gradient(
+    135deg,
+    var(--color-velin) 0%,
+    var(--color-massicot) 50%,
+    var(--color-velin) 100%
+  );
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: metallicShift 8s ease-in-out infinite;
+}
+
+@keyframes metallicShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.liquid-char {
+  transition: transform 0.2s ease-out;
+  transform-style: preserve-3d;
+}
+
+.liquid-char:hover {
+  cursor: default;
+}

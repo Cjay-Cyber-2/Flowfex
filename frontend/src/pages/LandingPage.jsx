@@ -1,7 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Zap, Link2, Code2 } from 'lucide-react';
-import LiveCanvasBackground from '../components/canvas/LiveCanvasBackground';
+import ParticleField from '../components/animations/ParticleFieldSimple';
+import SignalWave from '../components/animations/SignalWave';
+import LiquidMetalText from '../components/animations/LiquidMetalText';
+import PortalButton from '../components/animations/PortalButton';
 import FlowfexLogo from '../assets/FlowfexLogo';
 import '../styles/landing.css';
 
@@ -11,24 +14,7 @@ function LandingPage() {
   const scrollProgressRef = useRef(null);
 
   useEffect(() => {
-    // Staggered character reveal for headline
-    const headline = heroRef.current?.querySelector('.hero-headline');
-    if (headline) {
-      const text = headline.textContent;
-      headline.textContent = '';
-      headline.style.opacity = '1';
-      
-      text.split('').forEach((char, i) => {
-        setTimeout(() => {
-          const span = document.createElement('span');
-          span.textContent = char;
-          span.style.animation = 'charReveal 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards';
-          span.style.opacity = '0';
-          span.style.transform = 'scale(0.8)';
-          headline.appendChild(span);
-        }, 400 + i * 28);
-      });
-    }
+    // Liquid metal text is handled by the component now
 
     // Scroll-reveal observer
     const observer = new IntersectionObserver(
@@ -88,20 +74,22 @@ function LandingPage() {
 
       {/* Hero Section */}
       <section className="hero-section" ref={heroRef}>
-        <LiveCanvasBackground />
+        <ParticleField />
+        <SignalWave />
         <div className="hero-content">
           <div className="hero-eyebrow">VISUAL AI ORCHESTRATION</div>
-          <h1 className="hero-headline" style={{ opacity: 0 }}>
-            See every step your AI takes.
-          </h1>
+          <LiquidMetalText 
+            text="See every step your AI takes."
+            className="hero-headline"
+          />
           <p className="hero-subheadline">
             Connect any agent. Watch it think, route, and execute. Guide it when it matters.
           </p>
           <div className="hero-cta-group">
-            <button className="btn-primary btn-hero" onClick={() => navigate('/onboarding')}>
+            <PortalButton onClick={() => navigate('/onboarding')}>
               Start Building
               <span className="cta-note">— it's free</span>
-            </button>
+            </PortalButton>
             <button className="btn-ghost btn-watch">
               Watch it work
               <ArrowRight size={16} style={{ transition: 'transform 0.2s' }} />

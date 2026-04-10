@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Zap, Link2, Eye } from 'lucide-react';
+import { ArrowRight, Zap, Link2, Code2 } from 'lucide-react';
 import LiveCanvasBackground from '../components/canvas/LiveCanvasBackground';
 import FlowfexLogo from '../assets/FlowfexLogo';
 import '../styles/landing.css';
@@ -8,6 +8,7 @@ import '../styles/landing.css';
 function LandingPage() {
   const navigate = useNavigate();
   const heroRef = useRef(null);
+  const scrollProgressRef = useRef(null);
 
   useEffect(() => {
     // Staggered character reveal for headline
@@ -28,10 +29,46 @@ function LandingPage() {
         }, 400 + i * 28);
       });
     }
+
+    // Scroll-reveal observer
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    document.querySelectorAll('.feature-section, .modes-section').forEach((section) => {
+      observer.observe(section);
+    });
+
+    // Scroll progress bar
+    const handleScroll = () => {
+      if (scrollProgressRef.current) {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollPercent = (scrollTop / docHeight) * 100;
+        scrollProgressRef.current.style.width = `${scrollPercent}%`;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   return (
     <div className="landing-page">
+      {/* Scroll Progress Bar */}
+      <div ref={scrollProgressRef} className="scroll-progress" style={{ width: '0%' }} />
+      
       {/* Navigation */}
       <nav className="landing-nav">
         <div className="nav-content">
@@ -67,7 +104,7 @@ function LandingPage() {
             </button>
             <button className="btn-ghost btn-watch">
               Watch it work
-              <ArrowRight size={16} />
+              <ArrowRight size={16} style={{ transition: 'transform 0.2s' }} />
             </button>
           </div>
         </div>
@@ -117,7 +154,7 @@ function LandingPage() {
                 <span>Link</span>
               </div>
               <div className="method-badge">
-                <Eye size={16} />
+                <Code2 size={16} />
                 <span>SDK</span>
               </div>
               <div className="method-badge">

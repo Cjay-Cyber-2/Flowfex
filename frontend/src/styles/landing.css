@@ -159,6 +159,14 @@
   padding: var(--space-20) var(--space-8);
   max-width: 1200px;
   margin: 0 auto;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s var(--ease-expo-out), transform 0.8s var(--ease-expo-out);
+}
+
+.feature-section.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .feature-content {
@@ -298,6 +306,14 @@
 .modes-section {
   text-align: center;
   padding: var(--space-20) var(--space-8);
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s var(--ease-expo-out), transform 0.8s var(--ease-expo-out);
+}
+
+.modes-section.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .section-heading {

@@ -12,12 +12,12 @@ function CanvasRenderer() {
 
   // Sample nodes for demo
   const sampleNodes = [
-    { id: 'node-1', x: 200, y: 150, radius: 18, state: 'completed', name: 'Input', type: 'input', icon: '📥' },
-    { id: 'node-2', x: 350, y: 120, radius: 16, state: 'active', name: 'Analyzer', type: 'tool', icon: '🔍' },
-    { id: 'node-3', x: 500, y: 200, radius: 18, state: 'active', name: 'Processor', type: 'tool', icon: '⚙️' },
-    { id: 'node-4', x: 650, y: 150, radius: 16, state: 'queued', name: 'Validator', type: 'tool', icon: '✓' },
-    { id: 'node-5', x: 350, y: 280, radius: 16, state: 'queued', name: 'Formatter', type: 'tool', icon: '📝' },
-    { id: 'node-6', x: 800, y: 200, radius: 18, state: 'idle', name: 'Output', type: 'output', icon: '📤' }
+    { id: 'node-1', x: 200, y: 150, width: 48, height: 48, state: 'completed', name: 'Input', type: 'input', icon: '📥' },
+    { id: 'node-2', x: 350, y: 120, width: 44, height: 44, state: 'active', name: 'Analyzer', type: 'tool', icon: '🔍' },
+    { id: 'node-3', x: 500, y: 200, width: 48, height: 48, state: 'active', name: 'Processor', type: 'tool', icon: '⚙️' },
+    { id: 'node-4', x: 650, y: 150, width: 44, height: 44, state: 'queued', name: 'Validator', type: 'tool', icon: '✓' },
+    { id: 'node-5', x: 350, y: 280, width: 44, height: 44, state: 'queued', name: 'Formatter', type: 'tool', icon: '📝' },
+    { id: 'node-6', x: 800, y: 200, width: 48, height: 48, state: 'idle', name: 'Output', type: 'output', icon: '📤' }
   ];
 
   const sampleEdges = [
@@ -116,6 +116,8 @@ function CanvasRenderer() {
       sampleNodes.forEach((node, i) => {
         const x = node.x;
         const y = node.y;
+        const w = node.width;
+        const h = node.height;
 
         // Idle drift
         const driftX = Math.sin(time * 0.5 + i) * 2;
@@ -133,25 +135,23 @@ function CanvasRenderer() {
         };
 
         const color = stateColors[node.state] || stateColors.idle;
+        const radius = 14; // --radius-node
 
         // Glow for active nodes
         if (node.state === 'active') {
           const glowSize = 6 + Math.sin(time * 2 + i) * 4;
-          const gradient = ctx.createRadialGradient(nx, ny, node.radius, nx, ny, node.radius + glowSize);
-          gradient.addColorStop(0, 'rgba(158, 48, 40, 0)');
-          gradient.addColorStop(1, 'rgba(158, 48, 40, 0.3)');
-          ctx.fillStyle = gradient;
+          ctx.fillStyle = 'rgba(158, 48, 40, 0.2)';
           ctx.beginPath();
-          ctx.arc(nx, ny, node.radius + glowSize, 0, Math.PI * 2);
+          ctx.roundRect(nx - w/2 - glowSize, ny - h/2 - glowSize, w + glowSize*2, h + glowSize*2, radius + glowSize);
           ctx.fill();
         }
 
-        // Node body
+        // Node body (rounded rectangle)
         ctx.fillStyle = '#1C1812';
         ctx.strokeStyle = color;
         ctx.lineWidth = node.state === 'active' ? 2 : 1.5;
         ctx.beginPath();
-        ctx.arc(nx, ny, node.radius, 0, Math.PI * 2);
+        ctx.roundRect(nx - w/2, ny - h/2, w, h, radius);
         ctx.fill();
         ctx.stroke();
 
@@ -165,7 +165,7 @@ function CanvasRenderer() {
         // Node label
         ctx.font = '500 13px "Space Grotesk", sans-serif';
         ctx.fillStyle = '#EDE8DF';
-        ctx.fillText(node.name, nx, ny + node.radius + 18);
+        ctx.fillText(node.name, nx, ny + h/2 + 18);
       });
 
       ctx.restore();
@@ -204,11 +204,12 @@ function CanvasRenderer() {
     const x = (e.clientX - rect.left - transform.x) / transform.scale;
     const y = (e.clientY - rect.top - transform.y) / transform.scale;
 
-    // Check if clicked on a node
+    // Check if clicked on a node (rectangle bounds)
     const clickedNode = sampleNodes.find(node => {
-      const dx = x - node.x;
-      const dy = y - node.y;
-      return Math.sqrt(dx * dx + dy * dy) <= node.radius;
+      const halfW = node.width / 2;
+      const halfH = node.height / 2;
+      return x >= node.x - halfW && x <= node.x + halfW &&
+             y >= node.y - halfH && y <= node.y + halfH;
     });
 
     if (clickedNode) {

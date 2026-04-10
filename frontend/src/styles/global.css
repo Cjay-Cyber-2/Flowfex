@@ -286,6 +286,28 @@
   }
 }
 
+@keyframes charReveal {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes sectionReveal {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Utility Classes */
 .animate-fade-in { animation: fadeIn var(--duration-base) var(--ease-expo-out); }
 .animate-slide-in-right { animation: slideInRight var(--duration-slow) var(--ease-expo-out); }
@@ -293,3 +315,30 @@
 .animate-pulse { animation: pulse 2s ease-in-out infinite; }
 .animate-breathe { animation: breathe 2.4s ease-in-out infinite; }
 .animate-spin { animation: spin 1s linear infinite; }
+
+/* Scroll Progress Bar */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-sinoper), var(--color-massicot));
+  z-index: 100;
+  transition: width 0.1s ease-out;
+}
+
+/* Toast Container */
+.toast-container {
+  position: fixed;
+  bottom: var(--space-6);
+  right: var(--space-6);
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  pointer-events: none;
+}
+
+.toast-container > * {
+  pointer-events: all;
+}

@@ -17,32 +17,40 @@ function OrchestrationCanvas() {
   } = useStore();
 
   const [showSettings, setShowSettings] = useState(false);
+  const [backendConnected, setBackendConnected] = useState(false);
 
   useEffect(() => {
-    // Initialize WebSocket connection
-    const ws = new WebSocket('ws://localhost:4000/ws');
-    
-    ws.onopen = () => {
-      console.log('WebSocket connected');
-    };
-    
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      // Handle incoming messages
-      console.log('Received:', data);
-    };
-    
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-    
-    ws.onclose = () => {
-      console.log('WebSocket disconnected');
-    };
-    
-    return () => {
-      ws.close();
-    };
+    // Initialize WebSocket connection with error handling
+    try {
+      const ws = new WebSocket('ws://localhost:4000/ws');
+      
+      ws.onopen = () => {
+        console.log('WebSocket connected');
+        setBackendConnected(true);
+      };
+      
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log('Received:', data);
+      };
+      
+      ws.onerror = (error) => {
+        console.error('WebSocket error (backend not available):', error);
+        setBackendConnected(false);
+      };
+      
+      ws.onclose = () => {
+        console.log('WebSocket disconnected');
+        setBackendConnected(false);
+      };
+      
+      return () => {
+        ws.close();
+      };
+    } catch (error) {
+      console.error('Failed to initialize WebSocket:', error);
+      setBackendConnected(false);
+    }
   }, []);
 
   const handleExecutionToggle = () => {

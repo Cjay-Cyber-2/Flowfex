@@ -1075,6 +1075,14 @@
   .modes-grid {
     grid-template-columns: 1fr;
   }
+  
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .problem-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 768px) {
@@ -1089,4 +1097,82 @@
   .connection-methods {
     grid-template-columns: 1fr;
   }
+  
+  .hero-stats {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+}
+
+/* Button System - iPhone Style Rounded */
+.btn-primary, .btn-ghost, .btn-hero {
+  border-radius: 24px; /* iPhone-style rounded */
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-satoshi);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-sinoper) 0%, #B82820 100%);
+  color: var(--color-velin);
+  padding: 12px 24px;
+  font-size: 16px; /* Larger, more readable */
+  box-shadow: 
+    0 4px 20px rgba(158, 48, 40, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 30px rgba(158, 48, 40, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-velin); /* More visible */
+  border: 1.5px solid rgba(237, 232, 223, 0.3);
+  padding: 10px 20px;
+  font-size: 16px; /* Larger, more readable */
+}
+
+.btn-ghost:hover {
+  background: rgba(237, 232, 223, 0.1);
+  border-color: rgba(237, 232, 223, 0.5);
+  color: var(--color-massicot);
+  transform: translateY(-1px);
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 20px;
+}
+
+.btn-lg {
+  padding: 16px 32px;
+  font-size: 18px;
+  border-radius: 28px;
+}
+
+/* Demo buttons */
+.demo-btn {
+  border-radius: 16px !important;
+}
+
+/* Approval buttons */
+.approval-actions button {
+  border-radius: 20px !important;
+}
+
+/* All other buttons */
+button {
+  border-radius: 20px;
 }

@@ -5,7 +5,7 @@ import ParticleField from '../components/animations/ParticleFieldSimple';
 import SignalWave from '../components/animations/SignalWave';
 import LiquidMetalText from '../components/animations/LiquidMetalText';
 import PortalButton from '../components/animations/PortalButton';
-import FlowfexLogo from '../assets/FlowfexLogo';
+import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import '../styles/landing.css';
 
 function LandingPage() {
@@ -59,7 +59,7 @@ function LandingPage() {
       <nav className="landing-nav">
         <div className="nav-content">
           <div className="wordmark-container" onClick={() => navigate('/')}>
-            <FlowfexLogo variant="full" size={32} animated={true} />
+            <FlowfexLogoNew size={32} animated={true} />
             <span className="nav-wordmark">Flowfex</span>
           </div>
           <div className="nav-actions">
@@ -152,7 +152,7 @@ function LandingPage() {
           <div className="solution-demo">
             <div className="demo-container">
               <div className="demo-header">
-                <FlowfexLogo variant="full" size={24} animated={true} />
+                <FlowfexLogoNew size={24} animated={true} />
                 <span>Live Orchestration</span>
                 <div className="demo-controls">
                   <button className="demo-btn"><Play size={14} /></button>
@@ -314,7 +314,7 @@ function LandingPage() {
       {/* Footer */}
       <footer className="landing-footer">
         <div className="footer-content">
-          <FlowfexLogo variant="full" size={28} animated={false} />
+          <FlowfexLogoNew size={28} animated={false} />
           <div className="footer-links">
             <a href="#docs">Documentation</a>
             <a href="#privacy">Privacy</a>

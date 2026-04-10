@@ -37,8 +37,8 @@ export default function SignalWave() {
       requestAnimationFrame(animate);
     };
 
-    // Create wave every 8 seconds
-    const interval = setInterval(createWave, 8000);
+    // Create wave every 6 seconds
+    const interval = setInterval(createWave, 6000);
     createWave(); // Initial wave
 
     return () => clearInterval(interval);

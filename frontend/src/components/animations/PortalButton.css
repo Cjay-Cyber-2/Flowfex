@@ -10,7 +10,7 @@
   color: var(--color-velin);
   background: linear-gradient(135deg, var(--color-sinoper) 0%, #B82820 100%);
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 28px; /* iPhone-style rounded */
   cursor: pointer;
   overflow: visible;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);

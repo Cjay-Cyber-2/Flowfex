@@ -1,0 +1,17 @@
+{
+  "name": "flowfex-backend",
+  "version": "1.0.0",
+  "description": "Flowfex Backend Orchestrator",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node src/__tests__/integration.test.js",
+    "skills:sample": "node src/skills/sampleConversion.js",
+    "skills:test-phase1": "node src/skills/testPhase1.js",
+    "skills:test-phase2": "node src/skills/testPhase2.js",
+    "skills:audit": "node src/skills/testPhase1.js"
+  },
+  "author": "",
+  "license": "ISC"
+}

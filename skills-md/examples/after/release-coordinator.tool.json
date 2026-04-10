@@ -1,0 +1,24 @@
+{
+  "id": "skill.commands.release-coordinator",
+  "name": "/release-coordinator",
+  "description": "Turns a rough release note or deploy request into a release-ready checklist.",
+  "category": "devops",
+  "sourceType": "command",
+  "tags": [
+    "devops",
+    "commands",
+    "release-coordinator",
+    "release",
+    "coordinator",
+    "turns",
+    "rough",
+    "note",
+    "deploy",
+    "request",
+    "use-when",
+    "instructions",
+    "notes"
+  ],
+  "validationStatus": "approved",
+  "qualityScore": 100
+}

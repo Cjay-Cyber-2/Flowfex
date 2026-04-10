@@ -1,0 +1,25 @@
+{
+  "id": "skill.product-planner",
+  "name": "Product Planner",
+  "description": "Builds structured product plans and execution checklists for feature work.",
+  "category": "automation",
+  "sourceType": "skill",
+  "tags": [
+    "automation",
+    "planning",
+    "product",
+    "roadmap",
+    "product-planner",
+    "planner",
+    "builds",
+    "structured",
+    "plans",
+    "execution",
+    "checklists",
+    "use-when",
+    "workflow",
+    "output-format"
+  ],
+  "validationStatus": "approved",
+  "qualityScore": 100
+}

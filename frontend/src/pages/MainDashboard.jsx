@@ -9,14 +9,14 @@ import {
   CheckCircle, XCircle, Clock, AlertTriangle, Info
 } from 'lucide-react';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
-import './MainDashboard.css';
+import { motion, AnimatePresence } from 'framer-motion';import ConnectAgentModal from '../components/ConnectAgentModal';import './MainDashboard.css';
 
 export default function MainDashboard() {
   const [selectedNode, setSelectedNode] = useState(null);
   const [viewMode, setViewMode] = useState('flow'); // map, flow, live
   const [isExecuting, setIsExecuting] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [showConnectModal, setShowConnectModal] = useState(false);
+  const [showConnectModal, setShowConnectModal] = useState(false);  const [isModalOpen, setIsModalOpen] = useState(false);  const [showTaskTooltip, setShowTaskTooltip] = useState(true);
   const [connectedAgents, setConnectedAgents] = useState([
     { id: 1, name: 'Claude Assistant', type: 'chat', status: 'connected', lastSeen: '2 min ago' },
     { id: 2, name: 'VS Code Agent', type: 'ide', status: 'offline', lastSeen: '1 hour ago' }
@@ -175,7 +175,7 @@ export default function MainDashboard() {
   const handleApproveNode = (nodeId) => {
     // Simulate approval - move to next step
     setExecutionStep(prev => prev + 1);
-    setIsExecuting(true);
+    setIsExecuting(true);    setShowTaskTooltip(false);
   };
 
   const handleRejectNode = (nodeId) => {
@@ -246,7 +246,7 @@ This will route all your tool selections through Flowfex for visual orchestratio
         <div className="nav-right">
           <button 
             className="nav-btn connect-btn"
-            onClick={() => setShowConnectModal(true)}
+            onClick={() => setIsModalOpen(true)}
             title="Connect Agent"
           >
             <Plus size={18} />
@@ -297,7 +297,7 @@ This will route all your tool selections through Flowfex for visual orchestratio
                   ))}
                   <button 
                     className="add-agent-btn"
-                    onClick={() => setShowConnectModal(true)}
+                    onClick={() => setIsModalOpen(true)}
                   >
                     <Plus size={16} />
                     Connect New Agent
@@ -574,6 +574,31 @@ This will route all your tool selections through Flowfex for visual orchestratio
           </aside>
         )}
       </div>
+
+      {/* Task tooltip */}
+      <AnimatePresence>
+        {showTaskTooltip && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            style={{
+              position: 'fixed', top: 60, left: '50%', transform: 'translateX(-50%)',
+              background: '#161E28', border: '1px solid rgba(158,48,40,0.3)',
+              borderRadius: 24, padding: '10px 20px', zIndex: 200,
+              fontFamily: 'var(--font-inter)', fontSize: 13, color: '#EDE8DF',
+              whiteSpace: 'nowrap', pointerEvents: 'none',
+            }}
+          >
+            <span style={{ position: 'absolute', top: -5, left: '50%', transform: 'translateX(-50%)',
+              width: 0, height: 0, borderLeft: '5px solid transparent',
+              borderRight: '5px solid transparent', borderBottom: '5px solid rgba(158,48,40,0.3)' }} />
+            Send a task to begin orchestration →
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <ConnectAgentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }

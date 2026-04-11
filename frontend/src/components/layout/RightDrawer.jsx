@@ -1,135 +1,337 @@
-import React from 'react';
-import { X, CheckCircle, XCircle, Ban, GitBranch } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ChevronDown, Pause, RotateCcw, ShieldCheck, X, XCircle } from 'lucide-react';
 import useStore from '../../store/useStore';
+import FlowIcon from '../common/FlowIcon';
 import './RightDrawer.css';
 
+function buildTimeline(node) {
+  const state = node?.state || 'idle';
+  const isApproval = state === 'approval';
+  const isCompleted = state === 'completed';
+  const isSkipped = state === 'skipped';
+
+  return [
+    { label: 'Queued', status: isSkipped ? 'complete' : state === 'idle' ? 'current' : 'complete' },
+    {
+      label: 'Running',
+      status:
+        state === 'queued'
+          ? 'upcoming'
+          : state === 'approval'
+            ? 'complete'
+            : state === 'active' || state === 'paused'
+              ? 'current'
+              : 'complete',
+    },
+    {
+      label: isApproval ? 'Awaiting approval' : 'Result',
+      status:
+        isApproval
+          ? 'current'
+          : isCompleted
+            ? 'complete'
+            : isSkipped
+              ? 'skipped'
+              : 'upcoming',
+    },
+  ];
+}
+
+function formatStatusLabel(state) {
+  switch (state) {
+    case 'active':
+      return 'Running';
+    case 'approval':
+      return 'Awaiting Approval';
+    case 'completed':
+      return 'Completed';
+    case 'queued':
+      return 'Queued';
+    case 'paused':
+      return 'Paused';
+    case 'skipped':
+      return 'Skipped';
+    default:
+      return 'Idle';
+  }
+}
+
 function RightDrawer() {
-  const { selectedNode, setSelectedNode, rightDrawerOpen, setRightDrawerOpen } = useStore();
+  const {
+    approveNode,
+    pauseNode,
+    rejectNode,
+    rerouteNode,
+    rightDrawerOpen,
+    selectedNode,
+    addNotification,
+    setRightDrawerOpen,
+    setSelectedNode,
+    updateNode,
+  } = useStore();
+  const [draft, setDraft] = useState({
+    title: '',
+    subtitle: '',
+    policy: '',
+    timeout: '',
+    owner: '',
+  });
+  const [showAlternatives, setShowAlternatives] = useState(false);
 
-  if (!rightDrawerOpen || !selectedNode) return null;
+  useEffect(() => {
+    if (!selectedNode) return;
 
-  const handleClose = () => {
-    setSelectedNode(null);
-    setRightDrawerOpen(false);
+    setDraft({
+      title: selectedNode.title || '',
+      subtitle: selectedNode.subtitle || '',
+      policy: selectedNode.config?.policy || '',
+      timeout: selectedNode.config?.timeout || '',
+      owner: selectedNode.owner || '',
+    });
+    setShowAlternatives(false);
+  }, [selectedNode]);
+
+  const timeline = useMemo(() => buildTimeline(selectedNode), [selectedNode]);
+  const isActionable = ['approval', 'queued', 'active', 'paused'].includes(selectedNode?.state || '');
+
+  const notify = (title, message, type = 'info') => {
+    addNotification({ title, message, type });
   };
 
+  const handleApprove = () => {
+    if (!selectedNode || !isActionable) return;
+    approveNode(selectedNode.id);
+    notify('Step approved', `${selectedNode.title} will continue through the live path.`, 'success');
+  };
+
+  const handleReject = () => {
+    if (!selectedNode || !isActionable) return;
+    rejectNode(selectedNode.id);
+    notify('Step rejected', `${selectedNode.title} was moved off the main path.`, 'warning');
+  };
+
+  const handleReroute = () => {
+    if (!selectedNode || !isActionable) return;
+    rerouteNode(selectedNode.id);
+    notify('Path rerouted', `${selectedNode.title} is now flowing through the fallback lane.`, 'info');
+  };
+
+  const handlePause = () => {
+    if (!selectedNode || !isActionable) return;
+    pauseNode(selectedNode.id);
+    notify('Execution updated', `${selectedNode.title} was ${selectedNode.state === 'paused' ? 'resumed' : 'paused'}.`, 'info');
+  };
+
+  const handleApplyChanges = () => {
+    if (!selectedNode) return;
+
+    updateNode(selectedNode.id, {
+      title: draft.title,
+      subtitle: draft.subtitle,
+      owner: draft.owner,
+      config: {
+        ...selectedNode.config,
+        policy: draft.policy,
+        timeout: draft.timeout,
+      },
+    });
+    notify('Changes applied', `${draft.title || selectedNode.title} was updated in the live graph.`, 'success');
+  };
+
+  if (!rightDrawerOpen) {
+    return (
+      <aside className="right-drawer right-drawer-empty">
+        <div className="right-drawer-empty-copy">
+          <span className="drawer-kicker">Node detail</span>
+          <h3>Select a node</h3>
+          <p>Reasoning, alternatives, and controls will appear here when you select a step.</p>
+        </div>
+      </aside>
+    );
+  }
+
   return (
-    <div className="right-drawer animate-slide-in-right">
-      <div className="drawer-header">
-        <div className="drawer-title-group">
-          <div className="node-icon">{selectedNode.icon || '⚡'}</div>
-          <div>
-            <h3 className="drawer-title">{selectedNode.name}</h3>
-            <span className="badge badge-sinoper">{selectedNode.type}</span>
-          </div>
-        </div>
-        <button className="drawer-close-btn" onClick={handleClose}>
-          <X size={16} />
-        </button>
-      </div>
-
-      <div className="drawer-content">
-        {/* Confidence Score */}
-        <div className="drawer-section">
-          <div className="confidence-display">
-            <div className="confidence-bar">
-              <div
-                className="confidence-fill"
-                style={{ width: `${selectedNode.confidence || 85}%` }}
-              />
-            </div>
-            <span className="confidence-value">{selectedNode.confidence || 85}%</span>
-          </div>
-        </div>
-
-        {/* Why This Tool Was Chosen */}
-        <div className="drawer-section">
-          <h4 className="section-heading">Why This Tool Was Chosen</h4>
-          <div className="reasoning-block">
-            <p>
-              {selectedNode.reasoning ||
-                'This tool was selected based on the task requirements and available capabilities. It provides the best match for the current execution context.'}
-            </p>
-          </div>
-        </div>
-
-        {/* Alternatives Considered */}
-        <div className="drawer-section">
-          <h4 className="section-heading">Alternatives Considered</h4>
-          <div className="alternatives-list">
-            {(selectedNode.alternatives || [
-              { name: 'Alternative Tool A', reason: 'Lower confidence score', confidence: 72 },
-              { name: 'Alternative Tool B', reason: 'Missing required capability', confidence: 65 }
-            ]).map((alt, i) => (
-              <div key={i} className="alternative-item">
-                <div className="alternative-header">
-                  <span className="alternative-name">{alt.name}</span>
-                  <span className="alternative-confidence">{alt.confidence}%</span>
-                </div>
-                <p className="alternative-reason">{alt.reason}</p>
-                <div className="alternative-bar">
-                  <div
-                    className="alternative-bar-fill"
-                    style={{ width: `${alt.confidence}%` }}
-                  />
-                </div>
+    <aside className="right-drawer">
+      {selectedNode ? (
+        <>
+          <div className="drawer-header">
+            <div className="drawer-title-group">
+              <span className="drawer-node-icon">
+                <FlowIcon name={selectedNode.icon} size={18} />
+              </span>
+              <div>
+                <span className="drawer-kicker">{selectedNode.type}</span>
+                <h3 className="drawer-title">{selectedNode.title}</h3>
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        {/* Inputs */}
-        <div className="drawer-section">
-          <h4 className="section-heading">Inputs</h4>
-          <div className="inputs-list">
-            {Object.entries(selectedNode.inputs || { task: 'Sample task input', context: 'Execution context' }).map(
-              ([key, value]) => (
-                <div key={key} className="input-item">
-                  <span className="input-key">{key}:</span>
-                  <span className="input-value">{String(value)}</span>
+            <div className={`status-pill status-pill-${selectedNode.state}`}>
+              {formatStatusLabel(selectedNode.state)}
+            </div>
+
+            <button
+              className="drawer-close-btn"
+              onClick={() => {
+                setSelectedNode(null);
+                setRightDrawerOpen(false);
+              }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          <div className="drawer-content" key={selectedNode.id}>
+            <section className="drawer-section">
+              <h4 className="drawer-section-heading">Decision Transparency</h4>
+
+              <div className="reasoning-card">
+                <span className="drawer-kicker">Why this was chosen</span>
+                <p>{selectedNode.reasoning}</p>
+              </div>
+
+              <div className="alternatives-list">
+                <button
+                  className={`alternatives-toggle ${showAlternatives ? 'is-open' : ''}`}
+                  onClick={() => setShowAlternatives((current) => !current)}
+                >
+                  <span className="drawer-kicker">Alternatives considered</span>
+                  <ChevronDown size={16} />
+                </button>
+                {showAlternatives
+                  ? selectedNode.alternatives?.map((alternative) => (
+                      <div key={alternative.name} className="alternative-row">
+                        <div>
+                          <strong>{alternative.name}</strong>
+                          <p>{alternative.reason}</p>
+                        </div>
+                        <span>{alternative.confidence}%</span>
+                      </div>
+                    ))
+                  : null}
+              </div>
+
+              <div className="timeline-list">
+                <span className="drawer-kicker">Current state</span>
+                {timeline.map((item) => (
+                  <div key={item.label} className={`timeline-row timeline-row-${item.status}`}>
+                    <span className="timeline-dot" />
+                    <span>{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="drawer-section">
+              <h4 className="drawer-section-heading">Controls</h4>
+              <div className={`drawer-actions ${isActionable ? '' : 'is-dormant'}`}>
+                <button
+                  className="btn btn-primary drawer-action-primary"
+                  onClick={handleApprove}
+                  disabled={!isActionable}
+                >
+                  <ShieldCheck size={16} />
+                  Approve
+                </button>
+                <button className="btn btn-ghost" onClick={handleReject} disabled={!isActionable}>
+                  <XCircle size={16} />
+                  Reject
+                </button>
+                <button className="btn btn-ghost" onClick={handleReroute} disabled={!isActionable}>
+                  <RotateCcw size={16} />
+                  Reroute
+                </button>
+                <button className="btn btn-ghost" onClick={handlePause} disabled={!isActionable}>
+                  <Pause size={16} />
+                  Pause
+                </button>
+              </div>
+            </section>
+
+            <section className="drawer-section">
+              <h4 className="drawer-section-heading">Configuration</h4>
+              <div className="drawer-form-grid">
+                <label>
+                  <span className="drawer-kicker">Step Name</span>
+                  <input
+                    className="input"
+                    value={draft.title}
+                    onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
+                  />
+                </label>
+                <label>
+                  <span className="drawer-kicker">State Label</span>
+                  <input
+                    className="input"
+                    value={draft.subtitle}
+                    onChange={(event) => setDraft((current) => ({ ...current, subtitle: event.target.value }))}
+                  />
+                </label>
+                <label>
+                  <span className="drawer-kicker">Policy</span>
+                  <input
+                    className="input"
+                    value={draft.policy}
+                    onChange={(event) => setDraft((current) => ({ ...current, policy: event.target.value }))}
+                  />
+                </label>
+                <label>
+                  <span className="drawer-kicker">Timeout</span>
+                  <input
+                    className="input"
+                    value={draft.timeout}
+                    onChange={(event) => setDraft((current) => ({ ...current, timeout: event.target.value }))}
+                  />
+                </label>
+                <label>
+                  <span className="drawer-kicker">Owner</span>
+                  <input
+                    className="input"
+                    value={draft.owner}
+                    onChange={(event) => setDraft((current) => ({ ...current, owner: event.target.value }))}
+                  />
+                </label>
+              </div>
+            </section>
+
+            <section className="drawer-section">
+              <h4 className="drawer-section-heading">Metadata</h4>
+              <div className="metadata-list">
+                {Object.entries(selectedNode.inputs || {}).map(([key, value]) => (
+                  <div key={key} className="metadata-row">
+                    <span>{key}</span>
+                    <strong>{String(value)}</strong>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {selectedNode.risks?.length ? (
+              <section className="drawer-section">
+                <h4 className="drawer-section-heading">Risks</h4>
+                <div className="metadata-list">
+                  {selectedNode.risks.map((risk) => (
+                    <div key={risk} className="risk-row">
+                      <span className="risk-dot" />
+                      <p>{risk}</p>
+                    </div>
+                  ))}
                 </div>
-              )
-            )}
-          </div>
-        </div>
+              </section>
+            ) : null}
 
-        {/* Current State */}
-        <div className="drawer-section">
-          <h4 className="section-heading">Current State</h4>
-          <div className="state-display">
-            <span className={`badge badge-${selectedNode.state === 'active' ? 'sinoper' : 'verdigris'}`}>
-              {selectedNode.state || 'active'}
-            </span>
-            <p className="state-description">
-              {selectedNode.stateDescription || 'Node is currently processing'}
-            </p>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="drawer-section">
-          <h4 className="section-heading">Actions</h4>
-          <div className="actions-grid">
-            <button className="btn-primary" style={{ width: '100%' }}>
-              <CheckCircle size={16} />
-              Approve
-            </button>
-            <button className="btn-ghost" style={{ width: '100%' }}>
-              <XCircle size={16} />
-              Reject
-            </button>
-            <button className="btn-ghost" style={{ width: '100%' }}>
-              <Ban size={16} />
-              Block this tool
-            </button>
-            <button className="btn-ghost" style={{ width: '100%' }}>
-              <GitBranch size={16} />
-              Reroute from here
+            <button className="btn btn-primary drawer-apply-button" onClick={handleApplyChanges}>
+              Apply Changes
             </button>
           </div>
+        </>
+      ) : (
+        <div className="right-drawer-empty-copy">
+          <span className="drawer-kicker">Node detail</span>
+          <h3>Select a node</h3>
+          <p>Reasoning, alternatives, and controls will appear here when you select a step.</p>
         </div>
-      </div>
-    </div>
+      )}
+    </aside>
   );
 }
 

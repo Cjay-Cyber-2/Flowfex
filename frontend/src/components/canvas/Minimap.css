@@ -1,0 +1,127 @@
+/* Minimap - Bird's Eye View */
+
+.minimap {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 1000;
+  
+  width: 180px;
+  height: 120px;
+  
+  background: rgba(8, 12, 16, 0.9);
+  border: 1px solid rgba(232, 237, 242, 0.1);
+  border-radius: 10px;
+  backdrop-filter: blur(8px);
+  
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.minimap-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Minimap Edges */
+.minimap-edge {
+  stroke-width: 0.5px;
+  fill: none;
+  transition: stroke 400ms ease-in-out;
+}
+
+.minimap-edge-inactive {
+  stroke: rgba(232, 237, 242, 0.12);
+}
+
+.minimap-edge-active,
+.minimap-edge-executing {
+  stroke: rgba(0, 229, 195, 0.8);
+}
+
+.minimap-edge-completed {
+  stroke: rgba(0, 229, 195, 0.22);
+}
+
+.minimap-edge-rerouted {
+  stroke: rgba(0, 229, 195, 0.5);
+  stroke-dasharray: 2 1;
+}
+
+/* Minimap Nodes */
+.minimap-node {
+  transition: fill 400ms ease-in-out;
+}
+
+.minimap-node-idle {
+  fill: rgba(232, 237, 242, 0.2);
+}
+
+.minimap-node-queued {
+  fill: rgba(0, 229, 195, 0.3);
+}
+
+.minimap-node-executing,
+.minimap-node-active {
+  fill: rgba(0, 229, 195, 0.9);
+}
+
+.minimap-node-awaiting-approval {
+  fill: rgba(0, 229, 195, 0.7);
+  animation: minimap-pulse 1.8s ease-in-out infinite;
+}
+
+.minimap-node-completed {
+  fill: rgba(0, 229, 195, 0.25);
+}
+
+.minimap-node-rejected,
+.minimap-node-skipped {
+  fill: rgba(232, 237, 242, 0.1);
+}
+
+/* Viewport Indicator */
+.minimap-viewport {
+  fill: rgba(0, 229, 195, 0.05);
+  stroke: rgba(0, 229, 195, 0.6);
+  stroke-width: 1.5px;
+  cursor: grab;
+  transition: all 150ms ease-out;
+}
+
+.minimap-viewport:hover {
+  fill: rgba(0, 229, 195, 0.08);
+  stroke: rgba(0, 229, 195, 0.8);
+}
+
+.minimap-viewport:active {
+  cursor: grabbing;
+  fill: rgba(0, 229, 195, 0.12);
+  stroke: rgba(0, 229, 195, 1.0);
+}
+
+/* Animations */
+@keyframes minimap-pulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1.0;
+  }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .minimap {
+    bottom: 80px; /* Above toolbar on tablet */
+  }
+}
+
+@media (max-width: 768px) {
+  .minimap {
+    width: 140px;
+    height: 100px;
+    bottom: 80px;
+    left: 16px;
+  }
+}

@@ -4,19 +4,19 @@
   position: relative;
   height: 56px;
   padding: 0 var(--space-8);
-  font-family: var(--font-satoshi);
-  font-size: var(--text-md);
-  font-weight: 500;
-  color: var(--color-velin);
-  background: linear-gradient(135deg, var(--color-sinoper) 0%, #B82820 100%);
+  font-family: var(--font-inter);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #031014;
+  background: linear-gradient(135deg, var(--color-sinoper) 0%, var(--color-massicot) 100%);
   border: none;
-  border-radius: 28px; /* iPhone-style rounded */
+  border-radius: 999px;
   cursor: pointer;
   overflow: visible;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 
-    0 0 30px rgba(158, 48, 40, 0.4),
-    0 4px 20px rgba(0, 0, 0, 0.3),
+    0 0 28px rgba(0, 212, 170, 0.28),
+    0 10px 30px rgba(0, 0, 0, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   animation: portalPulse 2.4s ease-in-out infinite;
 }
@@ -41,8 +41,8 @@
 .portal-button:hover {
   transform: translateY(-2px) scale(1.02);
   box-shadow: 
-    0 0 50px rgba(158, 48, 40, 0.6),
-    0 8px 30px rgba(0, 0, 0, 0.4);
+    0 0 42px rgba(0, 212, 170, 0.32),
+    0 12px 36px rgba(0, 0, 0, 0.34);
   animation: none;
 }
 
@@ -54,10 +54,10 @@
 
 @keyframes portalPulse {
   0%, 100% {
-    box-shadow: 0 0 30px rgba(158, 48, 40, 0.4), 0 4px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 28px rgba(0, 212, 170, 0.28), 0 10px 30px rgba(0, 0, 0, 0.28);
   }
   50% {
-    box-shadow: 0 0 40px rgba(158, 48, 40, 0.6), 0 4px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 36px rgba(127, 255, 240, 0.28), 0 10px 30px rgba(0, 0, 0, 0.28);
   }
 }
 

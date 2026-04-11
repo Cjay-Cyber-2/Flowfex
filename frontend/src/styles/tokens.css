@@ -1,45 +1,37 @@
-/* FLOWFEX DESIGN TOKENS - Historically Rare Color Palette */
+/* FLOWFEX DESIGN TOKENS - Luminous Void */
 
 :root {
   /* === COLOR SYSTEM === */
-  /* Primary base - Eigengrau: German optical science term for color perceived in total darkness */
-  --color-eigengrau: #16161D;
-  
-  /* Surface - Wenge Ash: Named after endangered Millettia laurentii African hardwood */
-  --color-wenge-ash: #1C1812;
-  
-  /* Secondary depth - Caput Mortuum: Latin "dead head", ancient iron oxide pigment */
-  --color-caput-mortuum: #2C1620;
-  
-  /* Main accent - Sinoper: Named after ancient port city Sinop, Turkey */
-  --color-sinoper: #9E3028;
-  --color-sinoper-bright: #C23028;
-  
-  /* Secondary accent - Mummy Brown: Historical pigment from ground Egyptian mummies */
-  --color-mummy-brown: #8B5B38;
-  
-  /* Highlight - Massicot: Ancient lead monoxide yellow from medieval manuscripts */
-  --color-massicot: #C49530;
-  --color-massicot-glow: #D4A840;
-  
-  /* Text primary - Velin: Finest grade calfskin parchment */
-  --color-velin: #EDE8DF;
-  
-  /* Text muted - Bistre: Ancient brown ink from wood soot */
-  --color-bistre: #7A6A5C;
-  
-  /* Success state - Verdigris Pale: Green patina on copper */
-  --color-verdigris-pale: #3D7A6A;
-  
-  /* Warning state - Indian Yellow: Rare pigment from mango-fed cow urine */
-  --color-indian-yellow: #C78B2A;
+  --color-eigengrau: #080c10;
+  --color-wenge-ash: #0d1117;
+  --color-caput-mortuum: #111820;
+  --color-sinoper: #00d4aa;
+  --color-sinoper-bright: #7ffff0;
+  --color-mummy-brown: #20303a;
+  --color-massicot: #00e5c3;
+  --color-massicot-glow: #7ffff0;
+  --color-velin: #e8edf2;
+  --color-bistre: #8a96a3;
+  --color-verdigris-pale: #46bda9;
+  --color-indian-yellow: #8a7040;
+  --color-amber-muted: #8a7040;
+  --color-brand: var(--color-sinoper);
+  --color-brand-bright: var(--color-massicot);
+  --color-text-primary: var(--color-velin);
+  --color-text-muted: var(--color-bistre);
+  --color-void: var(--color-eigengrau);
   
   /* === TYPOGRAPHY === */
-  --font-geist: 'Geist', 'General Sans', 'SF Pro Display', system-ui, sans-serif;
-  --font-satoshi: 'Satoshi', 'Helvetica Neue', sans-serif;
+  --font-geist: 'Syne', 'Geist', 'General Sans', 'SF Pro Display', system-ui, sans-serif;
+  --font-satoshi: 'Inter', 'Helvetica Neue', sans-serif;
   --font-inter: 'Inter', system-ui, sans-serif;
   --font-space-grotesk: 'Space Grotesk', 'DM Sans', sans-serif;
   --font-jetbrains: 'JetBrains Mono', monospace;
+  --font-heading: var(--font-geist);
+  --font-body: var(--font-inter);
+  --font-technical: var(--font-space-grotesk);
+  --font-mono: var(--font-jetbrains);
+  --font-syne: var(--font-geist);
   
   /* Typography scale (base 16px) */
   --text-xs: 0.6875rem;    /* 11px */
@@ -59,6 +51,7 @@
   --space-4: 1rem;      /* 16px */
   --space-5: 1.25rem;   /* 20px */
   --space-6: 1.5rem;    /* 24px */
+  --space-7: 1.75rem;   /* 28px */
   --space-8: 2rem;      /* 32px */
   --space-10: 2.5rem;   /* 40px */
   --space-12: 3rem;     /* 48px */
@@ -68,20 +61,20 @@
   /* === BORDER RADIUS === */
   --radius-sm: 4px;
   --radius-md: 8px;
-  --radius-lg: 12px;
+  --radius-lg: 16px;
   --radius-xl: 20px;
-  --radius-node: 14px;
+  --radius-node: 24px;
   
   /* === SHADOWS === */
-  --shadow-sm: 0 1px 4px rgba(22, 22, 29, 0.8);
-  --shadow-md: 0 4px 20px rgba(22, 22, 29, 0.9), 0 0 1px rgba(198, 149, 48, 0.1);
-  --shadow-lg: 0 8px 40px rgba(22, 22, 29, 0.95), 0 0 2px rgba(158, 48, 40, 0.15);
-  --shadow-glow-sinoper: 0 0 24px rgba(158, 48, 40, 0.35), 0 0 8px rgba(158, 48, 40, 0.2);
-  --shadow-glow-massicot: 0 0 24px rgba(196, 149, 48, 0.3), 0 0 8px rgba(196, 149, 48, 0.15);
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 10px 28px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(0, 212, 170, 0.05);
+  --shadow-lg: 0 24px 68px rgba(0, 0, 0, 0.34), 0 0 0 1px rgba(0, 212, 170, 0.06);
+  --shadow-glow-sinoper: 0 0 26px rgba(0, 212, 170, 0.24), 0 0 10px rgba(0, 212, 170, 0.18);
+  --shadow-glow-massicot: 0 0 26px rgba(127, 255, 240, 0.18), 0 0 10px rgba(127, 255, 240, 0.14);
   
   /* === LAYOUT === */
-  --left-rail-width: 240px;
-  --top-bar-height: 48px;
+  --left-rail-width: 280px;
+  --top-bar-height: 76px;
   --status-bar-height: 28px;
   --right-drawer-width: 360px;
   
@@ -96,9 +89,9 @@
   /* === ANIMATION === */
   --ease-expo-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-expo-in: cubic-bezier(0.7, 0, 0.84, 0);
-  --duration-fast: 120ms;
-  --duration-base: 220ms;
-  --duration-slow: 400ms;
+  --duration-fast: 160ms;
+  --duration-base: 280ms;
+  --duration-slow: 460ms;
   --duration-slower: 600ms;
   
   /* === Z-INDEX === */
@@ -135,6 +128,7 @@ body {
   background-color: var(--color-eigengrau);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 #root {
@@ -162,7 +156,7 @@ body {
 
 /* === FOCUS STYLES === */
 *:focus-visible {
-  outline: 2px solid var(--color-massicot);
+  outline: 2px solid var(--color-sinoper);
   outline-offset: 2px;
 }
 
@@ -170,7 +164,7 @@ button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid var(--color-massicot);
+  outline: 2px solid var(--color-sinoper);
   outline-offset: 2px;
 }
 
@@ -190,5 +184,5 @@ textarea:focus-visible {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-mummy-brown);
+  background: var(--color-sinoper);
 }

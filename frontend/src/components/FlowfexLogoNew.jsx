@@ -33,12 +33,12 @@ export default function FlowfexLogoNew({ size = 32, animated = true, className =
       
       <style jsx>{`
         .flowfex-logo {
-          color: var(--color-massicot);
+          color: var(--color-sinoper);
           transition: all 0.3s ease;
         }
         
         .flowfex-logo:hover {
-          color: var(--color-sinoper);
+          color: var(--color-massicot);
         }
         
         .flowfex-logo.animated .logo-circle-1 {

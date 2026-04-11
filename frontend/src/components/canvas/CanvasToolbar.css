@@ -1,0 +1,97 @@
+/* Canvas Toolbar - Floating Tool Palette */
+
+.canvas-toolbar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  
+  width: 280px;
+  height: 40px;
+  
+  background: rgba(13, 17, 23, 0.92);
+  border: 1px solid rgba(232, 237, 242, 0.1);
+  border-radius: 20px;
+  backdrop-filter: blur(16px);
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 12px;
+  
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Toolbar Button */
+.toolbar-button {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  color: rgba(232, 237, 242, 0.6);
+  cursor: pointer;
+  
+  transition: all 150ms ease-out;
+}
+
+.toolbar-button:hover {
+  color: rgba(232, 237, 242, 1.0);
+  background: rgba(232, 237, 242, 0.05);
+  box-shadow: 0 0 12px rgba(0, 229, 195, 0.15);
+}
+
+.toolbar-button:active {
+  transform: scale(0.97);
+}
+
+/* Active Tool */
+.toolbar-button-active {
+  background: rgba(0, 229, 195, 0.15);
+  border: 1px solid rgba(0, 229, 195, 0.3);
+  color: rgba(0, 229, 195, 1.0);
+}
+
+.toolbar-button-active:hover {
+  background: rgba(0, 229, 195, 0.2);
+  border-color: rgba(0, 229, 195, 0.4);
+  box-shadow: 0 0 16px rgba(0, 229, 195, 0.25);
+}
+
+/* Icon Styling */
+.toolbar-button svg {
+  stroke-width: 1.2px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .canvas-toolbar {
+    width: calc(100% - 48px);
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .canvas-toolbar {
+    bottom: 16px;
+    height: 48px;
+    gap: 12px;
+  }
+  
+  .toolbar-button {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .toolbar-button svg {
+    width: 20px;
+    height: 20px;
+  }
+}

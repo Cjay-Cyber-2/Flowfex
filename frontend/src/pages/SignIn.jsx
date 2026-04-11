@@ -1,126 +1,135 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Eye, EyeOff, Globe, Github } from 'lucide-react';
 import LiveCanvasBackground from '../components/canvas/LiveCanvasBackground';
-import FlowfexLogo from '../assets/FlowfexLogo';
+import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import useStore from '../store/useStore';
-import '../styles/auth.css';
 
 function SignIn() {
   const navigate = useNavigate();
-  const setUser = useStore(state => state.setUser);
+  const setUser = useStore(s => s.setUser);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [remember, setRemember] = useState(false);
+  const [showPw, setShowPw] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Mock authentication
     setUser({ email, name: email.split('@')[0] });
     navigate('/canvas');
   };
 
-  const handleAnonymous = () => {
-    navigate('/canvas');
-  };
-
   return (
-    <div className="auth-page">
-      <div className="auth-split">
-        {/* Left Panel - Form */}
-        <div className="auth-form-panel">
-          <div className="auth-form-container">
-            <div className="logo-container" onClick={() => navigate('/')}>
-              <FlowfexLogo variant="full" size={32} animated={false} />
-            </div>
-            
-            <div className="auth-form-content">
-              <h1 className="auth-heading">Welcome back.</h1>
-              <p className="auth-subheading">Your sessions are waiting.</p>
-              
-              <form onSubmit={handleSubmit} className="auth-form">
-                <div className="form-group">
-                  <label htmlFor="email" className="form-label">Email</label>
-                  <input
-                    id="email"
-                    type="email"
-                    className="input"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label htmlFor="password" className="form-label">Password</label>
-                  <div className="password-input-wrapper">
-                    <input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      className="input"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                    <button
-                      type="button"
-                      className="password-toggle"
-                      onClick={() => setShowPassword(!showPassword)}
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="form-checkbox">
-                  <input
-                    id="remember"
-                    type="checkbox"
-                    checked={remember}
-                    onChange={(e) => setRemember(e.target.checked)}
-                  />
-                  <label htmlFor="remember">Remember me</label>
-                </div>
-                
-                <button type="submit" className="btn-primary" style={{ width: '100%', height: '48px' }}>
-                  Sign In
-                </button>
-                
-                <div className="auth-divider">
-                  <span>or</span>
-                </div>
-                
-                <button
-                  type="button"
-                  className="btn-ghost"
-                  style={{ width: '100%', height: '48px' }}
-                  onClick={handleAnonymous}
-                >
-                  Continue without signing in
-                </button>
-                
-                <div className="auth-links">
-                  <a href="#forgot">Forgot password?</a>
-                  <a href="#" onClick={(e) => { e.preventDefault(); navigate('/signup'); }}>
-                    Create account
-                  </a>
-                </div>
-              </form>
+    <div style={styles.page}>
+      <div style={styles.bgWrap}>
+        <LiveCanvasBackground />
+        <div style={styles.bgBlur} />
+      </div>
+
+      <motion.div
+        style={styles.card}
+        initial={{ scale: 0.94, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div style={styles.logoRow}>
+          <FlowfexLogoNew size={38} animated={false} />
+        </div>
+        <h1 style={styles.title}>Welcome back.</h1>
+        <p style={styles.subtitle}>Your orchestrations are waiting.</p>
+
+        <div style={styles.socialRow}>
+          {[{ icon: Globe, label: 'Continue with Google' }, { icon: Github, label: 'Continue with GitHub' }].map(({ icon: Icon, label }) => (
+            <button key={label} style={styles.socialBtn}>
+              <Icon size={16} style={{ marginRight: 8 }} />{label}
+            </button>
+          ))}
+        </div>
+
+        <div style={styles.dividerRow}>
+          <div style={styles.hairline} />
+          <span style={styles.orText}>or</span>
+          <div style={styles.hairline} />
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div style={styles.fieldGroup}>
+            <label style={styles.label}>EMAIL</label>
+            <input
+              type="email" required value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              style={styles.input}
+              onFocus={e => Object.assign(e.target.style, styles.inputFocus)}
+              onBlur={e => Object.assign(e.target.style, { borderColor: 'rgba(0,212,170,0.1)', boxShadow: 'none' })}
+            />
+          </div>
+
+          <div style={styles.fieldGroup}>
+            <label style={styles.label}>PASSWORD</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPw ? 'text' : 'password'} required value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                style={{ ...styles.input, paddingRight: 44 }}
+                onFocus={e => Object.assign(e.target.style, styles.inputFocus)}
+                onBlur={e => Object.assign(e.target.style, { borderColor: 'rgba(0,212,170,0.1)', boxShadow: 'none' })}
+              />
+              <button type="button" onClick={() => setShowPw(!showPw)} style={styles.eyeBtn}>
+                {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
           </div>
-        </div>
-        
-        {/* Right Panel - Live Canvas */}
-        <div className="auth-visual-panel">
-          <LiveCanvasBackground />
-        </div>
-      </div>
+
+          <div style={{ textAlign: 'right', marginBottom: 24 }}>
+            <a href="#forgot" style={styles.forgotLink}>Forgot password?</a>
+          </div>
+
+          <button type="submit" style={styles.submitBtn}>Sign In</button>
+        </form>
+
+        <p style={styles.switchText}>
+          Don't have an account?{' '}
+          <span style={styles.switchLink} onClick={() => navigate('/signup')}>Sign up free</span>
+        </p>
+      </motion.div>
     </div>
   );
 }
+
+const styles = {
+  page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-eigengrau)', position: 'relative' },
+  bgWrap: { position: 'fixed', inset: 0, zIndex: 0, opacity: 0.2 },
+  bgBlur: { position: 'absolute', inset: 0, backdropFilter: 'blur(2px)' },
+  card: {
+    position: 'relative',
+    zIndex: 1,
+    width: 440,
+    background: 'rgba(13, 19, 27, 0.86)',
+    border: '1px solid rgba(0, 212, 170, 0.14)',
+    boxShadow: '0 28px 90px rgba(0,0,0,0.38), 0 0 0 1px rgba(0,212,170,0.04)',
+    backdropFilter: 'blur(32px) saturate(180%)',
+    borderRadius: 24,
+    padding: 48,
+  },
+  logoRow: { display: 'flex', justifyContent: 'center', marginBottom: 24 },
+  title: { fontFamily: 'var(--font-geist)', fontSize: 32, fontWeight: 700, color: 'var(--color-velin)', margin: '0 0 8px', textAlign: 'center', letterSpacing: '-0.03em' },
+  subtitle: { fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--color-bistre)', margin: '0 0 28px', textAlign: 'center' },
+  socialRow: { display: 'flex', gap: 10, marginBottom: 20 },
+  socialBtn: { flex: 1, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(8,12,16,0.58)', border: '1px solid rgba(0,212,170,0.1)', borderRadius: 14, color: 'rgba(232,237,242,0.78)', fontFamily: 'Inter, sans-serif', fontSize: 13, cursor: 'pointer' },
+  dividerRow: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 },
+  hairline: { flex: 1, height: 1, background: 'rgba(0,212,170,0.1)' },
+  orText: { fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--color-bistre)' },
+  fieldGroup: { marginBottom: 16 },
+  label: { display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--color-bistre)', marginBottom: 6 },
+  input: { width: '100%', height: 48, background: 'rgba(8,12,16,0.88)', border: '1px solid rgba(0,212,170,0.1)', borderRadius: 14, fontFamily: 'Inter, sans-serif', fontSize: 15, color: 'var(--color-velin)', padding: '0 16px', boxSizing: 'border-box', outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s' },
+  inputFocus: { borderColor: 'var(--color-sinoper)', boxShadow: '0 0 0 3px rgba(0,212,170,0.12)' },
+  eyeBtn: { position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--color-bistre)', cursor: 'pointer', padding: 0, display: 'flex' },
+  forgotLink: { fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--color-sinoper)', textDecoration: 'none' },
+  submitBtn: { width: '100%', height: 50, background: 'var(--color-sinoper)', border: 'none', borderRadius: 14, fontFamily: 'var(--font-inter)', fontSize: 15, fontWeight: 700, color: '#031014', cursor: 'pointer', marginBottom: 20, boxShadow: '0 18px 38px rgba(0,212,170,0.22)' },
+  switchText: { fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--color-bistre)', textAlign: 'center', margin: 0 },
+  switchLink: { color: 'var(--color-sinoper)', cursor: 'pointer' },
+};
 
 export default SignIn;

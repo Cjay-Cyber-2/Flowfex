@@ -7,14 +7,15 @@ function Toast() {
   const { notifications, removeNotification } = useStore();
 
   useEffect(() => {
-    notifications.forEach((notification) => {
-      if (notification.duration) {
-        const timer = setTimeout(() => {
+    const timers = notifications
+      .filter((notification) => notification.duration)
+      .map((notification) =>
+        setTimeout(() => {
           removeNotification(notification.id);
-        }, notification.duration);
-        return () => clearTimeout(timer);
-      }
-    });
+        }, notification.duration)
+      );
+
+    return () => timers.forEach((timer) => clearTimeout(timer));
   }, [notifications, removeNotification]);
 
   const getIcon = (type) => {

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
-import MainDashboard from './pages/MainDashboard';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Onboarding from './pages/Onboarding';
@@ -16,11 +15,11 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/dashboard" element={<MainDashboard />} />
+        <Route path="/dashboard" element={<OrchestrationCanvas />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/onboarding" element={<MainDashboard />} />
-        <Route path="/canvas" element={<OrchestrationCanvas />} />
+        <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/canvas" element={<Navigate to="/dashboard" replace />} />
         <Route path="/session/:id" element={<SessionDetail />} />
         <Route path="/history" element={<History />} />
         <Route path="/settings" element={<Settings />} />

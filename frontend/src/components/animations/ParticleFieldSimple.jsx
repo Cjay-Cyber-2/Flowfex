@@ -9,16 +9,20 @@ export default function ParticleField() {
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
     const particles = [];
     const particleCount = 150;
     const connectionDistance = 120;
-    const mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+    const mouse = { x: 0, y: 0 };
+    let animationFrameId = 0;
 
-    // Colors from Flowfex palette
-    const colors = ['#9E3028', '#C49530', '#3D7A6A'];
+    const colors = ['#00D4AA', '#7FFFF0', 'rgba(70, 189, 169, 0.9)'];
+
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      mouse.x = canvas.width / 2;
+      mouse.y = canvas.height / 2;
+    };
 
     class Particle {
       constructor() {
@@ -60,13 +64,14 @@ export default function ParticleField() {
     }
 
     // Create particles
+    handleResize();
     for (let i = 0; i < particleCount; i++) {
       particles.push(new Particle());
     }
 
     // Animation loop
     function animate() {
-      ctx.fillStyle = 'rgba(22, 22, 29, 0.1)';
+      ctx.fillStyle = 'rgba(8, 12, 16, 0.12)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Update and draw particles
@@ -86,14 +91,14 @@ export default function ParticleField() {
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = `rgba(158, 48, 40, ${1 - dist / connectionDistance})`;
+            ctx.strokeStyle = `rgba(0, 212, 170, ${(1 - dist / connectionDistance) * 0.65})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
         });
       });
 
-      requestAnimationFrame(animate);
+      animationFrameId = requestAnimationFrame(animate);
     }
 
     animate();
@@ -105,13 +110,12 @@ export default function ParticleField() {
     };
 
     window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
+    window.addEventListener('resize', handleResize);
 
     return () => {
+      cancelAnimationFrame(animationFrameId);
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 

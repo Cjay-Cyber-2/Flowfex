@@ -1,250 +1,575 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Hand,
+  Maximize,
+  MessageSquarePlus,
+  Minimize,
+  Move,
+  Scan,
+  Target,
+  ZoomIn,
+  ZoomOut,
+} from 'lucide-react';
 import useStore from '../../store/useStore';
+import FlowIcon from '../common/FlowIcon';
 import './CanvasRenderer.css';
 
+const GRAPH_WIDTH = 2480;
+const GRAPH_HEIGHT = 820;
+const MIN_SCALE = 0.35;
+const MAX_SCALE = 1.25;
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function getNodeDimensions(node) {
+  return {
+    width: node.width || 180,
+    height: node.height || 96,
+  };
+}
+
+function getNodeCenter(node) {
+  const { width, height } = getNodeDimensions(node);
+  return {
+    x: node.x + width / 2,
+    y: node.y + height / 2,
+  };
+}
+
+function getEdgeAnchors(fromNode, toNode) {
+  const from = getNodeDimensions(fromNode);
+  const to = getNodeDimensions(toNode);
+  const fromCenter = getNodeCenter(fromNode);
+  const toCenter = getNodeCenter(toNode);
+  const dx = toCenter.x - fromCenter.x;
+  const dy = toCenter.y - fromCenter.y;
+
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    return {
+      start: {
+        x: fromCenter.x + (dx >= 0 ? from.width / 2 : -from.width / 2),
+        y: fromCenter.y,
+      },
+      end: {
+        x: toCenter.x + (dx >= 0 ? -to.width / 2 : to.width / 2),
+        y: toCenter.y,
+      },
+    };
+  }
+
+  return {
+    start: {
+      x: fromCenter.x,
+      y: fromCenter.y + (dy >= 0 ? from.height / 2 : -from.height / 2),
+    },
+    end: {
+      x: toCenter.x,
+      y: toCenter.y + (dy >= 0 ? -to.height / 2 : to.height / 2),
+    },
+  };
+}
+
+function getEdgePath(fromNode, toNode) {
+  const { start, end } = getEdgeAnchors(fromNode, toNode);
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    const controlOffset = Math.max(120, Math.abs(dx) * 0.34);
+    const direction = dx >= 0 ? 1 : -1;
+
+    return `M ${start.x} ${start.y} C ${start.x + controlOffset * direction} ${start.y}, ${
+      end.x - controlOffset * direction
+    } ${end.y}, ${end.x} ${end.y}`;
+  }
+
+  const controlOffset = Math.max(90, Math.abs(dy) * 0.4);
+  const direction = dy >= 0 ? 1 : -1;
+
+  return `M ${start.x} ${start.y} C ${start.x} ${start.y + controlOffset * direction}, ${end.x} ${
+    end.y - controlOffset * direction
+  }, ${end.x} ${end.y}`;
+}
+
+function getLabelPosition(fromNode, toNode) {
+  const fromCenter = getNodeCenter(fromNode);
+  const toCenter = getNodeCenter(toNode);
+
+  return {
+    x: fromCenter.x + (toCenter.x - fromCenter.x) * 0.3,
+    y: fromCenter.y + (toCenter.y - fromCenter.y) * 0.3 - 18,
+  };
+}
+
+function isNodeEmphasized(node, canvasMode) {
+  if (canvasMode === 'map') return true;
+  if (canvasMode === 'flow') return ['completed', 'active', 'approval', 'queued'].includes(node.state);
+  return true;
+}
+
+function isEdgeEmphasized(edge, canvasMode) {
+  if (canvasMode === 'map') return true;
+  if (canvasMode === 'flow') return ['completed', 'active', 'queued', 'rerouted'].includes(edge.state);
+  return true;
+}
+
 function CanvasRenderer() {
-  const canvasRef = useRef(null);
   const containerRef = useRef(null);
-  const { canvasMode, nodes, edges, setSelectedNode, setRightDrawerOpen, isExecuting } = useStore();
-  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const autoFitRef = useRef(false);
+  const {
+    canvasMode,
+    edges,
+    isExecuting,
+    nodes,
+    selectedNode,
+    setCanvasMode,
+    setSelectedNode,
+    selectNode,
+  } = useStore();
+  const [transform, setTransform] = useState({ x: 120, y: 90, scale: 0.56 });
+  const [dragState, setDragState] = useState(null);
+  const [viewportSize, setViewportSize] = useState({ width: 1200, height: 760 });
+  const [toolMode, setToolMode] = useState('select');
+  const [showMinimap, setShowMinimap] = useState(true);
+  const [hoveredEdge, setHoveredEdge] = useState(null);
+  const [spacePressed, setSpacePressed] = useState(false);
 
-  // Sample nodes for demo
-  const sampleNodes = [
-    { id: 'node-1', x: 200, y: 150, width: 48, height: 48, state: 'completed', name: 'Input', type: 'input', icon: '📥' },
-    { id: 'node-2', x: 350, y: 120, width: 44, height: 44, state: 'active', name: 'Analyzer', type: 'tool', icon: '🔍' },
-    { id: 'node-3', x: 500, y: 200, width: 48, height: 48, state: 'active', name: 'Processor', type: 'tool', icon: '⚙️' },
-    { id: 'node-4', x: 650, y: 150, width: 44, height: 44, state: 'queued', name: 'Validator', type: 'tool', icon: '✓' },
-    { id: 'node-5', x: 350, y: 280, width: 44, height: 44, state: 'queued', name: 'Formatter', type: 'tool', icon: '📝' },
-    { id: 'node-6', x: 800, y: 200, width: 48, height: 48, state: 'idle', name: 'Output', type: 'output', icon: '📤' }
-  ];
-
-  const sampleEdges = [
-    { from: 'node-1', to: 'node-2' },
-    { from: 'node-2', to: 'node-3' },
-    { from: 'node-3', to: 'node-4' },
-    { from: 'node-2', to: 'node-5' },
-    { from: 'node-4', to: 'node-6' },
-    { from: 'node-5', to: 'node-6' }
-  ];
+  const nodeMap = useMemo(
+    () =>
+      nodes.reduce((result, node) => {
+        result[node.id] = node;
+        return result;
+      }, {}),
+    [nodes]
+  );
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container) return;
-
-    const ctx = canvas.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
-
-    const resize = () => {
-      const rect = container.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
+    const updateViewport = () => {
+      if (!containerRef.current) return;
+      setViewportSize({
+        width: containerRef.current.clientWidth,
+        height: containerRef.current.clientHeight,
+      });
     };
 
-    resize();
-    window.addEventListener('resize', resize);
+    updateViewport();
+    window.addEventListener('resize', updateViewport);
+    return () => window.removeEventListener('resize', updateViewport);
+  }, []);
 
-    let animationId;
-    let time = 0;
+  const fitView = useCallback(() => {
+    const padding = 80;
+    const scale = clamp(
+      Math.min(
+        (viewportSize.width - padding * 2) / GRAPH_WIDTH,
+        (viewportSize.height - padding * 2) / GRAPH_HEIGHT
+      ),
+      MIN_SCALE,
+      MAX_SCALE
+    );
 
-    const animate = () => {
-      const w = canvas.width / dpr;
-      const h = canvas.height / dpr;
+    setTransform({
+      scale,
+      x: (viewportSize.width - GRAPH_WIDTH * scale) / 2,
+      y: (viewportSize.height - GRAPH_HEIGHT * scale) / 2,
+    });
+  }, [viewportSize.height, viewportSize.width]);
 
-      // Clear
-      ctx.fillStyle = '#16161D';
-      ctx.fillRect(0, 0, w, h);
+  useEffect(() => {
+    if (!nodes.length || autoFitRef.current || viewportSize.width === 0 || viewportSize.height === 0) return;
+    fitView();
+    autoFitRef.current = true;
+  }, [fitView, nodes.length, viewportSize.width, viewportSize.height]);
 
-      // Draw grid dots
-      ctx.fillStyle = 'rgba(122, 106, 92, 0.08)';
-      for (let x = 0; x < w; x += 40) {
-        for (let y = 0; y < h; y += 40) {
-          ctx.fillRect(x, y, 1, 1);
-        }
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      const tagName = document.activeElement?.tagName || '';
+      const isTypingTarget = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tagName);
+      if (isTypingTarget) return;
+
+      if (event.code === 'Space') {
+        event.preventDefault();
+        setSpacePressed(true);
       }
 
-      time += 0.016;
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === 'f') {
+        event.preventDefault();
+        fitView();
+        return;
+      }
 
-      // Apply transform
-      ctx.save();
-      ctx.translate(transform.x, transform.y);
-      ctx.scale(transform.scale, transform.scale);
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
 
-      // Draw edges
-      sampleEdges.forEach(edge => {
-        const fromNode = sampleNodes.find(n => n.id === edge.from);
-        const toNode = sampleNodes.find(n => n.id === edge.to);
-        if (!fromNode || !toNode) return;
-
-        const fx = fromNode.x;
-        const fy = fromNode.y;
-        const tx = toNode.x;
-        const ty = toNode.y;
-        const cx = (fx + tx) / 2;
-        const cy = (fy + ty) / 2 - 30;
-
-        // Edge path
-        ctx.strokeStyle = 'rgba(122, 106, 92, 0.35)';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(fx, fy);
-        ctx.quadraticCurveTo(cx, cy, tx, ty);
-        ctx.stroke();
-
-        // Particles on active edges
-        if (isExecuting && (fromNode.state === 'active' || toNode.state === 'active')) {
-          for (let i = 0; i < 3; i++) {
-            const progress = ((time * 0.3 + i * 0.33) % 1);
-            const t = progress;
-            const px = (1 - t) * (1 - t) * fx + 2 * (1 - t) * t * cx + t * t * tx;
-            const py = (1 - t) * (1 - t) * fy + 2 * (1 - t) * t * cy + t * t * ty;
-
-            ctx.fillStyle = '#D4A840';
-            ctx.globalAlpha = 0.7;
-            ctx.beginPath();
-            ctx.ellipse(px, py, 4, 1.5, Math.atan2(ty - fy, tx - fx), 0, Math.PI * 2);
-            ctx.fill();
-            ctx.globalAlpha = 1;
-          }
-        }
-      });
-
-      // Draw nodes
-      sampleNodes.forEach((node, i) => {
-        const x = node.x;
-        const y = node.y;
-        const w = node.width;
-        const h = node.height;
-
-        // Idle drift
-        const driftX = Math.sin(time * 0.5 + i) * 2;
-        const driftY = Math.cos(time * 0.7 + i) * 2;
-        const nx = x + driftX;
-        const ny = y + driftY;
-
-        // State colors
-        const stateColors = {
-          idle: '#7A6A5C',
-          queued: '#8B5B38',
-          active: '#9E3028',
-          completed: '#3D7A6A',
-          error: '#C23028'
-        };
-
-        const color = stateColors[node.state] || stateColors.idle;
-        const radius = 14; // --radius-node
-
-        // Glow for active nodes
-        if (node.state === 'active') {
-          const glowSize = 6 + Math.sin(time * 2 + i) * 4;
-          ctx.fillStyle = 'rgba(158, 48, 40, 0.2)';
-          ctx.beginPath();
-          ctx.roundRect(nx - w/2 - glowSize, ny - h/2 - glowSize, w + glowSize*2, h + glowSize*2, radius + glowSize);
-          ctx.fill();
-        }
-
-        // Node body (rounded rectangle)
-        ctx.fillStyle = '#1C1812';
-        ctx.strokeStyle = color;
-        ctx.lineWidth = node.state === 'active' ? 2 : 1.5;
-        ctx.beginPath();
-        ctx.roundRect(nx - w/2, ny - h/2, w, h, radius);
-        ctx.fill();
-        ctx.stroke();
-
-        // Node icon
-        ctx.font = '16px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#EDE8DF';
-        ctx.fillText(node.icon, nx, ny);
-
-        // Node label
-        ctx.font = '500 13px "Space Grotesk", sans-serif';
-        ctx.fillStyle = '#EDE8DF';
-        ctx.fillText(node.name, nx, ny + h/2 + 18);
-      });
-
-      ctx.restore();
-
-      animationId = requestAnimationFrame(animate);
+      const key = event.key.toLowerCase();
+      if (key === 'm') setCanvasMode('map');
+      if (key === 'f') setCanvasMode('flow');
+      if (key === 'l') setCanvasMode('live');
+      if (key === 'escape') {
+        setSelectedNode(null);
+        setHoveredEdge(null);
+      }
     };
 
-    animate();
+    const handleKeyUp = (event) => {
+      if (event.code === 'Space') {
+        setSpacePressed(false);
+      }
+    };
 
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
     return () => {
-      window.removeEventListener('resize', resize);
-      if (animationId) cancelAnimationFrame(animationId);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [transform, canvasMode, isExecuting]);
+  }, [fitView, setCanvasMode, setSelectedNode]);
 
-  const handleMouseDown = (e) => {
-    setIsDragging(true);
-    setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
+  const handleWheel = (event) => {
+    event.preventDefault();
+    if (!containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const cursorX = event.clientX - rect.left;
+    const cursorY = event.clientY - rect.top;
+    const nextScale = clamp(transform.scale * (event.deltaY < 0 ? 1.08 : 0.92), MIN_SCALE, MAX_SCALE);
+    const worldX = (cursorX - transform.x) / transform.scale;
+    const worldY = (cursorY - transform.y) / transform.scale;
+
+    setTransform({
+      scale: nextScale,
+      x: cursorX - worldX * nextScale,
+      y: cursorY - worldY * nextScale,
+    });
   };
 
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-    setTransform(prev => ({
-      ...prev,
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y
+  const handleMouseDown = (event) => {
+    const panActive = toolMode === 'pan' || spacePressed;
+    if (!panActive) return;
+    if (event.target.closest('[data-node-interactive="true"]')) return;
+
+    setDragState({
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: transform.x,
+      originY: transform.y,
+    });
+  };
+
+  const handleMouseMove = (event) => {
+    if (!dragState) return;
+
+    setTransform((current) => ({
+      ...current,
+      x: dragState.originX + (event.clientX - dragState.startX),
+      y: dragState.originY + (event.clientY - dragState.startY),
     }));
   };
 
   const handleMouseUp = () => {
-    setIsDragging(false);
+    setDragState(null);
   };
 
-  const handleClick = (e) => {
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left - transform.x) / transform.scale;
-    const y = (e.clientY - rect.top - transform.y) / transform.scale;
+  const handleCanvasClick = (event) => {
+    if (event.target.closest('[data-node-interactive="true"]')) return;
+    if (event.target.closest('[data-edge-interactive="true"]')) return;
+    setSelectedNode(null);
+  };
 
-    // Check if clicked on a node (rectangle bounds)
-    const clickedNode = sampleNodes.find(node => {
-      const halfW = node.width / 2;
-      const halfH = node.height / 2;
-      return x >= node.x - halfW && x <= node.x + halfW &&
-             y >= node.y - halfH && y <= node.y + halfH;
+  const updateHoveredEdge = (event, edge, fromNode, toNode) => {
+    if (!containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    setHoveredEdge({
+      edgeId: edge.id,
+      left: event.clientX - rect.left + 18,
+      top: event.clientY - rect.top + 18,
+      label: `${fromNode.title} → ${toNode.title}`,
+      state: formatEdgeState(edge.state),
     });
-
-    if (clickedNode) {
-      setSelectedNode(clickedNode);
-      setRightDrawerOpen(true);
-    }
   };
+
+  const handleFullscreen = async () => {
+    if (!containerRef.current) return;
+
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+      return;
+    }
+
+    await containerRef.current.requestFullscreen();
+  };
+
+  const visibleWidth = viewportSize.width / transform.scale;
+  const visibleHeight = viewportSize.height / transform.scale;
+  const visibleX = -transform.x / transform.scale;
+  const visibleY = -transform.y / transform.scale;
 
   return (
     <div
       ref={containerRef}
-      className="canvas-renderer"
+      className={`canvas-renderer canvas-mode-${canvasMode} ${
+        toolMode === 'pan' || spacePressed ? 'is-pan-ready' : ''
+      } ${dragState ? 'is-panning' : ''}`}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
-      onClick={handleClick}
+      onWheel={handleWheel}
+      onClick={handleCanvasClick}
     >
-      <canvas ref={canvasRef} />
-      
-      {/* Empty State */}
-      {nodes.length === 0 && (
-        <div className="canvas-empty-state">
-          <div className="empty-state-content">
-            <h2>Ready to orchestrate.</h2>
-            <p>Connect an agent or start a session.</p>
-            <div className="empty-state-actions">
-              <button className="btn-ghost">Connect Agent</button>
-              <button className="btn-ghost">Try Demo Session</button>
-            </div>
-          </div>
+      <svg className="graph-svg" viewBox={`0 0 ${viewportSize.width} ${viewportSize.height}`} preserveAspectRatio="none">
+        <defs>
+          <filter id="nodeGlow">
+            <feGaussianBlur stdDeviation="9" result="glow" />
+            <feMerge>
+              <feMergeNode in="glow" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+
+          <linearGradient id="edgeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="rgba(0,212,170,0.35)" />
+            <stop offset="100%" stopColor="rgba(121,255,223,0.95)" />
+          </linearGradient>
+
+          <marker id="arrow-active" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#00D4AA" />
+          </marker>
+          <marker id="arrow-muted" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#3f4f60" />
+          </marker>
+          <marker id="arrow-complete" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#46bda9" />
+          </marker>
+          <marker id="arrow-rerouted" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#8a7040" />
+          </marker>
+        </defs>
+
+        <g transform={`translate(${transform.x} ${transform.y}) scale(${transform.scale})`}>
+          {edges.map((edge) => {
+            const fromNode = nodeMap[edge.from];
+            const toNode = nodeMap[edge.to];
+            if (!fromNode || !toNode) return null;
+
+            const pathId = `edge-path-${edge.id}`;
+            const path = getEdgePath(fromNode, toNode);
+            const labelPosition = getLabelPosition(fromNode, toNode);
+            const emphasized = isEdgeEmphasized(edge, canvasMode);
+            const markerId =
+              edge.state === 'active' || edge.state === 'queued'
+                ? 'arrow-active'
+                : edge.state === 'completed'
+                  ? 'arrow-complete'
+                  : edge.state === 'rerouted'
+                    ? 'arrow-rerouted'
+                    : 'arrow-muted';
+
+            return (
+              <g
+                key={edge.id}
+                data-edge-interactive="true"
+                className={`graph-edge graph-edge-${edge.state} ${emphasized ? '' : 'is-dim'} ${
+                  hoveredEdge?.edgeId === edge.id ? 'is-hovered' : ''
+                }`}
+                onMouseEnter={(event) => updateHoveredEdge(event, edge, fromNode, toNode)}
+                onMouseMove={(event) => updateHoveredEdge(event, edge, fromNode, toNode)}
+                onMouseLeave={() => setHoveredEdge(null)}
+              >
+                <path id={pathId} d={path} fill="none" markerEnd={`url(#${markerId})`} />
+                {edge.label ? (
+                  <g transform={`translate(${labelPosition.x} ${labelPosition.y})`} className="graph-edge-label">
+                    <rect x="-34" y="-13" width="68" height="26" rx="13" />
+                    <text textAnchor="middle" dominantBaseline="middle">
+                      {edge.label}
+                    </text>
+                  </g>
+                ) : null}
+                {isExecuting && edge.state === 'active' ? (
+                  <circle className="graph-edge-pulse" r="5">
+                    <animateMotion dur="2.6s" repeatCount="indefinite" rotate="auto">
+                      <mpath href={`#${pathId}`} />
+                    </animateMotion>
+                  </circle>
+                ) : null}
+              </g>
+            );
+          })}
+
+          {nodes.map((node) => {
+            const { width, height } = getNodeDimensions(node);
+            const center = getNodeCenter(node);
+            const emphasized = isNodeEmphasized(node, canvasMode);
+            const isSelected = selectedNode?.id === node.id;
+
+            return (
+              <g
+                key={node.id}
+                data-node-interactive="true"
+                className={`graph-node graph-node-${node.state} graph-node-${node.shape} ${
+                  emphasized ? '' : 'is-dim'
+                } ${isSelected ? 'is-selected' : ''} ${transform.scale < 0.5 ? 'is-compact' : ''}`}
+                onClick={() => selectNode(node.id)}
+              >
+                {node.shape === 'diamond' ? (
+                  <polygon
+                    points={`${center.x},${node.y} ${node.x + width},${center.y} ${center.x},${node.y + height} ${node.x},${center.y}`}
+                    filter={node.state === 'active' || node.state === 'approval' ? 'url(#nodeGlow)' : undefined}
+                  />
+                ) : (
+                  <rect
+                    x={node.x}
+                    y={node.y}
+                    width={width}
+                    height={height}
+                    rx="24"
+                    filter={node.state === 'active' || node.state === 'approval' ? 'url(#nodeGlow)' : undefined}
+                  />
+                )}
+
+                <g transform={`translate(${node.x + 18} ${node.y + 16})`}>
+                  <rect className="graph-node-icon-backdrop" width="28" height="28" rx="10" />
+                  <g transform="translate(5 5)">
+                    <FlowIcon name={node.icon} size={18} />
+                  </g>
+                </g>
+
+                <text className="graph-node-title" x={node.x + 56} y={node.y + 34}>
+                  {node.title}
+                </text>
+                <text className="graph-node-subtitle" x={node.x + 56} y={node.y + 58}>
+                  {node.subtitle}
+                </text>
+                <text className="graph-node-caption" x={node.x + 18} y={node.y + height - 14}>
+                  {formatNodeCaption(node)}
+                </text>
+
+                {node.state === 'approval' ? (
+                  <circle className="graph-node-badge" cx={node.x + width - 18} cy={node.y + 18} r="8" />
+                ) : null}
+              </g>
+            );
+          })}
+        </g>
+      </svg>
+
+      <div className="canvas-zoom-controls">
+        <button className="canvas-control-button" onClick={() => setTransform((current) => ({ ...current, scale: clamp(current.scale * 1.12, MIN_SCALE, MAX_SCALE) }))}>
+          <ZoomIn size={16} />
+        </button>
+        <button className="canvas-control-button" onClick={() => setTransform((current) => ({ ...current, scale: clamp(current.scale * 0.9, MIN_SCALE, MAX_SCALE) }))}>
+          <ZoomOut size={16} />
+        </button>
+        <button className="canvas-control-button" onClick={fitView}>
+          <Scan size={16} />
+        </button>
+      </div>
+
+      <div className="canvas-bottom-toolbar">
+        <button
+          className={`canvas-toolbar-button ${toolMode === 'select' ? 'is-active' : ''}`}
+          onClick={() => setToolMode('select')}
+        >
+          <Target size={16} />
+        </button>
+        <button
+          className={`canvas-toolbar-button ${toolMode === 'pan' ? 'is-active' : ''}`}
+          onClick={() => setToolMode('pan')}
+        >
+          <Hand size={16} />
+        </button>
+        <button className="canvas-toolbar-button">
+          <Move size={16} />
+        </button>
+        <button className="canvas-toolbar-button">
+          <MessageSquarePlus size={16} />
+        </button>
+        <button className="canvas-toolbar-button" onClick={fitView}>
+          <Scan size={16} />
+        </button>
+        <button className="canvas-toolbar-button" onClick={handleFullscreen}>
+          <Maximize size={16} />
+        </button>
+        <button
+          className={`canvas-toolbar-button ${showMinimap ? 'is-active' : ''}`}
+          onClick={() => setShowMinimap((current) => !current)}
+        >
+          <Minimize size={16} />
+        </button>
+      </div>
+
+      {showMinimap ? (
+        <div className="canvas-minimap">
+          <svg viewBox={`0 0 ${GRAPH_WIDTH} ${GRAPH_HEIGHT}`}>
+            {edges.map((edge) => {
+              const fromNode = nodeMap[edge.from];
+              const toNode = nodeMap[edge.to];
+              if (!fromNode || !toNode) return null;
+              return <path key={edge.id} d={getEdgePath(fromNode, toNode)} className={`minimap-edge minimap-edge-${edge.state}`} />;
+            })}
+            {nodes.map((node) => {
+              const { width, height } = getNodeDimensions(node);
+              return node.shape === 'diamond' ? (
+                <polygon
+                  key={node.id}
+                  points={`${node.x + width / 2},${node.y} ${node.x + width},${node.y + height / 2} ${node.x + width / 2},${node.y + height} ${node.x},${node.y + height / 2}`}
+                  className={`minimap-node minimap-node-${node.state}`}
+                />
+              ) : (
+                <rect
+                  key={node.id}
+                  x={node.x}
+                  y={node.y}
+                  width={width}
+                  height={height}
+                  rx="18"
+                  className={`minimap-node minimap-node-${node.state}`}
+                />
+              );
+            })}
+            <rect
+              className="minimap-viewport"
+              x={visibleX}
+              y={visibleY}
+              width={visibleWidth}
+              height={visibleHeight}
+              rx="18"
+            />
+          </svg>
         </div>
-      )}
+      ) : null}
+
+      {hoveredEdge ? (
+        <div className="canvas-edge-tooltip" style={{ left: hoveredEdge.left, top: hoveredEdge.top }}>
+          <span>{hoveredEdge.label}</span>
+          <strong>{hoveredEdge.state}</strong>
+        </div>
+      ) : null}
     </div>
   );
+}
+
+function formatNodeCaption(node) {
+  if (node.state === 'approval') return 'Operator checkpoint';
+  if (node.confidence) return `${node.confidence}% confidence`;
+  return node.type;
+}
+
+function formatEdgeState(state) {
+  switch (state) {
+    case 'active':
+      return 'Executing path';
+    case 'queued':
+      return 'Queued branch';
+    case 'completed':
+      return 'Resolved path';
+    case 'rerouted':
+      return 'Rerouted path';
+    default:
+      return 'Inactive path';
+  }
 }
 
 export default CanvasRenderer;

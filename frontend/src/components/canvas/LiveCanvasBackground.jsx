@@ -60,11 +60,11 @@ function LiveCanvasBackground() {
 
     // Colors
     const colors = {
-      idle: '#7A6A5C',
-      active: '#9E3028',
-      completed: '#3D7A6A',
-      particle: '#D4A840',
-      edge: 'rgba(122, 106, 92, 0.35)'
+      idle: 'rgba(138, 150, 163, 0.58)',
+      active: '#00D4AA',
+      completed: '#46BDA9',
+      particle: '#7FFFF0',
+      edge: 'rgba(0, 212, 170, 0.22)'
     };
 
     let time = 0;
@@ -75,7 +75,7 @@ function LiveCanvasBackground() {
       const h = canvas.height / dpr;
       
       // Clear with fade effect
-      ctx.fillStyle = 'rgba(22, 22, 29, 0.1)';
+      ctx.fillStyle = 'rgba(8, 12, 16, 0.1)';
       ctx.fillRect(0, 0, w, h);
 
       time += 0.016;
@@ -145,8 +145,8 @@ function LiveCanvasBackground() {
         if (node.state === 'active') {
           const glowSize = 6 + Math.sin(time * 2 + node.phase) * 4;
           const gradient = ctx.createRadialGradient(nx, ny, node.radius, nx, ny, node.radius + glowSize);
-          gradient.addColorStop(0, 'rgba(158, 48, 40, 0)');
-          gradient.addColorStop(1, 'rgba(158, 48, 40, 0.3)');
+          gradient.addColorStop(0, 'rgba(0, 212, 170, 0)');
+          gradient.addColorStop(1, 'rgba(0, 212, 170, 0.28)');
           ctx.fillStyle = gradient;
           ctx.beginPath();
           ctx.arc(nx, ny, node.radius + glowSize, 0, Math.PI * 2);
@@ -154,7 +154,7 @@ function LiveCanvasBackground() {
         }
 
         // Node body
-        ctx.fillStyle = '#1C1812';
+        ctx.fillStyle = '#0D1117';
         ctx.strokeStyle = colors[node.state];
         ctx.lineWidth = node.state === 'active' ? 2 : 1.5;
         ctx.beginPath();
@@ -164,7 +164,7 @@ function LiveCanvasBackground() {
 
         // Orbital rings for active nodes
         if (node.state === 'active') {
-          ctx.strokeStyle = 'rgba(158, 48, 40, 0.3)';
+          ctx.strokeStyle = 'rgba(0, 212, 170, 0.3)';
           ctx.lineWidth = 2;
           const ring1 = node.radius * 1.5;
           const ring2 = node.radius * 1.8;

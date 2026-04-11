@@ -1,0 +1,116 @@
+/* Canvas Container - The Soul of Flowfex */
+
+.canvas-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--canvas-void-deepest, #080C10);
+}
+
+/* Layer System */
+.canvas-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Layer 1: Base Fill */
+.canvas-base {
+  background: #080C10;
+  z-index: 0;
+}
+
+/* Layer 2: Dot Grid Texture */
+.canvas-dot-grid {
+  background-image: radial-gradient(
+    circle,
+    rgba(232, 237, 242, 0.04) 1px,
+    transparent 1px
+  );
+  background-size: 24px 24px;
+  background-position: 0 0;
+  z-index: 5;
+  /* Fixed - doesn't transform with graph */
+}
+
+/* Layer 3: Ambient Depth Gradient */
+.canvas-ambient-glow {
+  background: radial-gradient(
+    circle at center,
+    rgba(0, 229, 195, 0.015) 0%,
+    transparent 60%
+  );
+  z-index: 10;
+  /* Conditional - only visible when agent active */
+}
+
+/* Layer 4: Graph Rendering */
+.canvas-graph {
+  z-index: 100;
+  pointer-events: auto;
+  will-change: transform;
+  transform-origin: 0 0;
+}
+
+.canvas-edges {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.canvas-nodes {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Selection Rectangle */
+.canvas-selection-rect {
+  position: absolute;
+  border: 1px solid rgba(0, 229, 195, 0.3);
+  background: rgba(0, 229, 195, 0.05);
+  pointer-events: none;
+  z-index: 500;
+}
+
+/* Cursor States */
+.canvas-container[style*="cursor: grab"] {
+  cursor: grab !important;
+}
+
+.canvas-container[style*="cursor: grabbing"] {
+  cursor: grabbing !important;
+}
+
+.canvas-container[style*="cursor: crosshair"] {
+  cursor: crosshair !important;
+}
+
+/* Performance Optimizations */
+.canvas-graph,
+.canvas-nodes,
+.canvas-edges {
+  transform: translateZ(0); /* GPU acceleration */
+  backface-visibility: hidden;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+  .canvas-container {
+    /* Tablet adjustments */
+  }
+}
+
+@media (max-width: 768px) {
+  .canvas-dot-grid {
+    background-size: 32px 32px; /* Larger grid on mobile */
+  }
+}

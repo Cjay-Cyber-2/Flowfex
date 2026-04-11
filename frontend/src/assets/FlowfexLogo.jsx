@@ -12,10 +12,10 @@ function FlowfexLogo({
   className = ''
 }) {
   const colors = {
-    primary: '#9E3028',      // Sinoper - main accent
-    secondary: '#D4A840',    // Massicot Glow
-    accent: '#8B5B38',       // Mummy Brown
-    light: '#EDE8DF',        // Velin - light text
+    primary: '#00D4AA',
+    secondary: '#7FFFF0',
+    accent: '#20303A',
+    light: '#E8EDF2',
   };
 
   // Base font settings to get the thick, rounded look

@@ -1,120 +1,178 @@
-import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useMemo, useState } from 'react';
+import { ChevronDown, ChevronRight, Plus, Search } from 'lucide-react';
 import useStore from '../../store/useStore';
+import { DEMO_SKILL_LIBRARY } from '../../store/demoData';
+import FlowIcon from '../common/FlowIcon';
 import './LeftRail.css';
 
 function LeftRail() {
-  const navigate = useNavigate();
-  const { connectedAgents, sessions, activeSession, setActiveSession } = useStore();
+  const {
+    activeSession,
+    connectedAgents,
+    sessions,
+    setActiveSession,
+    setConnectModalOpen,
+  } = useStore();
+  const [searchValue, setSearchValue] = useState('');
   const [expandedSections, setExpandedSections] = useState({
     agents: true,
-    sessions: true,
-    history: false
+    skills: true,
+    history: true,
+  });
+  const [expandedCategories, setExpandedCategories] = useState({
+    reasoning: true,
+    research: true,
+    control: false,
   });
 
+  const historyItems = useMemo(
+    () => sessions.filter((session) => session.id !== activeSession?.id).slice(0, 3),
+    [sessions, activeSession]
+  );
+
+  const filteredCategories = useMemo(() => {
+    const query = searchValue.trim().toLowerCase();
+    if (!query) return DEMO_SKILL_LIBRARY;
+
+    return DEMO_SKILL_LIBRARY.map((category) => ({
+      ...category,
+      items: category.items.filter((item) => item.label.toLowerCase().includes(query)),
+    })).filter((category) => category.items.length > 0);
+  }, [searchValue]);
+
   const toggleSection = (section) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
+    setExpandedSections((current) => ({
+      ...current,
+      [section]: !current[section],
+    }));
+  };
+
+  const toggleCategory = (categoryId) => {
+    setExpandedCategories((current) => ({
+      ...current,
+      [categoryId]: !current[categoryId],
     }));
   };
 
   return (
-    <div className="left-rail">
-      {/* Agents Section */}
-      <div className="rail-section">
-        <button
-          className="section-header"
-          onClick={() => toggleSection('agents')}
-        >
+    <aside className="left-rail">
+      <div className="left-rail-session-switcher">
+        <div>
+          <span className="rail-kicker">Workspace</span>
+          <strong>{activeSession?.name || 'Untitled Session'}</strong>
+        </div>
+        <ChevronDown size={16} />
+      </div>
+
+      <label className="left-rail-search">
+        <Search size={16} />
+        <input
+          aria-label="Search skills, agents, connectors"
+          placeholder="Search skills, agents, connectors..."
+          value={searchValue}
+          onChange={(event) => setSearchValue(event.target.value)}
+        />
+      </label>
+
+      <section className="rail-section">
+        <button className="rail-section-header" onClick={() => toggleSection('agents')}>
           {expandedSections.agents ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-          <span className="section-title">AGENTS</span>
+          <span>Connected Agents</span>
+          <span className="rail-section-count">{connectedAgents.length}</span>
         </button>
-        
+
         {expandedSections.agents && (
-          <div className="section-content">
-            {connectedAgents.length === 0 ? (
-              <div className="empty-state">
-                <p>No agents connected</p>
-              </div>
-            ) : (
-              connectedAgents.map(agent => (
-                <div key={agent.id} className="agent-item">
-                  <div className={`status-dot status-dot-${agent.status}`} />
-                  <div className="agent-info">
-                    <div className="agent-name">{agent.name}</div>
-                    <div className="badge badge-sinoper">{agent.type}</div>
+          <div className="rail-section-body">
+            <div className="agent-stack">
+              {connectedAgents.map((agent) => (
+                <button
+                  key={agent.id}
+                  className={`agent-card ${agent.status === 'connected' ? 'is-connected' : ''}`}
+                >
+                  <span className={`status-dot status-dot-${agent.status}`} />
+                  <div className="agent-card-copy">
+                    <strong>{agent.name}</strong>
+                    <span>{agent.lastSeen}</span>
                   </div>
-                </div>
-              ))
-            )}
-            <button className="add-btn" onClick={() => navigate('/onboarding')}>
+                  <span className="agent-card-badge">{agent.type}</span>
+                </button>
+              ))}
+            </div>
+
+            <button className="rail-add-button" onClick={() => setConnectModalOpen(true)}>
               <Plus size={14} />
               Connect Agent
             </button>
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Sessions Section */}
-      <div className="rail-section">
-        <button
-          className="section-header"
-          onClick={() => toggleSection('sessions')}
-        >
-          {expandedSections.sessions ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-          <span className="section-title">SESSIONS</span>
+      <section className="rail-section">
+        <button className="rail-section-header" onClick={() => toggleSection('skills')}>
+          {expandedSections.skills ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          <span>Skill Library</span>
+          <span className="rail-section-count">
+            {DEMO_SKILL_LIBRARY.reduce((total, category) => total + category.items.length, 0)}
+          </span>
         </button>
-        
-        {expandedSections.sessions && (
-          <div className="section-content">
-            {sessions.length === 0 ? (
-              <div className="empty-state">
-                <p>No active sessions</p>
+
+        {expandedSections.skills && (
+          <div className="rail-section-body rail-section-body-skills">
+            {filteredCategories.map((category) => (
+              <div key={category.id} className="skill-category">
+                <button className="skill-category-header" onClick={() => toggleCategory(category.id)}>
+                  {expandedCategories[category.id] ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                  <span>{category.label}</span>
+                  <span className="skill-category-count">{category.items.length}</span>
+                </button>
+
+                {expandedCategories[category.id] && (
+                  <div className="skill-tile-grid">
+                    {category.items.map((item) => (
+                      <button key={item.id} className="skill-tile">
+                        <FlowIcon name={item.icon} size={18} />
+                        <span>{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            ) : (
-              sessions.slice(0, 5).map(session => (
-                <div
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="rail-section rail-section-history">
+        <button className="rail-section-header" onClick={() => toggleSection('history')}>
+          {expandedSections.history ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          <span>Session History</span>
+          <span className="rail-section-count">{historyItems.length}</span>
+        </button>
+
+        {expandedSections.history && (
+          <div className="rail-section-body">
+            <div className="history-list">
+              {historyItems.map((session) => (
+                <button
                   key={session.id}
-                  className={`session-item ${activeSession?.id === session.id ? 'active' : ''}`}
+                  className={`history-row ${activeSession?.id === session.id ? 'is-active' : ''}`}
                   onClick={() => setActiveSession(session)}
                 >
-                  <div className={`status-dot status-dot-${session.status}`} />
-                  <div className="session-info">
-                    <div className="session-name">{session.name}</div>
-                    <div className="session-excerpt">{session.task}</div>
-                    <div className="session-time">{session.elapsed || '0m'}</div>
+                  <div className="history-row-copy">
+                    <strong>{session.name}</strong>
+                    <div className="history-row-meta">
+                      <span className={`history-row-status history-row-status-${session.status || 'completed'}`} />
+                      <span>{session.elapsed}</span>
+                    </div>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* History Section */}
-      <div className="rail-section">
-        <button
-          className="section-header"
-          onClick={() => toggleSection('history')}
-        >
-          {expandedSections.history ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-          <span className="section-title">HISTORY</span>
-        </button>
-        
-        {expandedSections.history && (
-          <div className="section-content">
-            <div className="empty-state">
-              <p>No history yet</p>
+                </button>
+              ))}
             </div>
-            <button className="view-all-link" onClick={() => navigate('/history')}>
-              View all history →
-            </button>
+            <button className="rail-view-all">View all</button>
           </div>
         )}
-      </div>
-    </div>
+      </section>
+    </aside>
   );
 }
 

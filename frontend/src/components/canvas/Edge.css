@@ -1,0 +1,201 @@
+/* Edge Component - Intelligence Flow Paths */
+
+.edge-group {
+  pointer-events: all;
+}
+
+/* Base Edge Styles */
+.edge {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: all 400ms ease-in-out;
+  cursor: pointer;
+}
+
+/* ========================================
+   STATE: INACTIVE
+   ======================================== */
+.edge-inactive {
+  stroke: rgba(232, 237, 242, 0.12);
+  stroke-width: 1.5px;
+}
+
+.edge-inactive:hover {
+  stroke: rgba(232, 237, 242, 0.25);
+}
+
+/* ========================================
+   STATE: ACTIVE / EXECUTING
+   ======================================== */
+.edge-active,
+.edge-executing {
+  stroke: rgba(0, 229, 195, 0.8);
+  stroke-width: 1.5px;
+  filter: drop-shadow(0 0 6px rgba(0, 229, 195, 0.3));
+}
+
+.edge-active:hover,
+.edge-executing:hover {
+  stroke: rgba(0, 229, 195, 1.0);
+  stroke-width: 2.5px;
+}
+
+/* Pulse Dot */
+.edge-pulse-dot {
+  filter: drop-shadow(0 0 4px rgba(0, 229, 195, 0.6));
+  pointer-events: none;
+}
+
+/* Pulse Glow Filter */
+#pulse-glow {
+  filter: drop-shadow(0 0 4px rgba(0, 229, 195, 0.6));
+}
+
+/* ========================================
+   STATE: COMPLETED
+   ======================================== */
+.edge-completed {
+  stroke: rgba(0, 229, 195, 0.22);
+  stroke-width: 1.5px;
+}
+
+.edge-completed:hover {
+  stroke: rgba(0, 229, 195, 0.35);
+  stroke-width: 2px;
+}
+
+/* ========================================
+   STATE: REROUTED
+   ======================================== */
+.edge-rerouted {
+  stroke: rgba(0, 229, 195, 0.5);
+  stroke-width: 1.5px;
+  stroke-dasharray: 6 4;
+}
+
+.edge-rerouted:hover {
+  stroke: rgba(0, 229, 195, 0.7);
+  stroke-width: 2px;
+}
+
+/* ========================================
+   HOVER STATE
+   ======================================== */
+.edge-hovered {
+  stroke-width: 2.5px;
+  transition: stroke-width 150ms ease-out;
+}
+
+/* ========================================
+   BRANCH CONDITION LABEL
+   ======================================== */
+.edge-label-bg {
+  fill: rgba(13, 17, 23, 0.9);
+  stroke: rgba(232, 237, 242, 0.1);
+  stroke-width: 1px;
+}
+
+.edge-label-text {
+  font-family: var(--font-ui, 'Inter');
+  font-size: 10px;
+  font-weight: 500;
+  fill: #8A96A3;
+  pointer-events: none;
+}
+
+/* ========================================
+   HOVER TOOLTIP
+   ======================================== */
+.edge-tooltip-bg {
+  fill: rgba(13, 17, 23, 0.95);
+  stroke: rgba(0, 229, 195, 0.2);
+  stroke-width: 1px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+}
+
+.edge-tooltip-text {
+  font-family: var(--font-ui, 'Inter');
+  font-size: 11px;
+  font-weight: 400;
+  fill: #8A96A3;
+  pointer-events: none;
+}
+
+.edge-tooltip-arrow {
+  fill: #00E5C3;
+  font-size: 14px;
+}
+
+/* ========================================
+   ARROWHEAD MARKERS
+   ======================================== */
+marker path {
+  transition: fill 400ms ease-in-out;
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+/* Pulse dot breathing */
+@keyframes pulse-breathe {
+  0%, 100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.edge-pulse-dot {
+  animation: pulse-breathe 2s ease-in-out infinite;
+}
+
+/* Edge appearance animation */
+@keyframes edge-appear {
+  from {
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ========================================
+   SHARED EDGE TRUNKS
+   ======================================== */
+.edge-trunk {
+  stroke-width: 2px;
+}
+
+.edge-junction {
+  fill: rgba(0, 229, 195, 0.6);
+  r: 6px;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 1024px) {
+  .edge {
+    stroke-width: 2px;
+  }
+  
+  .edge-active,
+  .edge-executing {
+    stroke-width: 2.5px;
+  }
+}
+
+@media (max-width: 768px) {
+  .edge-label-text {
+    font-size: 9px;
+  }
+  
+  .edge-tooltip-text {
+    font-size: 10px;
+  }
+}

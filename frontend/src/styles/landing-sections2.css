@@ -1,0 +1,369 @@
+/* ─── Shared ─────────────────────────────────────────────────────────────── */
+.section-eyebrow {
+  display: block;
+  font-family: var(--font-inter);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #9E3028;
+  margin-bottom: 16px;
+}
+
+/* ─── Pricing Section ────────────────────────────────────────────────────── */
+.pricing-section {
+  position: relative;
+  background: #16161D;
+  padding: 120px 80px;
+  overflow: hidden;
+}
+
+.pricing-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 40% at 50% 50%, rgba(158,48,40,0.02) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.pricing-headline {
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto 72px;
+}
+
+.pricing-title {
+  font-family: var(--font-satoshi);
+  font-size: 48px;
+  font-weight: 800;
+  color: #EDE8DF;
+  line-height: 1.1;
+  margin: 0 0 16px;
+}
+
+.pricing-sub {
+  font-family: var(--font-inter);
+  font-size: 16px;
+  color: rgba(237,232,223,0.45);
+  margin: 0;
+}
+
+/* Cards */
+.pricing-cards {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  justify-content: center;
+  max-width: 1100px;
+  margin: 0 auto 80px;
+}
+
+.pricing-card {
+  position: relative;
+  background: #161E28;
+  border-radius: 16px;
+  padding: 32px;
+  flex: 1;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.pricing-card--popular {
+  border-color: #9E3028;
+  box-shadow: 0 0 40px rgba(158,48,40,0.12);
+  padding-top: 44px;
+  padding-bottom: 44px;
+}
+
+.popular-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  font-family: var(--font-inter);
+  font-size: 11px;
+  font-weight: 600;
+  color: #9E3028;
+  background: rgba(22,22,29,0.9);
+  border-radius: 20px;
+  padding: 4px 10px;
+  letter-spacing: 0.04em;
+}
+
+.plan-name {
+  font-family: var(--font-satoshi);
+  font-size: 20px;
+  font-weight: 700;
+  color: #EDE8DF;
+  margin: 0 0 12px;
+}
+
+.plan-price {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.price-amount {
+  font-family: var(--font-satoshi);
+  font-size: 48px;
+  font-weight: 800;
+  color: #EDE8DF;
+  line-height: 1;
+}
+
+.price-mo {
+  font-family: var(--font-inter);
+  font-size: 16px;
+  color: rgba(237,232,223,0.45);
+}
+
+.plan-desc {
+  font-family: var(--font-inter);
+  font-size: 14px;
+  color: rgba(237,232,223,0.45);
+  margin: 0 0 20px;
+}
+
+.plan-divider {
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin: 0 0 20px;
+}
+
+.plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.plan-features li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-inter);
+  font-size: 14px;
+  color: rgba(237,232,223,0.8);
+}
+
+.feature-check {
+  color: #9E3028;
+  flex-shrink: 0;
+}
+
+.plan-cta {
+  margin-top: 28px;
+  width: 100%;
+  padding: 12px 0;
+  border-radius: 8px;
+  font-family: var(--font-inter);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.plan-cta:hover { opacity: 0.85; }
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(237,232,223,0.2);
+  color: #EDE8DF;
+}
+
+.btn-sinoper {
+  background: #9E3028;
+  border: none;
+  color: #EDE8DF;
+}
+
+.btn-team {
+  background: #1E2A38;
+  border: none;
+  color: #EDE8DF;
+}
+
+/* Comparison Table */
+.pricing-table {
+  max-width: 900px;
+  margin: 0 auto;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.pt-header,
+.pt-row {
+  display: grid;
+  grid-template-columns: 1fr repeat(3, 120px);
+  align-items: center;
+}
+
+.pt-header {
+  background: rgba(158,48,40,0.08);
+  height: 48px;
+}
+
+.pt-header .pt-plan-col {
+  font-family: var(--font-inter);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(237,232,223,0.6);
+  text-align: center;
+}
+
+.pt-row {
+  height: 48px;
+  background: #131A22;
+}
+
+.pt-row--alt {
+  background: #161E28;
+}
+
+.pt-feature-col {
+  font-family: var(--font-inter);
+  font-size: 14px;
+  color: rgba(237,232,223,0.65);
+  padding-left: 20px;
+}
+
+.pt-plan-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feature-minus {
+  color: #7A6A5C;
+}
+
+/* ─── FAQ Section ────────────────────────────────────────────────────────── */
+.faq-section {
+  background: #16161D;
+  padding: 120px 80px;
+  display: flex;
+  gap: 80px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.faq-left {
+  width: 380px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 120px;
+  align-self: flex-start;
+}
+
+.faq-title {
+  font-family: var(--font-satoshi);
+  font-size: 40px;
+  font-weight: 800;
+  color: #EDE8DF;
+  line-height: 1.15;
+  margin: 0 0 20px;
+}
+
+.faq-body {
+  font-family: var(--font-inter);
+  font-size: 15px;
+  color: rgba(237,232,223,0.5);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.faq-link {
+  color: #9E3028;
+  cursor: pointer;
+}
+
+.faq-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.faq-item {
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  padding-left: 16px;
+  transition: border-color 0.2s ease;
+}
+
+.faq-item--open {
+  border-left-color: rgba(158,48,40,0.4);
+}
+
+.faq-question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 0;
+  font-family: var(--font-inter);
+  font-size: 16px;
+  font-weight: 500;
+  color: #EDE8DF;
+  user-select: none;
+}
+
+.faq-icon {
+  color: #9E3028;
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+}
+
+.faq-item--open .faq-icon {
+  transform: rotate(45deg);
+}
+
+.faq-answer {
+  overflow: hidden;
+}
+
+.faq-answer p {
+  font-family: var(--font-inter);
+  font-size: 15px;
+  color: #7A6A5C;
+  line-height: 1.7;
+  margin: 0 0 20px;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .pricing-section,
+  .faq-section {
+    padding: 80px 24px;
+  }
+
+  .pricing-cards {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pricing-card {
+    max-width: 100%;
+  }
+
+  .faq-section {
+    flex-direction: column;
+    gap: 48px;
+  }
+
+  .faq-left {
+    width: 100%;
+    position: static;
+  }
+
+  .pt-header,
+  .pt-row {
+    grid-template-columns: 1fr repeat(3, 80px);
+  }
+}

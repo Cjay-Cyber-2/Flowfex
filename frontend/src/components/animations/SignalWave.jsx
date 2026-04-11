@@ -11,23 +11,23 @@ export default function SignalWave() {
       wave.setAttribute('cy', '50%');
       wave.setAttribute('r', '0');
       wave.setAttribute('fill', 'none');
-      wave.setAttribute('stroke', '#9E3028');
+      wave.setAttribute('stroke', '#00D4AA');
       wave.setAttribute('stroke-width', '2');
-      wave.style.opacity = '0.6';
+      wave.style.opacity = '0.45';
       
       containerRef.current.appendChild(wave);
 
       // Animate with CSS
       let start = null;
-      const duration = 3000;
+      const duration = 3200;
       
       const animate = (timestamp) => {
         if (!start) start = timestamp;
         const progress = (timestamp - start) / duration;
         
         if (progress < 1) {
-          wave.setAttribute('r', progress * 2000);
-          wave.style.opacity = 0.6 * (1 - progress);
+          wave.setAttribute('r', progress * 1900);
+          wave.style.opacity = 0.45 * (1 - progress);
           requestAnimationFrame(animate);
         } else {
           wave.remove();
@@ -38,7 +38,7 @@ export default function SignalWave() {
     };
 
     // Create wave every 6 seconds
-    const interval = setInterval(createWave, 6000);
+    const interval = setInterval(createWave, 7000);
     createWave(); // Initial wave
 
     return () => clearInterval(interval);

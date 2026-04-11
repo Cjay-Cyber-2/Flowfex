@@ -1,0 +1,448 @@
+/* Node Component - Complete State System */
+
+.node {
+  position: absolute;
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 400ms ease-in-out;
+  will-change: transform;
+}
+
+.node-background {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  transition: all 400ms ease-in-out;
+}
+
+.node-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1;
+}
+
+/* Icon Container */
+.node-icon-container {
+  position: relative;
+  width: 28px;
+  height: 28px;
+}
+
+.node-icon-bg {
+  position: absolute;
+  inset: 0;
+  background: rgba(232, 237, 242, 0.05);
+  border-radius: 10px;
+  transition: all 400ms ease-in-out;
+}
+
+.node-icon {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 400ms ease-in-out;
+}
+
+/* Labels */
+.node-labels {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.node-title {
+  font-family: var(--font-ui, 'Inter');
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  transition: color 400ms ease-in-out;
+}
+
+.node-subtitle {
+  font-family: var(--font-ui, 'Inter');
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.2;
+  transition: color 400ms ease-in-out;
+}
+
+/* Type Badge */
+.node-type-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  transition: opacity 400ms ease-in-out;
+}
+
+.node-type-badge[data-type="skill"] {
+  background: rgba(0, 229, 195, 0.6);
+}
+
+.node-type-badge[data-type="agent"] {
+  background: rgba(138, 112, 64, 0.6);
+}
+
+.node-type-badge[data-type="decision"] {
+  background: rgba(232, 237, 242, 0.6);
+}
+
+/* Metadata (high zoom) */
+.node-metadata {
+  position: absolute;
+  bottom: -20px;
+  left: 0;
+  right: 0;
+  font-family: var(--font-ui, 'Inter');
+  font-size: 9px;
+  color: rgba(232, 237, 242, 0.4);
+  text-align: center;
+}
+
+/* ========================================
+   STATE 1: IDLE
+   ======================================== */
+.node-idle .node-background {
+  background: #111820;
+  border: 1px solid rgba(232, 237, 242, 0.10);
+  box-shadow: none;
+}
+
+.node-idle .node-icon {
+  opacity: 0.4;
+  color: #4A5568;
+}
+
+.node-idle .node-title {
+  color: #4A5568;
+}
+
+.node-idle .node-subtitle {
+  color: #4A5568;
+}
+
+/* ========================================
+   STATE 2: QUEUED
+   ======================================== */
+.node-queued .node-background {
+  background: #111820;
+  border: 1px solid rgba(0, 229, 195, 0.25);
+  box-shadow: none;
+}
+
+.node-queued .node-icon {
+  opacity: 0.6;
+  color: #8A96A3;
+}
+
+.node-queued .node-title {
+  color: #8A96A3;
+}
+
+.node-queued .node-subtitle {
+  color: #8A96A3;
+}
+
+/* ========================================
+   STATE 3: EXECUTING
+   ======================================== */
+.node-executing .node-background {
+  background: #0D1820;
+  border: 1.5px solid rgba(0, 229, 195, 1.0);
+  box-shadow: 
+    0 0 0 1px rgba(0, 229, 195, 0.3),
+    0 0 20px rgba(0, 229, 195, 0.15);
+}
+
+.node-executing .node-icon {
+  opacity: 1.0;
+  color: #00E5C3;
+}
+
+.node-executing .node-title {
+  color: #E8EDF2;
+}
+
+.node-executing .node-subtitle {
+  color: #8A96A3;
+}
+
+/* Rotating Arc Animation */
+.node-rotating-arc {
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    transparent 75%,
+    rgba(0, 229, 195, 0.6) 85%,
+    rgba(0, 229, 195, 1.0) 95%,
+    transparent 100%
+  );
+  animation: rotating-arc 2.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes rotating-arc {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========================================
+   STATE 4: AWAITING APPROVAL
+   ======================================== */
+.node-awaiting-approval .node-background {
+  background: #0D1820;
+  border: 1.5px solid rgba(0, 229, 195, 0.8);
+  animation: breathing-border 1.8s ease-in-out infinite;
+}
+
+.node-awaiting-approval .node-icon {
+  opacity: 1.0;
+  color: #00E5C3;
+}
+
+.node-awaiting-approval .node-title {
+  color: #E8EDF2;
+}
+
+.node-awaiting-approval .node-subtitle {
+  color: #8A96A3;
+}
+
+/* Breathing Border Animation */
+@keyframes breathing-border {
+  0%, 100% {
+    border-color: rgba(0, 229, 195, 0.4);
+    box-shadow: 0 0 0 1px rgba(0, 229, 195, 0.2);
+  }
+  50% {
+    border-color: rgba(0, 229, 195, 1.0);
+    box-shadow: 
+      0 0 0 1px rgba(0, 229, 195, 0.4),
+      0 0 24px rgba(0, 229, 195, 0.18);
+  }
+}
+
+/* Approval Badge */
+.node-approval-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 16px;
+  height: 16px;
+  background: #080C10;
+  border: 1px solid rgba(0, 229, 195, 0.6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00E5C3;
+  z-index: 2;
+}
+
+/* ========================================
+   STATE 5: COMPLETED
+   ======================================== */
+.node-completed .node-background {
+  background: #111820;
+  border: 1px solid rgba(0, 229, 195, 0.18);
+  box-shadow: none;
+}
+
+.node-completed .node-icon {
+  opacity: 0.7;
+  color: #8A96A3;
+}
+
+.node-completed .node-title {
+  color: #8A96A3;
+}
+
+.node-completed .node-subtitle {
+  color: #4A5568;
+}
+
+/* Checkmark Badge */
+.node-checkmark-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 12px;
+  height: 12px;
+  color: rgba(0, 229, 195, 0.6);
+  z-index: 2;
+}
+
+/* ========================================
+   STATE 6: REJECTED/SKIPPED
+   ======================================== */
+.node-rejected,
+.node-skipped {
+  opacity: 0.35;
+}
+
+.node-rejected .node-background,
+.node-skipped .node-background {
+  background: #111820;
+  border: 1px solid rgba(232, 237, 242, 0.08);
+  box-shadow: none;
+}
+
+/* Reject Badge */
+.node-reject-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 12px;
+  height: 12px;
+  color: rgba(138, 112, 64, 0.6);
+  z-index: 2;
+}
+
+/* ========================================
+   STATE 7: SELECTED
+   ======================================== */
+.node-selected .node-background {
+  background: #131D28;
+  border: 2px solid rgba(0, 229, 195, 1.0);
+  box-shadow: 
+    0 0 0 3px rgba(0, 229, 195, 0.15),
+    0 0 30px rgba(0, 229, 195, 0.2);
+}
+
+.node-selected .node-icon {
+  opacity: 1.0;
+  color: #00E5C3;
+}
+
+.node-selected .node-title {
+  color: #E8EDF2;
+}
+
+.node-selected .node-subtitle {
+  color: #8A96A3;
+}
+
+/* ========================================
+   HOVER STATE (unselected)
+   ======================================== */
+.node:not(.node-selected):hover .node-background {
+  border-color: rgba(0, 229, 195, 0.4);
+  background: #121A22;
+}
+
+/* ========================================
+   DIAMOND NODE
+   ======================================== */
+.node-diamond {
+  transform: rotate(45deg);
+  border-radius: 8px;
+}
+
+.node-diamond-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-45deg);
+}
+
+.node-diamond-label {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) rotate(-45deg);
+  margin-top: 12px;
+  font-family: var(--font-ui, 'Inter');
+  font-size: 12px;
+  font-weight: 600;
+  color: #E8EDF2;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ========================================
+   TOOLTIP
+   ======================================== */
+.node-tooltip {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(13, 17, 23, 0.95);
+  border: 1px solid rgba(0, 229, 195, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+  z-index: 1000;
+  min-width: 120px;
+}
+
+.node-tooltip-type {
+  font-family: var(--font-ui, 'Inter');
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #00E5C3;
+  margin-bottom: 4px;
+}
+
+.node-tooltip-desc {
+  font-family: var(--font-ui, 'Inter');
+  font-size: 11px;
+  color: #8A96A3;
+  line-height: 1.4;
+}
+
+/* Tooltip arrow */
+.node-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(13, 17, 23, 0.95);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 1024px) {
+  .node {
+    /* Tablet adjustments */
+  }
+}
+
+@media (max-width: 768px) {
+  .node-title {
+    font-size: 12px;
+  }
+  
+  .node-subtitle {
+    font-size: 10px;
+  }
+}

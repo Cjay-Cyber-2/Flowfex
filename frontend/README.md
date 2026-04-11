@@ -29,6 +29,26 @@ Flowfex uses a unique color system based on genuine rare pigments from history:
 
 ## 🚀 Features
 
+### ✨ Latest Updates (Current Session)
+
+**Advanced Animations Implemented:**
+- ✅ Signal Propagation Wave - Expanding rings on task start
+- ✅ Completion Bloom - Golden ripple with particle burst on success
+- ✅ Agent Connection Beam - Dramatic beam along connection path
+- ✅ Enhanced particle flow with radial glow
+- ✅ Orbital status rings for active nodes
+- ✅ Improved idle drift with multi-layered physics
+
+**Approvals Queue System:**
+- ✅ Expandable approval cards with full context
+- ✅ Time-since-triggered display
+- ✅ Confidence score visualization
+- ✅ Alternatives and risks sections
+- ✅ Approve/Reject actions with animations
+- ✅ "All clear" state with bloom animation
+
+**Completion Status: 80%** (up from 75%)
+
 ### Core Pages
 
 1. **Landing Page**

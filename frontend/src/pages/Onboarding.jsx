@@ -76,7 +76,7 @@ export default function Onboarding() {
               : { duration: 2, repeat: Infinity }
           }
         >
-          <FlowfexLogo size={32} />
+          <FlowfexLogoNew size={32} animated={false} />
         </motion.div>
 
         <p className="ob-headline">Connect your first agent to begin.</p>

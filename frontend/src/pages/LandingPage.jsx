@@ -171,6 +171,104 @@ function renderFlowGraph(nodes, edges, prefix, showLabels = false) {
   );
 }
 
+const HERO_GRAPH = {
+  nodes: [
+    {
+      id: 'hero-cli',
+      shape: 'rect',
+      x: 160,
+      y: 120,
+      width: 210,
+      height: 96,
+      title: 'CLI Agent',
+      subtitle: 'session attached',
+      state: 'completed',
+      icon: 'message-square',
+    },
+    {
+      id: 'hero-ide',
+      shape: 'rect',
+      x: 160,
+      y: 350,
+      width: 210,
+      height: 96,
+      title: 'IDE Agent',
+      subtitle: 'session attached',
+      state: 'completed',
+      icon: 'layers',
+    },
+    {
+      id: 'hero-web',
+      shape: 'rect',
+      x: 160,
+      y: 580,
+      width: 210,
+      height: 96,
+      title: 'Web Agent',
+      subtitle: 'joining live',
+      state: 'queued',
+      icon: 'globe',
+    },
+    {
+      id: 'hero-bridge',
+      shape: 'rect',
+      x: 780,
+      y: 295,
+      width: 248,
+      height: 114,
+      title: 'Flowfex Bridge',
+      subtitle: 'routing the task',
+      state: 'active',
+      icon: 'git-branch',
+    },
+    {
+      id: 'hero-skill-pull',
+      shape: 'rect',
+      x: 1450,
+      y: 180,
+      width: 238,
+      height: 98,
+      title: 'Skill Pull',
+      subtitle: 'best match loaded',
+      state: 'completed',
+      icon: 'sparkles',
+    },
+    {
+      id: 'hero-tool-pull',
+      shape: 'rect',
+      x: 1450,
+      y: 435,
+      width: 238,
+      height: 98,
+      title: 'Tool Pull',
+      subtitle: 'helpers queued',
+      state: 'queued',
+      icon: 'database',
+    },
+    {
+      id: 'hero-canvas',
+      shape: 'rect',
+      x: 2070,
+      y: 295,
+      width: 230,
+      height: 114,
+      title: 'Live Canvas',
+      subtitle: 'user can guide',
+      state: 'approval',
+      icon: 'shield-check',
+    },
+  ],
+  edges: [
+    { id: 'hero-edge-cli', from: 'hero-cli', to: 'hero-bridge', state: 'completed' },
+    { id: 'hero-edge-ide', from: 'hero-ide', to: 'hero-bridge', state: 'completed' },
+    { id: 'hero-edge-web', from: 'hero-web', to: 'hero-bridge', state: 'active' },
+    { id: 'hero-edge-skill', from: 'hero-bridge', to: 'hero-skill-pull', state: 'completed' },
+    { id: 'hero-edge-tool', from: 'hero-bridge', to: 'hero-tool-pull', state: 'queued' },
+    { id: 'hero-edge-canvas-skill', from: 'hero-skill-pull', to: 'hero-canvas', state: 'active' },
+    { id: 'hero-edge-canvas-tool', from: 'hero-tool-pull', to: 'hero-canvas', state: 'queued' },
+  ],
+};
+
 function LandingPage() {
   const navigate = useNavigate();
   const scrollProgressRef = useRef(null);
@@ -180,10 +278,10 @@ function LandingPage() {
   const sectionIds = [
     { id: 'hero', label: 'Hero' },
     { id: 'problem', label: 'Problem' },
-    { id: 'reveal', label: 'Reveal' },
+    { id: 'reveal', label: 'Bridge' },
     { id: 'layers', label: 'Layers' },
     { id: 'demo', label: 'Demo' },
-    { id: 'social-proof', label: 'Trust' },
+    { id: 'bridge', label: 'Connect' },
     { id: 'developer', label: 'Developers' },
     { id: 'pricing', label: 'Pricing' },
     { id: 'faq', label: 'FAQ' },
@@ -230,10 +328,10 @@ function LandingPage() {
         </button>
 
         <div className="landing-nav-links">
-          <a href="#problem">Product</a>
+          <a href="#problem">What It Is</a>
           <a href="#reveal">How It Works</a>
+          <a href="#bridge">Connect</a>
           <a href="#developer">For Developers</a>
-          <a href="#social-proof">Trust</a>
           <a href="#pricing">Pricing</a>
         </div>
 
@@ -258,14 +356,15 @@ function LandingPage() {
         <ParticleField />
         <SignalWave />
         <div className="hero-copy">
-          <span className="section-kicker">Visual AI orchestration platform</span>
+          <span className="section-kicker">Agent bridge and orchestration layer</span>
           <h1 className="hero-headline">
-            <span>Your AI is thinking.</span>
-            <span className="hero-headline-accent">Now you can see it.</span>
+            <span>Connect any agent to the right tools and skills.</span>
+            <span className="hero-headline-accent">Watch Flowfex route the work live.</span>
           </h1>
           <p className="hero-subheadline">
-            Connect any agent. Watch every step. Control what matters. Flowfex turns opaque execution
-            into a live intelligence surface with transparent paths, guarded approvals, and traceable decisions.
+            Flowfex is a web app that sits between any agent and a shared store of tools, skills, and workflows.
+            The agent pulls what it needs through Flowfex, and the dashboard shows the route in real time while
+            you guide it when needed.
           </p>
 
           <div className="hero-actions">
@@ -273,7 +372,7 @@ function LandingPage() {
               Start Building Free
               <span className="cta-note">live in minutes</span>
             </PortalButton>
-            <button className="btn btn-ghost" onClick={() => navigate('/dashboard')}>
+            <button className="btn btn-ghost" onClick={() => navigate('/demo')}>
               <Play size={16} />
               Watch Live Demo
             </button>
@@ -281,16 +380,16 @@ function LandingPage() {
 
           <div className="hero-metrics">
             <div>
-              <strong>Live graph</strong>
-              <span>Every edge traced</span>
-            </div>
-            <div>
-              <strong>Approval gates</strong>
-              <span>Intervene mid-flow</span>
-            </div>
-            <div>
               <strong>Universal bridge</strong>
-              <span>IDE, CLI, web, SDK</span>
+              <span>IDE, CLI, web, and embedded agents</span>
+            </div>
+            <div>
+              <strong>Resource routing</strong>
+              <span>Pull the best tools and skills for the task</span>
+            </div>
+            <div>
+              <strong>Live control</strong>
+              <span>Pause, approve, reject, or reroute the flow</span>
             </div>
           </div>
         </div>
@@ -302,44 +401,42 @@ function LandingPage() {
             <span />
             <div className="hero-graph-status">
               <span className="hero-graph-status-dot" />
-              Awaiting approval on publish gate
+              Bridge live · resource pull visible
             </div>
           </div>
-          <div className="hero-graph-surface">{renderFlowGraph(workspace.nodes, workspace.edges, 'hero', false)}</div>
+          <div className="hero-graph-surface">{renderFlowGraph(HERO_GRAPH.nodes, HERO_GRAPH.edges, 'hero', false)}</div>
         </div>
       </section>
-
-      <ScrollFrameSection />
 
       <section id="problem" data-section-id="problem" className="landing-section problem-section">
         <div className="section-copy">
           <span className="section-kicker section-kicker-accent">The problem</span>
-          <h2>Most AI tools hide what they are doing.</h2>
+          <h2>Agents need one shared place to pull the right resources.</h2>
           <p>
-            Agents execute in a black box. They choose tools, branch logic, and publish results without exposing
-            the chain of reasoning. That makes trust brittle and intervention impossible.
+            Teams already have useful tools, skills, prompts, and workflows, but they live in different places.
+            Flowfex gives every agent one bridge into that resource layer and one live view for the user.
           </p>
 
           <div className="problem-card-list">
             <article className="problem-card">
               <Sparkles size={18} />
               <div>
-                <h3>Opaque execution</h3>
-                <p>You get outputs, not the path that produced them.</p>
+                <h3>Scattered resources</h3>
+                <p>Your best skills and tools stay split across prompts, scripts, and local setups.</p>
               </div>
             </article>
             <article className="problem-card">
               <Workflow size={18} />
               <div>
-                <h3>Fragmented agents</h3>
-                <p>IDE tools, CLI agents, and web copilots all behave differently.</p>
+                <h3>Different agent environments</h3>
+                <p>CLI agents, side-panel agents, web agents, and app agents all connect in different ways.</p>
               </div>
             </article>
             <article className="problem-card">
               <ShieldCheck size={18} />
               <div>
-                <h3>No intervention layer</h3>
-                <p>You cannot pause, approve, or reroute at the moment risk appears.</p>
+                <h3>Hard to guide live</h3>
+                <p>Once the run starts, users need to see what was pulled and where to step in.</p>
               </div>
             </article>
           </div>
@@ -347,39 +444,44 @@ function LandingPage() {
 
         <div className="problem-visual">
           <div className="black-box-demo">
-            <div className="black-box-query">“Research the latest model launches.”</div>
-            <div className="black-box-core">???</div>
-            <div className="black-box-result">Summary returned. No reasoning attached.</div>
+            <div className="black-box-query">Agent needs docs, memory, skills, and deploy tools.</div>
+            <div className="black-box-core">Scattered resources</div>
+            <div className="black-box-result">Lower efficiency. Different behavior. No shared live view.</div>
           </div>
         </div>
       </section>
 
       <section id="reveal" data-section-id="reveal" className="landing-section reveal-section">
         <div className="section-copy">
-          <span className="section-kicker">Flowfex opens the process</span>
-          <h2>Every skill selected. Every path taken. Every decision made visible.</h2>
+          <span className="section-kicker">What Flowfex does</span>
+          <h2>Flowfex sits between the agent and the resource layer.</h2>
           <p>
-            Flowfex reveals the orchestration graph as it forms. The operator sees active edges, guarded nodes,
-            alternatives considered, and the reason each step was chosen.
+            The agent connects once. Flowfex reads the task, picks the right skills and tools, builds the flow,
+            and streams each step back to the dashboard and the calling agent.
           </p>
         </div>
 
         <div className="reveal-stage">
           <div className="reveal-stage-canvas">{renderFlowGraph(workspace.nodes, workspace.edges, 'reveal', true)}</div>
           <div className="reveal-stage-panel">
-            <span className="section-kicker">Decision transparency</span>
-            <h3>Approval Gate</h3>
+            <span className="section-kicker">Live bridge session</span>
+            <h3>Connect. Pull. Guide. Return.</h3>
             <p>
-              Publishing is guarded because the brief relies on fresh live sources and needs operator confirmation.
+              Flowfex does not replace the agent. It gives the agent a better resource layer and gives the user
+              one live place to supervise the run.
             </p>
             <ul>
-              <li>Alternative: Auto publish</li>
-              <li>Alternative: Pause entire session</li>
-              <li>Current state: Awaiting approval</li>
+              <li>Connected agent: IDE, CLI, browser, or app agent</li>
+              <li>Pulled resources: tools, skills, memory, and workflows</li>
+              <li>User controls: pause, approve, reject, or reroute</li>
             </ul>
             <div className="reveal-stage-buttons">
-              <button className="btn btn-primary">Approve</button>
-              <button className="btn btn-ghost">Reroute</button>
+              <button className="btn btn-primary" onClick={() => navigate('/onboarding')}>
+                Connect Agent
+              </button>
+              <button className="btn btn-ghost" onClick={() => navigate('/demo')}>
+                Watch Demo
+              </button>
             </div>
           </div>
         </div>
@@ -389,7 +491,7 @@ function LandingPage() {
         <div className="section-heading-block">
           <span className="section-kicker">How it works</span>
           <h2>Three layers. One living system.</h2>
-          <p>Structure, execution, and energy working together in the same orchestration surface.</p>
+          <p>Structure, execution, and motion working together in one shared bridge.</p>
         </div>
 
         <div className="layers-grid">
@@ -398,7 +500,7 @@ function LandingPage() {
               <Workflow size={18} />
             </span>
             <h3>Structure Layer</h3>
-            <p>See nodes, branching decisions, agent states, and graph topology spatially.</p>
+            <p>See agents, tools, skills, dependencies, and state in one map.</p>
             <div className="layer-visual">{renderFlowGraph(workspace.nodes.slice(0, 6), workspace.edges.slice(0, 7), 'structure', false)}</div>
           </article>
 
@@ -407,7 +509,7 @@ function LandingPage() {
               <ChevronRight size={18} />
             </span>
             <h3>Execution Layer</h3>
-            <p>Follow ordered paths, branch conditions, reroutes, and final publish handoffs.</p>
+            <p>Follow the order, branches, reroutes, and return path while the task runs.</p>
           </article>
 
           <article className="layer-card">
@@ -415,7 +517,7 @@ function LandingPage() {
               <Zap size={18} />
             </span>
             <h3>Energy Layer</h3>
-            <p>Active edges pulse, approvals breathe, and live computation never looks static.</p>
+            <p>Active paths pulse, connected nodes glow, and the system feels alive while work moves.</p>
           </article>
 
           <article className="layer-card layer-card-wide">
@@ -428,12 +530,15 @@ function LandingPage() {
         </div>
       </section>
 
+      <ScrollFrameSection />
+
       <section id="demo" data-section-id="demo" className="landing-section demo-section">
         <div className="section-heading-block">
-          <span className="section-kicker">Live demo</span>
-          <h2>The dashboard is the product.</h2>
+          <span className="section-kicker">Product preview</span>
+          <h2>The dashboard shows what connected, what was pulled, and where the flow is going.</h2>
           <p>
-            Not a screenshot. Not a static workflow mock. A live control surface where the graph, the panels, and the approvals all agree.
+            Flowfex is not a static graph mock. The main app is a live control surface with sessions, a graph
+            canvas, and clear places where the user can step in.
           </p>
         </div>
 
@@ -444,26 +549,27 @@ function LandingPage() {
               <span />
               <span />
             </div>
-            <div className="demo-browser-url">app.flowfex.io/dashboard</div>
+            <div className="demo-browser-url">app.flowfex.io/session/live-bridge</div>
           </div>
 
           <div className="demo-browser-body">
             <div className="demo-browser-rail">
-              <strong>Connected Agents</strong>
-              <span>VS Code Bridge</span>
-              <span>Research Relay</span>
+              <strong>Connected now</strong>
+              <span>CLI agent</span>
+              <span>Skill store</span>
+              <span>Session controls</span>
             </div>
             <div className="demo-browser-canvas">{renderFlowGraph(workspace.nodes, workspace.edges, 'browser', false)}</div>
             <div className="demo-browser-panel">
-              <strong>Decision transparency</strong>
-              <span>Why this was chosen</span>
-              <p>Publishing is guarded because the brief was assembled from live research.</p>
+              <strong>Visible in one place</strong>
+              <span>Current step + pulled resources</span>
+              <p>Users can inspect nodes, see why a resource was chosen, and step in without rebuilding the whole flow.</p>
             </div>
           </div>
 
-          <div className="demo-callout demo-callout-left">Live edge pulses</div>
-          <div className="demo-callout demo-callout-right">Approve or reroute mid-flow</div>
-          <div className="demo-callout demo-callout-bottom">Context stays visible while the graph executes</div>
+          <div className="demo-callout demo-callout-left">Agent attached</div>
+          <div className="demo-callout demo-callout-right">Resource pull visible</div>
+          <div className="demo-callout demo-callout-bottom">Pause, approve, or reroute here</div>
         </div>
       </section>
 
@@ -489,24 +595,24 @@ function LandingPage() {
           <ParticleField />
         </div>
         <div className="final-panel">
-          <span className="section-kicker">Start building</span>
+          <span className="section-kicker">Start with one connection</span>
           <h2>
-            <span className="final-headline-highlight">See</span> what your agents are doing before they disappear behind the output.
+            Give <span className="final-headline-highlight">every agent</span> one place to pull the right tools and skills.
           </h2>
           <p>
-            Flowfex turns invisible orchestration into a visible, controllable, production-grade intelligence surface.
+            Start a session, connect an agent, and let Flowfex turn scattered resources into a live flow you can understand and steer.
           </p>
           <div className="final-actions">
             <PortalButton className="final-cta-enhanced" onClick={() => navigate('/onboarding')}>
               Start Building Free
             </PortalButton>
-            <button className="btn btn-ghost" onClick={() => navigate('/dashboard')}>
-              Open Dashboard
+            <button className="btn btn-ghost" onClick={() => navigate('/demo')}>
+              Watch Live Demo
               <ArrowRight size={16} />
             </button>
           </div>
           <div className="final-trust-line">
-            No credit card required · Anonymous session · Upgrade when ready
+            Start free · Anonymous session first · Sign up when you need to save
           </div>
         </div>
       </section>

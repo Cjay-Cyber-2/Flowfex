@@ -14,13 +14,9 @@ function FAQSection() {
       <div className="faq-container">
         <div className="faq-left">
           <span className="section-kicker">QUESTIONS</span>
-          <h2 className="section-headline">Everything you need to know.</h2>
+          <h2 className="section-headline">Simple answers before you connect.</h2>
           <p className="faq-description">
-            Can't find your answer?{' '}
-            <a href="#" className="brand-link">
-              Ask the agent directly
-            </a>
-            .
+            Flowfex should be easy to understand before you open the app.
           </p>
         </div>
         

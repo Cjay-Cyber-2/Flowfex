@@ -7,6 +7,8 @@ import {
 } from '../../data/landing/generated/scrollFrames'
 
 const TARGET_ASPECT_RATIO = scrollFrameAspectRatio || 2.39
+const SCROLL_PIXELS_PER_FRAME = 16
+const FRAME_EASE = 0.14
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)
@@ -20,6 +22,9 @@ function ScrollFrameSection() {
   const hasLoadedAllFramesRef = useRef(false)
   const pendingFrameIndexRef = useRef(0)
   const renderedFrameIndexRef = useRef(-1)
+  const targetProgressRef = useRef(0)
+  const easedProgressRef = useRef(0)
+  const scrollDistanceRef = useRef(Math.max(scrollFrameCount * SCROLL_PIXELS_PER_FRAME, 2400))
 
   useEffect(() => {
     const section = sectionRef.current
@@ -44,7 +49,7 @@ function ScrollFrameSection() {
 
     const syncCanvasSize = () => {
       const bounds = canvas.getBoundingClientRect()
-      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2)
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 3)
       const nextWidth = Math.max(1, Math.round(bounds.width * pixelRatio))
       const nextHeight = Math.max(1, Math.round(bounds.height * pixelRatio))
 
@@ -68,7 +73,21 @@ function ScrollFrameSection() {
           return
         }
 
-        const image = frameImagesRef.current[pendingFrameIndexRef.current]
+        const delta = targetProgressRef.current - easedProgressRef.current
+        if (Math.abs(delta) > 0.0005) {
+          easedProgressRef.current += delta * FRAME_EASE
+        } else {
+          easedProgressRef.current = targetProgressRef.current
+        }
+
+        const nextFrameIndex = Math.min(
+          scrollFrameCount - 1,
+          Math.round(easedProgressRef.current * (scrollFrameCount - 1))
+        )
+
+        pendingFrameIndexRef.current = nextFrameIndex
+
+        const image = frameImagesRef.current[nextFrameIndex]
 
         if (!image) {
           return
@@ -107,6 +126,7 @@ function ScrollFrameSection() {
 
         context.imageSmoothingEnabled = true
         context.imageSmoothingQuality = 'high'
+        context.filter = 'contrast(1.04) saturate(1.06)'
         context.drawImage(
           image,
           sourceX,
@@ -118,22 +138,22 @@ function ScrollFrameSection() {
           drawWidth,
           drawHeight
         )
+        context.filter = 'none'
 
-        renderedFrameIndexRef.current = pendingFrameIndexRef.current
+        renderedFrameIndexRef.current = nextFrameIndex
+
+        if (Math.abs(targetProgressRef.current - easedProgressRef.current) > 0.0005) {
+          requestDraw()
+        }
       })
     }
 
-    const updateFrameIndex = () => {
+    const updateFrameTarget = () => {
       const sectionRect = section.getBoundingClientRect()
-      const scrollDistance = scrollFrameCount * 4
-      const progress = clamp(-sectionRect.top / scrollDistance, 0, 1)
-      const nextFrameIndex = Math.min(scrollFrameCount - 1, Math.floor(progress * scrollFrameCount))
+      const progress = clamp(-sectionRect.top / scrollDistanceRef.current, 0, 1)
 
-      pendingFrameIndexRef.current = nextFrameIndex
-
-      if (renderedFrameIndexRef.current !== nextFrameIndex || !canvas.width || !canvas.height) {
-        requestDraw()
-      }
+      targetProgressRef.current = progress
+      requestDraw()
     }
 
     const preloadFrames = async () => {
@@ -163,19 +183,21 @@ function ScrollFrameSection() {
     }
 
     const handleViewportChange = () => {
+      scrollDistanceRef.current = Math.max(scrollFrameCount * SCROLL_PIXELS_PER_FRAME, window.innerHeight * 2.75)
       syncCanvasSize()
-      updateFrameIndex()
+      updateFrameTarget()
     }
 
+    scrollDistanceRef.current = Math.max(scrollFrameCount * SCROLL_PIXELS_PER_FRAME, window.innerHeight * 2.75)
     syncCanvasSize()
     paintBlack()
-    updateFrameIndex()
+    updateFrameTarget()
 
     preloadFrames().catch((error) => {
       console.error(error)
     })
 
-    window.addEventListener('scroll', updateFrameIndex, { passive: true })
+    window.addEventListener('scroll', updateFrameTarget, { passive: true })
     window.addEventListener('resize', handleViewportChange)
 
     const resizeObserver =
@@ -192,7 +214,7 @@ function ScrollFrameSection() {
     return () => {
       cancelled = true
       hasLoadedAllFramesRef.current = false
-      window.removeEventListener('scroll', updateFrameIndex)
+      window.removeEventListener('scroll', updateFrameTarget)
       window.removeEventListener('resize', handleViewportChange)
 
       if (resizeObserver) {
@@ -213,7 +235,7 @@ function ScrollFrameSection() {
     <section
       ref={sectionRef}
       className="landing-scroll-cinema"
-      style={{ '--scroll-cinema-distance': `${scrollFrameCount * 4}px` }}
+      style={{ '--scroll-cinema-distance': `${Math.max(scrollFrameCount * SCROLL_PIXELS_PER_FRAME, 2400)}px` }}
       aria-hidden="true"
     >
       <div className="landing-scroll-cinema-sticky">

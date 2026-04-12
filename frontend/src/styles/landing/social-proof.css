@@ -48,6 +48,54 @@
   margin: 0;
 }
 
+.bridge-subhead {
+  max-width: 760px;
+  margin: 18px auto 0;
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--color-text-muted);
+}
+
+.bridge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 64px;
+}
+
+.bridge-card {
+  min-height: 190px;
+  padding: 28px;
+  background: rgba(22, 30, 40, 0.6);
+  border: 1px solid rgba(0, 212, 170, 0.08);
+  border-radius: 18px;
+  backdrop-filter: blur(24px);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.bridge-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 212, 170, 0.24);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.24);
+}
+
+.bridge-card strong {
+  display: block;
+  margin-bottom: 12px;
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  color: var(--color-text-primary);
+}
+
+.bridge-card p {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.96rem;
+  line-height: 1.7;
+  color: var(--color-text-muted);
+}
+
 /* Logo Marquee */
 .logo-marquee {
   margin: 64px 0;
@@ -196,6 +244,10 @@
 }
 
 @media (max-width: 1024px) {
+  .bridge-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .testimonial-grid {
     grid-template-columns: repeat(2, 340px);
   }
@@ -208,6 +260,10 @@
   
   .social-proof-section .content-container {
     padding: 0 24px;
+  }
+
+  .bridge-grid {
+    grid-template-columns: 1fr;
   }
   
   .testimonial-grid {

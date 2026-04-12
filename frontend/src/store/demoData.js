@@ -1,34 +1,34 @@
-export const DEMO_SESSION_ID = 'session-launch-intelligence-pulse';
+export const DEMO_SESSION_ID = 'session-resource-bridge';
 
 export const DEMO_SKILL_LIBRARY = [
   {
     id: 'reasoning',
     label: 'Reasoning',
     items: [
-      { id: 'intent-planner', label: 'Intent Planner', icon: 'brain' },
-      { id: 'tool-router', label: 'Tool Router', icon: 'git-branch' },
-      { id: 'confidence-scorer', label: 'Confidence Scorer', icon: 'radar' },
-      { id: 'risk-estimator', label: 'Risk Estimator', icon: 'shield' },
+      { id: 'task-reader', label: 'Task Reader', icon: 'brain' },
+      { id: 'resource-router', label: 'Resource Router', icon: 'git-branch' },
+      { id: 'match-scorer', label: 'Match Scorer', icon: 'radar' },
+      { id: 'risk-check', label: 'Risk Check', icon: 'shield' },
     ],
   },
   {
-    id: 'research',
-    label: 'Research',
+    id: 'resources',
+    label: 'Resources',
     items: [
-      { id: 'web-research', label: 'Web Research', icon: 'globe' },
-      { id: 'source-ranker', label: 'Source Ranker', icon: 'search' },
-      { id: 'entity-extractor', label: 'Entity Extractor', icon: 'sparkles' },
-      { id: 'brief-generator', label: 'Brief Generator', icon: 'file-text' },
+      { id: 'skill-pull', label: 'Skill Pull', icon: 'sparkles' },
+      { id: 'tool-pull', label: 'Tool Pull', icon: 'database' },
+      { id: 'memory-pull', label: 'Memory Pull', icon: 'search' },
+      { id: 'flow-build', label: 'Flow Build', icon: 'file-text' },
     ],
   },
   {
     id: 'control',
     label: 'Control',
     items: [
-      { id: 'approval-gate', label: 'Approval Gate', icon: 'shield-check' },
+      { id: 'approval-gate', label: 'Operator Check', icon: 'shield-check' },
       { id: 'reroute', label: 'Reroute', icon: 'shuffle' },
       { id: 'session-memory', label: 'Session Memory', icon: 'database' },
-      { id: 'publish', label: 'Publish', icon: 'send' },
+      { id: 'handoff', label: 'Return Bridge', icon: 'send' },
     ],
   },
 ];
@@ -36,22 +36,22 @@ export const DEMO_SKILL_LIBRARY = [
 export const DEMO_HISTORY = [
   {
     id: 'history-evals',
-    name: 'Risk Triage Sweep',
-    task: 'Review flagged agent actions before release',
+    name: 'CLI Resource Attach',
+    task: 'Connected a terminal agent and streamed the first live path',
     elapsed: '18m ago',
     status: 'completed',
   },
   {
     id: 'history-bridge',
-    name: 'SDK Agent Handshake',
-    task: 'Connected a staging SDK agent to Flowfex',
+    name: 'SDK Bridge Sync',
+    task: 'Linked a web app agent to the shared Flowfex session',
     elapsed: '2h ago',
     status: 'completed',
   },
   {
     id: 'history-pipeline',
-    name: 'Launch Notes Draft',
-    task: 'Summarize launch notes and publish internal brief',
+    name: 'Skill Store Trial',
+    task: 'Tested prompt attach with a shared tool and skill catalog',
     elapsed: 'Yesterday',
     status: 'completed',
   },
@@ -64,31 +64,48 @@ export const CONNECT_METHOD_TABS = [
   { id: 'live', label: 'Live Channel' },
 ];
 
-export const CONNECT_PROMPT = `You are connected to Flowfex, a visual orchestration layer for live AI execution.
+export const CONNECT_PROMPT = `Connect this agent to Flowfex.
 
-For every meaningful step, emit structured progress:
+Session ID: session-resource-bridge
+Session URL: https://app.flowfex.io/connect/live/session-resource-bridge
 
-STEP: <short step label>
-NODE: <tool or reasoning node>
-STATUS: <queued|running|awaiting_approval|completed|skipped>
-WHY: <one sentence rationale>
+Rules:
+1. Ask Flowfex for the best tools, skills, or workflows before you act.
+2. Report each selected resource and a short reason.
+3. Emit step updates in this format:
+   STEP: <label>
+   RESOURCE: <selected tool, skill, or workflow>
+   STATUS: <queued|active|approval_required|completed|failed>
+   WHY: <one short reason>
+4. Wait when Flowfex marks a step as approval_required.
+5. Return the final result through the same Flowfex session.`;
 
-Flowfex will map the execution path, highlight the active edge, and wait for approval on guarded steps.`;
-
-export const CONNECT_LINK = 'https://app.flowfex.io/connect/live/session-launch-intelligence-pulse';
+export const CONNECT_LINK = 'https://app.flowfex.io/connect/live/session-resource-bridge';
 
 export const CONNECT_SDK_SNIPPET = `import { FlowfexBridge } from 'flowfex-sdk';
 
 const bridge = new FlowfexBridge({
-  sessionId: 'session-launch-intelligence-pulse',
+  sessionId: 'session-resource-bridge',
   transport: 'websocket',
 });
 
-await bridge.connect();`;
+await bridge.connect({
+  agentName: 'CLI Agent',
+  source: 'terminal',
+});
 
-export const CONNECT_LIVE_SNIPPET = `wss://app.flowfex.io/ws/session-launch-intelligence-pulse
+const resourcePlan = await bridge.requestResources({
+  task: 'Summarize a deployment issue for the operator',
+});
+
+await bridge.runWithResources(resourcePlan, async (ctx) => {
+  return ctx.execute('summarize_deployment_issue');
+});`;
+
+export const CONNECT_LIVE_SNIPPET = `wss://app.flowfex.io/ws/session-resource-bridge
 channel: live
-approval_mode: guarded`;
+resource_mode: flowfex_required
+approval_mode: supervised`;
 
 const FALLBACK_AGENT_POOL = [
   {
@@ -121,12 +138,12 @@ function buildAlternatives(primary, secondary) {
   return [
     {
       name: primary,
-      reason: 'Lower confidence on current task shape.',
+      reason: 'Lower match for the current task.',
       confidence: 71,
     },
     {
       name: secondary,
-      reason: 'Would add latency without improving traceability.',
+      reason: 'Adds more overhead without improving visibility.',
       confidence: 64,
     },
   ];
@@ -142,20 +159,20 @@ function buildNodes() {
       y: 280,
       width: 176,
       height: 92,
-      title: 'Agent Intake',
-      subtitle: 'task received',
+      title: 'Agent Attach',
+      subtitle: 'session opened',
       state: 'completed',
       icon: 'sparkles',
       confidence: 98,
-      reasoning: 'Flowfex captured the incoming task, source agent, and execution mode before planning the graph.',
-      alternatives: buildAlternatives('Passive Logging', 'Unstructured Event Trace'),
+      reasoning: 'Flowfex registered the connected agent, the incoming task, and the session mode before building the flow.',
+      alternatives: buildAlternatives('Passive Logging', 'Direct agent execution'),
       inputs: {
-        task: 'Research and summarize the latest AI model launches with approval before publish.',
-        source: 'VS Code Bridge',
-        mode: 'Live',
+        task: 'Connect an agent, pull the right resources, and stream the run live.',
+        source: 'CLI Bridge',
+        mode: 'Prompt attach',
       },
       config: {
-        policy: 'Guarded publish',
+        policy: 'Supervised execution',
         timeout: '45s',
         transport: 'Session bridge',
       },
@@ -169,17 +186,17 @@ function buildNodes() {
       y: 280,
       width: 196,
       height: 96,
-      title: 'Intent Planner',
-      subtitle: 'scope + success criteria',
+      title: 'Task Read',
+      subtitle: 'goal + limits',
       state: 'completed',
       icon: 'brain',
       confidence: 94,
-      reasoning: 'The planner decomposed the request into source discovery, synthesis, approval, and publish stages.',
-      alternatives: buildAlternatives('Prompt Heuristic', 'Static Workflow'),
+      reasoning: 'Flowfex broke the request into resource discovery, flow building, operator check, and return steps.',
+      alternatives: buildAlternatives('Loose prompt parse', 'Static workflow'),
       inputs: {
-        taskType: 'Research synthesis',
-        approvalGate: 'Required',
-        output: 'Internal launch brief',
+        taskType: 'Agent bridge session',
+        approvalGate: 'Enabled',
+        output: 'Structured return payload',
       },
       config: {
         planner: 'Layered reasoning',
@@ -196,32 +213,32 @@ function buildNodes() {
       y: 300,
       width: 118,
       height: 118,
-      title: 'Route Decision',
-      subtitle: 'pick research lane',
+      title: 'Resource Match',
+      subtitle: 'pick best lane',
       state: 'completed',
       icon: 'git-branch',
       confidence: 88,
-      reasoning: 'Flowfex selected the external research lane because freshness mattered more than local-only speed.',
+      reasoning: 'Flowfex chose the strongest resource lane for this task before execution moved forward.',
       alternatives: [
         {
-          name: 'Cached internal notes',
-          reason: 'Fast, but stale for a latest-news task.',
+          name: 'Broad tool dump',
+          reason: 'Would overwhelm the agent with too many options.',
           confidence: 69,
         },
         {
-          name: 'Code-only analysis',
-          reason: 'No access to live model release context.',
+          name: 'Agent-only execution',
+          reason: 'Skips the shared Flowfex resource layer.',
           confidence: 42,
         },
       ],
       inputs: {
-        freshness: 'High',
+        freshness: 'Medium',
         risk: 'Moderate',
         branchCount: '2',
       },
       config: {
-        branchLabels: 'Fresh web / fallback review',
-        routingBias: 'Explainability first',
+        branchLabels: 'Skill pull / fallback lane',
+        routingBias: 'Best match first',
         manualOverride: 'Enabled',
       },
       owner: 'Flow Router',
@@ -234,24 +251,24 @@ function buildNodes() {
       y: 110,
       width: 198,
       height: 96,
-      title: 'Web Research',
-      subtitle: 'fresh source sweep',
+      title: 'Skill Pull',
+      subtitle: 'best skills loaded',
       state: 'completed',
       icon: 'globe',
       confidence: 91,
-      reasoning: 'The research lane fetched current launch material and ranked sources before synthesis.',
-      alternatives: buildAlternatives('RSS Snapshot', 'Internal Changelog'),
+      reasoning: 'Flowfex pulled the most relevant skills for the current task and ranked them before execution.',
+      alternatives: buildAlternatives('Full catalog dump', 'Manual skill pick'),
       inputs: {
-        sources: 'Vendor blogs, release pages, announcements',
-        freshnessWindow: '7 days',
-        ranking: 'Authority + recency',
+        sources: 'Shared skill catalog',
+        freshnessWindow: 'Current session',
+        ranking: 'Match score + constraints',
       },
       config: {
         sourceCap: '6',
-        fallback: 'manual review',
-        citationMode: 'strict',
+        fallback: 'manual override',
+        citationMode: 'off',
       },
-      owner: 'Research Relay',
+      owner: 'Resource Layer',
     },
     {
       id: 'policy-scan',
@@ -261,24 +278,24 @@ function buildNodes() {
       y: 440,
       width: 210,
       height: 96,
-      title: 'Policy Scan',
-      subtitle: 'inactive governance lane',
+      title: 'Fallback Tool Lane',
+      subtitle: 'ready if needed',
       state: 'idle',
       icon: 'shield',
       confidence: 76,
-      reasoning: 'This governance branch stays dim until the router chooses a higher-risk handling strategy.',
-      alternatives: buildAlternatives('Auto publish', 'Silent retry'),
+      reasoning: 'This lane stays dim until Flowfex decides the agent needs extra tools beyond the primary skill pull.',
+      alternatives: buildAlternatives('Broad fallback lane', 'No fallback lane'),
       inputs: {
-        trigger: 'High-risk route from planner',
-        reviewer: 'Governance lane',
-        notes: 'Escalate only if risk score spikes',
+        trigger: 'Low confidence on primary pull',
+        reviewer: 'Operator aware',
+        notes: 'Open only when the match score drops',
       },
       config: {
-        escalation: 'Operator review',
+        escalation: 'Visible reroute',
         maxDelay: '5 min',
         traceRetention: 'On',
       },
-      owner: 'Governance Layer',
+      owner: 'Tool Router',
     },
     {
       id: 'evidence-merge',
@@ -288,22 +305,22 @@ function buildNodes() {
       y: 280,
       width: 220,
       height: 100,
-      title: 'Evidence Merge',
-      subtitle: 'synthesis + conflict check',
+      title: 'Flow Build',
+      subtitle: 'steps chained live',
       state: 'completed',
       icon: 'layers',
       confidence: 89,
-      reasoning: 'Flowfex merged ranked sources, collapsed duplicates, and isolated unsupported claims before publish.',
-      alternatives: buildAlternatives('Direct summarizer', 'Raw source dump'),
+      reasoning: 'Flowfex chained the selected resources into an execution path and kept the state readable for the operator.',
+      alternatives: buildAlternatives('Single-step run', 'Static path'),
       inputs: {
-        sourceCount: '4',
-        conflicts: '1 minor discrepancy resolved',
-        citations: 'Attached',
+        sourceCount: '4 resources selected',
+        conflicts: 'No route conflict',
+        citations: 'Not required',
       },
       config: {
-        synthesis: 'Balanced',
-        citationGuard: 'Required',
-        style: 'Executive brief',
+        synthesis: 'Structured flow',
+        citationGuard: 'Off',
+        style: 'Operator readable',
       },
       owner: 'Merge Engine',
     },
@@ -315,28 +332,28 @@ function buildNodes() {
       y: 280,
       width: 220,
       height: 104,
-      title: 'Approval Gate',
-      subtitle: 'awaiting operator decision',
+      title: 'Operator Check',
+      subtitle: 'approval requested',
       state: 'approval',
       icon: 'shield-check',
       confidence: 84,
-      reasoning: 'Publishing is guarded because the final brief includes claims sourced from live research and needs operator confirmation.',
+      reasoning: 'Flowfex paused here because the next step uses pulled resources in a high-impact action and the user can guide the path before it continues.',
       alternatives: [
         {
-          name: 'Auto publish',
-          reason: 'Faster, but violates guarded publish policy.',
+          name: 'Continue automatically',
+          reason: 'Faster, but removes a useful supervision point.',
           confidence: 58,
         },
         {
-          name: 'Pause entire session',
-          reason: 'Too disruptive for a single release checkpoint.',
+          name: 'Widen the search',
+          reason: 'Adds more resources when the current plan is already strong.',
           confidence: 46,
         },
       ],
       inputs: {
-        policy: 'Guarded publish',
+        policy: 'Supervised execution',
         risk: 'Medium',
-        pendingAction: 'Approve publish or reroute to manual review',
+        pendingAction: 'Approve the next step or reroute the flow',
       },
       config: {
         approver: 'Session owner',
@@ -344,7 +361,7 @@ function buildNodes() {
         notification: 'Inline + pulse strip',
       },
       owner: 'Governance Layer',
-      risks: ['One claim depends on a newly published source.', 'Publish action will notify connected agent.'],
+      risks: ['The next step uses external resources.', 'The connected agent will follow this decision immediately.'],
     },
     {
       id: 'response-compose',
@@ -354,20 +371,20 @@ function buildNodes() {
       y: 160,
       width: 210,
       height: 96,
-      title: 'Response Compose',
-      subtitle: 'queued for publish',
+      title: 'Response Bridge',
+      subtitle: 'queued for return',
       state: 'queued',
       icon: 'file-text',
       confidence: 87,
-      reasoning: 'Once approved, the response composer will format the final brief and preserve citations in the outgoing payload.',
-      alternatives: buildAlternatives('Plain text output', 'Minimal changelog'),
+      reasoning: 'Once approved, Flowfex will package the result and send the next structured step back through the session bridge.',
+      alternatives: buildAlternatives('Plain text only', 'Silent return'),
       inputs: {
-        target: 'Operator brief',
-        format: 'Markdown',
-        citations: 'Inline',
+        target: 'Connected agent',
+        format: 'Structured payload',
+        citations: 'Not used',
       },
       config: {
-        tone: 'Concise',
+        tone: 'Clear',
         includeSummary: 'Yes',
         includeActions: 'Yes',
       },
@@ -381,16 +398,16 @@ function buildNodes() {
       y: 400,
       width: 220,
       height: 96,
-      title: 'Manual Review',
-      subtitle: 'reroute with operator notes',
+      title: 'Reroute',
+      subtitle: 'change path with notes',
       state: 'idle',
       icon: 'message-square',
       confidence: 82,
-      reasoning: 'This node activates when the publish gate is rejected and the flow needs guided operator input.',
+      reasoning: 'This node activates when the operator wants Flowfex to try a different path without restarting the session.',
       alternatives: buildAlternatives('Hard stop', 'Full restart'),
       inputs: {
         lane: 'Manual reroute',
-        expectedOutput: 'Operator notes + safe publish path',
+        expectedOutput: 'Operator notes + revised resource path',
       },
       config: {
         owner: 'Session operator',
@@ -407,15 +424,15 @@ function buildNodes() {
       y: 280,
       width: 176,
       height: 88,
-      title: 'Publish Brief',
+      title: 'Return to Agent',
       subtitle: 'pending final handoff',
       state: 'idle',
       icon: 'send',
       confidence: 0,
-      reasoning: 'The final publish step stays cold until the compose node resolves.',
-      alternatives: buildAlternatives('Save draft only', 'Send to sandbox'),
+      reasoning: 'The final handoff stays cold until the response bridge resolves.',
+      alternatives: buildAlternatives('Save draft only', 'Return to sandbox'),
       inputs: {
-        channel: 'Session brief',
+        channel: 'Session bridge',
         delivery: 'Live feed',
       },
       config: {
@@ -431,8 +448,8 @@ function buildEdges() {
   return [
     { id: 'edge-intake-plan', from: 'agent-intake', to: 'intent-planner', state: 'completed' },
     { id: 'edge-plan-route', from: 'intent-planner', to: 'route-decision', state: 'completed' },
-    { id: 'edge-route-web', from: 'route-decision', to: 'web-research', state: 'completed', label: 'fresh web' },
-    { id: 'edge-route-policy', from: 'route-decision', to: 'policy-scan', state: 'inactive', label: 'policy scan' },
+    { id: 'edge-route-web', from: 'route-decision', to: 'web-research', state: 'completed', label: 'skill pull' },
+    { id: 'edge-route-policy', from: 'route-decision', to: 'policy-scan', state: 'inactive', label: 'fallback lane' },
     { id: 'edge-web-merge', from: 'web-research', to: 'evidence-merge', state: 'completed' },
     { id: 'edge-policy-merge', from: 'policy-scan', to: 'evidence-merge', state: 'inactive' },
     { id: 'edge-merge-approval', from: 'evidence-merge', to: 'approval-gate', state: 'active' },
@@ -447,10 +464,10 @@ function buildSessions(connectedAgents) {
   return [
     {
       id: DEMO_SESSION_ID,
-      name: 'Launch Intelligence Pulse',
-      task: 'Research and summarize the latest AI model launches',
+      name: 'Universal Agent Bridge',
+      task: 'Connect an agent, pull the right resources, and supervise the flow live',
       heartbeat: connectedAgents.length
-        ? 'Awaiting approval on publish gate'
+        ? 'Waiting on operator check'
         : 'Waiting for agent connection',
       status: connectedAgents.length ? 'live' : 'waiting',
       elapsed: 'Just now',

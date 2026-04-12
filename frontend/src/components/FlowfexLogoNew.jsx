@@ -1,95 +1,82 @@
-// FlowfexLogoNew.jsx - Your custom logo with webapp color matching and animation
 import React from 'react';
+import flowfexLogo from '../assets/flowfex-logo-ui.png';
 
 export default function FlowfexLogoNew({ size = 32, animated = true, className = '' }) {
+  const width = Math.round(size * (1024 / 712));
+
   return (
-    <div 
-      className={`flowfex-logo ${animated ? 'animated' : ''} ${className}`}
-      style={{ width: size, height: size }}
+    <span
+      className={`flowfex-logo-mark ${animated ? 'is-animated' : ''} ${className}`}
+      style={{ width, height: size }}
     >
-      <svg 
-        width={size} 
-        height={size} 
-        viewBox="0 0 200 80" 
-        fill="none" 
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {/* Main logo circles - recolored to match webapp */}
-        <circle cx="25" cy="25" r="20" stroke="currentColor" strokeWidth="3" fill="none" className="logo-circle-1" />
-        <circle cx="15" cy="50" r="12" stroke="currentColor" strokeWidth="2.5" fill="none" className="logo-circle-2" />
-        <circle cx="45" cy="50" r="12" stroke="currentColor" strokeWidth="2.5" fill="none" className="logo-circle-3" />
-        
-        {/* Flowfex text */}
-        <path d="M70 20 L70 55 M70 20 L95 20 M70 35 L90 35" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="logo-text" />
-        <circle cx="105" cy="37.5" r="17.5" stroke="currentColor" strokeWidth="3" fill="none" className="logo-text" />
-        <path d="M130 55 L130 20 L145 35 L160 20 L160 55" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="logo-text" />
-        <path d="M170 20 L170 55 M170 20 L185 35 L170 50" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="logo-text" />
-        
-        {/* Connection circles on the right */}
-        <circle cx="160" cy="65" r="8" stroke="currentColor" strokeWidth="2" fill="none" className="logo-circle-4" />
-        <circle cx="180" cy="65" r="8" stroke="currentColor" strokeWidth="2" fill="none" className="logo-circle-5" />
-        <circle cx="170" cy="45" r="12" stroke="currentColor" strokeWidth="2.5" fill="none" className="logo-circle-6" />
-      </svg>
-      
-      <style jsx>{`
-        .flowfex-logo {
-          color: var(--color-sinoper);
-          transition: all 0.3s ease;
+      <span className="flowfex-logo-mark-glow" aria-hidden="true" />
+      <img src={flowfexLogo} alt="Flowfex" className="flowfex-logo-mark-image" draggable="false" />
+
+      <style>{`
+        .flowfex-logo-mark {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          transition: transform 180ms ease, filter 180ms ease;
         }
-        
-        .flowfex-logo:hover {
-          color: var(--color-massicot);
+
+        .flowfex-logo-mark-glow {
+          position: absolute;
+          inset: 12% 16%;
+          border-radius: 999px;
+          background: radial-gradient(circle, rgba(0, 212, 170, 0.18), rgba(0, 212, 170, 0));
+          filter: blur(16px);
+          opacity: 0.72;
+          pointer-events: none;
         }
-        
-        .flowfex-logo.animated .logo-circle-1 {
-          animation: logoOrbit1 8s ease-in-out infinite;
+
+        .flowfex-logo-mark-image {
+          position: relative;
+          z-index: 1;
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          filter: saturate(1.04) brightness(1.02);
+          user-select: none;
         }
-        
-        .flowfex-logo.animated .logo-circle-2 {
-          animation: logoOrbit2 6s ease-in-out infinite;
+
+        .flowfex-logo-mark:hover {
+          transform: translateY(-1px);
+          filter: drop-shadow(0 0 12px rgba(0, 212, 170, 0.14));
         }
-        
-        .flowfex-logo.animated .logo-circle-3 {
-          animation: logoOrbit3 7s ease-in-out infinite;
+
+        .flowfex-logo-mark.is-animated .flowfex-logo-mark-glow {
+          animation: flowfexLogoGlow 3.4s ease-in-out infinite;
         }
-        
-        .flowfex-logo.animated .logo-circle-4 {
-          animation: logoPulse 4s ease-in-out infinite;
+
+        .flowfex-logo-mark.is-animated .flowfex-logo-mark-image {
+          animation: flowfexLogoFloat 4.8s ease-in-out infinite;
         }
-        
-        .flowfex-logo.animated .logo-circle-5 {
-          animation: logoPulse 4s ease-in-out infinite 0.5s;
+
+        @keyframes flowfexLogoGlow {
+          0%,
+          100% {
+            opacity: 0.5;
+            transform: scale(0.98);
+          }
+          50% {
+            opacity: 0.9;
+            transform: scale(1.04);
+          }
         }
-        
-        .flowfex-logo.animated .logo-circle-6 {
-          animation: logoFlow 5s ease-in-out infinite;
-        }
-        
-        @keyframes logoOrbit1 {
-          0%, 100% { transform: rotate(0deg); }
-          50% { transform: rotate(180deg); }
-        }
-        
-        @keyframes logoOrbit2 {
-          0%, 100% { opacity: 0.8; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.1); }
-        }
-        
-        @keyframes logoOrbit3 {
-          0%, 100% { opacity: 0.8; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.1); }
-        }
-        
-        @keyframes logoPulse {
-          0%, 100% { opacity: 0.6; }
-          50% { opacity: 1; }
-        }
-        
-        @keyframes logoFlow {
-          0%, 100% { stroke-dasharray: 0 100; }
-          50% { stroke-dasharray: 50 50; }
+
+        @keyframes flowfexLogoFloat {
+          0%,
+          100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-1px);
+          }
         }
       `}</style>
-    </div>
+    </span>
   );
 }

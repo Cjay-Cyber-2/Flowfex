@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
+import LiveDemoPage from './pages/LiveDemoPage';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Onboarding from './pages/Onboarding';
@@ -15,6 +16,7 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/demo" element={<LiveDemoPage />} />
         <Route path="/dashboard" element={<OrchestrationCanvas />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />

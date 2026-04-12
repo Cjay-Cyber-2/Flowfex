@@ -1,9 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { motion, useMotionValueEvent, useScroll, useTransform } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import AnimatedCodeBlock from './AnimatedCodeBlock';
 import FeatureList from './FeatureList';
 
 function DeveloperSection() {
+  const navigate = useNavigate();
   const sectionRef = useRef(null);
   const [activeTab, setActiveTab] = useState(0);
   const [featureProgress, setFeatureProgress] = useState(0);
@@ -40,10 +42,10 @@ function DeveloperSection() {
             transition={{ duration: 0.6 }}
           >
             <span className="section-kicker">FOR DEVELOPERS</span>
-            <h2 className="section-headline">Attach in minutes. Not days.</h2>
+            <h2 className="section-headline">Give any agent a clean way to attach.</h2>
             <p className="section-description">
-              Flowfex's connection model works with any environment. Prompt, link, SDK, or live socket — 
-              attach immediately and start orchestrating. No setup, no lock-in.
+              Use a short prompt, a link, an SDK snippet, or a live channel. Flowfex tells the agent how to
+              connect, where to pull resources from, and how to report each step back to the session.
             </p>
           </motion.div>
 
@@ -56,11 +58,11 @@ function DeveloperSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
-            <button className="btn-ghost developer-cta">
-              View the Docs
+            <button className="btn-ghost developer-cta" onClick={() => navigate('/demo')}>
+              Watch Demo
             </button>
-            <button className="btn-primary developer-cta">
-              Get API Access
+            <button className="btn-primary developer-cta" onClick={() => navigate('/onboarding')}>
+              Connect Agent
             </button>
           </motion.div>
         </div>

@@ -1,31 +1,8 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { X, Copy, CheckCheck, Globe, Github, ExternalLink, Radio, Code2, Link2, RefreshCw } from 'lucide-react';
+import { X, Copy, CheckCheck, RefreshCw } from 'lucide-react';
+import { CONNECT_LINK, CONNECT_LIVE_SNIPPET, CONNECT_PROMPT, CONNECT_SDK_SNIPPET } from '../store/demoData';
 import '../styles/landing-sections3.css';
-
-const PROMPT_TEXT = `You are connected to Flowfex visual AI orchestration.
-
-Report each step using:
-STEP: [name]
-TOOL: [tool]
-STATUS: [queued|active|completed|error]
-REASONING: [why]`;
-
-const JS_CODE = `import { FlowfexClient } from "flowfex-sdk";
-
-const client = new FlowfexClient({
-  sessionId: "your-session-id"
-});
-
-await client.connect();`;
-
-const PY_CODE = `from flowfex import FlowfexClient
-
-client = FlowfexClient(
-    session_id="your-session-id"
-)
-
-client.connect()`;
 
 const TABS = ['Prompt', 'Link', 'SDK', 'Live Channel'];
 
@@ -52,16 +29,16 @@ function PromptTab() {
   const [open, setOpen] = useState(false);
   return (
     <div>
-      <p className="cam-tab-desc">Paste this prompt into your AI agent to enable Flowfex reporting.</p>
+      <p className="cam-tab-desc">Paste this into the target agent so it connects to this Flowfex session and asks Flowfex for resources before acting.</p>
       <div className="cam-code-block" style={{ position: 'relative' }}>
-        <pre>{PROMPT_TEXT}</pre>
-        <CopyBtn text={PROMPT_TEXT} style={{ position: 'absolute', bottom: 12, right: 12 }} />
+        <pre>{CONNECT_PROMPT}</pre>
+        <CopyBtn text={CONNECT_PROMPT} style={{ position: 'absolute', bottom: 12, right: 12 }} />
       </div>
       <button className="cam-expand-row" onClick={() => setOpen(!open)}>
         <span>{open ? '▾' : '▸'} Why this works</span>
       </button>
       <div className="cam-expand-body" style={{ maxHeight: open ? 200 : 0 }}>
-        <p>Flowfex parses structured STEP/TOOL/STATUS/REASONING lines from your agent's output stream in real time, mapping each to a visual node on the canvas.</p>
+        <p>The prompt names the session, tells the agent to pull resources through Flowfex first, and defines the step format Flowfex uses to map the run back onto the live canvas.</p>
       </div>
     </div>
   );
@@ -69,10 +46,10 @@ function PromptTab() {
 
 function LinkTab() {
   const [copied, copy] = useCopy();
-  const url = 'https://flowfex.app/connect/session-abc123';
+  const url = CONNECT_LINK;
   return (
     <div>
-      <p className="cam-tab-desc">Share this link with your agent or paste it into any integration.</p>
+      <p className="cam-tab-desc">Share this link when you want a fast attach flow without editing code.</p>
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         <input readOnly value={url} className="cam-readonly-input" />
         <button className="cam-copy-btn" onClick={() => copy(url)}>
@@ -88,34 +65,23 @@ function LinkTab() {
 }
 
 function SDKTab() {
-  const [lang, setLang] = useState('js');
-  const code = lang === 'js' ? JS_CODE : PY_CODE;
   return (
     <div>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
-        {['js', 'python'].map(l => (
-          <button key={l} className={`cam-pill ${lang === l ? 'active' : ''}`} onClick={() => setLang(l)}>
-            {l === 'js' ? 'JavaScript' : 'Python'}
-          </button>
-        ))}
-      </div>
       <div className="cam-code-block" style={{ position: 'relative' }}>
-        <pre>{code}</pre>
-        <CopyBtn text={code} style={{ position: 'absolute', bottom: 12, right: 12 }} />
+        <pre>{CONNECT_SDK_SNIPPET}</pre>
+        <CopyBtn text={CONNECT_SDK_SNIPPET} style={{ position: 'absolute', bottom: 12, right: 12 }} />
       </div>
-      <a href="#docs" className="cam-text-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 10 }}>
-        <ExternalLink size={13} /> View SDK docs
-      </a>
+      <p className="cam-security-note">Use the SDK when you want the cleanest app-side integration with Flowfex session control.</p>
     </div>
   );
 }
 
 function LiveChannelTab() {
   const [copied, copy] = useCopy();
-  const endpoint = 'wss://flowfex.app/live/session-abc123';
+  const endpoint = CONNECT_LIVE_SNIPPET;
   return (
     <div>
-      <p className="cam-tab-desc">Connect directly via WebSocket for real-time bidirectional streaming.</p>
+      <p className="cam-tab-desc">Use the live channel when the agent already supports persistent streaming.</p>
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <input readOnly value={endpoint} className="cam-readonly-input" />
         <button className="cam-copy-btn" onClick={() => copy(endpoint)}>
@@ -155,7 +121,7 @@ function ConnectAgentModal({ isOpen, onClose }) {
             <div className="cam-header">
               <div>
                 <h2 className="cam-title">Connect Your Agent</h2>
-                <p className="cam-subtitle">Choose how your agent reports to Flowfex.</p>
+                <p className="cam-subtitle">Choose how this agent connects to Flowfex.</p>
               </div>
               <button className="cam-close" onClick={onClose}><X size={18} /></button>
             </div>
@@ -185,10 +151,7 @@ function ConnectAgentModal({ isOpen, onClose }) {
 
             <div className="cam-footer">
               <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--color-bistre)' }}>
-                Need help connecting?{' '}
-                <a href="#guide" className="cam-text-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  View connection guide <ExternalLink size={12} />
-                </a>
+                Prompt attach is the fastest way to test a session. Move to SDK or live channel when you want a tighter integration.
               </span>
               <button className="cam-done-btn" onClick={onClose}>Done</button>
             </div>

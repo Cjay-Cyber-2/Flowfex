@@ -3,10 +3,10 @@ import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 
 const features = [
-  'Prompt-based attach — paste one line into any agent',
-  'SDK for JavaScript and Python',
-  'Live socket connection for streaming agents',
-  'Zero lock-in — works with any agent framework'
+  'Paste a short prompt into an IDE, CLI, or web agent',
+  'Share a secure link when you want a quick attach flow',
+  'Use SDK helpers for JavaScript, Python, or custom clients',
+  'Keep one live view across every connected environment'
 ];
 
 function FeatureList({ scrollProgress }) {

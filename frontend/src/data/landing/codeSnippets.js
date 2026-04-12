@@ -1,47 +1,60 @@
 export const codeSnippets = {
-  prompt: `You are connected to Flowfex orchestration.
+  prompt: `Connect this session to Flowfex.
 
-When you need approval for a decision:
-1. Explain your reasoning
-2. List alternatives you considered
-3. Wait for operator approval
+Session ID: session-resource-bridge
+Session URL: https://app.flowfex.io/connect/live/session-resource-bridge
 
-All your actions will be visible in the live graph.`,
+Before you act:
+1. Ask Flowfex for the best tools, skills, or workflows for this task.
+2. Report each selected resource with a short reason.
+3. Pause if Flowfex marks a step as approval_required.
+4. Return the final result through the same Flowfex session.`,
   
-  javascript: `import { Flowfex } from '@flowfex/sdk';
+  javascript: `import { FlowfexBridge } from '@flowfex/sdk';
 
-const flowfex = new Flowfex({
-  apiKey: process.env.FLOWFEX_API_KEY
+const bridge = new FlowfexBridge({
+  sessionId: 'session-resource-bridge',
+  transport: 'websocket'
 });
 
-// Connect your agent
-await flowfex.connect({
-  name: 'My Agent',
-  mode: 'live'
+await bridge.connect({
+  agentName: 'CLI Agent',
+  source: 'terminal'
 });
 
-// Start orchestration
-await flowfex.orchestrate(async (ctx) => {
-  const result = await ctx.execute('analyze', data);
-  return result;
-});`,
+const resourcePlan = await bridge.requestResources({
+  task: 'Prepare a deployment summary',
+});
+
+const result = await bridge.runWithResources(resourcePlan, async (ctx) => {
+  const output = await ctx.execute('deployment_summary');
+  return output;
+});
+
+await bridge.complete({ result });`,
   
-  python: `from flowfex import Flowfex
+  python: `from flowfex import FlowfexBridge
 
-flowfex = Flowfex(
-    api_key=os.getenv('FLOWFEX_API_KEY')
+bridge = FlowfexBridge(
+    session_id='session-resource-bridge',
+    transport='websocket'
 )
 
-# Connect your agent
-await flowfex.connect(
-    name='My Agent',
-    mode='live'
+# Connect the agent to Flowfex
+await bridge.connect(
+    agent_name='CLI Agent',
+    source='terminal'
 )
 
-# Start orchestration
-async def orchestrate(ctx):
-    result = await ctx.execute('analyze', data)
-    return result
+resource_plan = await bridge.request_resources(
+    task='Prepare a deployment summary'
+)
 
-await flowfex.orchestrate(orchestrate)`
+async def run_task(ctx):
+    output = await ctx.execute('deployment_summary')
+    return output
+
+result = await bridge.run_with_resources(resource_plan, run_task)
+
+await bridge.complete(result=result)`
 };

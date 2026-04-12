@@ -48,15 +48,15 @@ function OrchestrationCanvas() {
   const modalMeta = {
     prompt: {
       title: 'Prompt attach',
-      description: 'Paste this into any agent system prompt or instruction field to emit Flowfex-aware step events.',
+      description: 'Paste this into the target agent so it connects to this Flowfex session and asks Flowfex for resources before acting.',
     },
     link: {
       title: 'Session link',
-      description: 'Share a live session URL with another workflow or tool and keep the bridge scoped to this run.',
+      description: 'Share a live session URL when you want a quick attach flow without changing code.',
     },
     sdk: {
       title: 'SDK bridge',
-      description: 'Drop in a lightweight client, connect once, and start streaming execution state back to Flowfex.',
+      description: 'Drop in a lightweight client, connect once, and let Flowfex manage the session bridge.',
     },
     live: {
       title: 'Live channel',
@@ -187,7 +187,7 @@ function OrchestrationCanvas() {
                   </div>
                   <h3>Bridge the agent into Flowfex</h3>
                   <p>
-                    The connection opens a live session, emits execution states, and routes guarded steps through approval.
+                    The connection opens a live session, routes resource pulls through Flowfex, and keeps the operator view in sync.
                   </p>
                 </div>
 

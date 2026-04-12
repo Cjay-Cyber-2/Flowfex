@@ -6,6 +6,7 @@ import FlowIcon from '../components/common/FlowIcon';
 import ParticleField from '../components/animations/ParticleFieldSimple';
 import PortalButton from '../components/animations/PortalButton';
 import SignalWave from '../components/animations/SignalWave';
+import ScrollFrameSection from '../components/landing/ScrollFrameSection';
 import { buildDemoWorkspace } from '../store/demoData';
 
 // Lazy load the new sections for better performance
@@ -307,6 +308,8 @@ function LandingPage() {
           <div className="hero-graph-surface">{renderFlowGraph(workspace.nodes, workspace.edges, 'hero', false)}</div>
         </div>
       </section>
+
+      <ScrollFrameSection />
 
       <section id="problem" data-section-id="problem" className="landing-section problem-section">
         <div className="section-copy">

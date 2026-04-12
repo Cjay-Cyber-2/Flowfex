@@ -4,25 +4,29 @@
   "description": "Flowfex Visual AI Orchestration Platform - Frontend",
   "type": "module",
   "scripts": {
+    "prepare:frames": "node ./scripts/prepare-scroll-frames.mjs",
+    "predev": "npm run prepare:frames",
+    "prebuild": "npm run prepare:frames",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint src --ext .js,.jsx"
   },
   "dependencies": {
+    "d3": "^7.9.0",
+    "framer-motion": "^11.0.0",
+    "lucide-react": "^0.344.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.0",
-    "zustand": "^4.5.0",
-    "d3": "^7.9.0",
-    "framer-motion": "^11.0.0",
-    "lucide-react": "^0.344.0"
+    "sharp": "^0.34.5",
+    "zustand": "^4.5.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",
-    "vite": "^5.1.0",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.33.2",
-    "eslint-plugin-react-hooks": "^4.6.0"
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "vite": "^5.1.0"
   }
 }

@@ -430,7 +430,7 @@ function LandingPage() {
         id="statement"
         data-section-id="statement"
         className="landing-section"
-        style={{ padding: 0, background: '#000', minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2rem' }}
+        style={{ padding: 0, minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2rem' }}
       >
         <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.8rem', letterSpacing: '0.2em', textTransform: 'uppercase', margin: 0 }}>
           What Flowfex does

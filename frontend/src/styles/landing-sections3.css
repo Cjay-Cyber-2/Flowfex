@@ -158,8 +158,10 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 560px;
-  max-height: 90vh;
+  width: calc(100% - 32px);
+  max-width: 560px;
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
   overflow-y: auto;
   background: #161E28;
   border: 1px solid rgba(0, 212, 170, 0.14);
@@ -390,4 +392,23 @@
 .cam-done-btn:hover {
   border-color: rgba(237, 232, 223, 0.5);
   color: #EDE8DF;
+}
+
+.cam-connected-btn {
+  padding: 8px 20px;
+  background: var(--color-sinoper);
+  border: none;
+  border-radius: 10px;
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #031014;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s, box-shadow 0.15s;
+}
+
+.cam-connected-btn:hover {
+  opacity: 0.9;
+  box-shadow: 0 0 20px rgba(0, 212, 170, 0.3);
 }

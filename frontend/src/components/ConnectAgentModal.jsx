@@ -98,7 +98,7 @@ function LiveChannelTab() {
 
 const TAB_CONTENT = { Prompt: PromptTab, Link: LinkTab, SDK: SDKTab, 'Live Channel': LiveChannelTab };
 
-function ConnectAgentModal({ isOpen, onClose }) {
+function ConnectAgentModal({ isOpen, onClose, onConnected }) {
   const [activeTab, setActiveTab] = useState('Prompt');
   const TabContent = TAB_CONTENT[activeTab];
 
@@ -153,7 +153,14 @@ function ConnectAgentModal({ isOpen, onClose }) {
               <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--color-bistre)' }}>
                 Prompt attach is the fastest way to test a session. Move to SDK or live channel when you want a tighter integration.
               </span>
-              <button className="cam-done-btn" onClick={onClose}>Done</button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="cam-done-btn" onClick={onClose}>Cancel</button>
+                {onConnected && (
+                  <button className="cam-connected-btn" onClick={onConnected}>
+                    Agent Connected → Open Dashboard
+                  </button>
+                )}
+              </div>
             </div>
           </motion.div>
         </>

@@ -7,9 +7,21 @@ import '../styles/onboarding.css';
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [showConnectedLabel, setShowConnectedLabel] = useState(false);
+
+  const handleConnected = () => {
+    setIsModalOpen(false);
+    setIsConnected(true);
+    setIsConnecting(true);
+    setTimeout(() => {
+      setShowConnectedLabel(true);
+      setTimeout(() => setShowConnectedLabel(false), 2000);
+    }, 800);
+    setTimeout(() => navigate('/dashboard'), 2800);
+  };
 
   const handleDemo = () => {
     setIsConnecting(true);
@@ -17,7 +29,7 @@ export default function Onboarding() {
       setShowConnectedLabel(true);
       setTimeout(() => setShowConnectedLabel(false), 2000);
     }, 800);
-    setTimeout(() => navigate('/dashboard'), 2500);
+    setTimeout(() => navigate('/dashboard'), 2800);
   };
 
   return (
@@ -90,7 +102,11 @@ export default function Onboarding() {
         </button>
       </main>
 
-      <ConnectAgentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <ConnectAgentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConnected={handleConnected}
+      />
     </div>
   );
 }

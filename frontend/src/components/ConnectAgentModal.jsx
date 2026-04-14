@@ -111,13 +111,14 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={onClose}
           />
-          <motion.div
-            className="cam-modal"
-            initial={{ scale: 0.92, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.96, opacity: 0 }}
-            transition={{ duration: 0.35 }}
-          >
+          <div className="cam-modal-wrapper">
+            <motion.div
+              className="cam-modal"
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.96, opacity: 0 }}
+              transition={{ duration: 0.35 }}
+            >
             <div className="cam-header">
               <div>
                 <h2 className="cam-title">Connect Your Agent</h2>
@@ -163,6 +164,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
               </div>
             </div>
           </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>

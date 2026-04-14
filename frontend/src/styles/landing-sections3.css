@@ -153,12 +153,20 @@
   z-index: 1000;
 }
 
-.cam-modal {
+.cam-modal-wrapper {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: calc(100% - 32px);
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  z-index: 1001;
+  pointer-events: none;
+}
+
+.cam-modal {
+  position: relative;
+  width: 100%;
   max-width: 560px;
   max-height: calc(100vh - 48px);
   max-height: calc(100dvh - 48px);
@@ -167,8 +175,10 @@
   border: 1px solid rgba(0, 212, 170, 0.14);
   border-radius: 20px;
   box-shadow: 0 0 60px rgba(0, 212, 170, 0.08), 0 20px 60px rgba(0, 0, 0, 0.6);
-  padding: 32px;
-  z-index: 1001;
+  padding: 32px 32px 0;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .cam-header {
@@ -232,7 +242,10 @@
 }
 
 .cam-tab-body {
-  min-height: 180px;
+  min-height: 120px;
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 16px;
 }
 
 .cam-tab-desc {
@@ -371,9 +384,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 28px;
-  padding-top: 20px;
+  padding: 20px 0 32px;
   border-top: 1px solid rgba(237, 232, 223, 0.08);
+  position: sticky;
+  bottom: 0;
+  background: #161E28;
+  margin-top: auto;
+  flex-shrink: 0;
 }
 
 .cam-done-btn {

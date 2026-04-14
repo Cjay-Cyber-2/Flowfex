@@ -280,7 +280,7 @@ function LandingPage() {
     { id: 'problem', label: 'Problem' },
     { id: 'reveal', label: 'Bridge' },
     { id: 'layers', label: 'Layers' },
-    { id: 'demo', label: 'Demo' },
+    { id: 'demo', label: 'Preview' },
     { id: 'bridge', label: 'Connect' },
     { id: 'developer', label: 'Developers' },
     { id: 'pricing', label: 'Pricing' },
@@ -373,7 +373,7 @@ function LandingPage() {
             </PortalButton>
             <button className="btn btn-ghost" onClick={() => navigate('/demo')}>
               <Play size={16} />
-              Watch Live Demo
+              Watch Preview
             </button>
           </div>
 
@@ -598,7 +598,7 @@ function LandingPage() {
               Start Building Free
             </PortalButton>
             <button className="btn btn-ghost" onClick={() => navigate('/demo')}>
-              Watch Live Demo
+              Watch App Preview
               <ArrowRight size={16} />
             </button>
           </div>

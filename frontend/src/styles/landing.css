@@ -1083,7 +1083,7 @@
 
 @media (max-width: 640px) {
   .hero-headline {
-    font-size: clamp(3rem, 14vw, 4.4rem);
+    font-size: clamp(2.2rem, 8vw, 2.8rem);
   }
 
   .hero-actions .btn,

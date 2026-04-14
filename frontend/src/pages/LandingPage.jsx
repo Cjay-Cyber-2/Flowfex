@@ -280,6 +280,7 @@ function LandingPage() {
     { id: 'reveal', label: 'Bridge' },
     { id: 'layers', label: 'Layers' },
     { id: 'demo', label: 'Preview' },
+    { id: 'bridge', label: 'Connect' },
     { id: 'developer', label: 'Developers' },
     { id: 'pricing', label: 'Pricing' },
     { id: 'faq', label: 'FAQ' },

@@ -174,42 +174,6 @@ function renderFlowGraph(nodes, edges, prefix, showLabels = false) {
 const HERO_GRAPH = {
   nodes: [
     {
-      id: 'hero-cli',
-      shape: 'rect',
-      x: 80,
-      y: 120,
-      width: 120,
-      height: 50,
-      title: 'CLI',
-      subtitle: '',
-      state: 'completed',
-      icon: 'message-square',
-    },
-    {
-      id: 'hero-ide',
-      shape: 'rect',
-      x: 80,
-      y: 220,
-      width: 120,
-      height: 50,
-      title: 'IDE',
-      subtitle: '',
-      state: 'completed',
-      icon: 'layers',
-    },
-    {
-      id: 'hero-web',
-      shape: 'rect',
-      x: 80,
-      y: 320,
-      width: 120,
-      height: 50,
-      title: 'Web',
-      subtitle: '',
-      state: 'queued',
-      icon: 'globe',
-    },
-    {
       id: 'hero-bridge',
       shape: 'rect',
       x: 380,
@@ -259,9 +223,6 @@ const HERO_GRAPH = {
     },
   ],
   edges: [
-    { id: 'hero-edge-cli', from: 'hero-cli', to: 'hero-bridge', state: 'completed' },
-    { id: 'hero-edge-ide', from: 'hero-ide', to: 'hero-bridge', state: 'completed' },
-    { id: 'hero-edge-web', from: 'hero-web', to: 'hero-bridge', state: 'queued' },
     { id: 'hero-edge-skill', from: 'hero-bridge', to: 'hero-skill-pull', state: 'completed' },
     { id: 'hero-edge-tool', from: 'hero-bridge', to: 'hero-tool-pull', state: 'queued' },
     { id: 'hero-edge-canvas-skill', from: 'hero-skill-pull', to: 'hero-canvas', state: 'active' },
@@ -510,14 +471,6 @@ function LandingPage() {
             <h3>Execution Layer</h3>
             <p>Follow the order, branches, reroutes, and return path while the task runs.</p>
           </article>
-
-          <article className="layer-card layer-card-wide">
-            <span className="layer-icon">
-              <ShieldCheck size={18} />
-            </span>
-            <h3>Connect anything</h3>
-            <p>Prompt, link, SDK, or live channel. Attach the agent and Flowfex becomes the shared control surface.</p>
-          </article>
         </div>
       </section>
 
@@ -526,41 +479,24 @@ function LandingPage() {
       <section id="demo" data-section-id="demo" className="landing-section demo-section">
         <div className="section-heading-block">
           <span className="section-kicker">Product preview</span>
-          <h2>The dashboard shows what connected, what was pulled, and where the flow is going.</h2>
+          <h2>See Flowfex in action.</h2>
           <p>
-            Flowfex is not a static graph mock. The main app is a live control surface with sessions, a graph
-            canvas, and clear places where the user can step in.
+            Watch how agents connect, resources are pulled, and the dashboard shows the live flow in real time.
           </p>
         </div>
 
-        <div className="demo-browser">
-          <div className="demo-browser-top">
-            <div className="demo-browser-dots">
-              <span />
-              <span />
-              <span />
-            </div>
-            <div className="demo-browser-url">app.flowfex.io/session/live-bridge</div>
-          </div>
-
-          <div className="demo-browser-body">
-            <div className="demo-browser-rail">
-              <strong>Connected now</strong>
-              <span>CLI agent</span>
-              <span>Skill store</span>
-              <span>Session controls</span>
-            </div>
-            <div className="demo-browser-canvas">{renderFlowGraph(workspace.nodes, workspace.edges, 'browser', false)}</div>
-            <div className="demo-browser-panel">
-              <strong>Visible in one place</strong>
-              <span>Current step + pulled resources</span>
-              <p>Users can inspect nodes, see why a resource was chosen, and step in without rebuilding the whole flow.</p>
-            </div>
-          </div>
-
-          <div className="demo-callout demo-callout-left">Agent attached</div>
-          <div className="demo-callout demo-callout-right">Resource pull visible</div>
-          <div className="demo-callout demo-callout-bottom">Pause, approve, or reroute here</div>
+        <div className="demo-video-container">
+          <video
+            className="demo-video"
+            autoPlay
+            muted
+            loop
+            playsInline
+            controls
+          >
+            <source src="/demo-video.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
         </div>
       </section>
 

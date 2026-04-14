@@ -204,8 +204,7 @@ This will route all your tool selections through Flowfex for visual orchestratio
       {/* Top Navigation Bar */}
       <nav className="dashboard-nav">
         <div className="nav-left">
-          <FlowfexLogoNew size={28} animated={true} />
-          <span className="nav-title">Flowfex</span>
+          <FlowfexLogoNew size={28} animated={false} />
           <div className="session-info">
             <span className="session-name">{currentTask}</span>
             <span className="session-status">

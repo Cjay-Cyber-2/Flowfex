@@ -34,8 +34,7 @@ function TopBar() {
     <header className="top-bar">
       <div className="top-bar-left">
         <button className="top-bar-brand" onClick={() => navigate('/')}>
-          <FlowfexLogoNew size={34} animated={false} />
-          <span className="top-bar-brand-label">Flowfex</span>
+          <FlowfexLogoNew size={32} animated={false} />
         </button>
 
         <div className="session-editor">

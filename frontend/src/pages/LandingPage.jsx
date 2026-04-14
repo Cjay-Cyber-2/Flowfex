@@ -176,84 +176,84 @@ const HERO_GRAPH = {
     {
       id: 'hero-cli',
       shape: 'rect',
-      x: 160,
+      x: 80,
       y: 120,
-      width: 210,
-      height: 96,
-      title: 'CLI Agent',
-      subtitle: 'session attached',
+      width: 120,
+      height: 50,
+      title: 'CLI',
+      subtitle: '',
       state: 'completed',
       icon: 'message-square',
     },
     {
       id: 'hero-ide',
       shape: 'rect',
-      x: 160,
-      y: 350,
-      width: 210,
-      height: 96,
-      title: 'IDE Agent',
-      subtitle: 'session attached',
+      x: 80,
+      y: 220,
+      width: 120,
+      height: 50,
+      title: 'IDE',
+      subtitle: '',
       state: 'completed',
       icon: 'layers',
     },
     {
       id: 'hero-web',
       shape: 'rect',
-      x: 160,
-      y: 580,
-      width: 210,
-      height: 96,
-      title: 'Web Agent',
-      subtitle: 'joining live',
+      x: 80,
+      y: 320,
+      width: 120,
+      height: 50,
+      title: 'Web',
+      subtitle: '',
       state: 'queued',
       icon: 'globe',
     },
     {
       id: 'hero-bridge',
       shape: 'rect',
-      x: 780,
-      y: 295,
-      width: 248,
-      height: 114,
-      title: 'Flowfex Bridge',
-      subtitle: 'routing the task',
+      x: 380,
+      y: 210,
+      width: 140,
+      height: 60,
+      title: 'Flowfex',
+      subtitle: '',
       state: 'active',
       icon: 'git-branch',
     },
     {
       id: 'hero-skill-pull',
       shape: 'rect',
-      x: 1450,
-      y: 180,
-      width: 238,
-      height: 98,
-      title: 'Skill Pull',
-      subtitle: 'best match loaded',
+      x: 680,
+      y: 130,
+      width: 120,
+      height: 50,
+      title: 'Skills',
+      subtitle: '',
       state: 'completed',
       icon: 'sparkles',
     },
     {
       id: 'hero-tool-pull',
       shape: 'rect',
-      x: 1450,
-      y: 435,
-      width: 238,
-      height: 98,
-      title: 'Tool Pull',
-      subtitle: 'helpers queued',
+      x: 680,
+      y: 290,
+      width: 120,
+      height: 50,
+      title: 'Tools',
+      subtitle: '',
       state: 'queued',
       icon: 'database',
     },
     {
       id: 'hero-canvas',
       shape: 'rect',
-      x: 2070,
-      y: 295,
-      width: 230,
-      height: 114,
-      title: 'Live Canvas',
-      subtitle: 'user can guide',
+      x: 980,
+      y: 210,
+      width: 120,
+      height: 60,
+      title: 'Canvas',
+      subtitle: '',
       state: 'approval',
       icon: 'shield-check',
     },
@@ -261,7 +261,7 @@ const HERO_GRAPH = {
   edges: [
     { id: 'hero-edge-cli', from: 'hero-cli', to: 'hero-bridge', state: 'completed' },
     { id: 'hero-edge-ide', from: 'hero-ide', to: 'hero-bridge', state: 'completed' },
-    { id: 'hero-edge-web', from: 'hero-web', to: 'hero-bridge', state: 'active' },
+    { id: 'hero-edge-web', from: 'hero-web', to: 'hero-bridge', state: 'queued' },
     { id: 'hero-edge-skill', from: 'hero-bridge', to: 'hero-skill-pull', state: 'completed' },
     { id: 'hero-edge-tool', from: 'hero-bridge', to: 'hero-tool-pull', state: 'queued' },
     { id: 'hero-edge-canvas-skill', from: 'hero-skill-pull', to: 'hero-canvas', state: 'active' },
@@ -323,8 +323,7 @@ function LandingPage() {
 
       <nav className="landing-nav">
         <button className="landing-nav-brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <FlowfexLogoNew size={36} animated={false} />
-          <span>Flowfex</span>
+          <FlowfexLogoNew size={32} animated={false} />
         </button>
 
         <div className="landing-nav-links">
@@ -490,8 +489,8 @@ function LandingPage() {
       <section id="layers" data-section-id="layers" className="landing-section layers-section">
         <div className="section-heading-block">
           <span className="section-kicker">How it works</span>
-          <h2>Three layers. One living system.</h2>
-          <p>Structure, execution, and motion working together in one shared bridge.</p>
+          <h2>Two layers. One living system.</h2>
+          <p>Structure and execution working together in one shared bridge.</p>
         </div>
 
         <div className="layers-grid">
@@ -510,14 +509,6 @@ function LandingPage() {
             </span>
             <h3>Execution Layer</h3>
             <p>Follow the order, branches, reroutes, and return path while the task runs.</p>
-          </article>
-
-          <article className="layer-card">
-            <span className="layer-icon">
-              <Zap size={18} />
-            </span>
-            <h3>Energy Layer</h3>
-            <p>Active paths pulse, connected nodes glow, and the system feels alive while work moves.</p>
           </article>
 
           <article className="layer-card layer-card-wide">

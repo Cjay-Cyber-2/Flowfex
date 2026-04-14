@@ -222,7 +222,7 @@ export function ParticleTextEffect({ words = ['Flowfex', 'Connect', 'Orchestrate
   return (
     <canvas
       ref={canvasRef}
-      style={{ display: 'block', width: '100%', height: 'auto', borderRadius: '1rem' }}
+      style={{ display: 'block', width: '100%', height: 'auto', borderRadius: '1rem', mixBlendMode: 'screen' }}
     />
   );
 }

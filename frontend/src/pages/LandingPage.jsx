@@ -563,7 +563,6 @@ function LandingPage() {
           <div className="demo-callout demo-callout-bottom">Pause, approve, or reroute here</div>
         </div>
       </section>
-      </section>
 
       {/* New GODMODE Sections */}
       <Suspense fallback={<div className="section-loading">Loading...</div>}>

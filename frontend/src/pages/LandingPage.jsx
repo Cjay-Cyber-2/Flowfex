@@ -280,7 +280,6 @@ function LandingPage() {
     { id: 'reveal', label: 'Bridge' },
     { id: 'layers', label: 'Layers' },
     { id: 'demo', label: 'Preview' },
-    { id: 'bridge', label: 'Connect' },
     { id: 'developer', label: 'Developers' },
     { id: 'pricing', label: 'Pricing' },
     { id: 'faq', label: 'FAQ' },
@@ -370,9 +369,9 @@ function LandingPage() {
               Start Building Free
               <span className="cta-note">live in minutes</span>
             </button>
-            <button className="btn btn-ghost" onClick={() => navigate('/demo')}>
+            <button className="btn btn-ghost" onClick={() => navigate('/dashboard')}>
               <Play size={16} />
-              Watch Preview
+              Watch App Demo
             </button>
           </div>
 
@@ -477,8 +476,8 @@ function LandingPage() {
               <button className="btn btn-primary" onClick={() => navigate('/onboarding')}>
                 Connect Agent
               </button>
-              <button className="btn btn-ghost" onClick={() => navigate('/demo')}>
-                Watch Demo
+              <button className="btn btn-ghost" onClick={() => navigate('/dashboard')}>
+                See the Dashboard
               </button>
             </div>
           </div>
@@ -564,19 +563,19 @@ function LandingPage() {
       </section>
 
       {/* New GODMODE Sections */}
-      <Suspense fallback={<div className="section-loading">Loading...</div>}>
+      <Suspense fallback={null}>
         <SocialProofSection />
       </Suspense>
 
-      <Suspense fallback={<div className="section-loading">Loading...</div>}>
+      <Suspense fallback={null}>
         <DeveloperSection />
       </Suspense>
 
-      <Suspense fallback={<div className="section-loading">Loading...</div>}>
+      <Suspense fallback={null}>
         <PricingSection />
       </Suspense>
 
-      <Suspense fallback={<div className="section-loading">Loading...</div>}>
+      <Suspense fallback={null}>
         <FAQSection />
       </Suspense>
 
@@ -596,8 +595,8 @@ function LandingPage() {
             <button className="btn btn-primary final-cta-enhanced" onClick={() => navigate('/onboarding')}>
               Start Building Free
             </button>
-            <button className="btn btn-ghost" onClick={() => navigate('/demo')}>
-              Watch App Preview
+            <button className="btn btn-ghost" onClick={() => navigate('/dashboard')}>
+              See the Dashboard
               <ArrowRight size={16} />
             </button>
           </div>

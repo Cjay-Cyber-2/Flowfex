@@ -82,11 +82,34 @@
 /* Connected label */
 .ob-connected-label {
   font-family: var(--font-inter, Inter, sans-serif);
-  font-size: 13px;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--color-sinoper);
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   position: absolute;
-  top: calc(50% - 80px);
+  top: calc(50% - 90px);
+}
+
+/* Expanding ring */
+.ob-ring {
+  position: absolute;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 212, 170, 0.5);
+  pointer-events: none;
+}
+
+/* Fade overlay for navigating state */
+.ob-fade-overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(0, 212, 170, 0.06), #080c10 70%);
+  z-index: 100;
+  pointer-events: none;
 }
 
 /* Pulsing circle */
@@ -105,7 +128,7 @@
 /* Headline */
 .ob-headline {
   font-family: var(--font-geist, sans-serif);
-  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-size: clamp(1.4rem, 3vw, 2rem);
   font-weight: 700;
   color: var(--color-velin);
   margin: 0;
@@ -132,17 +155,3 @@
   box-shadow: 0 22px 44px rgba(0,212,170,0.28);
 }
 
-/* Demo link */
-.ob-demo-link {
-  font-family: var(--font-inter, Inter, sans-serif);
-  font-size: 13px;
-  color: var(--color-bistre);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  transition: color 0.15s;
-}
-.ob-demo-link:hover {
-  color: var(--color-velin);
-}

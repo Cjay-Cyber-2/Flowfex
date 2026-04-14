@@ -155,10 +155,10 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
                 Prompt attach is the fastest way to test a session. Move to SDK or live channel when you want a tighter integration.
               </span>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button className="cam-done-btn" onClick={onClose}>Cancel</button>
+                <button className="cam-done-btn" onClick={onClose}>Done</button>
                 {onConnected && (
                   <button className="cam-connected-btn" onClick={onConnected}>
-                    Agent Connected → Open Dashboard
+                    I've Connected My Agent
                   </button>
                 )}
               </div>

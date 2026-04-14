@@ -246,14 +246,13 @@
 .hero-section {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(420px, 0.92fr);
-  gap: clamp(32px, 5vw, 72px);
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(24px, 4vw, 56px);
   align-items: center;
   padding-top: 132px;
 }
 
 .hero-copy {
-  max-width: 680px;
   animation: landingRise 0.8s var(--ease-expo-out) both;
 }
 
@@ -620,7 +619,9 @@
 
 .black-box-demo {
   position: relative;
-  min-height: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
   padding: 34px;
   border-radius: 32px;
   background:
@@ -632,8 +633,7 @@
 
 .black-box-query,
 .black-box-result {
-  position: absolute;
-  max-width: 260px;
+  max-width: 320px;
   padding: 16px 18px;
   border-radius: 20px;
   background: rgba(17, 24, 32, 0.82);
@@ -642,26 +642,19 @@
   color: rgba(232, 237, 242, 0.86);
 }
 
-.black-box-query {
-  top: 42px;
-  left: 34px;
-}
-
 .black-box-result {
-  right: 34px;
-  bottom: 52px;
+  align-self: flex-end;
 }
 
 .black-box-core {
-  position: absolute;
-  inset: 132px 86px 132px;
   display: grid;
   place-items: center;
+  padding: 48px 32px;
   border-radius: 28px;
   border: 1px solid rgba(0, 212, 170, 0.12);
   background: linear-gradient(140deg, rgba(8, 12, 16, 0.98), rgba(17, 24, 32, 0.92));
   font-family: var(--font-geist);
-  font-size: clamp(3rem, 6vw, 5rem);
+  font-size: clamp(2rem, 4vw, 3.5rem);
   color: var(--color-sinoper);
   letter-spacing: 0.12em;
   text-shadow: 0 0 24px rgba(0, 212, 170, 0.26);
@@ -1072,9 +1065,6 @@
     grid-column: auto;
   }
 
-  .black-box-core {
-    inset: 118px 24px 124px;
-  }
 
   .final-panel {
     padding: 40px 24px;

@@ -279,6 +279,7 @@ function LandingPage() {
   const workspace = useMemo(() => buildDemoWorkspace(), []);
   const sectionIds = [
     { id: 'hero', label: 'Hero' },
+    { id: 'statement', label: 'Vision' },
     { id: 'problem', label: 'Problem' },
     { id: 'reveal', label: 'Bridge' },
     { id: 'layers', label: 'Layers' },
@@ -424,6 +425,26 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* ── Statement section: ParticleTextEffect owns the full stage ── */}
+      <section
+        id="statement"
+        data-section-id="statement"
+        className="landing-section"
+        style={{ padding: 0, background: '#000', minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2rem' }}
+      >
+        <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.8rem', letterSpacing: '0.2em', textTransform: 'uppercase', margin: 0 }}>
+          What Flowfex does
+        </p>
+        <div style={{ width: '100%', maxWidth: '1100px', padding: '0 1.5rem' }}>
+          <ParticleTextEffect
+            words={['Connect', 'Route', 'Orchestrate', 'Approve', 'Monitor']}
+          />
+        </div>
+        <p style={{ color: 'rgba(255,255,255,0.22)', fontSize: '0.75rem', letterSpacing: '0.08em', margin: 0 }}>
+          Right-click + drag to scatter
+        </p>
+      </section>
+
       <section id="problem" data-section-id="problem" className="landing-section problem-section">
         <div className="section-copy">
           <span className="section-kicker section-kicker-accent">The problem</span>
@@ -459,11 +480,10 @@ function LandingPage() {
         </div>
 
         <div className="problem-visual">
-          {/* Particle text cycles through Flowfex concepts */}
-          <div style={{ width: '100%', maxWidth: 700, margin: '0 auto' }}>
-            <ParticleTextEffect
-              words={['Connect', 'Route', 'Orchestrate', 'Approve', 'Monitor']}
-            />
+          <div className="black-box-demo">
+            <div className="black-box-query">Agent needs docs, memory, skills, and deploy tools.</div>
+            <div className="black-box-core">Scattered resources</div>
+            <div className="black-box-result">Lower efficiency. Different behavior. No shared live view.</div>
           </div>
         </div>
       </section>

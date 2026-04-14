@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import LiveDemoPage from './pages/LiveDemoPage';
@@ -10,8 +10,15 @@ import SessionDetail from './pages/SessionDetail';
 import History from './pages/History';
 import Settings from './pages/Settings';
 import Toast from './components/common/Toast';
+import useStore from './store/useStore';
 
 function App() {
+  const initSocketListeners = useStore((state) => state.initSocketListeners);
+
+  useEffect(() => {
+    initSocketListeners();
+  }, [initSocketListeners]);
+
   return (
     <>
       <Routes>

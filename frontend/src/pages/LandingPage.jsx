@@ -7,19 +7,21 @@ import ParticleField from '../components/animations/ParticleFieldSimple';
 import SignalWave from '../components/animations/SignalWave';
 import ScrollFrameSection from '../components/landing/ScrollFrameSection';
 import { buildDemoWorkspace } from '../store/demoData';
+import { ContainerScroll } from '../components/animations/ContainerScroll';
+import { ParticleTextEffect } from '../components/animations/ParticleTextEffect';
 
-// Lazy load the new sections for better performance
+// Lazy load heavier sections
 const SocialProofSection = React.lazy(() => import('../components/landing/SocialProofSection'));
 const DeveloperSection = React.lazy(() => import('../components/landing/DeveloperSection'));
-const PricingSection = React.lazy(() => import('../components/landing/PricingSection'));
+const ModernPricingSection = React.lazy(() => import('../components/landing/ModernPricingSection'));
 const FAQSection = React.lazy(() => import('../components/landing/FAQSection'));
 
 import '../styles/landing.css';
-// Import new section styles
 import '../styles/landing/social-proof.css';
 import '../styles/landing/developer.css';
 import '../styles/landing/pricing.css';
 import '../styles/landing/faq.css';
+import '../styles/landing/modern-pricing.css';
 
 function getNodeDimensions(node) {
   return {
@@ -272,6 +274,7 @@ function LandingPage() {
   const navigate = useNavigate();
   const scrollProgressRef = useRef(null);
   const [activeSection, setActiveSection] = useState('hero');
+  const clickLockRef = useRef(false);
 
   const workspace = useMemo(() => buildDemoWorkspace(), []);
   const sectionIds = [
@@ -287,17 +290,31 @@ function LandingPage() {
     { id: 'final', label: 'Start' },
   ];
 
+  const handleDotClick = (event, sectionId) => {
+    event.preventDefault();
+    setActiveSection(sectionId);
+    clickLockRef.current = true;
+    const target = document.getElementById(sectionId);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
+    setTimeout(() => {
+      clickLockRef.current = false;
+    }, 1200);
+  };
+
   useEffect(() => {
     const sections = document.querySelectorAll('[data-section-id]');
     const observer = new IntersectionObserver(
       (entries) => {
+        if (clickLockRef.current) return;
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             setActiveSection(entry.target.getAttribute('data-section-id'));
           }
         });
       },
-      { threshold: 0.45 }
+      { threshold: 0.3 }
     );
 
     sections.forEach((section) => observer.observe(section));
@@ -346,6 +363,7 @@ function LandingPage() {
             className={`landing-dot ${activeSection === section.id ? 'is-active' : ''}`}
             aria-label={section.label}
             data-label={section.label}
+            onClick={(event) => handleDotClick(event, section.id)}
           />
         ))}
       </div>
@@ -441,10 +459,11 @@ function LandingPage() {
         </div>
 
         <div className="problem-visual">
-          <div className="black-box-demo">
-            <div className="black-box-query">Agent needs docs, memory, skills, and deploy tools.</div>
-            <div className="black-box-core">Scattered resources</div>
-            <div className="black-box-result">Lower efficiency. Different behavior. No shared live view.</div>
+          {/* Particle text cycles through Flowfex concepts */}
+          <div style={{ width: '100%', maxWidth: 700, margin: '0 auto' }}>
+            <ParticleTextEffect
+              words={['Connect', 'Route', 'Orchestrate', 'Approve', 'Monitor']}
+            />
           </div>
         </div>
       </section>
@@ -522,41 +541,38 @@ function LandingPage() {
 
       <ScrollFrameSection />
 
-      <section id="demo" data-section-id="demo" className="landing-section demo-section">
-        <div className="section-heading-block">
-          <span className="section-kicker">Product preview</span>
-          <h2>The dashboard shows what connected, what was pulled, and where the flow is going.</h2>
-          <p>
-            Flowfex is not a static graph mock. The main app is a live control surface with sessions, a graph
-            canvas, and clear places where the user can step in.
-          </p>
-        </div>
-
-        <div className="demo-browser">
-          <div className="demo-browser-top">
-            <div className="demo-browser-dots">
-              <span />
-              <span />
-              <span />
+      {/* ContainerScroll wraps the demo browser — 3D perspective reveals on scroll */}
+      <section id="demo" data-section-id="demo" className="landing-section demo-section" style={{ padding: 0, overflow: 'hidden' }}>
+        <ContainerScroll
+          titleComponent={
+            <div className="section-heading-block" style={{ marginBottom: '2rem' }}>
+              <span className="section-kicker">Product preview</span>
+              <h2 style={{ marginBottom: '0.75rem' }}>The dashboard shows what connected, what was pulled, and where the flow is going.</h2>
+              <p>
+                Flowfex is not a static graph mock. The main app is a live control surface with sessions, a graph
+                canvas, and clear places where the user can step in.
+              </p>
             </div>
-            <div className="demo-browser-url">app.flowfex.io/session/live-bridge</div>
-          </div>
-
-          <div className="demo-browser-body">
+          }
+        >
+          {/* Dashboard preview lives inside the 3D card */}
+          <div className="demo-browser-body" style={{ height: '100%', background: 'var(--surface-01, #12171f)', borderRadius: '0.75rem', overflow: 'hidden' }}>
             <div className="demo-browser-rail">
               <strong>Connected now</strong>
               <span>CLI agent</span>
               <span>Skill store</span>
               <span>Session controls</span>
             </div>
-            <div className="demo-browser-canvas">{renderFlowGraph(workspace.nodes, workspace.edges, 'browser', false)}</div>
+            <div className="demo-browser-canvas" style={{ flex: 1 }}>{renderFlowGraph(workspace.nodes, workspace.edges, 'browser', false)}</div>
             <div className="demo-browser-panel">
               <strong>Visible in one place</strong>
               <span>Current step + pulled resources</span>
               <p>Users can inspect nodes, see why a resource was chosen, and step in without rebuilding the whole flow.</p>
             </div>
           </div>
+        </ContainerScroll>
 
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', paddingBottom: '2rem' }}>
           <div className="demo-callout demo-callout-left">Agent attached</div>
           <div className="demo-callout demo-callout-right">Resource pull visible</div>
           <div className="demo-callout demo-callout-bottom">Pause, approve, or reroute here</div>
@@ -573,7 +589,7 @@ function LandingPage() {
       </Suspense>
 
       <Suspense fallback={null}>
-        <PricingSection />
+        <ModernPricingSection />
       </Suspense>
 
       <Suspense fallback={null}>

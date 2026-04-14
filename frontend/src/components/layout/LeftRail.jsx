@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, ChevronRight, Plus, Search } from 'lucide-react';
 import useStore from '../../store/useStore';
 import { DEMO_SKILL_LIBRARY } from '../../store/demoData';
@@ -12,8 +12,12 @@ function LeftRail() {
     sessions,
     setActiveSession,
     setConnectModalOpen,
+    backendUrl,
   } = useStore();
   const [searchValue, setSearchValue] = useState('');
+  const [liveResults, setLiveResults] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const debounceRef = useRef(null);
   const [expandedSections, setExpandedSections] = useState({
     agents: true,
     skills: true,
@@ -30,7 +34,54 @@ function LeftRail() {
     [sessions, activeSession]
   );
 
+  // Live skills search with debounce
+  const searchSkills = useCallback(async (query) => {
+    if (!query.trim()) {
+      setLiveResults(null);
+      return;
+    }
+    setIsSearching(true);
+    try {
+      const res = await fetch(`${backendUrl}/skills/search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setLiveResults(data.results || []);
+      }
+    } catch {
+      // Backend unreachable — fall back to local filter
+      setLiveResults(null);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [backendUrl]);
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => searchSkills(searchValue), 200);
+    return () => clearTimeout(debounceRef.current);
+  }, [searchValue, searchSkills]);
+
+  // Falls back to local filtering when backend is unreachable
   const filteredCategories = useMemo(() => {
+    if (liveResults) {
+      // Group live results into a single "Search Results" category
+      return [{
+        id: 'search-results',
+        label: `Results (${liveResults.length})`,
+        items: liveResults.map((r) => ({
+          id: r.id,
+          label: r.name,
+          icon: 'sparkles',
+          description: r.description,
+          score: r.score,
+        })),
+      }];
+    }
+
     const query = searchValue.trim().toLowerCase();
     if (!query) return DEMO_SKILL_LIBRARY;
 
@@ -38,7 +89,7 @@ function LeftRail() {
       ...category,
       items: category.items.filter((item) => item.label.toLowerCase().includes(query)),
     })).filter((category) => category.items.length > 0);
-  }, [searchValue]);
+  }, [searchValue, liveResults]);
 
   const toggleSection = (section) => {
     setExpandedSections((current) => ({

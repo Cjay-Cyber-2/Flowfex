@@ -317,7 +317,7 @@ const useStore = create((set, get) => ({
     }, 4000);
   },
   removeNotification: (id) =>
-    set((state) => ({
+     set((state) => ({
       notifications: state.notifications.filter((notification) => notification.id !== id),
     })),
 
@@ -335,6 +335,244 @@ const useStore = create((set, get) => ({
         steps: state.usage.steps + 1,
       },
     })),
+
+  backendUrl: import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000',
+
+  /**
+   * Initialize WebSocket event listeners that drive canvas animations from real events.
+   * Call once when the app mounts.
+   */
+  initSocketListeners: () => {
+    // Dynamic import for ESM (Vite)
+    import('../services/socketClient.js').then(({ default: client }) => {
+      const state = get();
+      const sessionId = state.activeSession?.id || 'default';
+      client.connect(sessionId);
+
+      // ─── Orchestration Events ─────────────────────────────────────
+      client.subscribe('orchestration', 'graph:created', (data) => {
+        if (data.nodes && data.edges) {
+          set({
+            nodes: data.nodes,
+            edges: data.edges,
+            approvalQueue: buildApprovalQueue(data.nodes),
+          });
+        }
+      });
+
+      client.subscribe('orchestration', 'node:created', (data) => {
+        if (data.node) {
+          set((s) => {
+            const nodes = [...s.nodes, data.node];
+            return { nodes, approvalQueue: buildApprovalQueue(nodes) };
+          });
+        }
+      });
+
+      client.subscribe('orchestration', 'node:executing', (data) => {
+        set((s) => {
+          const nodes = s.nodes.map((n) =>
+            n.id === data.nodeId ? { ...n, state: 'active' } : n
+          );
+          return {
+            nodes,
+            selectedNode: syncSelectedNode(s.selectedNode, nodes),
+            approvalQueue: buildApprovalQueue(nodes),
+            activeSession: updateSessionHeartbeat(s.activeSession, `Executing ${data.nodeId}`),
+          };
+        });
+      });
+
+      client.subscribe('orchestration', 'node:completed', (data) => {
+        set((s) => {
+          const nodes = s.nodes.map((n) =>
+            n.id === data.nodeId ? { ...n, state: 'completed' } : n
+          );
+          return {
+            nodes,
+            selectedNode: syncSelectedNode(s.selectedNode, nodes),
+            approvalQueue: buildApprovalQueue(nodes),
+          };
+        });
+      });
+
+      client.subscribe('orchestration', 'node:awaiting_approval', (data) => {
+        set((s) => {
+          const nodes = s.nodes.map((n) =>
+            n.id === data.nodeId ? { ...n, state: 'approval' } : n
+          );
+          return {
+            nodes,
+            selectedNode: syncSelectedNode(s.selectedNode, nodes),
+            approvalQueue: buildApprovalQueue(nodes),
+            rightDrawerOpen: true,
+          };
+        });
+      });
+
+      client.subscribe('orchestration', 'node:approved', (data) => {
+        set((s) => {
+          const nodes = s.nodes.map((n) =>
+            n.id === data.nodeId ? { ...n, state: 'completed' } : n
+          );
+          return {
+            nodes,
+            selectedNode: syncSelectedNode(s.selectedNode, nodes),
+            approvalQueue: buildApprovalQueue(nodes),
+          };
+        });
+      });
+
+      client.subscribe('orchestration', 'node:rejected', (data) => {
+        set((s) => {
+          const nodes = s.nodes.map((n) =>
+            n.id === data.nodeId ? { ...n, state: 'skipped' } : n
+          );
+          return {
+            nodes,
+            selectedNode: syncSelectedNode(s.selectedNode, nodes),
+            approvalQueue: buildApprovalQueue(nodes),
+          };
+        });
+      });
+
+      client.subscribe('orchestration', 'node:error', (data) => {
+        set((s) => {
+          const nodes = s.nodes.map((n) =>
+            n.id === data.nodeId ? { ...n, state: 'error' } : n
+          );
+          return {
+            nodes,
+            selectedNode: syncSelectedNode(s.selectedNode, nodes),
+            approvalQueue: buildApprovalQueue(nodes),
+          };
+        });
+      });
+
+      client.subscribe('orchestration', 'edge:created', (data) => {
+        if (data.edge) {
+          set((s) => ({ edges: [...s.edges, data.edge] }));
+        }
+      });
+
+      client.subscribe('orchestration', 'edge:active', (data) => {
+        set((s) => ({
+          edges: s.edges.map((e) =>
+            e.id === data.edgeId ? { ...e, state: 'active' } : e
+          ),
+        }));
+      });
+
+      client.subscribe('orchestration', 'path:rerouted', (data) => {
+        set((s) => ({
+          edges: s.edges.map((e) =>
+            e.id === data.edgeId ? { ...e, state: 'rerouted' } : e
+          ),
+        }));
+      });
+
+      // ─── Session Events ───────────────────────────────────────────
+      client.subscribe('session', 'session:paused', () => {
+        set((s) => ({
+          isExecuting: false,
+          activeSession: updateSessionHeartbeat(s.activeSession, 'Execution paused'),
+        }));
+      });
+
+      client.subscribe('session', 'session:resumed', () => {
+        set((s) => ({
+          isExecuting: true,
+          activeSession: updateSessionHeartbeat(s.activeSession, 'Execution resumed'),
+        }));
+      });
+
+      client.subscribe('session', 'agent:connected', (data) => {
+        const agentData = {
+          id: data.agentId || `agent-${Date.now()}`,
+          name: data.agentName || 'Connected Agent',
+          type: (data.connectionType || 'prompt').toUpperCase(),
+          status: 'connected',
+          lastSeen: 'Live now',
+        };
+        get().addAgent(agentData);
+      });
+
+      set({ ws: client });
+    }).catch((err) => {
+      console.warn('[Flowfex] Socket client import failed:', err.message);
+    });
+  },
+
+  /**
+   * Call backend API for control actions (approve/reject/reroute/pause)
+   */
+  apiApproveNode: async (nodeId) => {
+    const state = get();
+    const sessionId = state.activeSession?.id || 'default';
+    const url = `${state.backendUrl}/node/${nodeId}/approve`;
+    try {
+      await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
+      });
+    } catch (_error) {
+      // Fallback to local state if backend is unreachable
+      set((s) => runNodeTransition(s, nodeId, 'approve'));
+    }
+  },
+
+  apiRejectNode: async (nodeId) => {
+    const state = get();
+    const sessionId = state.activeSession?.id || 'default';
+    const url = `${state.backendUrl}/node/${nodeId}/reject`;
+    try {
+      await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
+      });
+    } catch (_error) {
+      set((s) => runNodeTransition(s, nodeId, 'reject'));
+    }
+  },
+
+  apiRerouteNode: async (nodeId, targetNodeId) => {
+    const state = get();
+    const sessionId = state.activeSession?.id || 'default';
+    const url = `${state.backendUrl}/node/${nodeId}/reroute`;
+    try {
+      await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, targetNodeId }),
+      });
+    } catch (_error) {
+      set((s) => runNodeTransition(s, nodeId, 'reroute'));
+    }
+  },
+
+  apiPauseSession: async () => {
+    const state = get();
+    const sessionId = state.activeSession?.id || 'default';
+    const url = `${state.backendUrl}/session/${sessionId}/pause`;
+    try {
+      await fetch(url, { method: 'POST' });
+    } catch (_error) {
+      set({ isExecuting: false });
+    }
+  },
+
+  apiResumeSession: async () => {
+    const state = get();
+    const sessionId = state.activeSession?.id || 'default';
+    const url = `${state.backendUrl}/session/${sessionId}/resume`;
+    try {
+      await fetch(url, { method: 'POST' });
+    } catch (_error) {
+      set({ isExecuting: true });
+    }
+  },
 
   bootstrapWorkspace: () =>
     set((state) => {
@@ -360,3 +598,4 @@ const useStore = create((set, get) => ({
 }));
 
 export default useStore;
+

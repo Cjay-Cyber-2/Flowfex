@@ -1,6 +1,7 @@
 import http from 'node:http';
 import { URL } from 'node:url';
 import { defaultConnectionService } from '../connection/index.js';
+import { FlowfexSocketServer, initSocketServer, getSocketServer } from '../ws/server.js';
 
 /**
  * Minimal HTTP surface for external agent connections.
@@ -12,6 +13,8 @@ export class FlowfexServer {
     this.port = Number(config.port ?? process.env.PORT ?? process.env.FLOWFEX_PORT ?? 3000);
     this.maxBodySize = config.maxBodySize || 1024 * 1024;
     this.server = null;
+    this.socketServer = null;
+    this._sessionExecutionState = new Map();
   }
 
   async start(overrides = {}) {
@@ -22,10 +25,22 @@ export class FlowfexServer {
     const host = overrides.host || this.host;
     const port = Number(overrides.port ?? this.port);
     this.server = http.createServer((request, response) => {
+      this._setCorsHeaders(response);
+      if (request.method === 'OPTIONS') {
+        response.writeHead(204);
+        response.end();
+        return;
+      }
       this._handleRequest(request, response).catch(error => {
         this._writeError(response, error);
       });
     });
+
+    // Attach Socket.io directly to this server (avoid stale singletons)
+    this.socketServer = new FlowfexSocketServer(this.server, {
+      corsOrigin: '*',
+    });
+    console.log('[Flowfex] Socket.io server attached with /orchestration, /session, /control namespaces');
 
     await new Promise((resolve, reject) => {
       this.server.once('error', reject);
@@ -78,11 +93,21 @@ export class FlowfexServer {
     const url = new URL(request.url, 'http://flowfex.local');
     const sessionMatch = url.pathname.match(/^\/sessions\/([^/]+)$/);
     const executionMatch = url.pathname.match(/^\/sessions\/([^/]+)\/execute$/);
+    const pauseMatch = url.pathname.match(/^\/session\/([^/]+)\/pause$/);
+    const resumeMatch = url.pathname.match(/^\/session\/([^/]+)\/resume$/);
+    const approveMatch = url.pathname.match(/^\/node\/([^/]+)\/approve$/);
+    const rejectMatch = url.pathname.match(/^\/node\/([^/]+)\/reject$/);
+    const rerouteMatch = url.pathname.match(/^\/node\/([^/]+)\/reroute$/);
+    const constrainMatch = url.pathname.match(/^\/session\/([^/]+)\/constrain$/);
+    const skillsSearchMatch = url.pathname === '/skills/search';
+    const ingestMatch = url.pathname === '/ingest';
+    const sseStreamMatch = url.pathname.match(/^\/session\/([^/]+)\/stream$/);
 
     if (request.method === 'GET' && url.pathname === '/health') {
       return this._writeJson(response, 200, {
         status: 'ok',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        websocket: this.socketServer ? this.socketServer.getStats() : null,
       });
     }
 
@@ -91,7 +116,154 @@ export class FlowfexServer {
       const payload = await this.connectionService.connect(body, {
         apiKey: this._extractApiKey(request)
       });
+
+      // Emit agent:connected via WebSocket
+      if (this.socketServer && payload.connection?.session?.id) {
+        const sid = payload.connection.session.id;
+        this.socketServer.emitAgentConnected(sid, {
+          agentId: body.agent?.name || 'agent-' + Date.now(),
+          agentName: body.agent?.name || 'Connected Agent',
+          connectionType: body.mode || 'prompt',
+          status: 'connected',
+        });
+      }
+
       return this._writeJson(response, 200, payload);
+    }
+
+    // ─── Control API: Pause ───────────────────────────────────────────
+    if (request.method === 'POST' && pauseMatch) {
+      const sessionId = pauseMatch[1];
+      const state = this._sessionExecutionState.get(sessionId) || {};
+      state.paused = true;
+      state.pausedAt = new Date().toISOString();
+      this._sessionExecutionState.set(sessionId, state);
+
+      if (this.socketServer) {
+        this.socketServer.emitSessionPaused(sessionId, state);
+      }
+
+      return this._writeJson(response, 200, { status: 'paused', sessionId, state });
+    }
+
+    // ─── Control API: Resume ──────────────────────────────────────────
+    if (request.method === 'POST' && resumeMatch) {
+      const sessionId = resumeMatch[1];
+      const state = this._sessionExecutionState.get(sessionId) || {};
+      state.paused = false;
+      state.resumedAt = new Date().toISOString();
+      this._sessionExecutionState.set(sessionId, state);
+
+      if (this.socketServer) {
+        this.socketServer.emitSessionResumed(sessionId, state);
+      }
+
+      return this._writeJson(response, 200, { status: 'resumed', sessionId, state });
+    }
+
+    // ─── Control API: Approve Node ────────────────────────────────────
+    if (request.method === 'POST' && approveMatch) {
+      const nodeId = approveMatch[1];
+      const body = await this._readJsonBody(request);
+      const sessionId = body.sessionId || 'default';
+
+      if (this.socketServer) {
+        this.socketServer.emitNodeApproved(sessionId, nodeId);
+        this.socketServer.emitNodeCompleted(sessionId, nodeId);
+      }
+
+      return this._writeJson(response, 200, { status: 'approved', nodeId, sessionId });
+    }
+
+    // ─── Control API: Reject Node ─────────────────────────────────────
+    if (request.method === 'POST' && rejectMatch) {
+      const nodeId = rejectMatch[1];
+      const body = await this._readJsonBody(request);
+      const sessionId = body.sessionId || 'default';
+
+      if (this.socketServer) {
+        this.socketServer.emitNodeRejected(sessionId, nodeId);
+      }
+
+      return this._writeJson(response, 200, { status: 'rejected', nodeId, sessionId });
+    }
+
+    // ─── Control API: Reroute Node ────────────────────────────────────
+    if (request.method === 'POST' && rerouteMatch) {
+      const nodeId = rerouteMatch[1];
+      const body = await this._readJsonBody(request);
+      const sessionId = body.sessionId || 'default';
+      const targetNodeId = body.targetNodeId;
+
+      if (this.socketServer && targetNodeId) {
+        const edgeId = `edge-reroute-${nodeId}-${targetNodeId}`;
+        this.socketServer.emitPathRerouted(sessionId, edgeId, {
+          from: nodeId,
+          to: targetNodeId,
+        });
+      }
+
+      return this._writeJson(response, 200, { status: 'rerouted', nodeId, targetNodeId, sessionId });
+    }
+
+    // ─── Control API: Constrain Session ────────────────────────────────
+    if (request.method === 'POST' && constrainMatch) {
+      const sessionId = constrainMatch[1];
+      const body = await this._readJsonBody(request);
+      const blockedSkillIds = body.skillIds || [];
+
+      const state = this._sessionExecutionState.get(sessionId) || {};
+      state.blockedSkillIds = blockedSkillIds;
+      this._sessionExecutionState.set(sessionId, state);
+
+      return this._writeJson(response, 200, { status: 'constrained', sessionId, blockedSkillIds });
+    }
+
+    // ─── Skills Search ────────────────────────────────────────────────
+    if (request.method === 'POST' && skillsSearchMatch) {
+      const body = await this._readJsonBody(request);
+      const query = body.query || '';
+      const registry = this.connectionService?.orchestrator?.registry
+        || this.connectionService?.registry;
+
+      if (!registry) {
+        return this._writeJson(response, 200, { results: [], query });
+      }
+
+      const retrieval = registry.retrieveTools(query, { topK: 10 });
+      const results = retrieval.matches.map(m => ({
+        id: m.tool.id,
+        name: m.tool.name,
+        description: m.tool.description,
+        category: m.tool.metadata?.category || 'uncategorized',
+        score: m.score,
+        strategy: m.strategy,
+      }));
+
+      return this._writeJson(response, 200, { results, query, strategy: retrieval.strategy });
+    }
+
+    // ─── Agent Ingest (prompt-based connection) ────────────────────────
+    if (request.method === 'POST' && ingestMatch) {
+      const body = await this._readJsonBody(request);
+      const { token, task } = body;
+
+      try {
+        const payload = await this.connectionService.execute({
+          sessionId: token,
+          input: task,
+          token: this._extractBearerToken(request),
+        });
+        return this._writeJson(response, 200, payload);
+      } catch (error) {
+        return this._writeJson(response, 400, { error: { message: error.message } });
+      }
+    }
+
+    // ─── SSE Stream ───────────────────────────────────────────────────
+    if (request.method === 'GET' && sseStreamMatch) {
+      const sessionId = sseStreamMatch[1];
+      return this._writeSSEStream(response, sessionId);
     }
 
     if (request.method === 'POST' && executionMatch) {
@@ -241,6 +413,12 @@ export class FlowfexServer {
     });
   }
 
+  _setCorsHeaders(response) {
+    response.setHeader('Access-Control-Allow-Origin', '*');
+    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+    response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Flowfex-Api-Key');
+  }
+
   _wantsEventStream(request, url, body = {}) {
     const streamQuery = url.searchParams.get('stream');
     if (streamQuery === '1' || streamQuery === 'true') {
@@ -253,6 +431,55 @@ export class FlowfexServer {
 
     const acceptHeader = String(request.headers.accept || '');
     return acceptHeader.includes('text/event-stream');
+  }
+
+  /**
+   * SSE stream for agents that cannot use WebSocket
+   */
+  _writeSSEStream(response, sessionId) {
+    response.writeHead(200, {
+      'content-type': 'text/event-stream; charset=utf-8',
+      'cache-control': 'no-cache, no-transform',
+      'connection': 'keep-alive',
+    });
+
+    if (typeof response.flushHeaders === 'function') {
+      response.flushHeaders();
+    }
+
+    // Send heartbeat every 15s to keep connection alive
+    const heartbeatInterval = setInterval(() => {
+      if (!response.writableEnded) {
+        response.write(': heartbeat\n\n');
+      }
+    }, 15000);
+
+    // Forward socket events to SSE
+    const socketServer = this.socketServer;
+    if (socketServer) {
+      const handler = (event) => {
+        if (!response.writableEnded) {
+          response.write(`event: ${event.type || 'message'}\n`);
+          response.write(`data: ${JSON.stringify(event)}\n\n`);
+        }
+      };
+
+      const orchestrationSocket = socketServer.orchestration;
+      // Subscribe to room events for this session
+      orchestrationSocket.adapter.on('session:' + sessionId, handler);
+
+      response.on('close', () => {
+        clearInterval(heartbeatInterval);
+        orchestrationSocket.adapter.off('session:' + sessionId, handler);
+      });
+    } else {
+      response.on('close', () => {
+        clearInterval(heartbeatInterval);
+      });
+    }
+
+    // Send initial connection event
+    response.write(`event: connected\ndata: ${JSON.stringify({ sessionId })}\n\n`);
   }
 }
 

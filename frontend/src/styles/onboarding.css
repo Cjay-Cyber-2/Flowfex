@@ -66,6 +66,28 @@
   padding-inline: 24px;
 }
 
+/* PulseBeams SVG layer — sits behind the centre circle */
+.ob-beams-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.9;
+}
+
+/* Ensure circle and text float above beams */
+.ob-circle,
+.ob-headline,
+.ob-cta-btn,
+.ob-connected-label,
+.ob-ring {
+  position: relative;
+  z-index: 1;
+}
+
 /* Beam animation */
 .ob-beam {
   position: absolute;

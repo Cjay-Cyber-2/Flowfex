@@ -23,6 +23,13 @@ export {
   defaultConnectionService
 } from './connection/index.js';
 export { FlowfexServer, defaultFlowfexServer } from './server/FlowfexServer.js';
+export { FlowfexSocketServer, initSocketServer, getSocketServer } from './ws/server.js';
+export {
+  ORCHESTRATION_EVENTS,
+  SESSION_EVENTS,
+  CONTROL_EVENTS,
+} from './ws/events.js';
+export { buildExecutionGraph, buildGraphFromTrace } from './orchestrator/GraphBuilder.js';
 export {
   MarkdownSkillLoader,
   defaultMarkdownSkillParser,

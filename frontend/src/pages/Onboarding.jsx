@@ -4,7 +4,77 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle } from 'lucide-react';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import ConnectAgentModal from '../components/ConnectAgentModal';
+import PulseBeams from '../components/animations/PulseBeams';
 import '../styles/onboarding.css';
+
+// ─── PulseBeams config ────────────────────────────────────────────────────────
+// Paths fan out from a central point (representing your agent) into Flowfex,
+// then out to tools/skills — visualising the bridge metaphor.
+const ONBOARDING_BEAMS = [
+  // Left agent → centre bridge
+  {
+    path: 'M 80 217 C 200 217, 300 217, 429 217',
+    gradientConfig: {
+      initial: { x1: '0%', x2: '0%', y1: '0%', y2: '0%' },
+      animate: { x1: ['0%', '100%'], x2: ['0%', '110%'], y1: ['0%', '0%'], y2: ['0%', '0%'] },
+      transition: { duration: 3, repeat: Infinity, ease: 'linear', repeatDelay: 0.2 },
+    },
+    connectionPoints: [
+      { cx: 80, cy: 217, r: 5 },
+      { cx: 429, cy: 217, r: 5 },
+    ],
+  },
+  // Left agent upper arc
+  {
+    path: 'M 80 140 C 180 140, 280 180, 429 200',
+    gradientConfig: {
+      initial: { x1: '0%', x2: '0%', y1: '0%', y2: '0%' },
+      animate: { x1: ['0%', '100%'], x2: ['0%', '110%'], y1: ['0%', '0%'], y2: ['0%', '0%'] },
+      transition: { duration: 2.6, repeat: Infinity, ease: 'linear', delay: 0.4, repeatDelay: 0.5 },
+    },
+    connectionPoints: [{ cx: 80, cy: 140, r: 4 }],
+  },
+  // Left agent lower arc
+  {
+    path: 'M 80 294 C 180 294, 280 260, 429 234',
+    gradientConfig: {
+      initial: { x1: '0%', x2: '0%', y1: '0%', y2: '0%' },
+      animate: { x1: ['0%', '100%'], x2: ['0%', '110%'], y1: ['0%', '0%'], y2: ['0%', '0%'] },
+      transition: { duration: 2.8, repeat: Infinity, ease: 'linear', delay: 0.8, repeatDelay: 0.3 },
+    },
+    connectionPoints: [{ cx: 80, cy: 294, r: 4 }],
+  },
+  // Centre bridge → right skill
+  {
+    path: 'M 429 200 C 550 178, 650 152, 778 134',
+    gradientConfig: {
+      initial: { x1: '0%', x2: '0%', y1: '0%', y2: '0%' },
+      animate: { x1: ['0%', '100%'], x2: ['0%', '110%'], y1: ['0%', '0%'], y2: ['0%', '0%'] },
+      transition: { duration: 2.4, repeat: Infinity, ease: 'linear', delay: 1.0, repeatDelay: 0.4 },
+    },
+    connectionPoints: [{ cx: 778, cy: 134, r: 5 }],
+  },
+  // Centre bridge → right tool
+  {
+    path: 'M 429 234 C 550 256, 650 280, 778 300',
+    gradientConfig: {
+      initial: { x1: '0%', x2: '0%', y1: '0%', y2: '0%' },
+      animate: { x1: ['0%', '100%'], x2: ['0%', '110%'], y1: ['0%', '0%'], y2: ['0%', '0%'] },
+      transition: { duration: 2.7, repeat: Infinity, ease: 'linear', delay: 0.5, repeatDelay: 0.6 },
+    },
+    connectionPoints: [{ cx: 778, cy: 300, r: 5 }],
+  },
+  // Centre straight out to canvas
+  {
+    path: 'M 429 217 C 560 217, 660 217, 778 217',
+    gradientConfig: {
+      initial: { x1: '0%', x2: '0%', y1: '0%', y2: '0%' },
+      animate: { x1: ['0%', '100%'], x2: ['0%', '110%'], y1: ['0%', '0%'], y2: ['0%', '0%'] },
+      transition: { duration: 2.2, repeat: Infinity, ease: 'linear', delay: 1.5, repeatDelay: 0.2 },
+    },
+    connectionPoints: [{ cx: 778, cy: 217, r: 6 }],
+  },
+];
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -14,48 +84,33 @@ export default function Onboarding() {
   const handleConnected = () => {
     setIsModalOpen(false);
     setConnectionStage('connecting');
-
-    // Stage 1: Beam animation (0-1s)
-    setTimeout(() => {
-      // Stage 2: Connected state (1s)
-      setConnectionStage('connected');
-    }, 1000);
-
-    setTimeout(() => {
-      // Stage 3: Fade out and navigate (3s)
-      setConnectionStage('navigating');
-    }, 3000);
-
-    setTimeout(() => {
-      navigate('/dashboard');
-    }, 3800);
+    setTimeout(() => setConnectionStage('connected'), 1000);
+    setTimeout(() => setConnectionStage('navigating'), 3000);
+    setTimeout(() => navigate('/dashboard'), 3800);
   };
 
   return (
     <div className="ob-root">
-      {/* Dot-grid background */}
       <div className="ob-dotgrid" />
 
-      {/* Top bar — logo only, no duplicate Connect Agent button */}
       <header className="ob-topbar">
         <FlowfexLogoNew size={30} animated={false} />
       </header>
 
-      {/* Center empty state */}
       <main className="ob-center">
-        {/* Beam animation during connection */}
-        <AnimatePresence>
-          {connectionStage === 'connecting' && (
-            <motion.div
-              className="ob-beam"
-              initial={{ y: -300, opacity: 0 }}
-              animate={{ y: 0, opacity: [0, 1, 0.6, 0] }}
-              transition={{ duration: 1, ease: 'easeOut' }}
-            />
-          )}
-        </AnimatePresence>
+        {/* ── PulseBeams animation — always visible as background ── */}
+        <div className="ob-beams-layer">
+          <PulseBeams
+            beams={ONBOARDING_BEAMS}
+            width={858}
+            height={434}
+            gradientColors={{ start: '#00D4AA', middle: '#6344F5', end: '#AE48FF' }}
+            baseColor="rgba(255,255,255,0.06)"
+            accentColor="rgba(0,212,170,0.3)"
+          />
+        </div>
 
-        {/* Expanding ring effect during connection */}
+        {/* Legacy expanding ring */}
         <AnimatePresence>
           {(connectionStage === 'connecting' || connectionStage === 'connected') && (
             <motion.div
@@ -67,7 +122,7 @@ export default function Onboarding() {
           )}
         </AnimatePresence>
 
-        {/* Connected success label */}
+        {/* Connected label */}
         <AnimatePresence>
           {connectionStage === 'connected' && (
             <motion.div
@@ -95,7 +150,7 @@ export default function Onboarding() {
           )}
         </AnimatePresence>
 
-        {/* Pulsing circle */}
+        {/* Centre pulsing circle with logo */}
         <motion.div
           className="ob-circle"
           animate={

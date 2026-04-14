@@ -1,5 +1,5 @@
 import React from 'react';
-import flowfexLogo from '../assets/flowfex-logo-ui.png';
+import flowfexLogo from '../assets/flowfex-logo-official.png';
 
 export default function FlowfexLogoNew({ size = 32, animated = false, className = '' }) {
   return (
@@ -8,9 +8,10 @@ export default function FlowfexLogoNew({ size = 32, animated = false, className 
       alt="Flowfex"
       className={`flowfex-logo ${className}`}
       style={{
-        width: size,
         height: size,
+        width: 'auto',
         objectFit: 'contain',
+        display: 'block',
       }}
       draggable="false"
     />

@@ -77,14 +77,14 @@ function getEdgePath(fromNode, toNode) {
   }, ${end.x} ${end.y}`;
 }
 
-function renderFlowGraph(nodes, edges, prefix, showLabels = false) {
+function renderFlowGraph(nodes, edges, prefix, showLabels = false, customViewBox = null) {
   const nodeMap = nodes.reduce((result, node) => {
     result[node.id] = node;
     return result;
   }, {});
 
   return (
-    <svg viewBox="0 0 2480 820" className="landing-flow-graph">
+    <svg viewBox={customViewBox || "0 0 2480 820"} className="landing-flow-graph">
       <defs>
         <marker id={`${prefix}-arrow-active`} markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
           <path d="M 0 0 L 10 5 L 0 10 z" fill="#00D4AA" />
@@ -403,7 +403,7 @@ function LandingPage() {
               Bridge live · resource pull visible
             </div>
           </div>
-          <div className="hero-graph-surface">{renderFlowGraph(HERO_GRAPH.nodes, HERO_GRAPH.edges, 'hero', false)}</div>
+          <div className="hero-graph-surface">{renderFlowGraph(HERO_GRAPH.nodes, HERO_GRAPH.edges, 'hero', false, "0 0 1180 480")}</div>
         </div>
       </section>
 
@@ -500,7 +500,7 @@ function LandingPage() {
             </span>
             <h3>Structure Layer</h3>
             <p>See agents, tools, skills, dependencies, and state in one map.</p>
-            <div className="layer-visual">{renderFlowGraph(workspace.nodes.slice(0, 6), workspace.edges.slice(0, 7), 'structure', false)}</div>
+            <div className="layer-visual">{renderFlowGraph(workspace.nodes.slice(0, 6), workspace.edges.slice(0, 7), 'structure', false, "0 0 1600 600")}</div>
           </article>
 
           <article className="layer-card">

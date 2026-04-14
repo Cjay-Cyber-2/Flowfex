@@ -62,6 +62,7 @@ const BorderGlow = ({
   animated = false,
   colors = ['#c084fc', '#f472b6', '#38bdf8'],
   fillOpacity = 0.5,
+  ...props
 }) => {
   const cardRef = useRef(null);
 
@@ -135,6 +136,7 @@ const BorderGlow = ({
       ref={cardRef}
       onPointerMove={handlePointerMove}
       className={`border-glow-card ${className}`}
+      {...props}
       style={{
         '--card-bg': backgroundColor,
         '--edge-sensitivity': edgeSensitivity,

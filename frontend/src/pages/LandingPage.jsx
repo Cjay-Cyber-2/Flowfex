@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import FlowIcon from '../components/common/FlowIcon';
 import ParticleField from '../components/animations/ParticleFieldSimple';
-import PortalButton from '../components/animations/PortalButton';
 import SignalWave from '../components/animations/SignalWave';
 import ScrollFrameSection from '../components/landing/ScrollFrameSection';
 import { buildDemoWorkspace } from '../store/demoData';
@@ -334,9 +333,9 @@ function LandingPage() {
           <a href="#pricing">Pricing</a>
         </div>
 
-        <PortalButton className="landing-nav-cta" onClick={() => navigate('/onboarding')}>
+        <button className="btn btn-primary landing-nav-cta" onClick={() => navigate('/onboarding')}>
           Start Free
-        </PortalButton>
+        </button>
       </nav>
 
       <div className="landing-dot-nav">
@@ -367,10 +366,10 @@ function LandingPage() {
           </p>
 
           <div className="hero-actions">
-            <PortalButton className="hero-primary-cta" onClick={() => navigate('/onboarding')}>
+            <button className="btn btn-primary hero-primary-cta" onClick={() => navigate('/onboarding')}>
               Start Building Free
               <span className="cta-note">live in minutes</span>
-            </PortalButton>
+            </button>
             <button className="btn btn-ghost" onClick={() => navigate('/demo')}>
               <Play size={16} />
               Watch Preview
@@ -594,9 +593,9 @@ function LandingPage() {
             Start a session, connect an agent, and let Flowfex turn scattered resources into a live flow you can understand and steer.
           </p>
           <div className="final-actions">
-            <PortalButton className="final-cta-enhanced" onClick={() => navigate('/onboarding')}>
+            <button className="btn btn-primary final-cta-enhanced" onClick={() => navigate('/onboarding')}>
               Start Building Free
-            </PortalButton>
+            </button>
             <button className="btn btn-ghost" onClick={() => navigate('/demo')}>
               Watch App Preview
               <ArrowRight size={16} />

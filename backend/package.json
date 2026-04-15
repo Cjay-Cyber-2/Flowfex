@@ -5,8 +5,10 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "start": "node src/server.js",
-    "test": "node src/__tests__/integration.test.js",
+    "build:orchestration": "tsc -p tsconfig.orchestration.json",
+    "typecheck:orchestration": "tsc -p tsconfig.orchestration.json --noEmit",
+    "start": "npm run build:orchestration && node src/server.js",
+    "test": "npm run build:orchestration && node src/__tests__/orchestration-engine.test.js",
     "skills:sample": "node src/skills/sampleConversion.js",
     "skills:test-phase1": "node src/skills/testPhase1.js",
     "skills:test-phase2": "node src/skills/testPhase2.js",

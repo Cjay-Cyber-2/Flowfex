@@ -1,0 +1,15 @@
+import type { JsonObject, JsonValue } from './contracts.js';
+export declare function buildExecutionId(): string;
+export declare function stableId(prefix: string, ...parts: string[]): string;
+export declare function slugify(input: string): string;
+export declare function uniqueStrings(values: string[]): string[];
+export declare function tokenize(input: string): string[];
+export declare function truncate(input: string, maxLength: number): string;
+export declare function extractJsonDocument(raw: string): string;
+export declare function stringifyForSearch(input: unknown): string;
+export declare function toSerializable<T>(value: T): T;
+export declare function safeRecord(value: unknown): Record<string, unknown>;
+export declare function asJsonObject(value: unknown): JsonObject;
+export declare function toJsonValue(value: unknown): JsonValue;
+export declare function includesLoosePhrase(haystack: string, needle: string): boolean;
+export declare function overlapScore(left: string, right: string): number;

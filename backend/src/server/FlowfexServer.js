@@ -40,6 +40,9 @@ export class FlowfexServer {
     this.socketServer = new FlowfexSocketServer(this.server, {
       corsOrigin: '*',
     });
+    if (this.connectionService?.orchestrator?.setSocketServer) {
+      this.connectionService.orchestrator.setSocketServer(this.socketServer);
+    }
     console.log('[Flowfex] Socket.io server attached with /orchestration, /session, /control namespaces');
 
     await new Promise((resolve, reject) => {

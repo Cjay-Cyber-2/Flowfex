@@ -58,6 +58,7 @@ class FlowfexSocketClient {
       });
 
       this._sockets[ns] = socket;
+      this._bindStoredListeners(ns, socket);
     }
 
     this._connected = true;
@@ -71,7 +72,6 @@ class FlowfexSocketClient {
       socket.disconnect();
     }
     this._sockets = {};
-    this._listeners.clear();
     this._connected = false;
     this._sessionId = null;
   }
@@ -84,26 +84,32 @@ class FlowfexSocketClient {
    * @returns {Function} Unsubscribe function
    */
   subscribe(namespace, event, callback) {
-    const socket = this._sockets[namespace];
-    if (!socket) {
-      console.warn(`[Flowfex WS] No socket for namespace: ${namespace}`);
-      return () => {};
-    }
-
-    socket.on(event, callback);
     const key = `${namespace}:${event}`;
-    if (!this._listeners.has(key)) {
-      this._listeners.set(key, []);
+    const existing = this._listeners.get(key) || {
+      namespace,
+      event,
+      callbacks: new Set(),
+    };
+    existing.callbacks.add(callback);
+    this._listeners.set(key, existing);
+
+    const socket = this._sockets[namespace];
+    if (socket) {
+      socket.on(event, callback);
     }
-    this._listeners.get(key).push({ socket, callback });
 
     return () => {
-      socket.off(event, callback);
-      const list = this._listeners.get(key) || [];
-      this._listeners.set(
-        key,
-        list.filter((l) => l.callback !== callback)
-      );
+      const activeSocket = this._sockets[namespace];
+      if (activeSocket) {
+        activeSocket.off(event, callback);
+      }
+
+      const listenerEntry = this._listeners.get(key);
+      if (!listenerEntry) return;
+      listenerEntry.callbacks.delete(callback);
+      if (listenerEntry.callbacks.size === 0) {
+        this._listeners.delete(key);
+      }
     };
   }
 
@@ -131,6 +137,15 @@ class FlowfexSocketClient {
 
   get sessionId() {
     return this._sessionId;
+  }
+
+  _bindStoredListeners(namespace, socket) {
+    for (const listener of this._listeners.values()) {
+      if (listener.namespace !== namespace) continue;
+      for (const callback of listener.callbacks) {
+        socket.on(listener.event, callback);
+      }
+    }
   }
 }
 

@@ -187,11 +187,17 @@ const useStore = create((set, get) => ({
 
   sessions: [],
   activeSession: null,
-  setActiveSession: (session) =>
+  setActiveSession: (session) => {
     set((state) => ({
       activeSession: session,
       sessions: syncSessions(state.sessions, session),
-    })),
+    }));
+
+    const ws = get().ws;
+    if (session?.id && ws?.sessionId !== session.id) {
+      ws.connect(session.id);
+    }
+  },
   updateSessionName: (name) =>
     set((state) => {
       if (!state.activeSession) return {};
@@ -498,6 +504,11 @@ const useStore = create((set, get) => ({
       });
 
       set({ ws: client });
+
+      const latestSessionId = get().activeSession?.id;
+      if (latestSessionId && client.sessionId !== latestSessionId) {
+        client.connect(latestSessionId);
+      }
     }).catch((err) => {
       console.warn('[Flowfex] Socket client import failed:', err.message);
     });
@@ -574,28 +585,32 @@ const useStore = create((set, get) => ({
     }
   },
 
-  bootstrapWorkspace: () =>
-    set((state) => {
-      if (state.nodes.length && state.edges.length && state.activeSession) return {};
+  bootstrapWorkspace: () => {
+    const state = get();
+    if (state.nodes.length && state.edges.length && state.activeSession) return;
 
-      const workspace = buildDemoWorkspace(state.connectedAgents);
-      const selectedNode =
-        workspace.nodes.find((node) => node.id === workspace.selectedNodeId) || null;
+    const workspace = buildDemoWorkspace(state.connectedAgents);
+    const selectedNode =
+      workspace.nodes.find((node) => node.id === workspace.selectedNodeId) || null;
 
-      return {
-        connectedAgents: workspace.connectedAgents,
-        sessions: workspace.sessions,
-        activeSession: workspace.activeSession,
-        nodes: workspace.nodes,
-        edges: workspace.edges,
-        approvalQueue: workspace.approvalQueue,
-        selectedNode,
-        rightDrawerOpen: true,
-        canvasMode: 'flow',
-        isExecuting: true,
-      };
-    }),
+    set({
+      connectedAgents: workspace.connectedAgents,
+      sessions: workspace.sessions,
+      activeSession: workspace.activeSession,
+      nodes: workspace.nodes,
+      edges: workspace.edges,
+      approvalQueue: workspace.approvalQueue,
+      selectedNode,
+      rightDrawerOpen: true,
+      canvasMode: 'flow',
+      isExecuting: true,
+    });
+
+    const ws = get().ws;
+    if (workspace.activeSession?.id && ws?.sessionId !== workspace.activeSession.id) {
+      ws.connect(workspace.activeSession.id);
+    }
+  },
 }));
 
 export default useStore;
-

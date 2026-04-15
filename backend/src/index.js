@@ -16,6 +16,17 @@ export { Orchestrator, defaultOrchestrator } from './orchestrator/Orchestrator.j
 export { orchestrate as orchestrateSimple } from './orchestrator.js';
 export { ExecutionEventPublisher } from './execution/ExecutionEventPublisher.js';
 export {
+  OrchestrationEngine,
+  TaskIntentPlanner,
+  CapabilityRetriever,
+  ExecutionPlanSelector,
+  ExecutionGraphBuilder,
+  ExecutionRunner,
+  SessionStateStore,
+  OrchestrationEventBridge,
+  createEngineLogger
+} from './orchestration-engine/index.js';
+export {
   SessionManager,
   defaultSessionManager,
   publicSessionView,

@@ -103,7 +103,14 @@ export class ConnectionService {
     const executionOptions = {
       allowedToolIds: session.allowedToolIds,
       sessionId: session.id,
-      eventSink: options.eventSink
+      eventSink: options.eventSink,
+      agent: session.agent || null,
+      sessionContext: {
+        mode: session.mode || null,
+        metadata: session.metadata || {},
+        capabilities: Array.isArray(session.capabilities) ? session.capabilities : [],
+        prompt: session.prompt || null,
+      },
     };
 
     if (payload.toolId) {

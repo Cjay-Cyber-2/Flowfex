@@ -2,6 +2,7 @@ import http from 'node:http';
 import { URL } from 'node:url';
 import { defaultConnectionService } from '../connection/index.js';
 import { FlowfexSocketServer, initSocketServer, getSocketServer } from '../ws/server.js';
+import { ControlController } from '../control/ControlController.js';
 
 /**
  * Minimal HTTP surface for external agent connections.
@@ -9,12 +10,17 @@ import { FlowfexSocketServer, initSocketServer, getSocketServer } from '../ws/se
 export class FlowfexServer {
   constructor(config = {}) {
     this.connectionService = config.connectionService || defaultConnectionService;
+    this.controlController = config.controlController || new ControlController({
+      orchestrator: this.connectionService.orchestrator,
+      sessionStateRepository: config.sessionStateRepository,
+      lockManager: config.lockManager,
+      socketServer: config.socketServer || null,
+    });
     this.host = config.host || process.env.FLOWFEX_HOST || '127.0.0.1';
-    this.port = Number(config.port ?? process.env.PORT ?? process.env.FLOWFEX_PORT ?? 3000);
+    this.port = Number(config.port ?? process.env.PORT ?? process.env.FLOWFEX_PORT ?? 4000);
     this.maxBodySize = config.maxBodySize || 1024 * 1024;
     this.server = null;
     this.socketServer = null;
-    this._sessionExecutionState = new Map();
   }
 
   async start(overrides = {}) {
@@ -42,6 +48,9 @@ export class FlowfexServer {
     });
     if (this.connectionService?.orchestrator?.setSocketServer) {
       this.connectionService.orchestrator.setSocketServer(this.socketServer);
+    }
+    if (this.controlController?.setSocketServer) {
+      this.controlController.setSocketServer(this.socketServer);
     }
     console.log('[Flowfex] Socket.io server attached with /orchestration, /session, /control namespaces');
 
@@ -96,6 +105,8 @@ export class FlowfexServer {
     const url = new URL(request.url, 'http://flowfex.local');
     const sessionMatch = url.pathname.match(/^\/sessions\/([^/]+)$/);
     const executionMatch = url.pathname.match(/^\/sessions\/([^/]+)\/execute$/);
+    const connectLiveMatch = url.pathname.match(/^\/connect\/live\/([^/]+)$/);
+    const sessionStateMatch = url.pathname.match(/^\/session\/([^/]+)\/state$/);
     const pauseMatch = url.pathname.match(/^\/session\/([^/]+)\/pause$/);
     const resumeMatch = url.pathname.match(/^\/session\/([^/]+)\/resume$/);
     const approveMatch = url.pathname.match(/^\/node\/([^/]+)\/approve$/);
@@ -117,7 +128,8 @@ export class FlowfexServer {
     if (request.method === 'POST' && url.pathname === '/connect') {
       const body = await this._readJsonBody(request);
       const payload = await this.connectionService.connect(body, {
-        apiKey: this._extractApiKey(request)
+        apiKey: this._extractApiKey(request),
+        baseUrl: this._buildBaseUrl(request),
       });
 
       // Emit agent:connected via WebSocket
@@ -134,92 +146,74 @@ export class FlowfexServer {
       return this._writeJson(response, 200, payload);
     }
 
-    // ─── Control API: Pause ───────────────────────────────────────────
+    if (request.method === 'GET' && connectLiveMatch) {
+      const payload = this.connectionService.resolveLiveConnection(connectLiveMatch[1], {
+        baseUrl: this._buildBaseUrl(request),
+        token: url.searchParams.get('token') || null,
+      });
+      return this._writeJson(response, 200, payload);
+    }
+
+    if (request.method === 'GET' && sessionStateMatch) {
+      const payload = await this.controlController.getSessionState({
+        sessionId: sessionStateMatch[1],
+      });
+      return this._writeJson(response, 200, {
+        ok: true,
+        sessionId: sessionStateMatch[1],
+        snapshot: payload,
+      });
+    }
+
     if (request.method === 'POST' && pauseMatch) {
-      const sessionId = pauseMatch[1];
-      const state = this._sessionExecutionState.get(sessionId) || {};
-      state.paused = true;
-      state.pausedAt = new Date().toISOString();
-      this._sessionExecutionState.set(sessionId, state);
-
-      if (this.socketServer) {
-        this.socketServer.emitSessionPaused(sessionId, state);
-      }
-
-      return this._writeJson(response, 200, { status: 'paused', sessionId, state });
+      const body = await this._readJsonBody(request);
+      const payload = await this.controlController.pauseSession({
+        sessionId: pauseMatch[1],
+      }, body);
+      return this._writeJson(response, 200, payload);
     }
 
-    // ─── Control API: Resume ──────────────────────────────────────────
     if (request.method === 'POST' && resumeMatch) {
-      const sessionId = resumeMatch[1];
-      const state = this._sessionExecutionState.get(sessionId) || {};
-      state.paused = false;
-      state.resumedAt = new Date().toISOString();
-      this._sessionExecutionState.set(sessionId, state);
-
-      if (this.socketServer) {
-        this.socketServer.emitSessionResumed(sessionId, state);
-      }
-
-      return this._writeJson(response, 200, { status: 'resumed', sessionId, state });
+      const body = await this._readJsonBody(request);
+      const payload = await this.controlController.resumeSession({
+        sessionId: resumeMatch[1],
+      }, body);
+      return this._writeJson(response, 200, payload);
     }
 
-    // ─── Control API: Approve Node ────────────────────────────────────
     if (request.method === 'POST' && approveMatch) {
-      const nodeId = approveMatch[1];
       const body = await this._readJsonBody(request);
-      const sessionId = body.sessionId || 'default';
-
-      if (this.socketServer) {
-        this.socketServer.emitNodeApproved(sessionId, nodeId);
-        this.socketServer.emitNodeCompleted(sessionId, nodeId);
-      }
-
-      return this._writeJson(response, 200, { status: 'approved', nodeId, sessionId });
+      const payload = await this.controlController.approveNode({
+        nodeId: approveMatch[1],
+      }, body);
+      return this._writeJson(response, 200, payload);
     }
 
-    // ─── Control API: Reject Node ─────────────────────────────────────
     if (request.method === 'POST' && rejectMatch) {
-      const nodeId = rejectMatch[1];
       const body = await this._readJsonBody(request);
-      const sessionId = body.sessionId || 'default';
-
-      if (this.socketServer) {
-        this.socketServer.emitNodeRejected(sessionId, nodeId);
-      }
-
-      return this._writeJson(response, 200, { status: 'rejected', nodeId, sessionId });
+      const payload = await this.controlController.rejectNode({
+        nodeId: rejectMatch[1],
+      }, body);
+      return this._writeJson(response, 200, payload);
     }
 
-    // ─── Control API: Reroute Node ────────────────────────────────────
     if (request.method === 'POST' && rerouteMatch) {
-      const nodeId = rerouteMatch[1];
       const body = await this._readJsonBody(request);
-      const sessionId = body.sessionId || 'default';
-      const targetNodeId = body.targetNodeId;
-
-      if (this.socketServer && targetNodeId) {
-        const edgeId = `edge-reroute-${nodeId}-${targetNodeId}`;
-        this.socketServer.emitPathRerouted(sessionId, edgeId, {
-          from: nodeId,
-          to: targetNodeId,
-        });
-      }
-
-      return this._writeJson(response, 200, { status: 'rerouted', nodeId, targetNodeId, sessionId });
+      const payload = await this.controlController.rerouteNode({
+        nodeId: rerouteMatch[1],
+      }, body);
+      return this._writeJson(response, 200, payload);
     }
 
-    // ─── Control API: Constrain Session ────────────────────────────────
     if (request.method === 'POST' && constrainMatch) {
-      const sessionId = constrainMatch[1];
       const body = await this._readJsonBody(request);
-      const blockedSkillIds = body.skillIds || [];
-
-      const state = this._sessionExecutionState.get(sessionId) || {};
-      state.blockedSkillIds = blockedSkillIds;
-      this._sessionExecutionState.set(sessionId, state);
-
-      return this._writeJson(response, 200, { status: 'constrained', sessionId, blockedSkillIds });
+      const payload = await this.controlController.constrainSession({
+        sessionId: constrainMatch[1],
+      }, {
+        ...body,
+        blockedSkillIds: body.blockedSkillIds || body.skillIds || [],
+      });
+      return this._writeJson(response, 200, payload);
     }
 
     // ─── Skills Search ────────────────────────────────────────────────
@@ -408,10 +402,28 @@ export class FlowfexServer {
   }
 
   _writeError(response, error) {
+    if (this.socketServer && error?.details?.actionType) {
+      this.socketServer.emitControlError(error.details.sessionId || null, {
+        action: 'error',
+        actionType: error.details.actionType,
+        sessionId: error.details.sessionId || null,
+        nodeId: error.details.nodeId || null,
+        statusCode: error.statusCode || 500,
+        code: error.code || 'internal_error',
+        message: error.message,
+        retryable: error.retryable === true,
+        occurredAt: new Date().toISOString(),
+      });
+    }
+
     this._writeJson(response, error.statusCode || 500, {
       error: {
+        code: error.code || 'internal_error',
         message: error.message,
-        type: error.constructor.name
+        type: error.constructor.name,
+        statusCode: error.statusCode || 500,
+        retryable: error.retryable === true,
+        details: error.details || undefined,
       }
     });
   }
@@ -434,6 +446,15 @@ export class FlowfexServer {
 
     const acceptHeader = String(request.headers.accept || '');
     return acceptHeader.includes('text/event-stream');
+  }
+
+  _buildBaseUrl(request) {
+    const forwardedProto = request.headers['x-forwarded-proto'];
+    const proto = typeof forwardedProto === 'string' && forwardedProto.trim().length > 0
+      ? forwardedProto
+      : 'http';
+    const host = request.headers.host || `${this.host}:${this.port}`;
+    return `${proto}://${host}`;
   }
 
   /**

@@ -220,6 +220,19 @@ export class FlowfexSocketServer {
 
   /**
    * @param {string} sessionId
+   * @param {Object} [state]
+   */
+  emitSessionState(sessionId, state = {}) {
+    this.session
+      .to(`session:${sessionId}`)
+      .emit(SESSION_EVENTS.SESSION_STATE, state);
+    this.control
+      .to(`session:${sessionId}`)
+      .emit(CONTROL_EVENTS.SESSION_STATE, state);
+  }
+
+  /**
+   * @param {string} sessionId
    * @param {import('./events.js').AgentPayload} agent
    */
   emitAgentConnected(sessionId, agent) {
@@ -236,6 +249,34 @@ export class FlowfexSocketServer {
     this.session
       .to(`session:${sessionId}`)
       .emit(SESSION_EVENTS.AGENT_DISCONNECTED, { sessionId, agentId });
+  }
+
+  /**
+   * @param {string} sessionId
+   * @param {Object} [data]
+   */
+  emitSessionConstrained(sessionId, data = {}) {
+    this.control
+      .to(`session:${sessionId}`)
+      .emit(CONTROL_EVENTS.SESSION_CONSTRAINED, { sessionId, ...data });
+  }
+
+  /**
+   * @param {string|null} sessionId
+   * @param {Object} error
+   */
+  emitControlError(sessionId, error) {
+    if (sessionId) {
+      this.control
+        .to(`session:${sessionId}`)
+        .emit(CONTROL_EVENTS.CONTROL_ERROR, error);
+      this.session
+        .to(`session:${sessionId}`)
+        .emit(CONTROL_EVENTS.CONTROL_ERROR, error);
+      return;
+    }
+
+    this.control.emit(CONTROL_EVENTS.CONTROL_ERROR, error);
   }
 
   // ─── Broadcast (all connected clients) ─────────────────────────────

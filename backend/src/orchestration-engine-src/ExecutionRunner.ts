@@ -10,6 +10,7 @@ import type {
   RuntimePlanNode,
   RuntimeSkillNode,
   RuntimeStepContext,
+  SessionExecutionState,
   TaskIntent,
   ToolRuntimeLike,
 } from './contracts.js';
@@ -46,18 +47,57 @@ export class ExecutionRunner {
       agent?: OrchestrationAgentContext | null;
       sessionContext?: OrchestrationSessionContext | null;
       bridge: OrchestrationEventBridge;
-    }
+    },
+    options: {
+      startNodeId?: string | null;
+      snapshot?: SessionExecutionState | null;
+      emitGraphCreated?: boolean;
+    } = {}
   ) {
+    const snapshot = options.snapshot || this.stateStore.getSnapshot(context.sessionId);
     this.stateStore.setStatus(context.sessionId, 'running');
-    context.bridge.emitGraphCreated(buildResult.graph);
+    if (options.emitGraphCreated !== false) {
+      context.bridge.emitGraphCreated(buildResult.graph);
+    }
 
-    let currentNodeId = buildResult.entryNodeId;
-    let previousNodeId: string | null = null;
-    let previousError: ExecutionErrorInfo | null = null;
-    let finalOutput: unknown = null;
-    const skippedNodeIds = new Set<string>();
+    let currentNodeId = options.startNodeId ?? snapshot?.pendingNodeId ?? buildResult.entryNodeId;
+    let previousNodeId = inferPreviousNodeId(buildResult, currentNodeId);
+    let previousError = previousNodeId && snapshot?.errors[previousNodeId]
+      ? snapshot.errors[previousNodeId] || null
+      : null;
+    let finalOutput: unknown = snapshot?.finalOutput ?? null;
+    const skippedNodeIds = new Set<string>(
+      snapshot?.graph.nodes
+        .filter(node => node.state === 'skipped')
+        .map(node => node.id) || []
+    );
 
     while (currentNodeId) {
+      if (this.shouldPauseAtBoundary(context.sessionId)) {
+        const pausedAt = new Date().toISOString();
+        this.stateStore.updateNodeState(context.sessionId, currentNodeId, 'paused');
+        this.stateStore.setStatus(context.sessionId, 'paused');
+        this.stateStore.setCurrentNode(context.sessionId, null);
+        this.stateStore.markPendingNode(context.sessionId, currentNodeId);
+        this.stateStore.setControl(context.sessionId, {
+          pauseRequestedAt: null,
+          pausedAt,
+          lastAction: 'pause',
+          lastActionAt: pausedAt,
+        });
+        context.bridge.emitSessionPaused({
+          status: 'paused',
+          pendingNodeId: currentNodeId,
+          pausedAt,
+        });
+
+        return {
+          status: 'paused' as const,
+          finalOutput,
+          error: null,
+        };
+      }
+
       const runtimeNode = buildResult.runtimeNodes[currentNodeId];
       if (!runtimeNode) {
         break;
@@ -209,6 +249,11 @@ export class ExecutionRunner {
       finalOutput,
       error: null,
     };
+  }
+
+  private shouldPauseAtBoundary(sessionId: string): boolean {
+    const snapshot = this.stateStore.getSnapshot(sessionId);
+    return Boolean(snapshot?.control.pauseRequestedAt);
   }
 
   private async executeSkillNode(
@@ -459,6 +504,23 @@ function getNextSequentialNodeId(
   }
 
   return null;
+}
+
+function inferPreviousNodeId(
+  buildResult: ExecutionGraphBuildResult,
+  currentNodeId: string | null
+): string | null {
+  if (!currentNodeId) {
+    return null;
+  }
+
+  const incomingEdgeId = buildResult.incomingEdgeIdByNode[currentNodeId];
+  if (!incomingEdgeId) {
+    return null;
+  }
+
+  const incomingEdge = buildResult.graph.edges.find(edge => edge.id === incomingEdgeId);
+  return incomingEdge?.from || null;
 }
 
 function findEdgeBetween(

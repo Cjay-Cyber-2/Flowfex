@@ -13,6 +13,18 @@ import { toSerializable } from './utils.js';
 
 export class SessionStateStore {
   private readonly sessions = new Map<string, SessionExecutionState>();
+  private readonly persistence: {
+    write(snapshot: SessionExecutionState): Promise<void>;
+  } | null;
+  private persistenceQueue: Promise<void> = Promise.resolve();
+
+  constructor(config: {
+    persistence?: {
+      write(snapshot: SessionExecutionState): Promise<void>;
+    } | null;
+  } = {}) {
+    this.persistence = config.persistence || null;
+  }
 
   initialize(config: {
     sessionId: string;
@@ -21,6 +33,8 @@ export class SessionStateStore {
     graph: ExecutionGraph;
     intent: TaskIntent;
     selection: PlanSelectionResult;
+    agent?: SessionExecutionState['agent'];
+    sessionContext?: SessionExecutionState['sessionContext'];
     status?: ExecutionStatus;
   }): SessionExecutionState {
     ExecutionGraphSchema.parse(config.graph);
@@ -31,11 +45,15 @@ export class SessionStateStore {
       executionId: config.executionId,
       task: config.task,
       status: config.status || 'ready',
+      revision: 1,
+      agent: toSerializable(config.agent || null),
+      sessionContext: toSerializable(config.sessionContext || null),
       createdAt: now,
       updatedAt: now,
       currentNodeId: null,
       pendingNodeId: config.graph.nodes[0]?.id || null,
       completedNodeIds: [],
+      blockedSkillIds: [],
       graph: toSerializable(config.graph),
       outputs: {},
       errors: {},
@@ -43,9 +61,12 @@ export class SessionStateStore {
       trace: [],
       intent: toSerializable(config.intent),
       selection: toSerializable(config.selection),
+      graphUpdates: [],
+      control: {},
     };
 
     this.sessions.set(config.sessionId, state);
+    this.persist(state);
     return this.getSnapshot(config.sessionId) as SessionExecutionState;
   }
 
@@ -123,6 +144,50 @@ export class SessionStateStore {
     });
   }
 
+  hydrate(snapshot: SessionExecutionState): SessionExecutionState {
+    const rehydrated = toSerializable(snapshot);
+    this.sessions.set(snapshot.sessionId, rehydrated);
+    return this.getSnapshot(snapshot.sessionId) as SessionExecutionState;
+  }
+
+  replaceGraph(sessionId: string, graph: ExecutionGraph): void {
+    ExecutionGraphSchema.parse(graph);
+
+    this.mutate(sessionId, state => {
+      state.graph = toSerializable(graph);
+    });
+  }
+
+  replaceSelection(sessionId: string, selection: PlanSelectionResult): void {
+    this.mutate(sessionId, state => {
+      state.selection = toSerializable(selection);
+    });
+  }
+
+  setBlockedSkillIds(sessionId: string, blockedSkillIds: string[]): void {
+    this.mutate(sessionId, state => {
+      state.blockedSkillIds = [...new Set(blockedSkillIds)];
+    });
+  }
+
+  setControl(sessionId: string, updates: Partial<SessionExecutionState['control']>): void {
+    this.mutate(sessionId, state => {
+      state.control = {
+        ...state.control,
+        ...toSerializable(updates),
+      };
+    });
+  }
+
+  appendGraphUpdate(
+    sessionId: string,
+    update: SessionExecutionState['graphUpdates'][number]
+  ): void {
+    this.mutate(sessionId, state => {
+      state.graphUpdates.push(toSerializable(update));
+    });
+  }
+
   private mutate(sessionId: string, updater: (state: SessionExecutionState) => void): void {
     const state = this.sessions.get(sessionId);
     if (!state) {
@@ -130,6 +195,19 @@ export class SessionStateStore {
     }
 
     updater(state);
+    state.revision += 1;
     state.updatedAt = new Date().toISOString();
+    this.persist(state);
+  }
+
+  private persist(state: SessionExecutionState): void {
+    if (!this.persistence) {
+      return;
+    }
+
+    const snapshot = toSerializable(state);
+    this.persistenceQueue = this.persistenceQueue
+      .then(() => this.persistence?.write(snapshot) || Promise.resolve())
+      .catch(() => {});
   }
 }

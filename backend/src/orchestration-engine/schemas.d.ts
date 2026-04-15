@@ -53,6 +53,7 @@ export declare const ExecutionGraphNodeSchema: z.ZodObject<{
     title: z.ZodString;
     subtitle: z.ZodString;
     state: z.ZodEnum<{
+        paused: "paused";
         completed: "completed";
         idle: "idle";
         queued: "queued";
@@ -60,7 +61,6 @@ export declare const ExecutionGraphNodeSchema: z.ZodObject<{
         approval: "approval";
         skipped: "skipped";
         error: "error";
-        paused: "paused";
     }>;
     icon: z.ZodString;
     confidence: z.ZodNumber;
@@ -112,6 +112,7 @@ export declare const ExecutionGraphSchema: z.ZodObject<{
         title: z.ZodString;
         subtitle: z.ZodString;
         state: z.ZodEnum<{
+            paused: "paused";
             completed: "completed";
             idle: "idle";
             queued: "queued";
@@ -119,7 +120,6 @@ export declare const ExecutionGraphSchema: z.ZodObject<{
             approval: "approval";
             skipped: "skipped";
             error: "error";
-            paused: "paused";
         }>;
         icon: z.ZodString;
         confidence: z.ZodNumber;

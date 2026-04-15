@@ -3,7 +3,7 @@ export type JsonValue = JsonPrimitive | JsonObject | JsonValue[];
 export interface JsonObject {
     [key: string]: JsonValue;
 }
-export type ExecutionStatus = 'planning' | 'ready' | 'running' | 'awaiting_approval' | 'completed' | 'failed';
+export type ExecutionStatus = 'planning' | 'ready' | 'running' | 'awaiting_approval' | 'paused' | 'completed' | 'failed';
 export type GraphNodeState = 'idle' | 'queued' | 'active' | 'approval' | 'completed' | 'skipped' | 'error' | 'paused';
 export type GraphEdgeState = 'inactive' | 'queued' | 'active' | 'completed' | 'rerouted';
 export interface ToolMetadata {
@@ -290,11 +290,15 @@ export interface SessionExecutionState {
     executionId: string;
     task: string;
     status: ExecutionStatus;
+    revision: number;
+    agent: OrchestrationAgentContext | null;
+    sessionContext: OrchestrationSessionContext | null;
     createdAt: string;
     updatedAt: string;
     currentNodeId: string | null;
     pendingNodeId: string | null;
     completedNodeIds: string[];
+    blockedSkillIds: string[];
     graph: ExecutionGraph;
     outputs: Record<string, unknown>;
     errors: Record<string, ExecutionErrorInfo>;
@@ -302,6 +306,22 @@ export interface SessionExecutionState {
     trace: ExecutionTraceEntry[];
     intent: TaskIntent;
     selection: PlanSelectionResult;
+    graphUpdates: Array<{
+        id: string;
+        type: 'reroute_edge_added' | 'selection_constrained' | 'selection_rebuilt' | 'state_rehydrated';
+        nodeId?: string | null;
+        edgeId?: string | null;
+        payload: Record<string, JsonValue>;
+        createdAt: string;
+    }>;
+    control: {
+        pauseRequestedAt?: string | null;
+        pauseReason?: string | null;
+        pausedAt?: string | null;
+        resumedAt?: string | null;
+        lastAction?: 'pause' | 'resume' | 'approve' | 'reject' | 'reroute' | 'constrain' | null;
+        lastActionAt?: string | null;
+    };
     finalOutput?: unknown;
 }
 export interface RuntimeStepContext {
@@ -368,15 +388,21 @@ export interface SocketServerLike {
     emitNodeExecuting(sessionId: string, nodeId: string, data?: Record<string, unknown>): void;
     emitNodeCompleted(sessionId: string, nodeId: string, data?: Record<string, unknown>): void;
     emitNodeAwaitingApproval(sessionId: string, nodeId: string, data?: Record<string, unknown>): void;
+    emitNodeApproved?(sessionId: string, nodeId: string, data?: Record<string, unknown>): void;
     emitNodeRejected(sessionId: string, nodeId: string, data?: Record<string, unknown>): void;
     emitNodeError(sessionId: string, nodeId: string, error: string): void;
     emitEdgeActive(sessionId: string, edgeId: string): void;
     emitPathRerouted(sessionId: string, edgeId: string, data?: Record<string, unknown>): void;
+    emitSessionPaused?(sessionId: string, state?: Record<string, unknown>): void;
+    emitSessionResumed?(sessionId: string, state?: Record<string, unknown>): void;
+    emitSessionConstrained?(sessionId: string, data?: Record<string, unknown>): void;
+    emitSessionState?(sessionId: string, data?: Record<string, unknown>): void;
+    emitControlError?(sessionId: string | null, error: Record<string, unknown>): void;
 }
 export interface OrchestrationRunResult {
     executionId: string;
     sessionId: string;
-    status: 'success' | 'error' | 'awaiting_approval';
+    status: 'success' | 'error' | 'awaiting_approval' | 'paused';
     input: string;
     intent: TaskIntent;
     graph: ExecutionGraph;

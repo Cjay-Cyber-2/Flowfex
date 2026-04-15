@@ -12,9 +12,10 @@ function TopBar() {
     canvasMode,
     isExecuting,
     nodes,
+    apiPauseSession,
+    apiResumeSession,
     setCanvasMode,
     setConnectModalOpen,
-    setIsExecuting,
     updateSessionName,
     user,
   } = useStore();
@@ -78,7 +79,7 @@ function TopBar() {
 
         <button
           className={`top-bar-icon-button ${isExecuting ? 'is-active' : ''}`}
-          onClick={() => setIsExecuting(!isExecuting)}
+          onClick={() => (isExecuting ? apiPauseSession() : apiResumeSession())}
           aria-label={isExecuting ? 'Pause execution' : 'Resume execution'}
           title={isExecuting ? 'Pause execution' : 'Resume execution'}
         >

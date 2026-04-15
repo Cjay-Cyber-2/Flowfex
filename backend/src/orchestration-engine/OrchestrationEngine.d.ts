@@ -1,4 +1,4 @@
-import type { EngineLogger, OrchestrationExecutionContext, OrchestrationRunResult, ToolRegistryLike } from './contracts.js';
+import type { EngineLogger, ExecutionGraphBuildResult, OrchestrationExecutionContext, OrchestrationRunResult, PlanSelectionResult, SessionExecutionState, ToolRegistryLike } from './contracts.js';
 import type { LLMProviderLike } from './contracts.js';
 import { SessionStateStore } from './SessionStateStore.js';
 export declare class OrchestrationEngine {
@@ -18,5 +18,19 @@ export declare class OrchestrationEngine {
         stateStore?: SessionStateStore;
     });
     orchestrateTask(context: OrchestrationExecutionContext): Promise<OrchestrationRunResult>;
-    getSessionState(sessionId: string): import("./contracts.js").SessionExecutionState | null;
+    getSessionState(sessionId: string): SessionExecutionState | null;
+    hydrateSessionState(snapshot: SessionExecutionState): SessionExecutionState;
+    rebuildExecutionGraph(config: {
+        sessionId: string;
+        executionId: string;
+        selection: PlanSelectionResult;
+    }): ExecutionGraphBuildResult;
+    continueSession(context: {
+        sessionId: string;
+        eventSink?: OrchestrationExecutionContext['eventSink'];
+        socketServer?: OrchestrationExecutionContext['socketServer'];
+        agent?: OrchestrationExecutionContext['agent'];
+        sessionContext?: OrchestrationExecutionContext['sessionContext'];
+    }): Promise<OrchestrationRunResult>;
+    getStateStore(): SessionStateStore;
 }

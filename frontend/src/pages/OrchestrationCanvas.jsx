@@ -18,16 +18,22 @@ function OrchestrationCanvas() {
   const {
     activeSession,
     addAgent,
+    addSession,
     addNotification,
     approvalQueue,
+    backendUrl,
     bootstrapWorkspace,
     connectModalOpen,
     connectedAgents,
     nodes,
+    setActiveSession,
     setConnectModalOpen,
   } = useStore();
   const [activeTab, setActiveTab] = useState('prompt');
   const [copiedTab, setCopiedTab] = useState('');
+  const [connectionPayloads, setConnectionPayloads] = useState({});
+  const [loadingConnectionTab, setLoadingConnectionTab] = useState('');
+  const [connectionErrors, setConnectionErrors] = useState({});
 
   useEffect(() => {
     bootstrapWorkspace();
@@ -39,10 +45,24 @@ function OrchestrationCanvas() {
   );
 
   const modalContent = {
-    prompt: CONNECT_PROMPT,
-    link: CONNECT_LINK,
-    sdk: CONNECT_SDK_SNIPPET,
-    live: CONNECT_LIVE_SNIPPET,
+    prompt: connectionPayloads.prompt?.connection?.instructions?.prompt || CONNECT_PROMPT,
+    link: connectionPayloads.link?.connection?.link?.url || CONNECT_LINK,
+    sdk: connectionPayloads.sdk?.connection?.session
+      ? `const response = await fetch('${connectionPayloads.sdk.connection.session.endpoints.execute}', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: 'Bearer ${connectionPayloads.sdk.connection.session.token || ''}',
+  },
+  body: JSON.stringify({ input: 'Run through the live Flowfex session' }),
+});`
+      : CONNECT_SDK_SNIPPET,
+    live: connectionPayloads.live?.connection?.transport
+      ? `${connectionPayloads.live.connection.transport.orchestrationNamespace}
+channel: ${connectionPayloads.live.connection.live?.protocol || 'socket.io'}
+sse: ${connectionPayloads.live.connection.transport.sseUrl}
+control: ${connectionPayloads.live.connection.transport.controlNamespace}`
+      : CONNECT_LIVE_SNIPPET,
   };
 
   const modalMeta = {
@@ -83,18 +103,114 @@ function OrchestrationCanvas() {
     }
   };
 
+  const buildRequestForTab = (tab) => {
+    switch (tab) {
+      case 'prompt':
+        return {
+          mode: 'prompt',
+          prompt: 'Connect this agent to Flowfex and ask Flowfex for resources before acting.',
+          agent: { name: 'Prompt Agent', type: 'prompt' },
+        };
+      case 'link':
+        return {
+          mode: 'link',
+          singleUse: true,
+          agent: { name: 'Link Agent', type: 'link' },
+        };
+      case 'sdk':
+        return {
+          mode: 'sdk',
+          agent: { name: 'SDK Agent', type: 'sdk' },
+        };
+      case 'live':
+        return {
+          mode: 'live',
+          protocol: 'socket.io',
+          agent: { name: 'Live Channel Agent', type: 'live' },
+        };
+      default:
+        return null;
+    }
+  };
+
+  const fetchConnectionPayload = async (tab) => {
+    const request = buildRequestForTab(tab);
+    if (!request) return;
+
+    setLoadingConnectionTab(tab);
+    setConnectionErrors((current) => ({ ...current, [tab]: null }));
+
+    try {
+      const response = await fetch(`${backendUrl}/connect`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error?.message || 'Connection bootstrap failed');
+      }
+
+      setConnectionPayloads((current) => ({
+        ...current,
+        [tab]: payload,
+      }));
+    } catch (error) {
+      setConnectionErrors((current) => ({
+        ...current,
+        [tab]: error instanceof Error ? error.message : 'Connection bootstrap failed',
+      }));
+    } finally {
+      setLoadingConnectionTab('');
+    }
+  };
+
+  useEffect(() => {
+    if (!connectModalOpen || connectionPayloads[activeTab] || loadingConnectionTab === activeTab) {
+      return;
+    }
+
+    fetchConnectionPayload(activeTab);
+  }, [activeTab, connectModalOpen, connectionPayloads, loadingConnectionTab]);
+
   const handleConnectAgent = () => {
+    const payload = connectionPayloads[activeTab];
+    const session = payload?.connection?.session;
+    if (!session) {
+      addNotification({
+        type: 'warning',
+        title: 'Connection not ready',
+        message: 'Generate the connection payload before attaching the agent.',
+      });
+      return;
+    }
+
+    const agentLabel = CONNECT_METHOD_TABS.find((tab) => tab.id === activeTab)?.label || activeTab;
     addAgent({
-      id: `agent-${Date.now()}`,
-      name: `${CONNECT_METHOD_TABS.find((tab) => tab.id === activeTab)?.label} Agent`,
+      id: session.agent?.id || `agent-${session.id}`,
+      name: session.agent?.name || `${agentLabel} Agent`,
       type: activeTab,
       status: 'connected',
       lastSeen: 'Live now',
     });
+    const sessionRecord = {
+      id: session.id,
+      name: `${agentLabel} Session`,
+      task: 'Connected through Flowfex',
+      heartbeat: `${agentLabel} connection ready`,
+      status: 'ready',
+      revision: 0,
+      token: session.token,
+      executionId: null,
+    };
+    addSession(sessionRecord);
+    setActiveSession(sessionRecord);
     addNotification({
       type: 'success',
       title: 'Agent attached',
-      message: `${CONNECT_METHOD_TABS.find((tab) => tab.id === activeTab)?.label} Agent is now live in this session.`,
+      message: `${agentLabel} Agent is now live in this session.`,
     });
     setConnectModalOpen(false);
   };
@@ -167,6 +283,7 @@ function OrchestrationCanvas() {
                   <div>
                     <strong>{modalMeta[activeTab].title}</strong>
                     <p>{modalMeta[activeTab].description}</p>
+                    {connectionErrors[activeTab] ? <p>{connectionErrors[activeTab]}</p> : null}
                   </div>
                   <button className="btn btn-ghost" onClick={handleCopy}>
                     <Copy size={16} />
@@ -201,7 +318,7 @@ function OrchestrationCanvas() {
                 </div>
 
                 <button className="btn btn-primary flowfex-connect-primary" onClick={handleConnectAgent}>
-                  Attach Demo Agent
+                  {loadingConnectionTab === activeTab ? 'Preparing…' : 'Attach Agent'}
                 </button>
               </div>
             </div>

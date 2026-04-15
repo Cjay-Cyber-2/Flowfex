@@ -10,15 +10,45 @@ export class ExecutionRunner {
         this.stateStore = config.stateStore;
         this.logger = config.logger;
     }
-    async run(buildResult, context) {
+    async run(buildResult, context, options = {}) {
+        const snapshot = options.snapshot || this.stateStore.getSnapshot(context.sessionId);
         this.stateStore.setStatus(context.sessionId, 'running');
-        context.bridge.emitGraphCreated(buildResult.graph);
-        let currentNodeId = buildResult.entryNodeId;
-        let previousNodeId = null;
-        let previousError = null;
-        let finalOutput = null;
-        const skippedNodeIds = new Set();
+        if (options.emitGraphCreated !== false) {
+            context.bridge.emitGraphCreated(buildResult.graph);
+        }
+        let currentNodeId = options.startNodeId ?? snapshot?.pendingNodeId ?? buildResult.entryNodeId;
+        let previousNodeId = inferPreviousNodeId(buildResult, currentNodeId);
+        let previousError = previousNodeId && snapshot?.errors[previousNodeId]
+            ? snapshot.errors[previousNodeId] || null
+            : null;
+        let finalOutput = snapshot?.finalOutput ?? null;
+        const skippedNodeIds = new Set(snapshot?.graph.nodes
+            .filter(node => node.state === 'skipped')
+            .map(node => node.id) || []);
         while (currentNodeId) {
+            if (this.shouldPauseAtBoundary(context.sessionId)) {
+                const pausedAt = new Date().toISOString();
+                this.stateStore.updateNodeState(context.sessionId, currentNodeId, 'paused');
+                this.stateStore.setStatus(context.sessionId, 'paused');
+                this.stateStore.setCurrentNode(context.sessionId, null);
+                this.stateStore.markPendingNode(context.sessionId, currentNodeId);
+                this.stateStore.setControl(context.sessionId, {
+                    pauseRequestedAt: null,
+                    pausedAt,
+                    lastAction: 'pause',
+                    lastActionAt: pausedAt,
+                });
+                context.bridge.emitSessionPaused({
+                    status: 'paused',
+                    pendingNodeId: currentNodeId,
+                    pausedAt,
+                });
+                return {
+                    status: 'paused',
+                    finalOutput,
+                    error: null,
+                };
+            }
             const runtimeNode = buildResult.runtimeNodes[currentNodeId];
             if (!runtimeNode) {
                 break;
@@ -151,6 +181,10 @@ export class ExecutionRunner {
             finalOutput,
             error: null,
         };
+    }
+    shouldPauseAtBoundary(sessionId) {
+        const snapshot = this.stateStore.getSnapshot(sessionId);
+        return Boolean(snapshot?.control.pauseRequestedAt);
     }
     async executeSkillNode(runtimeNode, context) {
         const startedAt = new Date().toISOString();
@@ -334,6 +368,17 @@ function getNextSequentialNodeId(buildResult, currentNodeId, skippedNodeIds) {
         }
     }
     return null;
+}
+function inferPreviousNodeId(buildResult, currentNodeId) {
+    if (!currentNodeId) {
+        return null;
+    }
+    const incomingEdgeId = buildResult.incomingEdgeIdByNode[currentNodeId];
+    if (!incomingEdgeId) {
+        return null;
+    }
+    const incomingEdge = buildResult.graph.edges.find(edge => edge.id === incomingEdgeId);
+    return incomingEdge?.from || null;
 }
 function findEdgeBetween(buildResult, fromNodeId, toNodeId) {
     if (!fromNodeId) {

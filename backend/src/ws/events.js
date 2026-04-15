@@ -1,3 +1,5 @@
+import { CONTROL_EVENTS as SHARED_CONTROL_EVENTS } from '../../../shared/control-contracts.js';
+
 /**
  * Shared WebSocket Event Types for Flowfex
  * 
@@ -27,6 +29,7 @@ export const SESSION_EVENTS = {
   SESSION_CREATED: 'session:created',
   SESSION_PAUSED: 'session:paused',
   SESSION_RESUMED: 'session:resumed',
+  SESSION_STATE: SHARED_CONTROL_EVENTS.SESSION_STATE,
   AGENT_CONNECTED: 'agent:connected',
   AGENT_DISCONNECTED: 'agent:disconnected',
 };
@@ -34,7 +37,9 @@ export const SESSION_EVENTS = {
 // ─── Control Namespace Events ─────────────────────────────────────────────────
 
 export const CONTROL_EVENTS = {
-  SESSION_CONSTRAINED: 'session:constrained',
+  SESSION_CONSTRAINED: SHARED_CONTROL_EVENTS.SESSION_CONSTRAINED,
+  CONTROL_ERROR: SHARED_CONTROL_EVENTS.CONTROL_ERROR,
+  SESSION_STATE: SHARED_CONTROL_EVENTS.SESSION_STATE,
 };
 
 // ─── Payload Shapes (JSDoc for type safety in plain JS) ───────────────────────

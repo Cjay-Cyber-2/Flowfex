@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { defaultRegistry } from '../registry/ToolRegistry.js';
 import { defaultOrchestrator } from '../orchestrator/Orchestrator.js';
 import {
@@ -5,6 +6,11 @@ import {
   defaultSessionManager,
   publicSessionView
 } from './SessionManager.js';
+import {
+  CONNECTION_MODES,
+  LIVE_CHANNEL_PROTOCOLS,
+  connectRequestSchema,
+} from '../../../shared/connection-contracts.js';
 
 /**
  * Coordinates external agent connections, session scoping, and tool execution.
@@ -17,7 +23,10 @@ export class ConnectionService {
     this.connectionApiKey = config.connectionApiKey || process.env.FLOWFEX_CONNECTION_API_KEY || null;
     this.promptSessionTtlSeconds = config.promptSessionTtlSeconds || 60 * 15;
     this.apiSessionTtlSeconds = config.apiSessionTtlSeconds || 60 * 60;
+    this.linkSessionTtlSeconds = config.linkSessionTtlSeconds || 60 * 60 * 24;
     this.promptToolLimit = config.promptToolLimit || 5;
+    this.publicBaseUrl = config.publicBaseUrl || process.env.FLOWFEX_PUBLIC_ORIGIN || 'http://127.0.0.1:4000';
+    this.linkSessions = config.linkSessions || new Map();
   }
 
   async connect(payload, authContext = {}) {
@@ -25,22 +34,32 @@ export class ConnectionService {
       throw createConnectionError('Connection payload must be a JSON object', 400);
     }
 
-    if (payload.mode === 'prompt') {
-      return this.connectPrompt(payload);
+    const baseUrl = authContext.baseUrl || this.publicBaseUrl;
+    const normalizedPayload = payload.mode === 'api'
+      ? { ...payload, mode: CONNECTION_MODES.SDK }
+      : payload;
+    const request = connectRequestSchema.parse(normalizedPayload);
+
+    if (request.mode === CONNECTION_MODES.PROMPT) {
+      return this.connectPrompt(request, { baseUrl });
     }
 
-    if (payload.mode === 'api') {
-      return this.connectApi(payload, authContext);
+    if (request.mode === CONNECTION_MODES.SDK) {
+      return this.connectSdk(request, { ...authContext, baseUrl });
     }
 
-    throw createConnectionError("Connection mode must be 'prompt' or 'api'", 400);
+    if (request.mode === CONNECTION_MODES.LINK) {
+      return this.connectLink(request, { ...authContext, baseUrl });
+    }
+
+    if (request.mode === CONNECTION_MODES.LIVE) {
+      return this.connectLive(request, { ...authContext, baseUrl });
+    }
+
+    throw createConnectionError('Unsupported connection mode', 400);
   }
 
-  async connectPrompt(payload) {
-    if (typeof payload.prompt !== 'string' || payload.prompt.trim().length === 0) {
-      throw createConnectionError('Prompt connections require a non-empty prompt', 400);
-    }
-
+  async connectPrompt(payload, context = {}) {
     const retrieval = this.registry.retrieveTools(payload.prompt, {
       topK: payload.topK || this.promptToolLimit,
       minScore: payload.minScore ?? 0.05,
@@ -62,13 +81,17 @@ export class ConnectionService {
       success: true,
       mode: 'prompt',
       connection: {
-        session: this._buildSessionResponse(session, token),
-        retrieval: this._serializeRetrieval(retrieval)
+        session: this._buildSessionResponse(session, token, { baseUrl: context.baseUrl }),
+        retrieval: this._serializeRetrieval(retrieval),
+        instructions: {
+          sessionUrl: this._buildConnectUrl(context.baseUrl, session.id, token),
+          prompt: this._buildPromptInstruction(payload.prompt, session.id, token, context.baseUrl),
+        },
       }
     };
   }
 
-  async connectApi(payload, authContext = {}) {
+  async connectSdk(payload, authContext = {}) {
     this._authorizeApiConnection(payload, authContext);
 
     const requestedTools = this._resolveRequestedTools(payload.requestedTools);
@@ -76,7 +99,7 @@ export class ConnectionService {
       ? requestedTools.map(tool => tool.id)
       : this.registry.getAllTools().map(tool => tool.id);
     const { session, token } = this.sessionManager.createSession({
-      mode: 'api',
+      mode: CONNECTION_MODES.SDK,
       agent: payload.agent,
       metadata: payload.metadata,
       capabilities: payload.capabilities,
@@ -87,10 +110,86 @@ export class ConnectionService {
 
     return {
       success: true,
-      mode: 'api',
+      mode: CONNECTION_MODES.SDK,
       connection: {
-        session: this._buildSessionResponse(session, token)
+        session: this._buildSessionResponse(session, token, { baseUrl: authContext.baseUrl }),
+        transport: this._buildTransport(authContext.baseUrl, session.id, LIVE_CHANNEL_PROTOCOLS.SOCKET_IO),
       }
+    };
+  }
+
+  async connectLink(payload, authContext = {}) {
+    const requestedTools = this._resolveRequestedTools(payload.requestedTools);
+    const allowedToolIds = requestedTools.length > 0
+      ? requestedTools.map(tool => tool.id)
+      : this.registry.getAllTools().map(tool => tool.id);
+    const { session, token } = this.sessionManager.createSession({
+      mode: CONNECTION_MODES.LINK,
+      agent: payload.agent,
+      metadata: payload.metadata,
+      prompt: payload.prompt || null,
+      capabilities: payload.capabilities,
+      allowedToolIds,
+      recommendedToolIds: allowedToolIds,
+      ttlSeconds: payload.ttlSeconds || this.linkSessionTtlSeconds
+    });
+    const linkId = `lnk_${randomToken(12)}`;
+    const expiresAt = session.expiresAt;
+
+    this.linkSessions.set(linkId, {
+      id: linkId,
+      sessionId: session.id,
+      token,
+      singleUse: payload.singleUse !== false,
+      expiresAt,
+      usedAt: null,
+    });
+
+    return {
+      success: true,
+      mode: CONNECTION_MODES.LINK,
+      connection: {
+        session: this._buildSessionResponse(session, token, { baseUrl: authContext.baseUrl }),
+        link: {
+          url: this._buildConnectUrl(authContext.baseUrl, linkId),
+          resolverPath: `/connect/live/${linkId}`,
+          singleUse: payload.singleUse !== false,
+          expiresAt,
+        },
+        transport: this._buildTransport(authContext.baseUrl, session.id, LIVE_CHANNEL_PROTOCOLS.SOCKET_IO),
+      },
+    };
+  }
+
+  async connectLive(payload, authContext = {}) {
+    this._authorizeApiConnection(payload, authContext);
+
+    const requestedTools = this._resolveRequestedTools(payload.requestedTools);
+    const allowedToolIds = requestedTools.length > 0
+      ? requestedTools.map(tool => tool.id)
+      : this.registry.getAllTools().map(tool => tool.id);
+    const protocol = payload.protocol || LIVE_CHANNEL_PROTOCOLS.SOCKET_IO;
+    const { session, token } = this.sessionManager.createSession({
+      mode: CONNECTION_MODES.LIVE,
+      agent: payload.agent,
+      metadata: payload.metadata,
+      capabilities: payload.capabilities,
+      allowedToolIds,
+      recommendedToolIds: allowedToolIds,
+      ttlSeconds: payload.ttlSeconds || this.apiSessionTtlSeconds,
+    });
+
+    return {
+      success: true,
+      mode: CONNECTION_MODES.LIVE,
+      connection: {
+        session: this._buildSessionResponse(session, token, { baseUrl: authContext.baseUrl }),
+        transport: this._buildTransport(authContext.baseUrl, session.id, protocol),
+        live: {
+          connectUrl: this._buildConnectUrl(authContext.baseUrl, session.id, token),
+          protocol,
+        },
+      },
     };
   }
 
@@ -140,6 +239,56 @@ export class ConnectionService {
     };
   }
 
+  resolveLiveConnection(identifier, options = {}) {
+    this._cleanupLinkSessions();
+
+    const baseUrl = options.baseUrl || this.publicBaseUrl;
+    const linkedSession = this.linkSessions.get(identifier);
+    if (linkedSession) {
+      if (Date.parse(linkedSession.expiresAt) <= Date.now()) {
+        this.linkSessions.delete(identifier);
+        throw createConnectionError('Connection link has expired', 410);
+      }
+
+      if (linkedSession.singleUse && linkedSession.usedAt) {
+        throw createConnectionError('Connection link has already been used', 410);
+      }
+
+      const session = this.sessionManager.getSession(linkedSession.sessionId);
+      if (!session) {
+        throw createConnectionError('Linked session is no longer active', 404);
+      }
+
+      linkedSession.usedAt = new Date().toISOString();
+      return {
+        success: true,
+        mode: CONNECTION_MODES.LINK,
+        connection: {
+          session: this._buildSessionResponse(session, linkedSession.token, { baseUrl }),
+          transport: this._buildTransport(baseUrl, session.id, LIVE_CHANNEL_PROTOCOLS.SOCKET_IO),
+        },
+      };
+    }
+
+    const session = this.sessionManager.getSession(identifier);
+    if (!session) {
+      throw createConnectionError('Session not found', 404);
+    }
+
+    const protocol = session.mode === CONNECTION_MODES.LIVE
+      ? LIVE_CHANNEL_PROTOCOLS.SOCKET_IO
+      : LIVE_CHANNEL_PROTOCOLS.SOCKET_IO;
+
+    return {
+      success: true,
+      mode: session.mode || CONNECTION_MODES.PROMPT,
+      connection: {
+        session: this._buildSessionResponse(session, options.token || null, { baseUrl }),
+        transport: this._buildTransport(baseUrl, session.id, protocol),
+      },
+    };
+  }
+
   disconnect(sessionId, token) {
     this.sessionManager.authenticate(sessionId, token);
     const revoked = this.sessionManager.revokeSession(sessionId);
@@ -153,7 +302,8 @@ export class ConnectionService {
     };
   }
 
-  _buildSessionResponse(session, token = null) {
+  _buildSessionResponse(session, token = null, options = {}) {
+    const baseUrl = options.baseUrl || this.publicBaseUrl;
     return {
       ...publicSessionView(session),
       ...(token ? { token } : {}),
@@ -164,11 +314,17 @@ export class ConnectionService {
         toolIds: session.recommendedToolIds || undefined
       }),
       endpoints: {
-        connect: '/connect',
-        inspect: `/sessions/${session.id}`,
-        execute: `/sessions/${session.id}/execute`,
-        executeStream: `/sessions/${session.id}/execute?stream=1`,
-        revoke: `/sessions/${session.id}`
+        connect: `${baseUrl}/connect`,
+        inspect: `${baseUrl}/sessions/${session.id}`,
+        execute: `${baseUrl}/sessions/${session.id}/execute`,
+        executeStream: `${baseUrl}/sessions/${session.id}/execute?stream=1`,
+        revoke: `${baseUrl}/sessions/${session.id}`,
+        state: `${baseUrl}/session/${session.id}/state`,
+        control: {
+          pause: `${baseUrl}/session/${session.id}/pause`,
+          resume: `${baseUrl}/session/${session.id}/resume`,
+          constrain: `${baseUrl}/session/${session.id}/constrain`,
+        },
       }
     };
   }
@@ -223,6 +379,49 @@ export class ConnectionService {
 
     throw createConnectionError(`Tool '${toolId}' is not allowed for this session`, 403);
   }
+
+  _buildTransport(baseUrl, sessionId, protocol) {
+    return {
+      restBaseUrl: baseUrl || this.publicBaseUrl,
+      orchestrationNamespace: `${baseUrl || this.publicBaseUrl}/orchestration`,
+      sessionNamespace: `${baseUrl || this.publicBaseUrl}/session`,
+      controlNamespace: `${baseUrl || this.publicBaseUrl}/control`,
+      sseUrl: `${baseUrl || this.publicBaseUrl}/session/${sessionId}/stream`,
+      protocol,
+    };
+  }
+
+  _buildConnectUrl(baseUrl, identifier, token = null) {
+    const query = token ? `?token=${encodeURIComponent(token)}` : '';
+    return `${baseUrl || this.publicBaseUrl}/connect/live/${identifier}${query}`;
+  }
+
+  _buildPromptInstruction(prompt, sessionId, token, baseUrl) {
+    return [
+      'Connect this agent to Flowfex.',
+      '',
+      `Session ID: ${sessionId}`,
+      `Session URL: ${this._buildConnectUrl(baseUrl, sessionId, token)}`,
+      '',
+      'Rules:',
+      '1. Ask Flowfex for the best tools, skills, or workflows before you act.',
+      '2. Report each selected resource and a short reason.',
+      '3. Emit step updates back through Flowfex as the run progresses.',
+      '4. Wait when Flowfex marks a step as awaiting approval.',
+      '5. Return the final result through the same Flowfex session.',
+      '',
+      `Original prompt: ${prompt}`,
+    ].join('\n');
+  }
+
+  _cleanupLinkSessions() {
+    const now = Date.now();
+    for (const [linkId, link] of this.linkSessions.entries()) {
+      if (Date.parse(link.expiresAt) <= now) {
+        this.linkSessions.delete(linkId);
+      }
+    }
+  }
 }
 
 export const defaultConnectionService = new ConnectionService({
@@ -235,4 +434,8 @@ function createConnectionError(message, statusCode) {
   const error = new Error(message);
   error.statusCode = statusCode;
   return error;
+}
+
+function randomToken(size) {
+  return randomBytes(size).toString('hex');
 }

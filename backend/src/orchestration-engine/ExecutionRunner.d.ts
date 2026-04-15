@@ -1,4 +1,4 @@
-import type { EngineLogger, ExecutionErrorInfo, ExecutionGraphBuildResult, OrchestrationAgentContext, OrchestrationSessionContext, TaskIntent } from './contracts.js';
+import type { EngineLogger, ExecutionErrorInfo, ExecutionGraphBuildResult, OrchestrationAgentContext, OrchestrationSessionContext, SessionExecutionState, TaskIntent } from './contracts.js';
 import type { LLMProviderLike, ToolRegistryLike } from './contracts.js';
 import { OrchestrationEventBridge } from './OrchestrationEventBridge.js';
 import { SessionStateStore } from './SessionStateStore.js';
@@ -21,7 +21,15 @@ export declare class ExecutionRunner {
         agent?: OrchestrationAgentContext | null;
         sessionContext?: OrchestrationSessionContext | null;
         bridge: OrchestrationEventBridge;
+    }, options?: {
+        startNodeId?: string | null;
+        snapshot?: SessionExecutionState | null;
+        emitGraphCreated?: boolean;
     }): Promise<{
+        status: "paused";
+        finalOutput: unknown;
+        error: null;
+    } | {
         status: "error";
         finalOutput: unknown;
         error: ExecutionErrorInfo;
@@ -34,6 +42,7 @@ export declare class ExecutionRunner {
         finalOutput: unknown;
         error: null;
     }>;
+    private shouldPauseAtBoundary;
     private executeSkillNode;
     private createToolRuntime;
     private buildSkillInput;

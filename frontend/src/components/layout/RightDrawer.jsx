@@ -98,28 +98,36 @@ function RightDrawer() {
     addNotification({ title, message, type });
   };
 
-  const handleApprove = () => {
+  const handleApprove = async () => {
     if (!selectedNode || !isActionable) return;
-    approveNode(selectedNode.id);
-    notify('Step approved', `${selectedNode.title} will continue through the live path.`, 'success');
+    const success = await approveNode(selectedNode.id);
+    if (success) {
+      notify('Step approved', `${selectedNode.title} will continue through the live path.`, 'success');
+    }
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     if (!selectedNode || !isActionable) return;
-    rejectNode(selectedNode.id);
-    notify('Step rejected', `${selectedNode.title} was moved off the main path.`, 'warning');
+    const success = await rejectNode(selectedNode.id);
+    if (success) {
+      notify('Step rejected', `${selectedNode.title} was moved off the main path.`, 'warning');
+    }
   };
 
-  const handleReroute = () => {
+  const handleReroute = async () => {
     if (!selectedNode || !isActionable) return;
-    rerouteNode(selectedNode.id);
-    notify('Path rerouted', `${selectedNode.title} is now flowing through the fallback lane.`, 'info');
+    const success = await rerouteNode(selectedNode.id);
+    if (success) {
+      notify('Path rerouted', `${selectedNode.title} is now flowing through the fallback lane.`, 'info');
+    }
   };
 
-  const handlePause = () => {
+  const handlePause = async () => {
     if (!selectedNode || !isActionable) return;
-    pauseNode(selectedNode.id);
-    notify('Execution updated', `${selectedNode.title} was ${selectedNode.state === 'paused' ? 'resumed' : 'paused'}.`, 'info');
+    const success = await pauseNode(selectedNode.id);
+    if (success) {
+      notify('Execution updated', `${selectedNode.title} was ${selectedNode.state === 'paused' ? 'resumed' : 'paused'}.`, 'info');
+    }
   };
 
   const handleApplyChanges = () => {

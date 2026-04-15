@@ -22,7 +22,7 @@ export class ExecutionGraphBuilder {
         const stepIndexByStepId = new Map();
         const alternateTargets = new Set(selection.decisionNodes.map(decision => decision.alternateTargetStepId));
         for (const [index, step] of selection.selectedSteps.entries()) {
-            stepNodeIdByStepId.set(step.id, stableId('node', step.id, step.toolId));
+            stepNodeIdByStepId.set(step.id, stableId('node', step.id));
             stepIndexByStepId.set(step.id, index);
         }
         const decisionsBySourceStepId = new Map();
@@ -40,7 +40,7 @@ export class ExecutionGraphBuilder {
         for (const step of selection.selectedSteps) {
             orderedNodes.push({
                 kind: 'skill',
-                graphNodeId: stepNodeIdByStepId.get(step.id) || stableId('node', step.id, step.toolId),
+                graphNodeId: stepNodeIdByStepId.get(step.id) || stableId('node', step.id),
                 stepId: step.id,
                 title: step.title,
                 objective: step.objective,

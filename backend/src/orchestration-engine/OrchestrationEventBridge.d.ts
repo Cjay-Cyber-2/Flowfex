@@ -18,10 +18,16 @@ export declare class OrchestrationEventBridge {
     emitNodeExecuting(nodeId: string, data?: Record<string, unknown>): void;
     emitNodeCompleted(nodeId: string, data?: Record<string, unknown>): void;
     emitNodeAwaitingApproval(nodeId: string, data?: Record<string, unknown>): void;
+    emitNodeApproved(nodeId: string, data?: Record<string, unknown>): void;
     emitNodeRejected(nodeId: string, data?: Record<string, unknown>): void;
     emitNodeError(nodeId: string, error: ExecutionErrorInfo): void;
     emitEdgeActive(edgeId: string, data?: Record<string, unknown>): void;
     emitPathRerouted(edgeId: string, data?: Record<string, unknown>): void;
+    emitSessionPaused(data?: Record<string, unknown>): void;
+    emitSessionResumed(data?: Record<string, unknown>): void;
+    emitSessionConstrained(data?: Record<string, unknown>): void;
+    emitSessionState(data?: Record<string, unknown>): void;
+    emitControlError(error: Record<string, unknown>): void;
     emitDiagnostic(type: string, payload: Record<string, unknown>): void;
     private emit;
 }

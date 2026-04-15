@@ -48,6 +48,11 @@ export class OrchestrationEventBridge {
     this.emit('node:awaiting_approval', { nodeId, ...data });
   }
 
+  emitNodeApproved(nodeId: string, data: Record<string, unknown> = {}): void {
+    this.socketServer?.emitNodeApproved?.(this.sessionId, nodeId, data);
+    this.emit('node:approved', { nodeId, ...data });
+  }
+
   emitNodeRejected(nodeId: string, data: Record<string, unknown> = {}): void {
     this.socketServer?.emitNodeRejected(this.sessionId, nodeId, data);
     this.emit('node:rejected', { nodeId, ...data });
@@ -66,6 +71,31 @@ export class OrchestrationEventBridge {
   emitPathRerouted(edgeId: string, data: Record<string, unknown> = {}): void {
     this.socketServer?.emitPathRerouted(this.sessionId, edgeId, data);
     this.emit('path:rerouted', { edgeId, ...data });
+  }
+
+  emitSessionPaused(data: Record<string, unknown> = {}): void {
+    this.socketServer?.emitSessionPaused?.(this.sessionId, data);
+    this.emit('session:paused', data);
+  }
+
+  emitSessionResumed(data: Record<string, unknown> = {}): void {
+    this.socketServer?.emitSessionResumed?.(this.sessionId, data);
+    this.emit('session:resumed', data);
+  }
+
+  emitSessionConstrained(data: Record<string, unknown> = {}): void {
+    this.socketServer?.emitSessionConstrained?.(this.sessionId, data);
+    this.emit('session:constrained', data);
+  }
+
+  emitSessionState(data: Record<string, unknown> = {}): void {
+    this.socketServer?.emitSessionState?.(this.sessionId, data);
+    this.emit('session:state', data);
+  }
+
+  emitControlError(error: Record<string, unknown>): void {
+    this.socketServer?.emitControlError?.(this.sessionId, error);
+    this.emit('control:error', error);
   }
 
   emitDiagnostic(type: string, payload: Record<string, unknown>): void {

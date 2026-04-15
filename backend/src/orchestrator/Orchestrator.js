@@ -1,7 +1,8 @@
 import { defaultRegistry } from '../registry/ToolRegistry.js';
 import { defaultLLM } from '../llm/LLMWrapper.js';
 import { getSocketServer } from '../ws/server.js';
-import { OrchestrationEngine, createEngineLogger } from '../orchestration-engine/index.js';
+import { OrchestrationEngine, SessionStateStore, createEngineLogger } from '../orchestration-engine/index.js';
+import { defaultSessionStateRepository } from '../persistence/FileSessionStateRepository.js';
 
 export class Orchestrator {
   constructor(config = {}) {
@@ -14,6 +15,7 @@ export class Orchestrator {
       registry: this.registry,
       llm: this.llm,
       logger: this.logger,
+      stateStore: config.stateStore,
     });
   }
 
@@ -172,6 +174,28 @@ export class Orchestrator {
     return this.engine.getSessionState(sessionId);
   }
 
+  hydrateSessionState(snapshot) {
+    return this.engine.hydrateSessionState(snapshot);
+  }
+
+  rebuildExecutionGraph(config) {
+    return this.engine.rebuildExecutionGraph(config);
+  }
+
+  continueSession(sessionId, options = {}) {
+    return this.engine.continueSession({
+      sessionId,
+      eventSink: options.eventSink,
+      socketServer: options.socketServer || this.socketServer || getSocketServer(),
+      agent: options.agent || null,
+      sessionContext: options.sessionContext || null,
+    });
+  }
+
+  getStateStore() {
+    return this.engine.getStateStore();
+  }
+
   getStats() {
     const successful = this.executionHistory.filter(entry => entry.status === 'success').length;
     const failed = this.executionHistory.filter(entry => entry.status === 'error').length;
@@ -219,6 +243,9 @@ export class Orchestrator {
 export const defaultOrchestrator = new Orchestrator({
   registry: defaultRegistry,
   llm: defaultLLM,
+  stateStore: new SessionStateStore({
+    persistence: defaultSessionStateRepository,
+  }),
 });
 
 function normalizeTaskInput(input) {

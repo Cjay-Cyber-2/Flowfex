@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { buildApprovalQueue, buildDemoWorkspace } from './demoData';
+import { CONTROL_EVENTS } from '../../../shared/control-contracts.js';
 
 function syncSelectedNode(selectedNode, nodes) {
   if (!selectedNode) return null;
@@ -26,6 +27,75 @@ function syncSessions(sessions, activeSession) {
   return sessions.map((session) =>
     session.id === activeSession.id ? { ...session, ...activeSession } : session
   );
+}
+
+function deriveSessionHeartbeat(snapshot) {
+  if (!snapshot) return 'Session live';
+
+  if (snapshot.status === 'paused') {
+    return 'Execution paused';
+  }
+
+  if (snapshot.status === 'awaiting_approval') {
+    const approvalNode = snapshot.graph?.nodes?.find((node) => node.state === 'approval');
+    return approvalNode ? `Awaiting approval for ${approvalNode.title}` : 'Awaiting approval';
+  }
+
+  if (snapshot.status === 'running') {
+    const activeNode = snapshot.graph?.nodes?.find((node) => node.id === snapshot.currentNodeId)
+      || snapshot.graph?.nodes?.find((node) => node.state === 'active');
+    return activeNode ? `Executing ${activeNode.title}` : 'Execution running';
+  }
+
+  if (snapshot.status === 'completed') {
+    return 'Execution completed';
+  }
+
+  if (snapshot.status === 'failed') {
+    return 'Execution failed';
+  }
+
+  return 'Session ready';
+}
+
+function applySessionSnapshotToState(state, snapshot) {
+  const nodes = Array.isArray(snapshot?.graph?.nodes) ? snapshot.graph.nodes : [];
+  const edges = Array.isArray(snapshot?.graph?.edges) ? snapshot.graph.edges : [];
+  const activeSession = {
+    ...(state.activeSession || {}),
+    id: snapshot.sessionId,
+    executionId: snapshot.executionId,
+    task: snapshot.task,
+    status: snapshot.status,
+    revision: snapshot.revision,
+    currentNodeId: snapshot.currentNodeId,
+    pendingNodeId: snapshot.pendingNodeId,
+    blockedSkillIds: snapshot.blockedSkillIds || [],
+    heartbeat: deriveSessionHeartbeat(snapshot),
+    elapsed: 'Just now',
+  };
+
+  return {
+    nodes,
+    edges,
+    approvalQueue: buildApprovalQueue(nodes),
+    selectedNode: syncSelectedNode(state.selectedNode, nodes),
+    activeSession,
+    sessions: syncSessions(state.sessions, activeSession),
+    isExecuting: snapshot.status === 'running',
+  };
+}
+
+function findFallbackTargetNode(nodes, sourceNodeId) {
+  const sourceIndex = nodes.findIndex((node) => node.id === sourceNodeId);
+  const fallbackPattern = /\b(manual|review|fallback|reject|alternate|rerout|human)\b/i;
+  const tail = sourceIndex >= 0 ? nodes.slice(sourceIndex + 1) : nodes;
+
+  return tail.find((node) =>
+    node.state !== 'completed'
+    && node.state !== 'skipped'
+    && fallbackPattern.test(`${node.title} ${node.subtitle} ${node.reasoning}`)
+  ) || null;
 }
 
 function runNodeTransition(state, nodeId, action) {
@@ -197,6 +267,9 @@ const useStore = create((set, get) => ({
     if (session?.id && ws?.sessionId !== session.id) {
       ws.connect(session.id);
     }
+    if (session?.id) {
+      get().hydrateSessionState(session.id);
+    }
   },
   updateSessionName: (name) =>
     set((state) => {
@@ -305,10 +378,10 @@ const useStore = create((set, get) => ({
   setConnectModalOpen: (connectModalOpen) => set({ connectModalOpen }),
 
   approvalQueue: [],
-  approveNode: (nodeId) => set((state) => runNodeTransition(state, nodeId, 'approve')),
-  rejectNode: (nodeId) => set((state) => runNodeTransition(state, nodeId, 'reject')),
-  rerouteNode: (nodeId) => set((state) => runNodeTransition(state, nodeId, 'reroute')),
-  pauseNode: (nodeId) => set((state) => runNodeTransition(state, nodeId, 'pause')),
+  approveNode: (nodeId) => get().apiApproveNode(nodeId),
+  rejectNode: (nodeId) => get().apiRejectNode(nodeId),
+  rerouteNode: (nodeId, targetNodeId) => get().apiRerouteNode(nodeId, targetNodeId),
+  pauseNode: () => (get().isExecuting ? get().apiPauseSession() : get().apiResumeSession()),
 
   notifications: [],
   addNotification: (notification) => {
@@ -342,7 +415,9 @@ const useStore = create((set, get) => ({
       },
     })),
 
-  backendUrl: import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000',
+  backendUrl: import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000',
+  applySessionSnapshot: (snapshot) =>
+    set((state) => applySessionSnapshotToState(state, snapshot)),
 
   /**
    * Initialize WebSocket event listeners that drive canvas animations from real events.
@@ -470,14 +545,37 @@ const useStore = create((set, get) => ({
       });
 
       client.subscribe('orchestration', 'path:rerouted', (data) => {
-        set((s) => ({
-          edges: s.edges.map((e) =>
-            e.id === data.edgeId ? { ...e, state: 'rerouted' } : e
-          ),
-        }));
+        set((s) => {
+          const exists = s.edges.some((edge) => edge.id === data.edgeId);
+          return {
+            edges: exists
+              ? s.edges.map((edge) =>
+                  edge.id === data.edgeId
+                    ? { ...edge, state: 'rerouted' }
+                    : edge
+                )
+              : [
+                  ...s.edges,
+                  {
+                    id: data.edgeId,
+                    from: data.from,
+                    to: data.to,
+                    state: 'rerouted',
+                    label: 'reroute',
+                    type: 'conditional',
+                  },
+                ],
+          };
+        });
       });
 
       // ─── Session Events ───────────────────────────────────────────
+      client.subscribe('session', CONTROL_EVENTS.SESSION_STATE, (data) => {
+        if (data?.snapshot) {
+          get().applySessionSnapshot(data.snapshot);
+        }
+      });
+
       client.subscribe('session', 'session:paused', () => {
         set((s) => ({
           isExecuting: false,
@@ -503,6 +601,22 @@ const useStore = create((set, get) => ({
         get().addAgent(agentData);
       });
 
+      client.subscribe('control', CONTROL_EVENTS.SESSION_CONSTRAINED, (data) => {
+        get().addNotification({
+          title: 'Constraints updated',
+          message: `Blocked ${data.blockedSkillIds?.length || 0} skill${data.blockedSkillIds?.length === 1 ? '' : 's'}.`,
+          type: 'info',
+        });
+      });
+
+      client.subscribe('control', CONTROL_EVENTS.CONTROL_ERROR, (data) => {
+        get().addNotification({
+          title: 'Control action failed',
+          message: data?.message || 'The backend rejected the requested control action.',
+          type: 'error',
+        });
+      });
+
       set({ ws: client });
 
       const latestSessionId = get().activeSession?.id;
@@ -522,14 +636,29 @@ const useStore = create((set, get) => ({
     const sessionId = state.activeSession?.id || 'default';
     const url = `${state.backendUrl}/node/${nodeId}/approve`;
     try {
-      await fetch(url, {
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId }),
+        body: JSON.stringify({
+          sessionId,
+          expectedRevision: state.activeSession?.revision,
+        }),
       });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error?.message || 'Approve request failed');
+      }
+      if (payload?.snapshot) {
+        get().applySessionSnapshot(payload.snapshot);
+      }
+      return true;
     } catch (_error) {
-      // Fallback to local state if backend is unreachable
-      set((s) => runNodeTransition(s, nodeId, 'approve'));
+      get().addNotification({
+        title: 'Approve failed',
+        message: 'The backend could not approve this node.',
+        type: 'error',
+      });
+      return false;
     }
   },
 
@@ -538,13 +667,29 @@ const useStore = create((set, get) => ({
     const sessionId = state.activeSession?.id || 'default';
     const url = `${state.backendUrl}/node/${nodeId}/reject`;
     try {
-      await fetch(url, {
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId }),
+        body: JSON.stringify({
+          sessionId,
+          expectedRevision: state.activeSession?.revision,
+        }),
       });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error?.message || 'Reject request failed');
+      }
+      if (payload?.snapshot) {
+        get().applySessionSnapshot(payload.snapshot);
+      }
+      return true;
     } catch (_error) {
-      set((s) => runNodeTransition(s, nodeId, 'reject'));
+      get().addNotification({
+        title: 'Reject failed',
+        message: 'The backend could not reject this node.',
+        type: 'error',
+      });
+      return false;
     }
   },
 
@@ -552,14 +697,36 @@ const useStore = create((set, get) => ({
     const state = get();
     const sessionId = state.activeSession?.id || 'default';
     const url = `${state.backendUrl}/node/${nodeId}/reroute`;
+    const fallbackTargetId = targetNodeId || findFallbackTargetNode(state.nodes, nodeId)?.id;
     try {
-      await fetch(url, {
+      if (!fallbackTargetId) {
+        throw new Error('No reroute target is available');
+      }
+
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, targetNodeId }),
+        body: JSON.stringify({
+          sessionId,
+          targetNodeId: fallbackTargetId,
+          expectedRevision: state.activeSession?.revision,
+        }),
       });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error?.message || 'Reroute request failed');
+      }
+      if (payload?.snapshot) {
+        get().applySessionSnapshot(payload.snapshot);
+      }
+      return true;
     } catch (_error) {
-      set((s) => runNodeTransition(s, nodeId, 'reroute'));
+      get().addNotification({
+        title: 'Reroute failed',
+        message: 'The backend could not reroute this flow.',
+        type: 'error',
+      });
+      return false;
     }
   },
 
@@ -568,9 +735,28 @@ const useStore = create((set, get) => ({
     const sessionId = state.activeSession?.id || 'default';
     const url = `${state.backendUrl}/session/${sessionId}/pause`;
     try {
-      await fetch(url, { method: 'POST' });
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          expectedRevision: state.activeSession?.revision,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error?.message || 'Pause request failed');
+      }
+      if (payload?.snapshot) {
+        get().applySessionSnapshot(payload.snapshot);
+      }
+      return true;
     } catch (_error) {
-      set({ isExecuting: false });
+      get().addNotification({
+        title: 'Pause failed',
+        message: 'The backend could not pause this session.',
+        type: 'error',
+      });
+      return false;
     }
   },
 
@@ -579,9 +765,74 @@ const useStore = create((set, get) => ({
     const sessionId = state.activeSession?.id || 'default';
     const url = `${state.backendUrl}/session/${sessionId}/resume`;
     try {
-      await fetch(url, { method: 'POST' });
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          expectedRevision: state.activeSession?.revision,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error?.message || 'Resume request failed');
+      }
+      if (payload?.snapshot) {
+        get().applySessionSnapshot(payload.snapshot);
+      }
+      return true;
     } catch (_error) {
-      set({ isExecuting: true });
+      get().addNotification({
+        title: 'Resume failed',
+        message: 'The backend could not resume this session.',
+        type: 'error',
+      });
+      return false;
+    }
+  },
+
+  apiConstrainSession: async (blockedSkillIds) => {
+    const state = get();
+    const sessionId = state.activeSession?.id || 'default';
+    const url = `${state.backendUrl}/session/${sessionId}/constrain`;
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blockedSkillIds,
+          expectedRevision: state.activeSession?.revision,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error?.message || 'Constrain request failed');
+      }
+      if (payload?.snapshot) {
+        get().applySessionSnapshot(payload.snapshot);
+      }
+      return true;
+    } catch (_error) {
+      get().addNotification({
+        title: 'Constraint update failed',
+        message: 'The backend could not update blocked skills for this session.',
+        type: 'error',
+      });
+      return false;
+    }
+  },
+
+  hydrateSessionState: async (sessionId) => {
+    const backendUrl = get().backendUrl;
+    try {
+      const response = await fetch(`${backendUrl}/session/${sessionId}/state`);
+      const payload = await response.json();
+      if (!response.ok || !payload?.snapshot) {
+        return;
+      }
+
+      get().applySessionSnapshot(payload.snapshot);
+    } catch (_error) {
+      // Keep demo workspace if the backend has no persisted state for this session.
     }
   },
 
@@ -609,6 +860,9 @@ const useStore = create((set, get) => ({
     const ws = get().ws;
     if (workspace.activeSession?.id && ws?.sessionId !== workspace.activeSession.id) {
       ws.connect(workspace.activeSession.id);
+    }
+    if (workspace.activeSession?.id) {
+      get().hydrateSessionState(workspace.activeSession.id);
     }
   },
 }));

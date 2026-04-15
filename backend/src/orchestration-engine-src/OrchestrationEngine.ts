@@ -1,7 +1,10 @@
 import type {
   EngineLogger,
+  ExecutionGraphBuildResult,
   OrchestrationExecutionContext,
   OrchestrationRunResult,
+  PlanSelectionResult,
+  SessionExecutionState,
   ToolRegistryLike,
 } from './contracts.js';
 import type { LLMProviderLike } from './contracts.js';
@@ -113,6 +116,8 @@ export class OrchestrationEngine {
       graph: buildResult.graph,
       intent: planning.intent,
       selection,
+      agent: context.agent || null,
+      sessionContext: context.sessionContext || null,
       status: 'ready',
     });
 
@@ -159,5 +164,96 @@ export class OrchestrationEngine {
 
   getSessionState(sessionId: string) {
     return this.stateStore.getSnapshot(sessionId);
+  }
+
+  hydrateSessionState(snapshot: SessionExecutionState): SessionExecutionState {
+    return this.stateStore.hydrate(snapshot);
+  }
+
+  rebuildExecutionGraph(config: {
+    sessionId: string;
+    executionId: string;
+    selection: PlanSelectionResult;
+  }): ExecutionGraphBuildResult {
+    return this.graphBuilder.buildGraph(config.selection, {
+      sessionId: config.sessionId,
+      executionId: config.executionId,
+    });
+  }
+
+  async continueSession(context: {
+    sessionId: string;
+    eventSink?: OrchestrationExecutionContext['eventSink'];
+    socketServer?: OrchestrationExecutionContext['socketServer'];
+    agent?: OrchestrationExecutionContext['agent'];
+    sessionContext?: OrchestrationExecutionContext['sessionContext'];
+  }): Promise<OrchestrationRunResult> {
+    const snapshot = this.stateStore.getSnapshot(context.sessionId);
+    if (!snapshot) {
+      throw new Error(`Session '${context.sessionId}' was not found`);
+    }
+
+    const bridge = new OrchestrationEventBridge({
+      executionId: snapshot.executionId,
+      sessionId: snapshot.sessionId,
+      eventSink: context.eventSink,
+      socketServer: context.socketServer,
+      logger: this.logger,
+    });
+    const buildResult = this.rebuildExecutionGraph({
+      sessionId: snapshot.sessionId,
+      executionId: snapshot.executionId,
+      selection: snapshot.selection,
+    });
+
+    buildResult.graph = snapshot.graph;
+
+    const execution = await this.runner.run(buildResult, {
+      sessionId: snapshot.sessionId,
+      executionId: snapshot.executionId,
+      task: snapshot.task,
+      intent: snapshot.intent,
+      agent: context.agent || snapshot.agent || null,
+      sessionContext: context.sessionContext || snapshot.sessionContext || null,
+      bridge,
+    }, {
+      startNodeId: snapshot.pendingNodeId,
+      snapshot,
+      emitGraphCreated: false,
+    });
+    const nextSnapshot = this.stateStore.getSnapshot(snapshot.sessionId);
+
+    return {
+      executionId: snapshot.executionId,
+      sessionId: snapshot.sessionId,
+      status: execution.status,
+      input: snapshot.task,
+      intent: snapshot.intent,
+      graph: nextSnapshot?.graph || snapshot.graph,
+      snapshot: nextSnapshot as NonNullable<typeof nextSnapshot>,
+      selectedTool: snapshot.selection.selectedSteps[0]
+        ? {
+            id: snapshot.selection.selectedSteps[0].toolId,
+            name: snapshot.selection.selectedSteps[0].tool.name,
+            description: snapshot.selection.selectedSteps[0].tool.description,
+            category: snapshot.selection.selectedSteps[0].capabilityCategory,
+            tags: Array.isArray(snapshot.selection.selectedSteps[0].tool.metadata?.tags)
+              ? snapshot.selection.selectedSteps[0].tool.metadata?.tags
+              : [],
+          }
+        : null,
+      toolSelection: snapshot.selection.rankings[0] || null,
+      selectionTrace: snapshot.selection.rankings,
+      trace: nextSnapshot?.trace || snapshot.trace,
+      finalResult: execution.finalOutput,
+      output: execution.finalOutput,
+      error: execution.error,
+      duration: 0,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  getStateStore(): SessionStateStore {
+    return this.stateStore;
   }
 }

@@ -35,6 +35,10 @@ export {
 } from './connection/index.js';
 export { FlowfexServer, defaultFlowfexServer } from './server/FlowfexServer.js';
 export { FlowfexSocketServer, initSocketServer, getSocketServer } from './ws/server.js';
+export { ControlController } from './control/ControlController.js';
+export { ControlService } from './control/ControlService.js';
+export { SessionLockManager, defaultSessionLockManager } from './control/SessionLockManager.js';
+export { FileSessionStateRepository, defaultSessionStateRepository } from './persistence/FileSessionStateRepository.js';
 export {
   ORCHESTRATION_EVENTS,
   SESSION_EVENTS,

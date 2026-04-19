@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto';
+import jwt from 'jsonwebtoken';
 import { defaultRegistry } from '../registry/ToolRegistry.js';
 import { defaultOrchestrator } from '../orchestrator/Orchestrator.js';
 import {
@@ -27,6 +28,7 @@ export class ConnectionService {
     this.promptToolLimit = config.promptToolLimit || 5;
     this.publicBaseUrl = config.publicBaseUrl || process.env.FLOWFEX_PUBLIC_ORIGIN || 'http://127.0.0.1:4000';
     this.linkSessions = config.linkSessions || new Map();
+    this.linkSecret = config.linkSecret || process.env.FLOWFEX_LINK_SECRET || randomToken(32);
   }
 
   async connect(payload, authContext = {}) {
@@ -135,6 +137,19 @@ export class ConnectionService {
     });
     const linkId = `lnk_${randomToken(12)}`;
     const expiresAt = session.expiresAt;
+    const signedLink = jwt.sign(
+      {
+        typ: 'flowfex-link',
+        sid: session.id,
+        tok: token,
+        jti: linkId,
+        singleUse: payload.singleUse !== false,
+      },
+      this.linkSecret,
+      {
+        expiresIn: payload.ttlSeconds || this.linkSessionTtlSeconds,
+      }
+    );
 
     this.linkSessions.set(linkId, {
       id: linkId,
@@ -151,8 +166,8 @@ export class ConnectionService {
       connection: {
         session: this._buildSessionResponse(session, token, { baseUrl: authContext.baseUrl }),
         link: {
-          url: this._buildConnectUrl(authContext.baseUrl, linkId),
-          resolverPath: `/connect/live/${linkId}`,
+          url: this._buildConnectUrl(authContext.baseUrl, signedLink),
+          resolverPath: `/connect/live/${signedLink}`,
           singleUse: payload.singleUse !== false,
           expiresAt,
         },
@@ -243,6 +258,32 @@ export class ConnectionService {
     this._cleanupLinkSessions();
 
     const baseUrl = options.baseUrl || this.publicBaseUrl;
+    const signedLink = this._verifySignedLink(identifier);
+    if (signedLink) {
+      const linkState = this.linkSessions.get(signedLink.jti);
+      if (signedLink.singleUse && linkState?.usedAt) {
+        throw createConnectionError('Connection link has already been used', 410);
+      }
+
+      const session = this.sessionManager.getSession(signedLink.sid);
+      if (!session) {
+        throw createConnectionError('Linked session is no longer active', 404);
+      }
+
+      if (linkState) {
+        linkState.usedAt = new Date().toISOString();
+      }
+
+      return {
+        success: true,
+        mode: CONNECTION_MODES.LINK,
+        connection: {
+          session: this._buildSessionResponse(session, signedLink.tok, { baseUrl }),
+          transport: this._buildTransport(baseUrl, session.id, LIVE_CHANNEL_PROTOCOLS.SOCKET_IO),
+        },
+      };
+    }
+
     const linkedSession = this.linkSessions.get(identifier);
     if (linkedSession) {
       if (Date.parse(linkedSession.expiresAt) <= Date.now()) {
@@ -420,6 +461,19 @@ export class ConnectionService {
       if (Date.parse(link.expiresAt) <= now) {
         this.linkSessions.delete(linkId);
       }
+    }
+  }
+
+  _verifySignedLink(identifier) {
+    try {
+      const payload = jwt.verify(identifier, this.linkSecret);
+      if (!payload || payload.typ !== 'flowfex-link') {
+        return null;
+      }
+
+      return payload;
+    } catch {
+      return null;
     }
   }
 }

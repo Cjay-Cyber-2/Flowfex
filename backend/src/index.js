@@ -68,6 +68,9 @@ export {
 export { summarizerTool, createSummarizerTool } from './tools/SummarizerTool.js';
 export { codeGeneratorTool, createCodeGeneratorTool } from './tools/CodeGeneratorTool.js';
 export { apiBuilderTool, createAPIBuilderTool } from './tools/APIBuilderTool.js';
+export { weatherTool, calculatorTool, defaultTool } from './tools/systemTools.js';
+export { allProductionTools } from './tools/ProductionTools.js';
+
 
 // Convenience exports
 import { defaultOrchestrator } from './orchestrator/Orchestrator.js';

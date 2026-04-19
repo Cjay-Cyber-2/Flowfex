@@ -1,0 +1,448 @@
+{
+  "sessionId": "sess_f75b9622207d9460eb7c195c",
+  "executionId": "orch_1776549535049_af356a61",
+  "task": "Analyze the security concerns for a Node.js REST API",
+  "status": "failed",
+  "revision": 17,
+  "agent": {
+    "id": null,
+    "name": "test-agent",
+    "type": "unknown",
+    "version": null
+  },
+  "sessionContext": {
+    "mode": "prompt",
+    "metadata": {},
+    "capabilities": [],
+    "prompt": "Analyze security vulnerabilities in a Node.js REST API"
+  },
+  "createdAt": "2026-04-18T21:58:56.995Z",
+  "updatedAt": "2026-04-18T21:58:59.163Z",
+  "currentNodeId": "node_374a84c5e1",
+  "pendingNodeId": null,
+  "completedNodeIds": [
+    "node_9e1d7f75d1"
+  ],
+  "blockedSkillIds": [],
+  "graph": {
+    "sessionId": "sess_f75b9622207d9460eb7c195c",
+    "executionId": "orch_1776549535049_af356a61",
+    "nodes": [
+      {
+        "id": "node_9e1d7f75d1",
+        "type": "api",
+        "shape": "rect",
+        "x": 180,
+        "y": 280,
+        "width": 196,
+        "height": 96,
+        "title": "Resolve api path",
+        "subtitle": "API Builder",
+        "state": "completed",
+        "icon": "globe",
+        "confidence": 0.6889,
+        "reasoning": "API Builder scored 0.69 for api because it aligns with \"Use a api capability to move this task forward: Analyze the security concerns for a Node.js REST API\" and carries semantic retrieval support.",
+        "alternatives": [
+          {
+            "toolId": "tool.api-documenter",
+            "name": "API Documenter",
+            "score": 0.6622,
+            "confidence": 66,
+            "reason": "Matched api via semantic"
+          }
+        ],
+        "inputs": {
+          "objective": "Use a api capability to move this task forward: Analyze the security concerns for a Node.js REST API"
+        },
+        "config": {
+          "lane": 0
+        },
+        "owner": "Flowfex Registry",
+        "skill": "tool.api-builder",
+        "executionMetadata": {
+          "category": "api",
+          "objective": "Use a api capability to move this task forward: Analyze the security concerns for a Node.js REST API",
+          "selectionScore": 0.6889,
+          "requiresApproval": false
+        }
+      },
+      {
+        "id": "node_374a84c5e1",
+        "type": "security",
+        "shape": "rect",
+        "x": 460,
+        "y": 280,
+        "width": 196,
+        "height": 96,
+        "title": "Advance security execution",
+        "subtitle": "Security Auditor",
+        "state": "error",
+        "icon": "shield",
+        "confidence": 0.5614,
+        "reasoning": "Security Auditor scored 0.56 for security because it aligns with \"Use a security capability to move this task forward: Analyze the security concerns for a Node.js REST API\" and carries semantic retrieval support.",
+        "alternatives": [],
+        "inputs": {
+          "objective": "Use a security capability to move this task forward: Analyze the security concerns for a Node.js REST API"
+        },
+        "config": {
+          "lane": 0
+        },
+        "owner": "Flowfex Registry",
+        "skill": "tool.security-auditor",
+        "executionMetadata": {
+          "category": "security",
+          "objective": "Use a security capability to move this task forward: Analyze the security concerns for a Node.js REST API",
+          "selectionScore": 0.5614,
+          "requiresApproval": false
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge_fadb54da90",
+        "from": "node_9e1d7f75d1",
+        "to": "node_374a84c5e1",
+        "state": "completed",
+        "label": null,
+        "type": "sequential"
+      }
+    ]
+  },
+  "outputs": {
+    "node_9e1d7f75d1": {
+      "success": true,
+      "format": "openapi",
+      "version": "1.0.0",
+      "specification": "{\n  \"openapi\": \"3.0.0\",\n   \"info\": {\n       \"title\": \"Security Concerns API\",\n       \"description\": \"API for analyzing security concerns for a Node.js REST API\",\n       \"version\": \"1.0.0\"\n   },\n   \"servers\": [\n       {\n           \"url\": \"https://api.example.com\"\n       }\n   ],\n   \"tags\": [\n       {\n           \"name\": \"security-concerns\",\n           \"description\": \"Endpoints for analyzing security concerns\"\n       }\n   ],\n   \"paths\": {\n       \"/analyze\": {\n           \"post\": {\n               \"tags\": [\n                   \"security-concerns\"\n               ],\n               \"summary\": \"Analyze security concerns for a Node.js REST API\",\n               \"description\": \"Analyze security concerns for a Node.js REST API\",\n               \"requestBody\": {\n                   \"required\": true,\n                   \"content\": {\n                       \"application/json\": {\n                           \"schema\": {\n                               \"$ref\": \"#/components/schemas/SecurityConcernsRequest\"\n                           }\n                       }\n                   }\n               },\n               \"responses\": {\n                   \"200\": {\n                       \"description\": \"Security concerns analysis result\",\n                       \"content\": {\n                           \"application/json\": {\n                               \"schema\": {\n                                   \"$ref\": \"#/components/schemas/SecurityConcernsResponse\"\n                               }\n                           }\n                       }\n                   },\n                   \"400\": {\n                       \"description\": \"Invalid request\"\n                   },\n                   \"500\": {\n                       \"description\": \"Internal server error\"\n                   }\n               }\n           }\n       }\n   },\n   \"components\": {\n       \"schemas\": {\n           \"SecurityConcernsRequest\": {\n               \"type\": \"object\",\n               \"required\": [\n                   \"apiEndpoint\",\n                   \"apiKey\"\n               ],\n               \"properties\": {\n                   \"apiEndpoint\": {\n                       \"type\": \"string\",\n                       \"description\": \"API endpoint to analyze\"\n                   },\n                   \"apiKey\": {\n                       \"type\": \"string\",\n                       \"description\": \"API key for authentication\"\n                   }\n               }\n           },\n           \"SecurityConcernsResponse\": {\n               \"type\": \"object\",\n               \"properties\": {\n                   \"securityConcerns\": {\n                       \"type\": \"array\",\n                       \"items\": {\n                           \"$ref\": \"#/components/schemas/SecurityConcern\"\n                       }\n                   }\n               }\n           },\n           \"SecurityConcern\": {\n               \"type\": \"object\",\n               \"properties\": {\n                   \"id\": {\n                       \"type\": \"integer\",\n                       \"description\": \"Security concern ID\"\n                   },\n                   \"description\": {\n                       \"type\": \"string\",\n                       \"description\": \"Security concern description\"\n                   },\n                   \"severity\": {\n                       \"type\": \"string\",\n                       \"description\": \"Security concern severity\"\n                   }\n               }\n           }\n       }\n   }\n}",
+      "metadata": {
+        "estimatedEndpoints": 13,
+        "estimatedSchemas": 15,
+        "lineCount": 107,
+        "characterCount": 3408
+      }
+    }
+  },
+  "errors": {
+    "node_374a84c5e1": {
+      "message": "Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kmbrn02rep8rybv8xpp6gfg5` service tier `on_demand` on tokens per minute (TPM): Limit 12000, Used 9004, Requested 5820. Please try again in 14.12s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing",
+      "type": "Error",
+      "nodeId": "node_374a84c5e1"
+    }
+  },
+  "branchChoices": {},
+  "trace": [
+    {
+      "nodeId": "node_9e1d7f75d1",
+      "nodeType": "skill",
+      "toolId": "tool.api-builder",
+      "status": "completed",
+      "input": {
+        "task": "Analyze the security concerns for a Node.js REST API",
+        "text": "Analyze the security concerns for a Node.js REST API",
+        "goal": "Analyze the security concerns for a Node.js REST API",
+        "objective": "Use a api capability to move this task forward: Analyze the security concerns for a Node.js REST API",
+        "capabilityCategory": "api",
+        "constraints": [
+          "Prioritize trusted and validated capabilities"
+        ],
+        "previousOutput": null,
+        "priorOutputs": {},
+        "requirements": "Use a api capability to move this task forward: Analyze the security concerns for a Node.js REST API\n\nOriginal task:\nAnalyze the security concerns for a Node.js REST API",
+        "specification": "Use a api capability to move this task forward: Analyze the security concerns for a Node.js REST API\n\nContext:\nAnalyze the security concerns for a Node.js REST API",
+        "session": {
+          "sessionId": "sess_f75b9622207d9460eb7c195c",
+          "executionId": "orch_1776549535049_af356a61",
+          "mode": "prompt",
+          "metadata": {},
+          "capabilities": [],
+          "prompt": "Analyze security vulnerabilities in a Node.js REST API"
+        },
+        "agent": {
+          "id": null,
+          "name": "test-agent",
+          "type": "unknown",
+          "version": null
+        }
+      },
+      "output": {
+        "success": true,
+        "format": "openapi",
+        "version": "1.0.0",
+        "specification": "{\n  \"openapi\": \"3.0.0\",\n   \"info\": {\n       \"title\": \"Security Concerns API\",\n       \"description\": \"API for analyzing security concerns for a Node.js REST API\",\n       \"version\": \"1.0.0\"\n   },\n   \"servers\": [\n       {\n           \"url\": \"https://api.example.com\"\n       }\n   ],\n   \"tags\": [\n       {\n           \"name\": \"security-concerns\",\n           \"description\": \"Endpoints for analyzing security concerns\"\n       }\n   ],\n   \"paths\": {\n       \"/analyze\": {\n           \"post\": {\n               \"tags\": [\n                   \"security-concerns\"\n               ],\n               \"summary\": \"Analyze security concerns for a Node.js REST API\",\n               \"description\": \"Analyze security concerns for a Node.js REST API\",\n               \"requestBody\": {\n                   \"required\": true,\n                   \"content\": {\n                       \"application/json\": {\n                           \"schema\": {\n                               \"$ref\": \"#/components/schemas/SecurityConcernsRequest\"\n                           }\n                       }\n                   }\n               },\n               \"responses\": {\n                   \"200\": {\n                       \"description\": \"Security concerns analysis result\",\n                       \"content\": {\n                           \"application/json\": {\n                               \"schema\": {\n                                   \"$ref\": \"#/components/schemas/SecurityConcernsResponse\"\n                               }\n                           }\n                       }\n                   },\n                   \"400\": {\n                       \"description\": \"Invalid request\"\n                   },\n                   \"500\": {\n                       \"description\": \"Internal server error\"\n                   }\n               }\n           }\n       }\n   },\n   \"components\": {\n       \"schemas\": {\n           \"SecurityConcernsRequest\": {\n               \"type\": \"object\",\n               \"required\": [\n                   \"apiEndpoint\",\n                   \"apiKey\"\n               ],\n               \"properties\": {\n                   \"apiEndpoint\": {\n                       \"type\": \"string\",\n                       \"description\": \"API endpoint to analyze\"\n                   },\n                   \"apiKey\": {\n                       \"type\": \"string\",\n                       \"description\": \"API key for authentication\"\n                   }\n               }\n           },\n           \"SecurityConcernsResponse\": {\n               \"type\": \"object\",\n               \"properties\": {\n                   \"securityConcerns\": {\n                       \"type\": \"array\",\n                       \"items\": {\n                           \"$ref\": \"#/components/schemas/SecurityConcern\"\n                       }\n                   }\n               }\n           },\n           \"SecurityConcern\": {\n               \"type\": \"object\",\n               \"properties\": {\n                   \"id\": {\n                       \"type\": \"integer\",\n                       \"description\": \"Security concern ID\"\n                   },\n                   \"description\": {\n                       \"type\": \"string\",\n                       \"description\": \"Security concern description\"\n                   },\n                   \"severity\": {\n                       \"type\": \"string\",\n                       \"description\": \"Security concern severity\"\n                   }\n               }\n           }\n       }\n   }\n}",
+        "metadata": {
+          "estimatedEndpoints": 13,
+          "estimatedSchemas": 15,
+          "lineCount": 107,
+          "characterCount": 3408
+        }
+      },
+      "selection": {
+        "strategy": "semantic",
+        "selectedToolId": "tool.api-builder",
+        "candidates": [
+          {
+            "toolId": "tool.api-builder",
+            "name": "API Builder",
+            "score": 0.6889,
+            "confidence": 69,
+            "category": "api",
+            "reason": "API Builder scored 0.69 for api because it aligns with \"Use a api capability to move this task forward: Analyze the security concerns for a Node.js REST API\" and carries semantic retrieval support."
+          },
+          {
+            "toolId": "tool.api-documenter",
+            "name": "API Documenter",
+            "score": 0.6622,
+            "confidence": 66,
+            "category": "api",
+            "reason": "Matched api via semantic"
+          }
+        ]
+      },
+      "startedAt": "2026-04-18T21:58:57.033Z",
+      "completedAt": "2026-04-18T21:58:58.940Z",
+      "durationMs": 1907
+    },
+    {
+      "nodeId": "node_374a84c5e1",
+      "nodeType": "skill",
+      "toolId": "tool.security-auditor",
+      "status": "failed",
+      "input": {
+        "task": "Analyze the security concerns for a Node.js REST API",
+        "text": "Analyze the security concerns for a Node.js REST API",
+        "goal": "Analyze the security concerns for a Node.js REST API",
+        "objective": "Use a security capability to move this task forward: Analyze the security concerns for a Node.js REST API",
+        "capabilityCategory": "security",
+        "constraints": [
+          "Prioritize trusted and validated capabilities"
+        ],
+        "previousOutput": {
+          "success": true,
+          "format": "openapi",
+          "version": "1.0.0",
+          "specification": "{\n  \"openapi\": \"3.0.0\",\n   \"info\": {\n       \"title\": \"Security Concerns API\",\n       \"description\": \"API for analyzing security concerns for a Node.js REST API\",\n       \"version\": \"1.0.0\"\n   },\n   \"servers\": [\n       {\n           \"url\": \"https://api.example.com\"\n       }\n   ],\n   \"tags\": [\n       {\n           \"name\": \"security-concerns\",\n           \"description\": \"Endpoints for analyzing security concerns\"\n       }\n   ],\n   \"paths\": {\n       \"/analyze\": {\n           \"post\": {\n               \"tags\": [\n                   \"security-concerns\"\n               ],\n               \"summary\": \"Analyze security concerns for a Node.js REST API\",\n               \"description\": \"Analyze security concerns for a Node.js REST API\",\n               \"requestBody\": {\n                   \"required\": true,\n                   \"content\": {\n                       \"application/json\": {\n                           \"schema\": {\n                               \"$ref\": \"#/components/schemas/SecurityConcernsRequest\"\n                           }\n                       }\n                   }\n               },\n               \"responses\": {\n                   \"200\": {\n                       \"description\": \"Security concerns analysis result\",\n                       \"content\": {\n                           \"application/json\": {\n                               \"schema\": {\n                                   \"$ref\": \"#/components/schemas/SecurityConcernsResponse\"\n                               }\n                           }\n                       }\n                   },\n                   \"400\": {\n                       \"description\": \"Invalid request\"\n                   },\n                   \"500\": {\n                       \"description\": \"Internal server error\"\n                   }\n               }\n           }\n       }\n   },\n   \"components\": {\n       \"schemas\": {\n           \"SecurityConcernsRequest\": {\n               \"type\": \"object\",\n               \"required\": [\n                   \"apiEndpoint\",\n                   \"apiKey\"\n               ],\n               \"properties\": {\n                   \"apiEndpoint\": {\n                       \"type\": \"string\",\n                       \"description\": \"API endpoint to analyze\"\n                   },\n                   \"apiKey\": {\n                       \"type\": \"string\",\n                       \"description\": \"API key for authentication\"\n                   }\n               }\n           },\n           \"SecurityConcernsResponse\": {\n               \"type\": \"object\",\n               \"properties\": {\n                   \"securityConcerns\": {\n                       \"type\": \"array\",\n                       \"items\": {\n                           \"$ref\": \"#/components/schemas/SecurityConcern\"\n                       }\n                   }\n               }\n           },\n           \"SecurityConcern\": {\n               \"type\": \"object\",\n               \"properties\": {\n                   \"id\": {\n                       \"type\": \"integer\",\n                       \"description\": \"Security concern ID\"\n                   },\n                   \"description\": {\n                       \"type\": \"string\",\n                       \"description\": \"Security concern description\"\n                   },\n                   \"severity\": {\n                       \"type\": \"string\",\n                       \"description\": \"Security concern severity\"\n                   }\n               }\n           }\n       }\n   }\n}",
+          "metadata": {
+            "estimatedEndpoints": 13,
+            "estimatedSchemas": 15,
+            "lineCount": 107,
+            "characterCount": 3408
+          }
+        },
+        "priorOutputs": {
+          "node_9e1d7f75d1": {
+            "success": true,
+            "format": "openapi",
+            "version": "1.0.0",
+            "specification": "{\n  \"openapi\": \"3.0.0\",\n   \"info\": {\n       \"title\": \"Security Concerns API\",\n       \"description\": \"API for analyzing security concerns for a Node.js REST API\",\n       \"version\": \"1.0.0\"\n   },\n   \"servers\": [\n       {\n           \"url\": \"https://api.example.com\"\n       }\n   ],\n   \"tags\": [\n       {\n           \"name\": \"security-concerns\",\n           \"description\": \"Endpoints for analyzing security concerns\"\n       }\n   ],\n   \"paths\": {\n       \"/analyze\": {\n           \"post\": {\n               \"tags\": [\n                   \"security-concerns\"\n               ],\n               \"summary\": \"Analyze security concerns for a Node.js REST API\",\n               \"description\": \"Analyze security concerns for a Node.js REST API\",\n               \"requestBody\": {\n                   \"required\": true,\n                   \"content\": {\n                       \"application/json\": {\n                           \"schema\": {\n                               \"$ref\": \"#/components/schemas/SecurityConcernsRequest\"\n                           }\n                       }\n                   }\n               },\n               \"responses\": {\n                   \"200\": {\n                       \"description\": \"Security concerns analysis result\",\n                       \"content\": {\n                           \"application/json\": {\n                               \"schema\": {\n                                   \"$ref\": \"#/components/schemas/SecurityConcernsResponse\"\n                               }\n                           }\n                       }\n                   },\n                   \"400\": {\n                       \"description\": \"Invalid request\"\n                   },\n                   \"500\": {\n                       \"description\": \"Internal server error\"\n                   }\n               }\n           }\n       }\n   },\n   \"components\": {\n       \"schemas\": {\n           \"SecurityConcernsRequest\": {\n               \"type\": \"object\",\n               \"required\": [\n                   \"apiEndpoint\",\n                   \"apiKey\"\n               ],\n               \"properties\": {\n                   \"apiEndpoint\": {\n                       \"type\": \"string\",\n                       \"description\": \"API endpoint to analyze\"\n                   },\n                   \"apiKey\": {\n                       \"type\": \"string\",\n                       \"description\": \"API key for authentication\"\n                   }\n               }\n           },\n           \"SecurityConcernsResponse\": {\n               \"type\": \"object\",\n               \"properties\": {\n                   \"securityConcerns\": {\n                       \"type\": \"array\",\n                       \"items\": {\n                           \"$ref\": \"#/components/schemas/SecurityConcern\"\n                       }\n                   }\n               }\n           },\n           \"SecurityConcern\": {\n               \"type\": \"object\",\n               \"properties\": {\n                   \"id\": {\n                       \"type\": \"integer\",\n                       \"description\": \"Security concern ID\"\n                   },\n                   \"description\": {\n                       \"type\": \"string\",\n                       \"description\": \"Security concern description\"\n                   },\n                   \"severity\": {\n                       \"type\": \"string\",\n                       \"description\": \"Security concern severity\"\n                   }\n               }\n           }\n       }\n   }\n}",
+            "metadata": {
+              "estimatedEndpoints": 13,
+              "estimatedSchemas": 15,
+              "lineCount": 107,
+              "characterCount": 3408
+            }
+          }
+        },
+        "requirements": "Use a security capability to move this task forward: Analyze the security concerns for a Node.js REST API\n\nOriginal task:\nAnalyze the security concerns for a Node.js REST API",
+        "specification": "Use a security capability to move this task forward: Analyze the security concerns for a Node.js REST API\n\nContext:\n{\"success\":true,\"format\":\"openapi\",\"version\":\"1.0.0\",\"specification\":\"{\\n  \\\"openapi\\\": \\\"3.0.0\\\",\\n   \\\"info\\\": {\\n       \\\"title\\\": \\\"Security Concerns API\\\",\\n       \\\"description\\\": \\\"API for analyzing security concerns for a Node.js REST API\\\",\\n       \\\"version\\\": \\\"1.0.0\\\"\\n   },\\n   \\\"servers\\\": [\\n       {\\n           \\\"url\\\": \\\"https://api.example.com\\\"\\n       }\\n   ],\\n   \\\"tags\\\": [\\n       {\\n           \\\"name\\\": \\\"security-concerns\\\",\\n           \\\"description\\\": \\\"Endpoints for analyzing security concerns\\\"\\n       }\\n   ],\\n   \\\"paths\\\": {\\n       \\\"/analyze\\\": {\\n           \\\"post\\\": {\\n               \\\"tags\\\": [\\n                   \\\"security-concerns\\\"\\n               ],\\n               \\\"summary\\\": \\\"Analyze security concerns for a Node.js REST API\\\",\\n               \\\"description\\\": \\\"Analyze security concerns for a Node.js REST API\\\",\\n               \\\"requestBody\\\": {\\n                   \\\"required\\\": true,\\n                   \\\"content\\\": {\\n                       \\\"application/json\\\": {\\n                           \\\"schema\\\": {\\n                               \\\"$ref\\\": \\\"#/components/schemas/SecurityConcernsRequest\\\"\\n                           }\\n                       }\\n                   }\\n               },\\n               \\\"responses\\\": {\\n                   \\\"200\\\": {\\n                       \\\"description\\\": \\\"Security concerns analysis result\\\",\\n                       \\\"content\\\": {\\n                           \\\"application/json\\\": {\\n                               \\\"schema\\\": {\\n                                   \\\"$ref\\\": \\\"#/components/schemas/SecurityConcernsResponse\\\"\\n                               }\\n                           }\\n                       }\\n                   },\\n                   \\\"400\\\": {\\n                       \\\"description\\\": \\\"Invalid request\\\"\\n                   },\\n                   \\\"500\\\": {\\n                       \\\"description\\\": \\\"Internal server error\\\"\\n                   }\\n               }\\n           }\\n       }\\n   },\\n   \\\"components\\\": {\\n       \\\"schemas\\\": {\\n           \\\"SecurityConcernsRequest\\\": {\\n               \\\"type\\\": \\\"object\\\",\\n               \\\"required\\\": [\\n                   \\\"apiEndpoint\\\",\\n                   \\\"apiKey\\\"\\n               ],\\n               \\\"properties\\\": {\\n                   \\\"apiEndpoint\\\": {\\n                       \\\"type\\\": \\\"string\\\",\\n                       \\\"description\\\": \\\"API endpoint to analyze\\\"\\n                   },\\n                   \\\"apiKey\\\": {\\n                       \\\"type\\\": \\\"string\\\",\\n                       \\\"description\\\": \\\"API key for authentication\\\"\\n                   }\\n               }\\n           },\\n           \\\"SecurityConcernsResponse\\\": {\\n               \\\"type\\\": \\\"object\\\",\\n               \\\"properties\\\": {\\n                   \\\"securityConcerns\\\": {\\n                       \\\"type\\\": \\\"array\\\",\\n                       \\\"items\\\": {\\n                           \\\"$ref\\\": \\\"#/components/schemas/SecurityConcern\\\"\\n                       }\\n                   }\\n               }\\n           },\\n           \\\"SecurityConcern\\\": {\\n               \\\"type\\\": \\\"object\\\",\\n               \\\"properties\\\": {\\n                   \\\"id\\\": {\\n                       \\\"type\\\": \\\"integer\\\",\\n                       \\\"description\\\": \\\"Security concern ID\\\"\\n                   },\\n                   \\\"description\\\": {\\n                       \\\"type\\\": \\\"string\\\",\\n                       \\\"description\\\": \\\"Security concern description\\\"\\n                   },\\n                   \\\"severity\\\": {\\n                       \\\"type\\\": \\\"string\\\",\\n                       \\\"description\\\": \\\"Security concern severity\\\"\\n                   }\\n               }\\n           }\\n       }\\n   }\\n}\",\"metadata\":{\"estimatedEndpoints\":13,\"estimatedSchemas\":15,\"lineCount\":107,\"characterCount\":3408}}",
+        "session": {
+          "sessionId": "sess_f75b9622207d9460eb7c195c",
+          "executionId": "orch_1776549535049_af356a61",
+          "mode": "prompt",
+          "metadata": {},
+          "capabilities": [],
+          "prompt": "Analyze security vulnerabilities in a Node.js REST API"
+        },
+        "agent": {
+          "id": null,
+          "name": "test-agent",
+          "type": "unknown",
+          "version": null
+        }
+      },
+      "error": {
+        "message": "Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kmbrn02rep8rybv8xpp6gfg5` service tier `on_demand` on tokens per minute (TPM): Limit 12000, Used 9004, Requested 5820. Please try again in 14.12s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing",
+        "type": "Error",
+        "nodeId": "node_374a84c5e1"
+      },
+      "selection": {
+        "selectedToolId": "tool.security-auditor",
+        "candidates": [
+          {
+            "toolId": "tool.security-auditor",
+            "name": "Security Auditor",
+            "score": 0.5614,
+            "confidence": 56,
+            "category": "security",
+            "reason": "Security Auditor scored 0.56 for security because it aligns with \"Use a security capability to move this task forward: Analyze the security concerns for a Node.js REST API\" and carries semantic retrieval support."
+          }
+        ]
+      },
+      "startedAt": "2026-04-18T21:58:58.949Z",
+      "completedAt": "2026-04-18T21:58:59.156Z",
+      "durationMs": 207
+    }
+  ],
+  "intent": {
+    "goal": "Analyze the security concerns for a Node.js REST API",
+    "capabilityCategories": [
+      "api",
+      "security"
+    ],
+    "suggestedExecutionSteps": [
+      {
+        "id": "step_674115606f",
+        "title": "Resolve api path",
+        "objective": "Use a api capability to move this task forward: Analyze the security concerns for a Node.js REST API",
+        "capabilityCategory": "api",
+        "requiresApproval": false
+      },
+      {
+        "id": "step_247846790b",
+        "title": "Advance security execution",
+        "objective": "Use a security capability to move this task forward: Analyze the security concerns for a Node.js REST API",
+        "capabilityCategory": "security",
+        "requiresApproval": false
+      }
+    ],
+    "branchPoints": [],
+    "confidence": 0.38,
+    "constraints": [
+      "Prioritize trusted and validated capabilities"
+    ]
+  },
+  "selection": {
+    "selectedSteps": [
+      {
+        "id": "plan_9566fe1dc6",
+        "stepId": "step_674115606f",
+        "title": "Resolve api path",
+        "objective": "Use a api capability to move this task forward: Analyze the security concerns for a Node.js REST API",
+        "capabilityCategory": "api",
+        "requiresApproval": false,
+        "tool": {
+          "id": "tool.api-builder",
+          "name": "API Builder",
+          "description": "Generates API specifications, endpoints, and schema definitions from requirements",
+          "prompt": "You are an expert API architect. Your task is to design clean, scalable APIs that follow industry best practices. Follow these guidelines:\n\n1. Follow REST conventions (GET, POST, PUT, DELETE, PATCH)\n2. Use appropriate HTTP status codes\n3. Include proper request/response schemas\n4. Add error handling specifications\n5. Include authentication/authorization details if needed\n6. Provide clear endpoint descriptions\n7. Ensure the API is versioned appropriately\n8. Include pagination for list endpoints\n9. Add rate limiting considerations\n10. Provide example requests and responses\n\nGenerate only the API specification without any explanatory text.",
+          "keywords": [
+            "api",
+            "endpoint",
+            "rest",
+            "route",
+            "schema",
+            "openapi",
+            "swagger"
+          ],
+          "metadata": {
+            "category": "api",
+            "version": "1.0.0",
+            "tags": [
+              "api-design",
+              "rest",
+              "openapi",
+              "specification"
+            ]
+          },
+          "createdAt": "2026-04-18T21:54:28.830Z"
+        },
+        "toolId": "tool.api-builder",
+        "score": 0.6889,
+        "reasoning": "API Builder scored 0.69 for api because it aligns with \"Use a api capability to move this task forward: Analyze the security concerns for a Node.js REST API\" and carries semantic retrieval support.",
+        "alternatives": [
+          {
+            "toolId": "tool.api-documenter",
+            "name": "API Documenter",
+            "score": 0.6622,
+            "confidence": 66,
+            "category": "api",
+            "reason": "Matched api via semantic"
+          }
+        ]
+      },
+      {
+        "id": "plan_131c4b86c9",
+        "stepId": "step_247846790b",
+        "title": "Advance security execution",
+        "objective": "Use a security capability to move this task forward: Analyze the security concerns for a Node.js REST API",
+        "capabilityCategory": "security",
+        "requiresApproval": false,
+        "tool": {
+          "id": "tool.security-auditor",
+          "name": "Security Auditor",
+          "description": "Audits code, configurations, and architectures for security vulnerabilities, compliance gaps, and hardening opportunities.",
+          "prompt": "You are a senior security engineer. Audit the provided code, configuration, or architecture for:\n1. Common vulnerabilities (OWASP Top 10)\n2. Authentication and authorization gaps\n3. Input validation weaknesses\n4. Sensitive data exposure risks\n5. Security header and CORS issues\n6. Dependency vulnerabilities\nReturn a prioritized security report with severity ratings and remediation steps.",
+          "keywords": [
+            "security",
+            "audit",
+            "vulnerability",
+            "pentest",
+            "owasp",
+            "hardening",
+            "auth",
+            "encrypt"
+          ],
+          "metadata": {
+            "category": "security",
+            "version": "1.0.0",
+            "tags": [
+              "security",
+              "audit",
+              "vulnerability-assessment"
+            ]
+          },
+          "createdAt": "2026-04-18T21:54:28.831Z"
+        },
+        "toolId": "tool.security-auditor",
+        "score": 0.5614,
+        "reasoning": "Security Auditor scored 0.56 for security because it aligns with \"Use a security capability to move this task forward: Analyze the security concerns for a Node.js REST API\" and carries semantic retrieval support.",
+        "alternatives": []
+      }
+    ],
+    "decisionNodes": [],
+    "rankings": [
+      {
+        "stepId": "step_674115606f",
+        "stepTitle": "Resolve api path",
+        "strategy": "semantic",
+        "candidates": [
+          {
+            "toolId": "tool.api-builder",
+            "name": "API Builder",
+            "score": 0.6889,
+            "confidence": 69,
+            "category": "api",
+            "reason": "Matched api via semantic"
+          },
+          {
+            "toolId": "tool.api-documenter",
+            "name": "API Documenter",
+            "score": 0.6622,
+            "confidence": 66,
+            "category": "api",
+            "reason": "Matched api via semantic"
+          }
+        ],
+        "selectedToolId": "tool.api-builder"
+      },
+      {
+        "stepId": "step_247846790b",
+        "stepTitle": "Advance security execution",
+        "strategy": "semantic",
+        "candidates": [
+          {
+            "toolId": "tool.security-auditor",
+            "name": "Security Auditor",
+            "score": 0.5614,
+            "confidence": 56,
+            "category": "security",
+            "reason": "Matched security via semantic"
+          }
+        ],
+        "selectedToolId": "tool.security-auditor"
+      }
+    ],
+    "fallbackUsed": false
+  },
+  "graphUpdates": [],
+  "control": {}
+}

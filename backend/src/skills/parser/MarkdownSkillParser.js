@@ -5,7 +5,8 @@ const FRONTMATTER_PATTERN = /^---\n([\s\S]*?)\n---\n?/;
 const HEADING_PATTERN = /^(#{1,6})\s+(.*)$/;
 
 export function parseMarkdownSkillFile({ filePath, content }) {
-  const { frontmatter, body } = extractFrontmatter(content);
+  const normalizedContent = normalizeLineEndings(content);
+  const { frontmatter, body } = extractFrontmatter(normalizedContent);
   const relativeName = path.basename(filePath, path.extname(filePath));
   const title = extractTitle(frontmatter, body, relativeName);
   const { preamble, sections } = splitSections(body);
@@ -24,7 +25,7 @@ export function parseMarkdownSkillFile({ filePath, content }) {
     preamble,
     sections,
     instructions,
-    lineCount: content.split('\n').length,
+    lineCount: normalizedContent.split('\n').length,
     contentHash: crypto.createHash('sha256').update(content).digest('hex')
   };
 }
@@ -188,7 +189,7 @@ function extractDescription(frontmatter, preamble, sections, title) {
 
 function extractInstructions(frontmatter, sections, preamble) {
   if (typeof frontmatter.instructions === 'string' && frontmatter.instructions.trim()) {
-    return frontmatter.instructions.trim();
+    return splitInstructionBlocks(frontmatter.instructions.trim());
   }
 
   const relevantSections = sections.filter(section =>
@@ -198,16 +199,12 @@ function extractInstructions(frontmatter, sections, preamble) {
   );
 
   if (relevantSections.length > 0) {
-    return relevantSections
-      .map(section => `${section.title}\n${section.content}`.trim())
-      .join('\n\n')
-      .trim();
+    return relevantSections.flatMap(section => extractInstructionBlocksFromSection(section));
   }
 
   return [preamble, ...sections.map(section => `${section.title}\n${section.content}`.trim())]
     .filter(Boolean)
-    .join('\n\n')
-    .trim();
+    .flatMap(block => splitInstructionBlocks(block));
 }
 
 function firstParagraph(content) {
@@ -243,4 +240,41 @@ function prettifyName(value) {
     .replace(/[-_]+/g, ' ')
     .replace(/\b\w/g, letter => letter.toUpperCase())
     .trim();
+}
+
+function normalizeLineEndings(value) {
+  return String(value).replace(/\r\n?/g, '\n');
+}
+
+function extractInstructionBlocksFromSection(section) {
+  const content = section.content.trim();
+  if (!content) {
+    return [];
+  }
+
+  const listItems = content
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => /^([-*]|\d+\.)\s+/.test(line))
+    .map(line => line.replace(/^([-*]|\d+\.)\s+/, '').trim())
+    .filter(Boolean);
+
+  if (listItems.length > 0) {
+    return listItems;
+  }
+
+  return splitInstructionBlocks(`${section.title}\n${content}`);
+}
+
+function splitInstructionBlocks(value) {
+  return String(value)
+    .split(/\n\s*\n/)
+    .flatMap(block =>
+      block
+        .split('\n')
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map(line => line.replace(/^([-*]|\d+\.)\s+/, '').trim())
+    )
+    .filter(Boolean);
 }

@@ -28,12 +28,14 @@ export class ExecutionPlanSelector {
                 ? {
                     stepId: step.id,
                     stepTitle: step.title,
+                    strategy: selected.candidate.strategy,
                     candidates: alternatives,
                     selectedToolId: selected.candidate.toolId,
                 }
                 : {
                     stepId: step.id,
                     stepTitle: step.title,
+                    strategy: retrieval.strategy,
                     candidates: alternatives,
                 };
             rankings.push(ranking);
@@ -82,6 +84,7 @@ export class ExecutionPlanSelector {
             rankings.push({
                 stepId: fallbackStep.stepId,
                 stepTitle: fallbackStep.title,
+                strategy: first.strategy,
                 candidates: [rankToAlternative({ candidate: first, score: first.score })],
                 selectedToolId: first.toolId,
             });

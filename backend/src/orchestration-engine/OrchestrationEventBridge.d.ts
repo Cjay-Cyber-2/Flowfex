@@ -30,4 +30,5 @@ export declare class OrchestrationEventBridge {
     emitControlError(error: Record<string, unknown>): void;
     emitDiagnostic(type: string, payload: Record<string, unknown>): void;
     private emit;
+    private attachTopLevelFields;
 }

@@ -114,6 +114,33 @@ export class ExecutionRunner {
 
       this.stateStore.setCurrentNode(context.sessionId, currentNodeId);
       this.stateStore.updateNodeState(context.sessionId, currentNodeId, 'active');
+      context.bridge.emitDiagnostic('step.started', {
+        status: 'running',
+        step: {
+          index: buildResult.orderedNodeIds.indexOf(currentNodeId) + 1,
+          total: buildResult.orderedNodeIds.length,
+          nodeId: currentNodeId,
+          ...(runtimeNode.kind === 'skill'
+            ? {
+                tool: runtimeNode.toolId,
+                toolId: runtimeNode.toolId,
+              }
+            : {}),
+          title: runtimeNode.title,
+          input: runtimeNode.kind === 'decision'
+            ? { condition: runtimeNode.condition }
+            : undefined,
+        },
+        ...(runtimeNode.kind === 'skill'
+          ? {
+              selection: {
+                toolId: runtimeNode.toolId,
+                title: runtimeNode.title,
+                score: runtimeNode.score,
+              },
+            }
+          : {}),
+      });
       context.bridge.emitNodeExecuting(currentNodeId, {
         title: runtimeNode.title,
         type: runtimeNode.kind,
@@ -157,6 +184,18 @@ export class ExecutionRunner {
           completedAt: new Date().toISOString(),
           durationMs: 0,
         });
+        context.bridge.emitDiagnostic('step.completed', {
+          status: 'completed',
+          step: {
+            index: buildResult.orderedNodeIds.indexOf(currentNodeId) + 1,
+            total: buildResult.orderedNodeIds.length,
+            nodeId: currentNodeId,
+            title: runtimeNode.title,
+          },
+          data: {
+            branchChoice,
+          },
+        });
         context.bridge.emitNodeCompleted(currentNodeId, {
           branchChoice,
         });
@@ -191,6 +230,24 @@ export class ExecutionRunner {
           this.stateStore.updateEdgeState(context.sessionId, incomingEdgeId, 'completed');
         }
         this.stateStore.setStatus(context.sessionId, 'failed');
+        context.bridge.emitDiagnostic('step.failed', {
+          status: 'failed',
+          step: {
+            index: buildResult.orderedNodeIds.indexOf(currentNodeId) + 1,
+            total: buildResult.orderedNodeIds.length,
+            nodeId: currentNodeId,
+            tool: runtimeNode.toolId,
+            toolId: runtimeNode.toolId,
+            title: runtimeNode.title,
+            input: skillTrace.input as Record<string, unknown>,
+          },
+          selection: {
+            toolId: runtimeNode.toolId,
+            title: runtimeNode.title,
+            score: runtimeNode.score,
+          },
+          error: skillTrace.error,
+        });
         context.bridge.emitNodeError(currentNodeId, skillTrace.error);
         this.stateStore.markPendingNode(context.sessionId, null);
         return {
@@ -225,6 +282,25 @@ export class ExecutionRunner {
       }
 
       this.stateStore.updateNodeState(context.sessionId, currentNodeId, 'completed');
+      context.bridge.emitDiagnostic('step.completed', {
+        status: 'completed',
+        step: {
+          index: buildResult.orderedNodeIds.indexOf(currentNodeId) + 1,
+          total: buildResult.orderedNodeIds.length,
+          nodeId: currentNodeId,
+          tool: runtimeNode.toolId,
+          toolId: runtimeNode.toolId,
+          title: runtimeNode.title,
+          input: skillTrace.input as Record<string, unknown>,
+          output: toSerializable(skillTrace.output) as Record<string, unknown>,
+        },
+        selection: {
+          toolId: runtimeNode.toolId,
+          title: runtimeNode.title,
+          score: runtimeNode.score,
+        },
+        data: toSerializable(skillTrace.output) as Record<string, unknown>,
+      });
       context.bridge.emitNodeCompleted(currentNodeId, {
         output: skillTrace.output,
       });
@@ -312,6 +388,21 @@ export class ExecutionRunner {
         status: runtimeNode.requiresApproval ? 'awaiting_approval' : 'completed',
         input,
         output: toSerializable(output),
+        selection: {
+          strategy: runtimeNode.alternatives[0]?.reason.includes('via') ? 'semantic' : undefined,
+          selectedToolId: runtimeNode.toolId,
+          candidates: [
+            {
+              toolId: runtimeNode.toolId,
+              name: runtimeNode.tool.name,
+              score: runtimeNode.score,
+              confidence: Math.round(runtimeNode.score * 100),
+              category: runtimeNode.capabilityCategory,
+              reason: runtimeNode.reasoning,
+            },
+            ...runtimeNode.alternatives,
+          ],
+        },
         startedAt,
         completedAt,
         durationMs,
@@ -339,6 +430,20 @@ export class ExecutionRunner {
         status: 'failed',
         input,
         error: executionError,
+        selection: {
+          selectedToolId: runtimeNode.toolId,
+          candidates: [
+            {
+              toolId: runtimeNode.toolId,
+              name: runtimeNode.tool.name,
+              score: runtimeNode.score,
+              confidence: Math.round(runtimeNode.score * 100),
+              category: runtimeNode.capabilityCategory,
+              reason: runtimeNode.reasoning,
+            },
+            ...runtimeNode.alternatives,
+          ],
+        },
         startedAt,
         completedAt,
         durationMs,
@@ -374,16 +479,47 @@ export class ExecutionRunner {
         score: runtimeNode.score,
       },
       reportProgress: (progress, data) => {
+        context.bridge.emitDiagnostic('step.progress', {
+          status: 'running',
+          step: {
+            index: step.index,
+            total: step.total,
+            nodeId: runtimeNode.graphNodeId,
+            tool: runtimeNode.toolId,
+            toolId: runtimeNode.toolId,
+            title: runtimeNode.title,
+          },
+          selection: {
+            toolId: runtimeNode.toolId,
+            title: runtimeNode.title,
+            score: runtimeNode.score,
+          },
+          progress: safeRecord(progress),
+          ...(data && typeof data === 'object' ? { data: safeRecord(data) } : {}),
+        });
         context.bridge.emitNodeExecuting(runtimeNode.graphNodeId, {
           progress: safeRecord(progress),
           data: data || {},
         });
       },
       reroute: (reroute, data) => {
-        context.bridge.emitDiagnostic('step:reroute', {
-          nodeId: runtimeNode.graphNodeId,
-          reroute,
-          data: data || {},
+        context.bridge.emitDiagnostic('step.rerouted', {
+          status: 'rerouted',
+          step: {
+            index: step.index,
+            total: step.total,
+            nodeId: runtimeNode.graphNodeId,
+            tool: runtimeNode.toolId,
+            toolId: runtimeNode.toolId,
+            title: runtimeNode.title,
+          },
+          selection: {
+            toolId: runtimeNode.toolId,
+            title: runtimeNode.title,
+            score: runtimeNode.score,
+          },
+          reroute: safeRecord(reroute),
+          ...(data && typeof data === 'object' ? { data: safeRecord(data) } : {}),
         });
       },
     };

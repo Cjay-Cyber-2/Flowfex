@@ -213,6 +213,7 @@ export interface DecisionPlanNode {
 export interface StepSelectionRanking {
     stepId: string;
     stepTitle: string;
+    strategy?: string;
     candidates: StepSelectionAlternative[];
     selectedToolId?: string;
 }
@@ -280,6 +281,11 @@ export interface ExecutionTraceEntry {
     input: unknown;
     output?: unknown;
     error?: ExecutionErrorInfo;
+    selection?: {
+        strategy?: string;
+        selectedToolId?: string;
+        candidates: StepSelectionAlternative[];
+    };
     branchChoice?: BranchChoice;
     startedAt: string;
     completedAt: string;
@@ -382,6 +388,15 @@ export interface OrchestrationEventRecord {
     type: string;
     timestamp: string;
     payload: Record<string, unknown>;
+    status?: string;
+    workflow?: Record<string, unknown>;
+    step?: Record<string, unknown>;
+    selection?: Record<string, unknown>;
+    progress?: Record<string, unknown>;
+    reroute?: Record<string, unknown>;
+    data?: Record<string, unknown>;
+    error?: Record<string, unknown>;
+    final?: boolean;
 }
 export interface SocketServerLike {
     emitGraphCreated(sessionId: string, graph: ExecutionGraph): void;

@@ -404,10 +404,11 @@ function createMarkdownSkillTool(record) {
       qualityScore: validation.qualityScore,
       imported: true,
       contentHash: normalizedSkill.contentHash,
-      sections: normalizedSkill.sections.map(section => section.title)
+      sections: normalizedSkill.sections.map(section => section.title),
+      executable: validation.executable === true,
     },
     run: async (input, llm, runtime) => {
-      if (validation.validationStatus !== 'approved') {
+      if (validation.executable !== true) {
         throw new Error(`Skill '${normalizedSkill.id}' is not approved for execution`);
       }
 

@@ -57,6 +57,13 @@ export class OrchestrationEngine {
             executionId,
             agent: context.agent || null,
         });
+        bridge.emitDiagnostic('execution.started', {
+            status: 'running',
+            workflow: {
+                mode: 'task',
+                task: context.task,
+            },
+        });
         const planning = await this.planner.planTask(context.task, {
             sessionId: context.sessionId,
             executionId,
@@ -80,6 +87,23 @@ export class OrchestrationEngine {
             sessionId: context.sessionId,
             executionId,
         });
+        if (retrieval.fallbackUsed || selection.fallbackUsed) {
+            bridge.emitDiagnostic('step.rerouted', {
+                status: 'rerouted',
+                selection: {
+                    strategy: retrieval.strategy === 'mixed'
+                        ? 'keyword-fallback'
+                        : retrieval.strategy,
+                    fallbackUsed: true,
+                    fallbackReason: 'semantic retrieval did not fully satisfy the execution plan',
+                },
+                reroute: {
+                    reason: 'selection_fallback',
+                    from: 'semantic',
+                    to: retrieval.strategy === 'mixed' ? 'keyword-fallback' : retrieval.strategy,
+                },
+            });
+        }
         const buildResult = this.graphBuilder.buildGraph(selection, {
             sessionId: context.sessionId,
             executionId,
@@ -105,6 +129,35 @@ export class OrchestrationEngine {
             bridge,
         });
         const snapshot = this.stateStore.getSnapshot(context.sessionId);
+        const selectionStrategy = selection.rankings[0]?.strategy
+            || (retrieval.strategy === 'mixed' ? 'keyword-fallback' : retrieval.strategy);
+        const finalEventType = execution.status === 'error'
+            ? 'execution.failed'
+            : execution.status === 'paused'
+                ? 'execution.paused'
+                : execution.status === 'awaiting_approval'
+                    ? 'execution.awaiting_approval'
+                    : 'execution.completed';
+        bridge.emitDiagnostic(finalEventType, {
+            status: execution.status === 'success'
+                ? 'completed'
+                : execution.status === 'error'
+                    ? 'failed'
+                    : execution.status,
+            workflow: {
+                mode: 'task',
+                task: context.task,
+            },
+            selection: {
+                strategy: selectionStrategy,
+                fallbackUsed: retrieval.fallbackUsed || selection.fallbackUsed,
+            },
+            ...(execution.error ? { error: execution.error } : {}),
+            ...(execution.finalOutput && typeof execution.finalOutput === 'object' && execution.finalOutput !== null
+                ? { data: execution.finalOutput }
+                : {}),
+            final: execution.status === 'success' || execution.status === 'error',
+        });
         return {
             executionId,
             sessionId: context.sessionId,

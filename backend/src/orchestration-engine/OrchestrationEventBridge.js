@@ -81,6 +81,7 @@ export class OrchestrationEventBridge {
             timestamp: new Date().toISOString(),
             payload,
         };
+        this.attachTopLevelFields(event, payload);
         this.eventSink?.(event);
         this.logger.info({
             event: 'orchestration.event.emitted',
@@ -90,4 +91,25 @@ export class OrchestrationEventBridge {
             channelEvent: type,
         });
     }
+    attachTopLevelFields(event, payload) {
+        if (typeof payload.status === 'string') {
+            event.status = payload.status;
+        }
+        assignRecordField(event, 'workflow', payload.workflow);
+        assignRecordField(event, 'step', payload.step);
+        assignRecordField(event, 'selection', payload.selection);
+        assignRecordField(event, 'progress', payload.progress);
+        assignRecordField(event, 'reroute', payload.reroute);
+        assignRecordField(event, 'data', payload.data);
+        assignRecordField(event, 'error', payload.error);
+        if (payload.final === true) {
+            event.final = true;
+        }
+    }
+}
+function assignRecordField(event, key, value) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        return;
+    }
+    event[key] = value;
 }

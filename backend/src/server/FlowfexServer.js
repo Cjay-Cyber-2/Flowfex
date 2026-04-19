@@ -54,13 +54,7 @@ export class FlowfexServer {
     }
     console.log('[Flowfex] Socket.io server attached with /orchestration, /session, /control namespaces');
 
-    await new Promise((resolve, reject) => {
-      this.server.once('error', reject);
-      this.server.listen(port, host, () => {
-        this.server.off('error', reject);
-        resolve();
-      });
-    });
+    await this._listenWithFallback(port, host);
 
     return this.getAddress();
   }
@@ -457,6 +451,43 @@ export class FlowfexServer {
     return `${proto}://${host}`;
   }
 
+  async _listenWithFallback(port, host) {
+    try {
+      await this._listen(port, host);
+    } catch (error) {
+      if (this._shouldRetryListen(error, host)) {
+        console.warn(`[Flowfex] Retrying server bind on 0.0.0.0 after ${host} failed with ${error.code}`);
+        await this._listen(port, '0.0.0.0');
+        return;
+      }
+
+      throw error;
+    }
+  }
+
+  async _listen(port, host) {
+    await new Promise((resolve, reject) => {
+      const handleError = (error) => {
+        this.server.off('listening', handleListening);
+        reject(error);
+      };
+      const handleListening = () => {
+        this.server.off('error', handleError);
+        resolve();
+      };
+
+      this.server.once('error', handleError);
+      this.server.once('listening', handleListening);
+      this.server.listen(port, host);
+    });
+  }
+
+  _shouldRetryListen(error, host) {
+    return Boolean(error)
+      && error.code === 'EPERM'
+      && (host === '127.0.0.1' || host === 'localhost');
+  }
+
   /**
    * SSE stream for agents that cannot use WebSocket
    */
@@ -488,13 +519,11 @@ export class FlowfexServer {
         }
       };
 
-      const orchestrationSocket = socketServer.orchestration;
-      // Subscribe to room events for this session
-      orchestrationSocket.adapter.on('session:' + sessionId, handler);
+      socketServer.registerSessionListener(sessionId, handler);
 
       response.on('close', () => {
         clearInterval(heartbeatInterval);
-        orchestrationSocket.adapter.off('session:' + sessionId, handler);
+        socketServer.unregisterSessionListener(sessionId, handler);
       });
     } else {
       response.on('close', () => {

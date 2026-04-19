@@ -1,4 +1,6 @@
+import { randomUUID } from 'node:crypto';
 import { defaultRegistry } from '../registry/ToolRegistry.js';
+import { ExecutionEventPublisher } from '../execution/ExecutionEventPublisher.js';
 import { defaultLLM } from '../llm/LLMWrapper.js';
 import { getSocketServer } from '../ws/server.js';
 import { OrchestrationEngine, SessionStateStore, createEngineLogger } from '../orchestration-engine/index.js';
@@ -24,6 +26,12 @@ export class Orchestrator {
   }
 
   async orchestrate(input, options = {}) {
+    if (isWorkflowInput(input)) {
+      const result = await this._executeWorkflow(input, options);
+      this.executionHistory.push(result);
+      return result;
+    }
+
     const normalizedTask = normalizeTaskInput(input);
     const result = await this.engine.orchestrateTask({
       sessionId: options.sessionId || 'default',
@@ -44,10 +52,19 @@ export class Orchestrator {
   async executeTool(toolId, input, options = {}) {
     const tool = this.registry.getTool(toolId);
     const executionId = `tool_${Date.now()}`;
+    const sessionId = options.sessionId || null;
     const startedAt = Date.now();
+    const publisher = options.eventSink
+      ? new ExecutionEventPublisher({
+          executionId,
+          sessionId,
+          onEvent: options.eventSink,
+          socketServer: options.socketServer || this.socketServer || getSocketServer(),
+        })
+      : null;
     const result = {
       executionId,
-      sessionId: options.sessionId || null,
+      sessionId,
       status: 'pending',
       toolId,
       input,
@@ -61,6 +78,22 @@ export class Orchestrator {
       duration: 0,
       timestamp: new Date().toISOString(),
     };
+    const selection = {
+      stepId: 'explicit-tool',
+      stepTitle: tool?.name || toolId,
+      strategy: 'explicit',
+      candidates: tool
+        ? [{
+            toolId: tool.id,
+            name: tool.name,
+            score: 1,
+            confidence: 100,
+            category: tool.metadata?.category || 'uncategorized',
+            reason: 'Explicit tool execution',
+          }]
+        : [],
+      selectedToolId: tool?.id || toolId,
+    };
 
     if (!tool) {
       result.status = 'error';
@@ -68,6 +101,34 @@ export class Orchestrator {
         message: `Tool '${toolId}' not found`,
         type: 'Error',
       };
+      publisher?.emit('execution.started', {
+        workflow: {
+          mode: 'tool',
+          toolId,
+        },
+      });
+      publisher?.emit('step.failed', {
+        step: {
+          index: 1,
+          total: 1,
+          tool: toolId,
+          toolId,
+          input,
+        },
+        selection,
+        error: result.error,
+      });
+      publisher?.emit('execution.failed', {
+        step: {
+          index: 1,
+          total: 1,
+          tool: toolId,
+          toolId,
+        },
+        selection,
+        error: result.error,
+        final: true,
+      });
       result.duration = Date.now() - startedAt;
       return result;
     }
@@ -78,41 +139,112 @@ export class Orchestrator {
         message: `Tool '${toolId}' is not allowed for this session`,
         type: 'Error',
       };
+      publisher?.emit('execution.started', {
+        workflow: {
+          mode: 'tool',
+          toolId,
+        },
+      });
+      publisher?.emit('step.failed', {
+        step: {
+          index: 1,
+          total: 1,
+          tool: toolId,
+          toolId,
+          input,
+        },
+        selection,
+        error: result.error,
+      });
+      publisher?.emit('execution.failed', {
+        step: {
+          index: 1,
+          total: 1,
+          tool: toolId,
+          toolId,
+        },
+        selection,
+        error: result.error,
+        final: true,
+      });
       result.duration = Date.now() - startedAt;
       return result;
     }
 
+    publisher?.emit('execution.started', {
+      workflow: {
+        mode: 'tool',
+        toolId,
+      },
+    });
+
     try {
       result.status = 'running';
       result.selectedTool = this._toolToSummary(tool);
-      result.toolSelection = {
-        stepId: 'explicit-tool',
-        stepTitle: tool.name,
-        candidates: [{
-          toolId: tool.id,
-          name: tool.name,
-          score: 1,
-          confidence: 100,
-          category: tool.metadata?.category || 'uncategorized',
-          reason: 'Explicit tool execution',
-        }],
-        selectedToolId: tool.id,
-      };
+      result.toolSelection = selection;
       result.selectionTrace.push(result.toolSelection);
+      const runtime = createExecutionRuntime({
+        publisher,
+        step: {
+          index: 1,
+          total: 1,
+          tool: tool.id,
+          toolId: tool.id,
+          title: tool.name,
+        },
+        selection,
+      });
+      publisher?.emit('step.started', {
+        step: {
+          index: 1,
+          total: 1,
+          tool: tool.id,
+          toolId: tool.id,
+          title: tool.name,
+          input,
+        },
+        selection,
+      });
 
-      result.output = await this.registry.executeTool(toolId, input, this.llm, null);
+      result.output = await this.registry.executeTool(toolId, input, this.llm, runtime);
       result.finalResult = result.output;
       result.status = 'success';
       result.trace.push({
         nodeId: tool.id,
         nodeType: 'skill',
+        tool: tool.id,
         toolId: tool.id,
         status: 'completed',
         input,
         output: result.output,
+        selection,
         startedAt: new Date(startedAt).toISOString(),
         completedAt: new Date().toISOString(),
         durationMs: Date.now() - startedAt,
+      });
+      publisher?.emit('step.completed', {
+        step: {
+          index: 1,
+          total: 1,
+          tool: tool.id,
+          toolId: tool.id,
+          title: tool.name,
+          input,
+          output: result.output,
+        },
+        selection,
+        data: result.output,
+      });
+      publisher?.emit('execution.completed', {
+        step: {
+          index: 1,
+          total: 1,
+          tool: tool.id,
+          toolId: tool.id,
+        },
+        selection,
+        data: result.output,
+        final: true,
       });
     } catch (error) {
       result.status = 'error';
@@ -123,13 +255,38 @@ export class Orchestrator {
       result.trace.push({
         nodeId: tool.id,
         nodeType: 'skill',
+        tool: tool.id,
         toolId: tool.id,
         status: 'failed',
         input,
         error: result.error,
+        selection,
         startedAt: new Date(startedAt).toISOString(),
         completedAt: new Date().toISOString(),
         durationMs: Date.now() - startedAt,
+      });
+      publisher?.emit('step.failed', {
+        step: {
+          index: 1,
+          total: 1,
+          tool: tool.id,
+          toolId: tool.id,
+          title: tool.name,
+          input,
+        },
+        selection,
+        error: result.error,
+      });
+      publisher?.emit('execution.failed', {
+        step: {
+          index: 1,
+          total: 1,
+          tool: tool.id,
+          toolId: tool.id,
+        },
+        selection,
+        error: result.error,
+        final: true,
       });
     } finally {
       result.duration = Date.now() - startedAt;
@@ -238,6 +395,164 @@ export class Orchestrator {
       validationStatus: tool.metadata?.validationStatus || null,
     };
   }
+
+  async _executeWorkflow(workflow, options = {}) {
+    const executionId = `workflow_${Date.now()}_${randomUUID().slice(0, 8)}`;
+    const sessionId = options.sessionId || null;
+    const startedAt = Date.now();
+    const publisher = options.eventSink
+      ? new ExecutionEventPublisher({
+          executionId,
+          sessionId,
+          onEvent: options.eventSink,
+          socketServer: options.socketServer || this.socketServer || getSocketServer(),
+        })
+      : null;
+    const result = {
+      executionId,
+      sessionId,
+      status: 'pending',
+      toolId: null,
+      input: workflow.input,
+      selectedTool: null,
+      toolSelection: null,
+      selectionTrace: [],
+      trace: [],
+      finalResult: null,
+      output: null,
+      error: null,
+      duration: 0,
+      timestamp: new Date(startedAt).toISOString(),
+    };
+    const steps = Array.isArray(workflow.steps) ? workflow.steps : [];
+    const context = {
+      originalInput: workflow.input,
+      previousOutput: workflow.input,
+      stepOutputs: [],
+    };
+
+    publisher?.emit('execution.started', {
+      workflow: {
+        mode: 'workflow',
+        stepCount: steps.length,
+      },
+    });
+
+    try {
+      result.status = 'running';
+
+      for (let index = 0; index < steps.length; index += 1) {
+        const stepConfig = steps[index] || {};
+        const tool = resolveWorkflowTool(this.registry, stepConfig.tool);
+        if (!tool) {
+          throw new Error(`Workflow step ${index + 1} references an unknown tool`);
+        }
+
+        const selection = {
+          stepId: `workflow-step-${index + 1}`,
+          stepTitle: stepConfig.title || tool.name,
+          strategy: stepConfig.tool ? 'explicit' : 'auto',
+          candidates: [{
+            toolId: tool.id,
+            name: tool.name,
+            score: 1,
+            confidence: 100,
+            category: tool.metadata?.category || 'uncategorized',
+            reason: stepConfig.tool ? 'Explicit workflow step tool' : 'Selected for workflow execution',
+          }],
+          selectedToolId: tool.id,
+        };
+        const resolvedInput = Object.prototype.hasOwnProperty.call(stepConfig, 'input')
+          ? resolveWorkflowValue(stepConfig.input, context)
+          : context.previousOutput;
+        const stepMeta = {
+          index: index + 1,
+          total: steps.length,
+          tool: tool.id,
+          toolId: tool.id,
+          title: tool.name,
+          input: resolvedInput,
+        };
+        const runtime = createExecutionRuntime({
+          publisher,
+          step: stepMeta,
+          selection,
+        });
+
+        if (!result.selectedTool) {
+          result.selectedTool = this._toolToSummary(tool);
+        }
+        if (!result.toolSelection) {
+          result.toolSelection = selection;
+        }
+        result.selectionTrace.push(selection);
+        publisher?.emit('step.started', {
+          step: stepMeta,
+          selection,
+        });
+
+        const output = await this.registry.executeTool(tool.id, resolvedInput, this.llm, runtime);
+        const traceEntry = {
+          nodeId: tool.id,
+          nodeType: 'skill',
+          tool: tool.id,
+          toolId: tool.id,
+          status: 'completed',
+          input: resolvedInput,
+          output,
+          selection,
+          startedAt: new Date().toISOString(),
+          completedAt: new Date().toISOString(),
+          durationMs: 0,
+        };
+
+        result.trace.push(traceEntry);
+        context.previousOutput = output;
+        context.stepOutputs.push({
+          tool: tool.id,
+          output,
+        });
+
+        publisher?.emit('step.completed', {
+          step: {
+            ...stepMeta,
+            output,
+          },
+          selection,
+          data: output,
+        });
+      }
+
+      result.status = 'success';
+      result.finalResult = context.previousOutput;
+      result.output = context.previousOutput;
+      publisher?.emit('execution.completed', {
+        workflow: {
+          mode: 'workflow',
+          stepCount: steps.length,
+        },
+        data: context.previousOutput,
+        final: true,
+      });
+    } catch (error) {
+      result.status = 'error';
+      result.error = {
+        message: error instanceof Error ? error.message : String(error),
+        type: error instanceof Error ? error.name : 'Error',
+      };
+      publisher?.emit('execution.failed', {
+        workflow: {
+          mode: 'workflow',
+          stepCount: steps.length,
+        },
+        error: result.error,
+        final: true,
+      });
+    }
+
+    result.duration = Date.now() - startedAt;
+    return result;
+  }
 }
 
 export const defaultOrchestrator = new Orchestrator({
@@ -281,4 +596,114 @@ function normalizeTaskInput(input) {
   }
 
   return JSON.stringify(input);
+}
+
+function isWorkflowInput(input) {
+  return Boolean(input)
+    && typeof input === 'object'
+    && Array.isArray(input.steps);
+}
+
+function resolveWorkflowTool(registry, reference) {
+  if (typeof reference === 'string' && reference.trim()) {
+    return registry.resolveTool(reference.trim());
+  }
+
+  return null;
+}
+
+function resolveWorkflowValue(value, context) {
+  if (Array.isArray(value)) {
+    return value.map(entry => resolveWorkflowValue(entry, context));
+  }
+
+  if (value && typeof value === 'object') {
+    if (typeof value.$from === 'string') {
+      return resolveWorkflowPath(value.$from, context);
+    }
+
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [key, resolveWorkflowValue(entry, context)])
+    );
+  }
+
+  return value;
+}
+
+function resolveWorkflowPath(reference, context) {
+  const normalized = String(reference).trim();
+  if (!normalized) {
+    return null;
+  }
+
+  if (normalized === 'previous') {
+    return context.previousOutput;
+  }
+
+  if (normalized === 'originalInput') {
+    return context.originalInput;
+  }
+
+  const pathSegments = normalized
+    .replace(/\[(\d+)\]/g, '.$1')
+    .split('.')
+    .filter(Boolean);
+  const [root, ...rest] = pathSegments;
+
+  if (root === 'previous') {
+    return drillValue(context.previousOutput, rest);
+  }
+
+  if (root === 'originalInput') {
+    return drillValue(context.originalInput, rest);
+  }
+
+  if (root === 'steps' || root === 'stepOutputs') {
+    return drillValue(context.stepOutputs, rest);
+  }
+
+  return null;
+}
+
+function drillValue(source, pathSegments) {
+  return pathSegments.reduce((current, segment) => {
+    if (current == null) {
+      return null;
+    }
+
+    if (Array.isArray(current) && /^\d+$/.test(segment)) {
+      return current[Number(segment)] ?? null;
+    }
+
+    if (typeof current === 'object') {
+      return current[segment] ?? null;
+    }
+
+    return null;
+  }, source);
+}
+
+function createExecutionRuntime({ publisher, step, selection }) {
+  return {
+    executionId: publisher?.executionId || null,
+    sessionId: publisher?.sessionId || null,
+    step,
+    selection,
+    reportProgress(progress, data = null) {
+      publisher?.emit('step.progress', {
+        step,
+        selection,
+        progress,
+        data: data || undefined,
+      });
+    },
+    reroute(reroute, data = null) {
+      publisher?.emit('step.rerouted', {
+        step,
+        selection,
+        reroute,
+        data: data || undefined,
+      });
+    },
+  };
 }

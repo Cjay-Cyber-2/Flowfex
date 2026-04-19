@@ -156,9 +156,12 @@ export function validateNormalizedSkill(skill, context = {}) {
   const validationStatus = hasBlockingFinding ? 'blocked' : hasWarnings ? 'review' : 'approved';
   const trustLevel = resolveTrustLevel(context.sourceTrustLevel, validationStatus);
   const qualityScore = calculateQualityScore(findings);
+  const executable = validationStatus === 'approved'
+    || (validationStatus === 'review' && trustLevel === 'reviewed-with-warnings');
 
   return {
-    allowed: validationStatus === 'approved',
+    allowed: executable,
+    executable,
     validationStatus,
     trustLevel,
     findings,

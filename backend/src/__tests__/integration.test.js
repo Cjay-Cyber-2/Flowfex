@@ -858,6 +858,101 @@ await test('FlowfexServer exposes connect and execute endpoints for external age
   }
 });
 
+await test('FlowfexServer ingests token-prefixed prompt tasks without separate auth headers', async () => {
+  const registry = new ToolRegistry();
+  const promptTool = new Tool({
+    id: 'server.prompt-ingest',
+    name: 'Prompt Ingest Tool',
+    description: 'Processes prompt-ingested tasks for connected agents',
+    prompt: 'Execute the connected task.',
+    keywords: ['prompt', 'ingest', 'connected', 'task'],
+    metadata: {
+      category: 'text',
+    },
+    run: async (input) => ({
+      success: true,
+      task: input.task,
+      session: input.session,
+      agent: input.agent,
+    })
+  });
+
+  registry.registerTool(promptTool);
+
+  const plannerLLM = {
+    async generate(systemPrompt, userPrompt) {
+      if (systemPrompt.includes('Flowfex orchestration planner')) {
+        return JSON.stringify({
+          goal: 'Handle a prompt-ingested task',
+          capabilityCategories: ['text'],
+          suggestedExecutionSteps: [
+            {
+              id: 'step-prompt-ingest',
+              title: 'Handle prompt task',
+              objective: 'Process the connected prompt task',
+              capabilityCategory: 'text',
+              requiresApproval: false,
+            },
+          ],
+          branchPoints: [],
+          confidence: 0.96,
+          constraints: [],
+        });
+      }
+
+      return `LLM:${userPrompt}`;
+    }
+  };
+
+  const orchestrator = new Orchestrator({ registry, llm: plannerLLM });
+  const connectionService = new ConnectionService({
+    registry,
+    orchestrator,
+    sessionManager: new SessionManager()
+  });
+  const server = new FlowfexServer({
+    connectionService,
+    host: '127.0.0.1',
+    port: 0
+  });
+
+  try {
+    const address = await server.start();
+
+    const connectResponse = await requestJson({
+      host: address.host,
+      port: address.port,
+      path: '/connect',
+      method: 'POST',
+      body: {
+        mode: 'prompt',
+        prompt: 'I am a connected agent that needs Flowfex to process prompt-ingested tasks.',
+        agent: { name: 'Prompt Ingest Agent', type: 'cli' }
+      }
+    });
+
+    assert(connectResponse.statusCode === 200, 'Prompt connect should return 200');
+    const session = connectResponse.body.connection.session;
+    const task = `FLOWFEX_SESSION_TOKEN: ${session.token}\nSummarize the connected deployment notes.`;
+    const ingestResponse = await requestJson({
+      host: address.host,
+      port: address.port,
+      path: '/ingest',
+      method: 'POST',
+      body: {
+        task,
+      }
+    });
+
+    assert(ingestResponse.statusCode === 200, 'Prompt ingest should return 200');
+    assert(ingestResponse.body.status === 'success', 'Prompt ingest should execute successfully');
+    assert(ingestResponse.body.output.task === 'Summarize the connected deployment notes.', 'Prompt ingest should strip the token prefix before execution');
+    assert(ingestResponse.body.output.session.mode === 'prompt', 'Prompt ingest should execute against the prompt session');
+  } finally {
+    await server.stop();
+  }
+});
+
 await test('FlowfexServer streams execution events over SSE for live clients', async () => {
   const registry = new ToolRegistry();
   const streamingTool = new Tool({

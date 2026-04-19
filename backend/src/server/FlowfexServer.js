@@ -1,8 +1,10 @@
 import http from 'node:http';
 import { URL } from 'node:url';
+import zlib from 'node:zlib';
 import { defaultConnectionService } from '../connection/index.js';
 import { FlowfexSocketServer, initSocketServer, getSocketServer } from '../ws/server.js';
 import { ControlController } from '../control/ControlController.js';
+import { executionRateLimiter } from './RateLimiter.js';
 
 /**
  * Minimal HTTP surface for external agent connections.
@@ -31,7 +33,7 @@ export class FlowfexServer {
     const host = overrides.host || this.host;
     const port = Number(overrides.port ?? this.port);
     this.server = http.createServer((request, response) => {
-      this._setCorsHeaders(response);
+      this._setCorsHeaders(response, request);
       if (request.method === 'OPTIONS') {
         response.writeHead(204);
         response.end();
@@ -44,7 +46,7 @@ export class FlowfexServer {
 
     // Attach Socket.io directly to this server (avoid stale singletons)
     this.socketServer = new FlowfexSocketServer(this.server, {
-      corsOrigin: '*',
+      corsOrigin: process.env.ALLOWED_ORIGINS || '*',
     });
     if (this.connectionService?.orchestrator?.setSocketServer) {
       this.connectionService.orchestrator.setSocketServer(this.socketServer);
@@ -65,7 +67,17 @@ export class FlowfexServer {
     }
 
     const activeServer = this.server;
+    const activeSocketServer = this.socketServer;
     this.server = null;
+    this.socketServer = null;
+
+    await this.connectionService?.orchestrator?.flushStateStore?.();
+
+    if (activeSocketServer?.io) {
+      await new Promise((resolve) => {
+        activeSocketServer.io.close(() => resolve());
+      });
+    }
 
     await new Promise((resolve, reject) => {
       activeServer.close(error => {
@@ -97,6 +109,18 @@ export class FlowfexServer {
 
   async _handleRequest(request, response) {
     const url = new URL(request.url, 'http://flowfex.local');
+    const ip = request.headers['x-forwarded-for'] || request.socket?.remoteAddress || 'unknown';
+
+    // Rate Limit expensive paths to protect backend/Groq quota
+    const isExecutionEndpoint = (request.method === 'POST' && (
+      url.pathname === '/connect' || 
+      url.pathname === '/ingest' || 
+      url.pathname.match(/^\/sessions\/([^/]+)\/execute$/)
+    ));
+    if (isExecutionEndpoint && !executionRateLimiter.check(ip)) {
+      return this._writeJson(response, 429, { error: { message: 'Too many requests. Rate limit exceeded.' } });
+    }
+
     const sessionMatch = url.pathname.match(/^\/sessions\/([^/]+)$/);
     const executionMatch = url.pathname.match(/^\/sessions\/([^/]+)\/execute$/);
     const connectLiveMatch = url.pathname.match(/^\/connect\/live\/([^/]+)$/);
@@ -237,18 +261,19 @@ export class FlowfexServer {
     // ─── Agent Ingest (prompt-based connection) ────────────────────────
     if (request.method === 'POST' && ingestMatch) {
       const body = await this._readJsonBody(request);
-      const { token, task } = body;
+      const ingestRequest = this._resolvePromptIngestRequest(body, request);
+      const executionPayload = {
+        sessionId: ingestRequest.sessionId,
+        input: ingestRequest.task,
+        token: ingestRequest.token,
+      };
 
-      try {
-        const payload = await this.connectionService.execute({
-          sessionId: token,
-          input: task,
-          token: this._extractBearerToken(request),
-        });
-        return this._writeJson(response, 200, payload);
-      } catch (error) {
-        return this._writeJson(response, 400, { error: { message: error.message } });
+      if (this._wantsEventStream(request, url, body)) {
+        return this._writeEventStream(response, executionPayload);
       }
+
+      const payload = await this.connectionService.execute(executionPayload);
+      return this._writeJson(response, 200, payload);
     }
 
     // ─── SSE Stream ───────────────────────────────────────────────────
@@ -333,11 +358,91 @@ export class FlowfexServer {
     return header.slice(7).trim();
   }
 
+  _resolvePromptIngestRequest(body, request) {
+    if (!body || typeof body !== 'object') {
+      throw createHttpError('Prompt ingest requires a JSON object body', 400);
+    }
+
+    const parsedTask = this._extractPromptTaskToken(body.task);
+    const explicitToken = body.sessionToken || body.token || null;
+    const bearerToken = this._extractBearerToken(request);
+    const sessionToken = explicitToken || bearerToken || parsedTask.token;
+
+    if (explicitToken && parsedTask.token && explicitToken !== parsedTask.token) {
+      throw createHttpError('Prompt ingest received conflicting session tokens', 400);
+    }
+
+    if (!sessionToken) {
+      throw createHttpError('Prompt ingest requires a session token or a token-prefixed task', 400);
+    }
+
+    const session = this.connectionService?.sessionManager?.findSessionByToken?.(sessionToken);
+    if (!session) {
+      throw createHttpError('Invalid or expired session token', 401);
+    }
+
+    const task = typeof parsedTask.task === 'string' && parsedTask.task.trim().length > 0
+      ? parsedTask.task
+      : typeof body.task === 'string'
+        ? body.task.trim()
+        : '';
+
+    if (!task) {
+      throw createHttpError('Prompt ingest requires a non-empty task', 400);
+    }
+
+    return {
+      sessionId: body.sessionId || session.id,
+      token: sessionToken,
+      task,
+    };
+  }
+
+  _extractPromptTaskToken(task) {
+    if (typeof task !== 'string') {
+      return { token: null, task: '' };
+    }
+
+    const normalizedTask = task.replace(/\r\n/g, '\n');
+    const patterns = [
+      /^\s*\[\[\s*FLOWFEX_SESSION_TOKEN\s*:\s*(ffx_[a-f0-9]+)\s*\]\]\s*\n?([\s\S]*)$/i,
+      /^\s*FLOWFEX_SESSION_TOKEN\s*:\s*(ffx_[a-f0-9]+)\s*\n+([\s\S]*)$/i,
+    ];
+
+    for (const pattern of patterns) {
+      const match = normalizedTask.match(pattern);
+      if (!match) {
+        continue;
+      }
+
+      return {
+        token: match[1],
+        task: (match[2] || '').trim(),
+      };
+    }
+
+    return {
+      token: null,
+      task: normalizedTask.trim(),
+    };
+  }
+
   _writeJson(response, statusCode, payload) {
-    response.writeHead(statusCode, {
-      'content-type': 'application/json; charset=utf-8'
-    });
-    response.end(JSON.stringify(payload, null, 2));
+    const jsonStr = JSON.stringify(payload, null, 2);
+    const acceptEncoding = response.req?.headers?.['accept-encoding'] || '';
+
+    if (acceptEncoding.includes('gzip')) {
+      response.writeHead(statusCode, {
+        'content-type': 'application/json; charset=utf-8',
+        'content-encoding': 'gzip'
+      });
+      response.end(zlib.gzipSync(Buffer.from(jsonStr, 'utf-8')));
+    } else {
+      response.writeHead(statusCode, {
+        'content-type': 'application/json; charset=utf-8'
+      });
+      response.end(jsonStr);
+    }
   }
 
   async _writeEventStream(response, executionPayload) {
@@ -422,10 +527,26 @@ export class FlowfexServer {
     });
   }
 
-  _setCorsHeaders(response) {
-    response.setHeader('Access-Control-Allow-Origin', '*');
+  _setCorsHeaders(response, request) {
+    // Basic Security Headers
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.setHeader('X-Frame-Options', 'DENY');
+    response.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    response.setHeader('X-XSS-Protection', '1; mode=block');
+
+    // CORS Hardening
+    const origin = request?.headers?.origin || '';
+    const allowed = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:5173', 'http://127.0.0.1:5173'];
+    
+    if (allowed.includes('*') || allowed.includes(origin)) {
+      response.setHeader('Access-Control-Allow-Origin', origin || '*');
+    } else {
+      response.setHeader('Access-Control-Allow-Origin', allowed[0]);
+    }
+
     response.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
     response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Flowfex-Api-Key');
+    response.setHeader('Access-Control-Allow-Credentials', 'true');
   }
 
   _wantsEventStream(request, url, body = {}) {

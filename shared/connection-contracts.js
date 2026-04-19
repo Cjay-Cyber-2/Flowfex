@@ -85,8 +85,10 @@ export const sessionBootstrapSchema = z.object({
     inspect: z.string().trim().min(1),
     execute: z.string().trim().min(1),
     executeStream: z.string().trim().min(1),
+    ingest: z.string().trim().min(1).optional(),
     revoke: z.string().trim().min(1),
     state: z.string().trim().min(1),
+    stream: z.string().trim().min(1).optional(),
     control: z.object({
       pause: z.string().trim().min(1),
       resume: z.string().trim().min(1),
@@ -130,6 +132,7 @@ export const promptConnectionResponseSchema = z.object({
     retrieval: retrievalSummarySchema,
     instructions: z.object({
       sessionUrl: z.string().trim().min(1),
+      taskPrefix: z.string().trim().min(1).optional(),
       prompt: z.string().trim().min(1),
     }),
   }),

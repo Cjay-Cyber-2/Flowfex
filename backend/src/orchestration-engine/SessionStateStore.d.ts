@@ -36,6 +36,7 @@ export declare class SessionStateStore {
     setBlockedSkillIds(sessionId: string, blockedSkillIds: string[]): void;
     setControl(sessionId: string, updates: Partial<SessionExecutionState['control']>): void;
     appendGraphUpdate(sessionId: string, update: SessionExecutionState['graphUpdates'][number]): void;
+    flushPersistence(): Promise<void>;
     private mutate;
     private persist;
 }

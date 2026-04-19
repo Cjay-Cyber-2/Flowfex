@@ -25,9 +25,9 @@ export class FlowfexSocketServer {
         methods: ['GET', 'POST'],
         credentials: true,
       },
-      pingTimeout: 30000,
-      pingInterval: 10000,
-      maxHttpBufferSize: 1e6,
+      pingTimeout: 10000,
+      pingInterval: 15000,
+      maxHttpBufferSize: 5e5,
     });
 
     this.orchestration = this.io.of('/orchestration');
@@ -193,7 +193,7 @@ export class FlowfexSocketServer {
   /**
    * @param {string} sessionId
    * @param {string} nodeId
-   * @param {string} error
+   * @param {Object|string} error
    */
   emitNodeError(sessionId, nodeId, error) {
     this._notifySessionListeners(sessionId, {

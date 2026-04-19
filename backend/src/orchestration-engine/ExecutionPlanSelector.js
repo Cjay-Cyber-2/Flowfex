@@ -170,11 +170,11 @@ function resolveDecisionNodes(intent, selectedSteps) {
             continue;
         }
         decisionNodes.push({
-            id: stableId('decision', branch.id, selectedSteps[sourceIndex]?.id || '', alternateTarget.id),
-            sourceStepId: selectedSteps[sourceIndex]?.id || '',
+            id: stableId('decision', branch.id, selectedSteps[sourceIndex]?.stepId || '', alternateTarget.stepId),
+            sourceStepId: selectedSteps[sourceIndex]?.stepId || '',
             title: branch.sourceStepTitle || 'Branch decision',
             condition: branch.condition,
-            alternateTargetStepId: alternateTarget.id,
+            alternateTargetStepId: alternateTarget.stepId,
             takeAlternateWhen: inferAlternateTiming(branch, alternateTarget.title),
             reasoning: branch.rationale || `Evaluates whether the flow should reroute from ${selectedSteps[sourceIndex]?.title || 'the selected step'}`,
         });

@@ -188,6 +188,10 @@ export class SessionStateStore {
     });
   }
 
+  async flushPersistence(): Promise<void> {
+    await this.persistenceQueue;
+  }
+
   private mutate(sessionId: string, updater: (state: SessionExecutionState) => void): void {
     const state = this.sessions.get(sessionId);
     if (!state) {

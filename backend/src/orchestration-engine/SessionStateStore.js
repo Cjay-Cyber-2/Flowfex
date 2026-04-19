@@ -130,6 +130,9 @@ export class SessionStateStore {
             state.graphUpdates.push(toSerializable(update));
         });
     }
+    async flushPersistence() {
+        await this.persistenceQueue;
+    }
     mutate(sessionId, updater) {
         const state = this.sessions.get(sessionId);
         if (!state) {

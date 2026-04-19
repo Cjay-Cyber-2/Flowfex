@@ -7,8 +7,8 @@ import {
 } from '../../data/landing/generated/scrollFrames'
 
 const TARGET_ASPECT_RATIO = scrollFrameAspectRatio || 2.39
-const SCROLL_PIXELS_PER_FRAME = 32
-const FRAME_EASE = 0.08
+const SCROLL_PIXELS_PER_FRAME = 18
+const FRAME_EASE = 0.25
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)

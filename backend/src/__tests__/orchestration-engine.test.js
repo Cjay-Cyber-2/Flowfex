@@ -407,6 +407,10 @@ await test('branch rerouting executes the alternate path when the decision condi
   });
 
   assert.equal(result.status, 'success');
+  if (!result.trace.some(entry => entry.nodeType === 'decision')) console.log('!!! MISSING DECISION IN TRACE:', result.trace);
+  console.log('--- ACTUAL TRACE:', result.trace.map(t => t.nodeType));
+  console.log('--- SELECTION DECISION NODES:', require('util').inspect(orchestrator.getSessionState(result.sessionId).selection.decisionNodes, { depth: null }));
+  console.log('--- GRAPH NODES:', result.graph.nodes.map(n => n.type));
   assert.ok(result.trace.some(entry => entry.nodeType === 'decision'));
   assert.ok(result.trace.some(entry => entry.toolId === 'tool.manual'));
   assert.ok(!result.trace.some(entry => entry.toolId === 'tool.ship'));

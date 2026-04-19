@@ -129,34 +129,14 @@ export class OrchestrationEngine {
             bridge,
         });
         const snapshot = this.stateStore.getSnapshot(context.sessionId);
-        const selectionStrategy = selection.rankings[0]?.strategy
-            || (retrieval.strategy === 'mixed' ? 'keyword-fallback' : retrieval.strategy);
-        const finalEventType = execution.status === 'error'
-            ? 'execution.failed'
-            : execution.status === 'paused'
-                ? 'execution.paused'
-                : execution.status === 'awaiting_approval'
-                    ? 'execution.awaiting_approval'
-                    : 'execution.completed';
-        bridge.emitDiagnostic(finalEventType, {
-            status: execution.status === 'success'
-                ? 'completed'
-                : execution.status === 'error'
-                    ? 'failed'
-                    : execution.status,
-            workflow: {
-                mode: 'task',
-                task: context.task,
-            },
-            selection: {
-                strategy: selectionStrategy,
-                fallbackUsed: retrieval.fallbackUsed || selection.fallbackUsed,
-            },
-            ...(execution.error ? { error: execution.error } : {}),
-            ...(execution.finalOutput && typeof execution.finalOutput === 'object' && execution.finalOutput !== null
-                ? { data: execution.finalOutput }
-                : {}),
-            final: execution.status === 'success' || execution.status === 'error',
+        this.emitFinalExecutionDiagnostic(bridge, {
+            task: context.task,
+            status: execution.status,
+            finalOutput: execution.finalOutput,
+            error: execution.error,
+            selectionStrategy: selection.rankings[0]?.strategy
+                || (retrieval.strategy === 'mixed' ? 'keyword-fallback' : retrieval.strategy),
+            fallbackUsed: retrieval.fallbackUsed || selection.fallbackUsed,
         });
         return {
             executionId,
@@ -231,6 +211,14 @@ export class OrchestrationEngine {
             emitGraphCreated: false,
         });
         const nextSnapshot = this.stateStore.getSnapshot(snapshot.sessionId);
+        this.emitFinalExecutionDiagnostic(bridge, {
+            task: snapshot.task,
+            status: execution.status,
+            finalOutput: execution.finalOutput,
+            error: execution.error,
+            selectionStrategy: snapshot.selection.rankings[0]?.strategy || 'deterministic-fallback',
+            fallbackUsed: snapshot.selection.fallbackUsed === true,
+        });
         return {
             executionId: snapshot.executionId,
             sessionId: snapshot.sessionId,
@@ -262,5 +250,34 @@ export class OrchestrationEngine {
     }
     getStateStore() {
         return this.stateStore;
+    }
+    emitFinalExecutionDiagnostic(bridge, details) {
+        const finalEventType = details.status === 'error'
+            ? 'execution.failed'
+            : details.status === 'paused'
+                ? 'execution.paused'
+                : details.status === 'awaiting_approval'
+                    ? 'execution.awaiting_approval'
+                    : 'execution.completed';
+        bridge.emitDiagnostic(finalEventType, {
+            status: details.status === 'success'
+                ? 'completed'
+                : details.status === 'error'
+                    ? 'failed'
+                    : details.status,
+            workflow: {
+                mode: 'task',
+                task: details.task,
+            },
+            selection: {
+                strategy: details.selectionStrategy,
+                fallbackUsed: details.fallbackUsed,
+            },
+            ...(details.error ? { error: details.error } : {}),
+            ...(details.finalOutput && typeof details.finalOutput === 'object' && details.finalOutput !== null
+                ? { data: details.finalOutput }
+                : {}),
+            final: details.status === 'success' || details.status === 'error',
+        });
     }
 }

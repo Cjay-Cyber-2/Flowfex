@@ -1,8 +1,18 @@
 /**
  * ParticleTextEffect — canvas-based particle text animation.
- * Adapted from the provided TypeScript component to plain JS/JSX.
+ * Uses transparent canvas with Flowfex brand colors.
+ * No black background — blends naturally into any section.
  */
 import React, { useRef, useEffect } from 'react';
+
+// ─── Flowfex brand palette for particles ────────────────────────────────
+const BRAND_COLORS = [
+  { r: 0, g: 212, b: 170 },    // #00D4AA — primary green
+  { r: 127, g: 255, b: 240 },  // #7FFFF0 — bright teal
+  { r: 70, g: 189, b: 169 },   // #46BDA9 — muted teal
+  { r: 99, g: 68, b: 245 },    // #6344F5 — accent purple
+  { r: 174, g: 72, b: 255 },   // #AE48FF — accent violet
+];
 
 class Particle {
   constructor() {
@@ -15,17 +25,18 @@ class Particle {
     this.maxForce = 0.1;
     this.particleSize = 10;
     this.isKilled = false;
-    this.startColor = { r: 0, g: 0, b: 0 };
-    this.targetColor = { r: 0, g: 0, b: 0 };
+    this.startColor = { r: 0, g: 212, b: 170 };
+    this.targetColor = { r: 0, g: 212, b: 170 };
     this.colorWeight = 0;
     this.colorBlendRate = 0.01;
+    this.alpha = 1;
   }
 
   move() {
     let proximityMult = 1;
     const distance = Math.sqrt(
-      Math.pow(this.pos.x - this.target.x, 2) +
-      Math.pow(this.pos.y - this.target.y, 2)
+      (this.pos.x - this.target.x) ** 2 +
+      (this.pos.y - this.target.y) ** 2
     );
     if (distance < this.closeEnoughTarget) {
       proximityMult = distance / this.closeEnoughTarget;
@@ -61,11 +72,15 @@ class Particle {
       g: Math.round(this.startColor.g + (this.targetColor.g - this.startColor.g) * this.colorWeight),
       b: Math.round(this.startColor.b + (this.targetColor.b - this.startColor.b) * this.colorWeight),
     };
+    // Fade killed particles out
+    const alpha = this.isKilled ? Math.max(0, this.alpha - 0.02) : 1;
+    this.alpha = alpha;
+
     if (drawAsPoints) {
-      ctx.fillStyle = `rgb(${c.r},${c.g},${c.b})`;
+      ctx.fillStyle = `rgba(${c.r},${c.g},${c.b},${alpha})`;
       ctx.fillRect(this.pos.x, this.pos.y, 2, 2);
     } else {
-      ctx.fillStyle = `rgb(${c.r},${c.g},${c.b})`;
+      ctx.fillStyle = `rgba(${c.r},${c.g},${c.b},${alpha})`;
       ctx.beginPath();
       ctx.arc(this.pos.x, this.pos.y, this.particleSize / 2, 0, Math.PI * 2);
       ctx.fill();
@@ -77,12 +92,13 @@ class Particle {
       const rp = generateRandomPos(width / 2, height / 2, (width + height) / 2);
       this.target.x = rp.x;
       this.target.y = rp.y;
+      // Blend towards transparent instead of black
       this.startColor = {
         r: this.startColor.r + (this.targetColor.r - this.startColor.r) * this.colorWeight,
         g: this.startColor.g + (this.targetColor.g - this.startColor.g) * this.colorWeight,
         b: this.startColor.b + (this.targetColor.b - this.startColor.b) * this.colorWeight,
       };
-      this.targetColor = { r: 0, g: 0, b: 0 };
+      // Keep the same color but fade alpha
       this.colorWeight = 0;
       this.isKilled = true;
     }
@@ -96,6 +112,10 @@ function generateRandomPos(x, y, mag) {
   const m = Math.sqrt(dir.x ** 2 + dir.y ** 2);
   if (m > 0) { dir.x = (dir.x / m) * mag; dir.y = (dir.y / m) * mag; }
   return { x: x + dir.x, y: y + dir.y };
+}
+
+function pickBrandColor() {
+  return { ...BRAND_COLORS[Math.floor(Math.random() * BRAND_COLORS.length)] };
 }
 
 export function ParticleTextEffect({ words = ['Flowfex', 'Connect', 'Orchestrate', 'Guide', 'Automate'] }) {
@@ -113,7 +133,6 @@ export function ParticleTextEffect({ words = ['Flowfex', 'Connect', 'Orchestrate
     off.height = canvas.height;
     const octx = off.getContext('2d');
     octx.fillStyle = 'white';
-    // Responsive font size based on canvas width
     const fontSize = Math.min(120, canvas.width * 0.12);
     octx.font = `bold ${fontSize}px Inter, Arial, sans-serif`;
     octx.textAlign = 'center';
@@ -123,11 +142,8 @@ export function ParticleTextEffect({ words = ['Flowfex', 'Connect', 'Orchestrate
     const imageData = octx.getImageData(0, 0, canvas.width, canvas.height);
     const pixels = imageData.data;
 
-    const newColor = {
-      r: 0 + Math.random() * 80,
-      g: 180 + Math.random() * 75,
-      b: 150 + Math.random() * 105,
-    };
+    // Pick a brand color for this word cycle
+    const newColor = pickBrandColor();
 
     const particles = particlesRef.current;
     let particleIndex = 0;
@@ -146,6 +162,7 @@ export function ParticleTextEffect({ words = ['Flowfex', 'Connect', 'Orchestrate
         if (particleIndex < particles.length) {
           p = particles[particleIndex];
           p.isKilled = false;
+          p.alpha = 1;
           particleIndex++;
         } else {
           p = new Particle();
@@ -175,15 +192,17 @@ export function ParticleTextEffect({ words = ['Flowfex', 'Connect', 'Orchestrate
   function animate(canvas) {
     const ctx = canvas.getContext('2d');
     const particles = particlesRef.current;
-    ctx.fillStyle = 'rgba(0,0,0,0.12)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // TRANSPARENT clear — no black background
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     for (let i = particles.length - 1; i >= 0; i--) {
       particles[i].move();
       particles[i].draw(ctx, drawAsPoints);
       if (particles[i].isKilled && (
-        particles[i].pos.x < 0 || particles[i].pos.x > canvas.width ||
-        particles[i].pos.y < 0 || particles[i].pos.y > canvas.height
+        particles[i].alpha <= 0.02 ||
+        particles[i].pos.x < -50 || particles[i].pos.x > canvas.width + 50 ||
+        particles[i].pos.y < -50 || particles[i].pos.y > canvas.height + 50
       )) {
         particles.splice(i, 1);
       }
@@ -222,7 +241,7 @@ export function ParticleTextEffect({ words = ['Flowfex', 'Connect', 'Orchestrate
   return (
     <canvas
       ref={canvasRef}
-      style={{ display: 'block', width: '100%', height: 'auto', borderRadius: '1rem', mixBlendMode: 'screen' }}
+      style={{ display: 'block', width: '100%', height: 'auto', borderRadius: '1rem' }}
     />
   );
 }

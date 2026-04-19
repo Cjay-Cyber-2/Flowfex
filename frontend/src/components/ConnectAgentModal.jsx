@@ -217,6 +217,37 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
         ...current,
         [tab]: payload,
       }));
+
+      // Auto-detect: if we got a live session with a token, the connection is established
+      const session = payload?.connection?.session;
+      if (session?.id && session?.token) {
+        // Register in store automatically
+        const agentLabel = tab;
+        addAgent({
+          id: session.agent?.id || `agent-${session.id}`,
+          name: session.agent?.name || `${agentLabel} Agent`,
+          type: tab,
+          status: 'connected',
+          lastSeen: 'Live now',
+        });
+        const sessionRecord = {
+          id: session.id,
+          name: `${agentLabel} Session`,
+          task: 'Connected through Flowfex',
+          heartbeat: `${agentLabel} connection ready`,
+          status: 'ready',
+          revision: 0,
+          token: session.token,
+          executionId: null,
+        };
+        addSession(sessionRecord);
+        setActiveSession(sessionRecord);
+
+        // Auto-fire connected callback after short delay for UX
+        if (onConnected) {
+          setTimeout(() => onConnected(), 600);
+        }
+      }
     } catch (error) {
       setErrors((current) => ({
         ...current,
@@ -327,11 +358,6 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
               </span>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button className="cam-done-btn" onClick={onClose}>Done</button>
-                {onConnected && (
-                  <button className="cam-connected-btn" onClick={handleConnected}>
-                    I've Connected My Agent
-                  </button>
-                )}
               </div>
             </div>
           </motion.div>

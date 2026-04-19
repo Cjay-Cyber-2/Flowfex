@@ -77,6 +77,7 @@ export class ControlService {
         });
         const nextSnapshot = this.orchestrator.getSessionState(sessionId);
         this._emitSessionState(nextSnapshot);
+        await this._flushStateStore();
 
         return this._buildResponse(CONTROL_ACTIONS.PAUSE, nextSnapshot, {
           name: CONTROL_EVENTS.SESSION_STATE,
@@ -109,6 +110,7 @@ export class ControlService {
 
       this.socketServer?.emitSessionPaused?.(sessionId, eventPayload);
       this._emitSessionState(nextSnapshot);
+      await this._flushStateStore();
 
       return this._buildResponse(CONTROL_ACTIONS.PAUSE, nextSnapshot, {
         name: CONTROL_EVENTS.SESSION_PAUSED,
@@ -166,6 +168,7 @@ export class ControlService {
 
       this.socketServer?.emitSessionResumed?.(sessionId, eventPayload);
       this._emitSessionState(nextSnapshot);
+      await this._flushStateStore();
       this._scheduleContinuation(sessionId, CONTROL_ACTIONS.RESUME);
 
       return this._buildResponse(CONTROL_ACTIONS.RESUME, nextSnapshot, {
@@ -221,6 +224,7 @@ export class ControlService {
         note: request.note || null,
       });
       this._emitSessionState(nextSnapshot);
+      await this._flushStateStore();
 
       if (nextStatus === 'running') {
         this._assertNoContinuation(request.sessionId);
@@ -309,6 +313,7 @@ export class ControlService {
         reason: request.reason || 'node_rejected',
       });
       this._emitSessionState(nextSnapshot);
+      await this._flushStateStore();
 
       if (nextStatus === 'running') {
         this._assertNoContinuation(request.sessionId);
@@ -392,6 +397,7 @@ export class ControlService {
         reason: request.reason || 'manual_reroute',
       });
       this._emitSessionState(nextSnapshot);
+      await this._flushStateStore();
 
       if (nextStatus === 'running') {
         this._assertNoContinuation(request.sessionId);
@@ -468,6 +474,7 @@ export class ControlService {
       this.socketServer?.emitGraphCreated?.(sessionId, nextSnapshot.graph);
       this.socketServer?.emitSessionConstrained?.(sessionId, eventPayload);
       this._emitSessionState(nextSnapshot);
+      await this._flushStateStore();
 
       return this._buildResponse(CONTROL_ACTIONS.CONSTRAIN, nextSnapshot, {
         name: CONTROL_EVENTS.SESSION_CONSTRAINED,
@@ -577,6 +584,10 @@ export class ControlService {
     this.socketServer?.emitControlError?.(context.sessionId || null, payload);
   }
 
+  async _flushStateStore() {
+    await this.orchestrator.getStateStore().flushPersistence?.();
+  }
+
   _findNode(snapshot, nodeId) {
     const node = snapshot.graph.nodes.find((candidate) => candidate.id === nodeId);
     if (!node) {
@@ -590,6 +601,41 @@ export class ControlService {
 
   _findFallbackNode(snapshot, nodeId) {
     const currentIndex = snapshot.graph.nodes.findIndex((node) => node.id === nodeId);
+    const tailNodes = currentIndex >= 0
+      ? snapshot.graph.nodes.slice(currentIndex + 1)
+      : snapshot.graph.nodes;
+
+    const preferredTailFallback = tailNodes.find((node) =>
+      node.state !== 'completed'
+      && node.state !== 'skipped'
+      && FALLBACK_NODE_PATTERN.test(`${node.title} ${node.subtitle} ${node.reasoning}`)
+    );
+    if (preferredTailFallback) {
+      return preferredTailFallback;
+    }
+
+    const fallbackEdge = snapshot.graph.edges.find((edge) => {
+      if (
+        edge.from !== nodeId
+        || edge.to === nodeId
+        || edge.state === 'completed'
+        || edge.state === 'inactive'
+      ) {
+        return false;
+      }
+
+      const targetNode = snapshot.graph.nodes.find((node) => node.id === edge.to);
+      return Boolean(
+        targetNode
+        && targetNode.state !== 'completed'
+        && targetNode.state !== 'skipped'
+        && FALLBACK_NODE_PATTERN.test(`${targetNode.title} ${targetNode.subtitle} ${targetNode.reasoning}`)
+      );
+    });
+    if (fallbackEdge) {
+      return snapshot.graph.nodes.find((node) => node.id === fallbackEdge.to) || null;
+    }
+
     const outgoingEdge = snapshot.graph.edges.find((edge) =>
       edge.from === nodeId
       && edge.to !== nodeId
@@ -600,14 +646,7 @@ export class ControlService {
       return snapshot.graph.nodes.find((node) => node.id === outgoingEdge.to) || null;
     }
 
-    const tailNodes = currentIndex >= 0
-      ? snapshot.graph.nodes.slice(currentIndex + 1)
-      : snapshot.graph.nodes;
-    return tailNodes.find((node) =>
-      node.state !== 'completed'
-      && node.state !== 'skipped'
-      && FALLBACK_NODE_PATTERN.test(`${node.title} ${node.subtitle} ${node.reasoning}`)
-    ) || null;
+    return null;
   }
 
   _ensureRerouteEdge(snapshot, fromNodeId, toNodeId) {
@@ -634,7 +673,7 @@ export class ControlService {
     const updatedNodeIds = [];
     const nextRankings = snapshot.selection.rankings.map((ranking) => ({ ...ranking }));
     const nextSteps = snapshot.selection.selectedSteps.map((step) => {
-      const nodeId = stableId('node', step.id);
+      const nodeId = stableId('node', step.stepId);
       const completed = snapshot.completedNodeIds.includes(nodeId);
       if (completed || !blocked.has(step.toolId)) {
         return step;

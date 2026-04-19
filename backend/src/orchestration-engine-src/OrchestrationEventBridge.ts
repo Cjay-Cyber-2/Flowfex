@@ -59,7 +59,7 @@ export class OrchestrationEventBridge {
   }
 
   emitNodeError(nodeId: string, error: ExecutionErrorInfo): void {
-    this.socketServer?.emitNodeError(this.sessionId, nodeId, error.message);
+    this.socketServer?.emitNodeError(this.sessionId, nodeId, error);
     this.emit('node:error', { nodeId, error });
   }
 

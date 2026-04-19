@@ -474,7 +474,7 @@ export interface SocketServerLike {
   emitNodeAwaitingApproval(sessionId: string, nodeId: string, data?: Record<string, unknown>): void;
   emitNodeApproved?(sessionId: string, nodeId: string, data?: Record<string, unknown>): void;
   emitNodeRejected(sessionId: string, nodeId: string, data?: Record<string, unknown>): void;
-  emitNodeError(sessionId: string, nodeId: string, error: string): void;
+  emitNodeError(sessionId: string, nodeId: string, error: string | ExecutionErrorInfo): void;
   emitEdgeActive(sessionId: string, edgeId: string): void;
   emitPathRerouted(sessionId: string, edgeId: string, data?: Record<string, unknown>): void;
   emitSessionPaused?(sessionId: string, state?: Record<string, unknown>): void;

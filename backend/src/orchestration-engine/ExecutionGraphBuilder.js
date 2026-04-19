@@ -22,8 +22,8 @@ export class ExecutionGraphBuilder {
         const stepIndexByStepId = new Map();
         const alternateTargets = new Set(selection.decisionNodes.map(decision => decision.alternateTargetStepId));
         for (const [index, step] of selection.selectedSteps.entries()) {
-            stepNodeIdByStepId.set(step.id, stableId('node', step.id));
-            stepIndexByStepId.set(step.id, index);
+            stepNodeIdByStepId.set(step.stepId, stableId('node', step.stepId));
+            stepIndexByStepId.set(step.stepId, index);
         }
         const decisionsBySourceStepId = new Map();
         const decisionNodeIdByDecisionId = new Map();
@@ -40,8 +40,8 @@ export class ExecutionGraphBuilder {
         for (const step of selection.selectedSteps) {
             orderedNodes.push({
                 kind: 'skill',
-                graphNodeId: stepNodeIdByStepId.get(step.id) || stableId('node', step.id),
-                stepId: step.id,
+                graphNodeId: stepNodeIdByStepId.get(step.stepId) || stableId('node', step.stepId),
+                stepId: step.stepId,
                 title: step.title,
                 objective: step.objective,
                 capabilityCategory: step.capabilityCategory,
@@ -51,9 +51,9 @@ export class ExecutionGraphBuilder {
                 score: step.score,
                 reasoning: step.reasoning,
                 alternatives: step.alternatives,
-                branchLane: alternateTargets.has(step.id) ? 1 : 0,
+                branchLane: alternateTargets.has(step.stepId) ? 1 : 0,
             });
-            const stepDecisions = decisionsBySourceStepId.get(step.id) || [];
+            const stepDecisions = decisionsBySourceStepId.get(step.stepId) || [];
             for (const decision of stepDecisions) {
                 orderedNodes.push({
                     kind: 'decision',
@@ -158,11 +158,11 @@ export class ExecutionGraphBuilder {
             }
         }
         for (const [stepIndex, step] of selection.selectedSteps.entries()) {
-            const fromNodeId = stepNodeIdByStepId.get(step.id);
+            const fromNodeId = stepNodeIdByStepId.get(step.stepId);
             if (!fromNodeId) {
                 continue;
             }
-            const stepDecisions = decisionsBySourceStepId.get(step.id) || [];
+            const stepDecisions = decisionsBySourceStepId.get(step.stepId) || [];
             if (stepDecisions.length > 0) {
                 for (const decision of stepDecisions) {
                     const decisionNodeId = decisionNodeIdByDecisionId.get(decision.id);
@@ -279,10 +279,10 @@ function addEdge(edges, outgoingEdges, incomingEdgeIdByNode, edge) {
 function findNextVisibleSkillNodeId(selectedSteps, stepNodeIdByStepId, exclusiveAlternateStepIds, currentStepIndex) {
     for (let index = currentStepIndex + 1; index < selectedSteps.length; index += 1) {
         const nextStep = selectedSteps[index];
-        if (!nextStep || exclusiveAlternateStepIds.has(nextStep.id)) {
+        if (!nextStep || exclusiveAlternateStepIds.has(nextStep.stepId)) {
             continue;
         }
-        return stepNodeIdByStepId.get(nextStep.id) || null;
+        return stepNodeIdByStepId.get(nextStep.stepId) || null;
     }
     return null;
 }

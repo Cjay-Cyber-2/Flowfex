@@ -73,6 +73,29 @@ export class SessionManager {
     return cloneSession(session);
   }
 
+  findSessionByToken(token, options = {}) {
+    this.cleanupExpiredSessions();
+
+    if (typeof token !== 'string' || token.trim().length === 0) {
+      return null;
+    }
+
+    for (const session of this.sessions.values()) {
+      if (session.revokedAt || !matchesToken(session.tokenHash, token)) {
+        continue;
+      }
+
+      if (options.touch === true) {
+        session.requestCount += 1;
+        session.lastSeenAt = new Date().toISOString();
+      }
+
+      return cloneSession(session);
+    }
+
+    return null;
+  }
+
   getSession(sessionId) {
     this.cleanupExpiredSessions();
     const session = this.sessions.get(sessionId);

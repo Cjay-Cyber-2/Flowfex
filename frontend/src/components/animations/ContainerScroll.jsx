@@ -27,12 +27,12 @@ export function ContainerScroll({ titleComponent, children }) {
     <div
       ref={containerRef}
       style={{
-        height: isMobile ? '60rem' : '80rem',
+        height: isMobile ? '45rem' : '55rem',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
-        padding: isMobile ? '0.5rem' : '5rem',
+        padding: isMobile ? '0.5rem' : '3rem',
       }}
     >
       <div style={{ paddingTop: isMobile ? '2.5rem' : '10rem', paddingBottom: isMobile ? '2.5rem' : '10rem', width: '100%', position: 'relative', perspective: '1000px' }}>

@@ -33,4 +33,5 @@ export declare class OrchestrationEngine {
         sessionContext?: OrchestrationExecutionContext['sessionContext'];
     }): Promise<OrchestrationRunResult>;
     getStateStore(): SessionStateStore;
+    private emitFinalExecutionDiagnostic;
 }

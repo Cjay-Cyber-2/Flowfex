@@ -172,92 +172,16 @@ function renderFlowGraph(nodes, edges, prefix, showLabels = false, customViewBox
   );
 }
 
-const HERO_GRAPH = {
+// Full desktop hero graph (7 nodes)
+const HERO_GRAPH_FULL = {
   nodes: [
-    {
-      id: 'hero-cli',
-      shape: 'rect',
-      x: 80,
-      y: 120,
-      width: 120,
-      height: 50,
-      title: 'CLI',
-      subtitle: '',
-      state: 'completed',
-      icon: 'message-square',
-    },
-    {
-      id: 'hero-ide',
-      shape: 'rect',
-      x: 80,
-      y: 220,
-      width: 120,
-      height: 50,
-      title: 'IDE',
-      subtitle: '',
-      state: 'completed',
-      icon: 'layers',
-    },
-    {
-      id: 'hero-web',
-      shape: 'rect',
-      x: 80,
-      y: 320,
-      width: 120,
-      height: 50,
-      title: 'Web',
-      subtitle: '',
-      state: 'queued',
-      icon: 'globe',
-    },
-    {
-      id: 'hero-bridge',
-      shape: 'rect',
-      x: 380,
-      y: 210,
-      width: 140,
-      height: 60,
-      title: 'Flowfex',
-      subtitle: '',
-      state: 'active',
-      icon: 'git-branch',
-    },
-    {
-      id: 'hero-skill-pull',
-      shape: 'rect',
-      x: 680,
-      y: 130,
-      width: 120,
-      height: 50,
-      title: 'Skills',
-      subtitle: '',
-      state: 'completed',
-      icon: 'sparkles',
-    },
-    {
-      id: 'hero-tool-pull',
-      shape: 'rect',
-      x: 680,
-      y: 290,
-      width: 120,
-      height: 50,
-      title: 'Tools',
-      subtitle: '',
-      state: 'queued',
-      icon: 'database',
-    },
-    {
-      id: 'hero-canvas',
-      shape: 'rect',
-      x: 980,
-      y: 210,
-      width: 120,
-      height: 60,
-      title: 'Canvas',
-      subtitle: '',
-      state: 'approval',
-      icon: 'shield-check',
-    },
+    { id: 'hero-cli', shape: 'rect', x: 80, y: 120, width: 120, height: 50, title: 'CLI', subtitle: '', state: 'completed', icon: 'message-square' },
+    { id: 'hero-ide', shape: 'rect', x: 80, y: 220, width: 120, height: 50, title: 'IDE', subtitle: '', state: 'completed', icon: 'layers' },
+    { id: 'hero-web', shape: 'rect', x: 80, y: 320, width: 120, height: 50, title: 'Web', subtitle: '', state: 'queued', icon: 'globe' },
+    { id: 'hero-bridge', shape: 'rect', x: 380, y: 210, width: 140, height: 60, title: 'Flowfex', subtitle: '', state: 'active', icon: 'git-branch' },
+    { id: 'hero-skill-pull', shape: 'rect', x: 680, y: 130, width: 120, height: 50, title: 'Skills', subtitle: '', state: 'completed', icon: 'sparkles' },
+    { id: 'hero-tool-pull', shape: 'rect', x: 680, y: 290, width: 120, height: 50, title: 'Tools', subtitle: '', state: 'queued', icon: 'database' },
+    { id: 'hero-canvas', shape: 'rect', x: 980, y: 210, width: 120, height: 60, title: 'Canvas', subtitle: '', state: 'approval', icon: 'shield-check' },
   ],
   edges: [
     { id: 'hero-edge-cli', from: 'hero-cli', to: 'hero-bridge', state: 'completed' },
@@ -270,12 +194,35 @@ const HERO_GRAPH = {
   ],
 };
 
+// Simplified mobile hero graph (4 nodes — cleaner on small screens)
+const HERO_GRAPH_MOBILE = {
+  nodes: [
+    { id: 'hero-cli', shape: 'rect', x: 40, y: 160, width: 120, height: 50, title: 'Agent', subtitle: '', state: 'completed', icon: 'message-square' },
+    { id: 'hero-bridge', shape: 'rect', x: 260, y: 155, width: 140, height: 60, title: 'Flowfex', subtitle: '', state: 'active', icon: 'git-branch' },
+    { id: 'hero-skill-pull', shape: 'rect', x: 500, y: 120, width: 120, height: 50, title: 'Skills', subtitle: '', state: 'completed', icon: 'sparkles' },
+    { id: 'hero-canvas', shape: 'rect', x: 500, y: 210, width: 120, height: 50, title: 'Canvas', subtitle: '', state: 'approval', icon: 'shield-check' },
+  ],
+  edges: [
+    { id: 'hero-edge-cli', from: 'hero-cli', to: 'hero-bridge', state: 'completed' },
+    { id: 'hero-edge-skill', from: 'hero-bridge', to: 'hero-skill-pull', state: 'completed' },
+    { id: 'hero-edge-canvas', from: 'hero-bridge', to: 'hero-canvas', state: 'active' },
+  ],
+};
+
 function LandingPage() {
   const navigate = useNavigate();
   const scrollProgressRef = useRef(null);
   const [activeSection, setActiveSection] = useState('hero');
   const clickLockRef = useRef(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  const HERO_GRAPH = isMobile ? HERO_GRAPH_MOBILE : HERO_GRAPH_FULL;
   const workspace = useMemo(() => buildDemoWorkspace(), []);
   const sectionIds = [
     { id: 'hero', label: 'Hero' },
@@ -421,18 +368,18 @@ function LandingPage() {
               Bridge live · resource pull visible
             </div>
           </div>
-          <div className="hero-graph-surface">{renderFlowGraph(HERO_GRAPH.nodes, HERO_GRAPH.edges, 'hero', false, "0 0 1180 480")}</div>
+          <div className="hero-graph-surface">{renderFlowGraph(HERO_GRAPH.nodes, HERO_GRAPH.edges, 'hero', false, isMobile ? "0 0 680 380" : "0 0 1180 480")}</div>
         </div>
       </section>
 
-      {/* ── Statement section: ParticleTextEffect owns the full stage ── */}
+      {/* ── Statement section: ParticleTextEffect with landing page theme ── */}
       <section
         id="statement"
         data-section-id="statement"
         className="landing-section"
-        style={{ padding: 0, minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2rem' }}
+        style={{ padding: '4rem 0', minHeight: '45vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1.5rem' }}
       >
-        <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.8rem', letterSpacing: '0.2em', textTransform: 'uppercase', margin: 0 }}>
+        <p style={{ color: 'var(--color-bistre, rgba(255,255,255,0.35))', fontSize: '0.8rem', letterSpacing: '0.2em', textTransform: 'uppercase', margin: 0 }}>
           What Flowfex does
         </p>
         <div style={{ width: '100%', maxWidth: '1100px', padding: '0 1.5rem' }}>
@@ -440,9 +387,6 @@ function LandingPage() {
             words={['Connect', 'Route', 'Orchestrate', 'Approve', 'Monitor']}
           />
         </div>
-        <p style={{ color: 'rgba(255,255,255,0.22)', fontSize: '0.75rem', letterSpacing: '0.08em', margin: 0 }}>
-          Right-click + drag to scatter
-        </p>
       </section>
 
       <section id="problem" data-section-id="problem" className="landing-section problem-section">

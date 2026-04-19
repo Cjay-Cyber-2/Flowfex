@@ -37,7 +37,7 @@ export class OrchestrationEventBridge {
         this.emit('node:rejected', { nodeId, ...data });
     }
     emitNodeError(nodeId, error) {
-        this.socketServer?.emitNodeError(this.sessionId, nodeId, error.message);
+        this.socketServer?.emitNodeError(this.sessionId, nodeId, error);
         this.emit('node:error', { nodeId, error });
     }
     emitEdgeActive(edgeId, data = {}) {

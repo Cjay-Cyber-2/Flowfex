@@ -353,6 +353,10 @@ export class Orchestrator {
     return this.engine.getStateStore();
   }
 
+  async flushStateStore() {
+    await this.engine.getStateStore().flushPersistence?.();
+  }
+
   getStats() {
     const successful = this.executionHistory.filter(entry => entry.status === 'success').length;
     const failed = this.executionHistory.filter(entry => entry.status === 'error').length;

@@ -79,6 +79,7 @@ export class ConnectionService {
       ttlSeconds: payload.ttlSeconds || this.promptSessionTtlSeconds
     });
 
+    const taskPrefix = this._buildPromptTaskPrefix(token);
     return {
       success: true,
       mode: 'prompt',
@@ -87,6 +88,7 @@ export class ConnectionService {
         retrieval: this._serializeRetrieval(retrieval),
         instructions: {
           sessionUrl: this._buildConnectUrl(context.baseUrl, session.id, token),
+          taskPrefix,
           prompt: this._buildPromptInstruction(payload.prompt, session.id, token, context.baseUrl),
         },
       }
@@ -187,7 +189,10 @@ export class ConnectionService {
     const { session, token } = this.sessionManager.createSession({
       mode: CONNECTION_MODES.LIVE,
       agent: payload.agent,
-      metadata: payload.metadata,
+      metadata: {
+        ...(payload.metadata || {}),
+        liveProtocol: protocol,
+      },
       capabilities: payload.capabilities,
       allowedToolIds,
       recommendedToolIds: allowedToolIds,
@@ -229,7 +234,9 @@ export class ConnectionService {
 
     if (payload.toolId) {
       this._assertToolAllowed(session, payload.toolId);
-      return this.orchestrator.executeTool(payload.toolId, payload.input, executionOptions);
+      const result = await this.orchestrator.executeTool(payload.toolId, payload.input, executionOptions);
+      await this.orchestrator.flushStateStore?.();
+      return result;
     }
 
     const executionInput = Object.prototype.hasOwnProperty.call(payload, 'workflow')
@@ -240,11 +247,13 @@ export class ConnectionService {
       throw createConnectionError('Execution requires either input or workflow', 400);
     }
 
-    return this.orchestrator.orchestrate(executionInput, {
+    const result = await this.orchestrator.orchestrate(executionInput, {
       ...executionOptions,
       topK: payload.topK,
       minScore: payload.minScore
     });
+    await this.orchestrator.flushStateStore?.();
+    return result;
   }
 
   getSession(sessionId, token) {
@@ -316,9 +325,12 @@ export class ConnectionService {
       throw createConnectionError('Session not found', 404);
     }
 
-    const protocol = session.mode === CONNECTION_MODES.LIVE
-      ? LIVE_CHANNEL_PROTOCOLS.SOCKET_IO
-      : LIVE_CHANNEL_PROTOCOLS.SOCKET_IO;
+    if (!options.token) {
+      throw createConnectionError('Session token is required to resolve a direct live session', 401);
+    }
+
+    this.sessionManager.authenticate(identifier, options.token);
+    const protocol = this._resolveSessionProtocol(session);
 
     return {
       success: true,
@@ -359,8 +371,10 @@ export class ConnectionService {
         inspect: `${baseUrl}/sessions/${session.id}`,
         execute: `${baseUrl}/sessions/${session.id}/execute`,
         executeStream: `${baseUrl}/sessions/${session.id}/execute?stream=1`,
+        ingest: `${baseUrl}/ingest`,
         revoke: `${baseUrl}/sessions/${session.id}`,
         state: `${baseUrl}/session/${session.id}/state`,
+        stream: `${baseUrl}/session/${session.id}/stream`,
         control: {
           pause: `${baseUrl}/session/${session.id}/pause`,
           resume: `${baseUrl}/session/${session.id}/resume`,
@@ -438,21 +452,39 @@ export class ConnectionService {
   }
 
   _buildPromptInstruction(prompt, sessionId, token, baseUrl) {
+    const prefixLine = this._buildPromptTaskPrefix(token);
     return [
       'Connect this agent to Flowfex.',
       '',
       `Session ID: ${sessionId}`,
       `Session URL: ${this._buildConnectUrl(baseUrl, sessionId, token)}`,
+      `Ingest URL: ${(baseUrl || this.publicBaseUrl)}/ingest`,
       '',
       'Rules:',
-      '1. Ask Flowfex for the best tools, skills, or workflows before you act.',
-      '2. Report each selected resource and a short reason.',
-      '3. Emit step updates back through Flowfex as the run progresses.',
-      '4. Wait when Flowfex marks a step as awaiting approval.',
-      '5. Return the final result through the same Flowfex session.',
+      '1. Prefix every task you send to Flowfex with the exact first line below.',
+      `   ${prefixLine}`,
+      '2. Put the actual task content on the following lines after the prefix.',
+      '3. Ask Flowfex for the best tools, skills, or workflows before you act.',
+      '4. Report each selected resource and a short reason.',
+      '5. Emit step updates back through Flowfex as the run progresses.',
+      '6. Wait when Flowfex marks a step as awaiting approval.',
+      '7. Return the final result through the same Flowfex session.',
       '',
       `Original prompt: ${prompt}`,
     ].join('\n');
+  }
+
+  _buildPromptTaskPrefix(token) {
+    return `FLOWFEX_SESSION_TOKEN: ${token}`;
+  }
+
+  _resolveSessionProtocol(session) {
+    const metadataProtocol = session?.metadata?.liveProtocol;
+    if (metadataProtocol === LIVE_CHANNEL_PROTOCOLS.SSE) {
+      return LIVE_CHANNEL_PROTOCOLS.SSE;
+    }
+
+    return LIVE_CHANNEL_PROTOCOLS.SOCKET_IO;
   }
 
   _cleanupLinkSessions() {

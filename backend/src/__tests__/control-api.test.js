@@ -1029,6 +1029,40 @@ await test('prompt, sdk, link, and live connection modes all return working boot
     assert.equal(liveExecute.status, 200);
     await liveEvents;
     liveSocket.disconnect();
+
+    const sseLiveConnect = await makeJsonRequest({
+      port: harness.address.port,
+      path: '/connect',
+      body: {
+        mode: 'live',
+        protocol: 'sse',
+        agent: { name: 'SSE Agent', type: 'live' },
+      },
+    });
+    assert.equal(sseLiveConnect.status, 200);
+    assert.equal(sseLiveConnect.body.connection.transport.protocol, 'sse');
+    assert.ok(
+      sseLiveConnect.body.connection.transport.sseUrl.endsWith(
+        `/session/${sseLiveConnect.body.connection.session.id}/stream`
+      )
+    );
+
+    const directResolveUnauthorized = await makeJsonRequest({
+      port: harness.address.port,
+      path: `/connect/live/${sseLiveConnect.body.connection.session.id}`,
+      method: 'GET',
+    });
+    assert.equal(directResolveUnauthorized.status, 401);
+
+    const directResolveAuthorized = await makeJsonRequest({
+      port: harness.address.port,
+      path: `/connect/live/${sseLiveConnect.body.connection.session.id}?token=${encodeURIComponent(
+        sseLiveConnect.body.connection.session.token
+      )}`,
+      method: 'GET',
+    });
+    assert.equal(directResolveAuthorized.status, 200);
+    assert.equal(directResolveAuthorized.body.connection.transport.protocol, 'sse');
   } finally {
     await harness.stop();
   }

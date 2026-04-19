@@ -10,8 +10,9 @@ export default function ParticleField() {
 
     const ctx = canvas.getContext('2d');
     const particles = [];
-    const particleCount = 150;
-    const connectionDistance = 120;
+    const isMobile = window.innerWidth <= 768;
+    const particleCount = isMobile ? 60 : 120;
+    const connectionDistance = isMobile ? 80 : 120;
     const mouse = { x: 0, y: 0 };
     let animationFrameId = 0;
 

@@ -12,7 +12,9 @@
     "skills:sample": "node src/skills/sampleConversion.js",
     "skills:test-phase1": "node src/skills/testPhase1.js",
     "skills:test-phase2": "node src/skills/testPhase2.js",
-    "skills:audit": "node src/skills/testPhase1.js"
+    "skills:audit": "node src/skills/testPhase1.js",
+    "skills:bulk-import": "node src/skills/runBulkImport.js",
+    "skills:report": "node src/skills/runBulkImport.js --report-only"
   },
   "author": "",
   "license": "ISC",

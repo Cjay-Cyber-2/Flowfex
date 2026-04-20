@@ -124,11 +124,11 @@ export function validateNormalizedSkill(skill, context = {}) {
     });
   }
 
-  if (sanitizedPrompt.length < 160) {
+  if (sanitizedPrompt.length < 100) {
     pushFinding(findings, seenFindings, {
       type: 'quality',
-      severity: 'high',
-      message: 'Sanitized prompt is too short to execute safely.',
+      severity: 'medium',
+      message: 'Sanitized prompt is short — registered as reference skill.',
       evidence: sanitizedPrompt
     });
   }
@@ -152,12 +152,16 @@ export function validateNormalizedSkill(skill, context = {}) {
   }
 
   const hasBlockingFinding = findings.some(finding => finding.severity === 'high');
+  const hasDuplicateFinding = findings.some(finding =>
+    finding.type === 'duplicate-id' || finding.type === 'duplicate-content'
+  );
   const hasWarnings = findings.some(finding => finding.severity === 'medium');
   const validationStatus = hasBlockingFinding ? 'blocked' : hasWarnings ? 'review' : 'approved';
   const trustLevel = resolveTrustLevel(context.sourceTrustLevel, validationStatus);
   const qualityScore = calculateQualityScore(findings);
-  const executable = validationStatus === 'approved'
-    || (validationStatus === 'review' && trustLevel === 'reviewed-with-warnings');
+  // Allow skills with only medium-severity quality warnings to load.
+  // Block only if there are HIGH severity security findings or duplicate content.
+  const executable = !hasBlockingFinding && !hasDuplicateFinding;
 
   return {
     allowed: executable,

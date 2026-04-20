@@ -176,15 +176,35 @@ function extractDescription(frontmatter, preamble, sections, title) {
     return cleanParagraph(frontmatter.description);
   }
 
-  const sources = [preamble, ...sections.map(section => section.content)];
+  // Skip HTML blocks (badges, banners, images) that appear before real content
+  const cleanedPreamble = preamble
+    .replace(/<p[^>]*>[\s\S]*?<\/p>/gi, '')
+    .replace(/<div[^>]*>[\s\S]*?<\/div>/gi, '')
+    .replace(/<a[^>]*>[\s\S]*?<\/a>/gi, '')
+    .replace(/<img[^>]*\/?>/gi, '')
+    .replace(/<hr\s*\/?>/gi, '')
+    .replace(/<br\s*\/?>/gi, '')
+    .replace(/<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>/gi, '')
+    .trim();
+
+  const sources = [cleanedPreamble, preamble, ...sections.map(section => section.content)];
   for (const source of sources) {
     const paragraph = firstParagraph(source);
-    if (paragraph && cleanInline(paragraph) !== cleanInline(title)) {
+    const cleaned = cleanInline(paragraph);
+    if (cleaned && cleaned !== cleanInline(title) && cleaned.length > 15) {
       return cleanParagraph(paragraph);
     }
   }
 
-  return `${title} imported from markdown skill content.`;
+  // Fallback: use first non-empty section title + content snippet
+  for (const section of sections) {
+    const sectionDesc = cleanInline(section.content || '').slice(0, 200);
+    if (sectionDesc.length > 15) {
+      return cleanParagraph(`${section.title}: ${sectionDesc}`);
+    }
+  }
+
+  return `${cleanInline(title) || 'Imported skill'} — imported from markdown skill content.`;
 }
 
 function extractInstructions(frontmatter, sections, preamble) {
@@ -193,7 +213,7 @@ function extractInstructions(frontmatter, sections, preamble) {
   }
 
   const relevantSections = sections.filter(section =>
-    /instruction|workflow|process|steps|guidelines|rules|checklist|best practices|use when|when to use|approach|command/i.test(
+    /instruction|workflow|process|steps|guidelines|rules|checklist|best practices|use when|when to use|approach|command|features|how to get started|how to use|quick start|getting started|setup|usage|prerequisites|run|overview/i.test(
       section.title
     )
   );

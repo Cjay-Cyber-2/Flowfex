@@ -164,6 +164,13 @@ function inferCategory({ title, description, relativePath, sections }) {
 
   const categoryMatchers = [
     { category: 'security', pattern: /\b(security|credential|threat|attack|audit|vuln|auth|token|secret)\b/ },
+    { category: 'rag', pattern: /\b(rag|retrieval|augmented|vector|embedding|knowledge[\s_-]?graph|semantic[\s_-]?search)\b/ },
+    { category: 'voice', pattern: /\b(voice|speech|audio|tts|stt|dictation|whisper)\b/ },
+    { category: 'gaming', pattern: /\b(game|pygame|chess|tic[\s_-]?tac[\s_-]?toe|play|3d[\s_-]?game)\b/ },
+    { category: 'mcp', pattern: /\b(mcp|model[\s_-]?context[\s_-]?protocol)\b/ },
+    { category: 'agent-team', pattern: /\b(multi[\s_-]?agent|agent[\s_-]?team|crew|swarm|orchestrat|handoff)\b/ },
+    { category: 'finance', pattern: /\b(finance|investment|trading|stock|portfolio|due[\s_-]?diligence|fintech)\b/ },
+    { category: 'research', pattern: /\b(research|arxiv|paper|deep[\s_-]?research|literature|citation)\b/ },
     { category: 'frontend', pattern: /\b(frontend|react|next\.js|nextjs|css|html|ui|ux|component|accessibility)\b|design-system/ },
     { category: 'backend', pattern: /\b(backend|service|server|express|fastify|worker|serverless)\b/ },
     { category: 'testing', pattern: /\b(test|testing|playwright|qa|coverage|debug|verify)\b/ },
@@ -205,7 +212,11 @@ function inferTags({ title, description, relativePath, sections, frontmatter, ca
     .filter(Boolean)
     .slice(0, 6);
 
-  return Array.from(new Set([category, ...explicitTags, ...pathTags, ...titleTags, ...sectionTags])).slice(0, 20);
+  // Framework/library detection from content signals
+  const contentSignal = `${title} ${description} ${sections.map(s => s.content).join(' ')}`;
+  const frameworkTags = detectFrameworks(contentSignal);
+
+  return Array.from(new Set([category, ...explicitTags, ...pathTags, ...titleTags, ...sectionTags, ...frameworkTags])).slice(0, 24);
 }
 
 function buildKeywords(title, description, tags) {
@@ -220,7 +231,8 @@ function buildKeywords(title, description, tags) {
 
 function buildSkillId(relativePath, title) {
   const segments = relativePath
-    .split(path.sep)
+    .replace(/\\/g, '/')
+    .split('/')
     .map(segment => segment.replace(/\.[^.]+$/, ''))
     .map(segment => slugify(segment))
     .filter(Boolean)
@@ -231,6 +243,43 @@ function buildSkillId(relativePath, title) {
   }
 
   return ['skill', ...segments].join('.');
+}
+
+const FRAMEWORK_PATTERNS = [
+  { tag: 'phidata', pattern: /\bphidata\b/i },
+  { tag: 'crewai', pattern: /\bcrewai\b/i },
+  { tag: 'ag2', pattern: /\bag2\b/i },
+  { tag: 'langchain', pattern: /\blangchain\b/i },
+  { tag: 'langgraph', pattern: /\blanggraph\b/i },
+  { tag: 'streamlit', pattern: /\bstreamlit\b/i },
+  { tag: 'openai', pattern: /\bopenai\b/i },
+  { tag: 'anthropic', pattern: /\banthropic\b/i },
+  { tag: 'gemini', pattern: /\bgemini\b/i },
+  { tag: 'llama', pattern: /\bllama\b/i },
+  { tag: 'deepseek', pattern: /\bdeepseek\b/i },
+  { tag: 'qwen', pattern: /\bqwen\b/i },
+  { tag: 'xai', pattern: /\bxai\b/i },
+  { tag: 'gpt', pattern: /\bgpt[-_]?[34o]\b/i },
+  { tag: 'claude', pattern: /\bclaude\b/i },
+  { tag: 'yfinance', pattern: /\byfinance\b/i },
+  { tag: 'duckduckgo', pattern: /\bduckduckgo\b/i },
+  { tag: 'composio', pattern: /\bcomposio\b/i },
+  { tag: 'google-adk', pattern: /\bgoogle[\s_-]?adk\b/i },
+  { tag: 'mcp', pattern: /\bmcp\b/i },
+  { tag: 'browseruse', pattern: /\bbrowseruse\b/i },
+  { tag: 'qdrant', pattern: /\bqdrant\b/i },
+  { tag: 'chromadb', pattern: /\bchromadb\b/i },
+  { tag: 'pinecone', pattern: /\bpinecone\b/i },
+];
+
+function detectFrameworks(content) {
+  const detected = [];
+  for (const { tag, pattern } of FRAMEWORK_PATTERNS) {
+    if (pattern.test(content)) {
+      detected.push(tag);
+    }
+  }
+  return detected;
 }
 
 function inferSourceType(relativePath, sourceClassification) {

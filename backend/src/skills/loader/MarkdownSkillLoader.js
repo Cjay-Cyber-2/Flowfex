@@ -21,13 +21,23 @@ export const DEFAULT_MARKDOWN_SKILL_SOURCES = [
     name: 'imported-skill-source',
     directory: path.join(FLOWFEX_ROOT, 'awesome-agent-skills'),
     trustLevel: 'unverified'
+  },
+  {
+    name: 'awesome-llm-apps-skills',
+    directory: path.join(FLOWFEX_ROOT, 'awesome-llm-apps', 'awesome_agent_skills'),
+    trustLevel: 'unverified'
+  },
+  {
+    name: 'awesome-llm-apps',
+    directory: path.join(FLOWFEX_ROOT, 'awesome-llm-apps'),
+    trustLevel: 'unverified'
   }
 ];
 
 const DEFAULT_CHUNK_SIZE = 100;
 const DEFAULT_MAX_FILE_SIZE_BYTES = 1024 * 1024;
-const IGNORED_DIRECTORIES = new Set(['.git', 'node_modules']);
-const IGNORED_FILES = new Set(['license.md', 'contributing.md']);
+const IGNORED_DIRECTORIES = new Set(['.git', '.github', 'node_modules', '__pycache__', '.venv', 'venv', '.tox']);
+const IGNORED_FILES = new Set(['license.md', 'contributing.md', 'changelog.md', 'code_of_conduct.md']);
 
 export function discoverMarkdownFiles(rootDirectory) {
   if (!rootDirectory || !fs.existsSync(rootDirectory)) {
@@ -93,6 +103,22 @@ export function loadMarkdownSkills(options = {}) {
     source,
     files: discoverMarkdownFiles(source.directory)
   }));
+
+  // Deduplicate files across sources by absolute path.
+  // When sources overlap (e.g. awesome-llm-apps/awesome_agent_skills is both
+  // its own source AND a subtree of awesome-llm-apps), each physical file
+  // should only be processed once — by the first source that discovers it.
+  const processedAbsolutePaths = new Set();
+  for (const entry of inventory) {
+    entry.files = entry.files.filter(filePath => {
+      if (processedAbsolutePaths.has(filePath)) {
+        return false;
+      }
+      processedAbsolutePaths.add(filePath);
+      return true;
+    });
+  }
+
   const localSkillIndex = buildLocalSkillIndex(inventory);
   const report = {
     sources: [],
@@ -279,19 +305,21 @@ function processMarkdownFile({
 }) {
   const lowerFileName = path.basename(filePath).toLowerCase();
   const stat = fs.statSync(filePath);
+  let truncated = false;
 
   if (stat.size > settings.maxFileSizeBytes) {
-    sourceSummary.skippedFiles++;
-    sourceSummary.classifications.ignore++;
-    report.skippedFiles.push({
-      filePath,
-      reason: 'file-too-large',
-      sizeBytes: stat.size
-    });
-    return;
+    // Instead of skipping oversized files, truncate and preserve useful content
+    truncated = true;
   }
 
-  const content = fs.readFileSync(filePath, 'utf8');
+  let content = fs.readFileSync(filePath, 'utf8');
+  if (truncated) {
+    const lines = content.split('\n');
+    if (lines.length > 500) {
+      content = lines.slice(0, 500).join('\n') + '\n\n[Content truncated — original file exceeded size limit]';
+    }
+  }
+
   const classification = classifyMarkdownFile(filePath, content);
   sourceSummary.classifications[classification] = (sourceSummary.classifications[classification] || 0) + 1;
 
@@ -385,11 +413,18 @@ function processMarkdownFile({
 function createMarkdownSkillTool(record) {
   const { normalizedSkill, validation, filePath, source, classification } = record;
 
+  // Safety fallbacks for required Tool fields — edge-case files with heavy HTML
+  // preambles or emoji-only content can produce empty strings after cleaning.
+  const safeDescription = normalizedSkill.description?.trim()
+    || `${normalizedSkill.name || normalizedSkill.id} — imported Flowfex skill.`;
+  const safePrompt = validation.sanitizedPrompt?.trim()
+    || `You are executing the Flowfex skill "${normalizedSkill.name || normalizedSkill.id}". Follow the user's instructions and produce practical output.`;
+
   return new Tool({
     id: normalizedSkill.id,
-    name: normalizedSkill.name,
-    description: normalizedSkill.description,
-    prompt: validation.sanitizedPrompt,
+    name: normalizedSkill.name || normalizedSkill.id,
+    description: safeDescription,
+    prompt: safePrompt,
     keywords: normalizedSkill.keywords,
     metadata: {
       category: normalizedSkill.category,
@@ -493,31 +528,49 @@ function isLikelySkillMarkdown(filePath, content) {
   const normalizedPath = filePath.toLowerCase().replace(/\\/g, '/');
   let score = 0;
 
+  // Direct skill file names
   if (path.basename(filePath) === 'SKILL.md' || path.basename(filePath) === 'AGENTS.md') {
     score += 3;
   }
 
+  // In a known skills/commands/agents directory
   if (/(^|\/)(skills|commands|agents)\//i.test(normalizedPath)) {
     score += 2;
   }
 
+  // Boost for files inside known AI/LLM app directories
+  if (/(^|\/)(awesome[-_]llm[-_]apps|awesome[-_]agent[-_]skills|advanced[-_]ai[-_]agents|starter[-_]ai[-_]agents|rag[-_]tutorials|mcp[-_]ai[-_]agents|voice[-_]ai[-_]agents|advanced[-_]llm[-_]apps|ai[-_]agent[-_]framework)\//i.test(normalizedPath)) {
+    score += 2;
+  }
+
+  // Has a heading
   if (/^#\s+/m.test(content)) {
     score += 1;
   }
 
-  if (/(^|\n)##?\s+(instructions|steps|workflow|when to use|use when|guidelines|rules|best practices|approach|checklist|command)/i.test(content)) {
+  // Has instruction-like sections
+  if (/(^|\n)##?\s+(instructions|steps|workflow|when to use|use when|guidelines|rules|best practices|approach|checklist|command|features|how to get started|how to use|quick start|getting started|setup|usage|prerequisites)/i.test(content)) {
     score += 2;
   }
 
+  // Has frontmatter
   if (/^---\n[\s\S]*?\n---/m.test(content)) {
     score += 1;
   }
 
+  // AI/LLM-specific content signals
+  if (/\b(agent|llm|rag|openai|anthropic|gemini|langchain|phidata|crewai|streamlit|api[_\s-]?key|requirements\.txt|pip install)\b/i.test(content)) {
+    score += 1;
+  }
+
+  // Negative signals — pure curation/meta documents
   if (/curates links only|adding a skill|contributing to/i.test(content)) {
     score -= 3;
   }
 
-  return score >= 3;
+  // Lower threshold for files inside known AI source repos
+  const isInAIRepo = /(awesome[-_]llm[-_]apps|awesome[-_]agent[-_]skills)\//i.test(normalizedPath);
+  return score >= (isInAIRepo ? 2 : 3);
 }
 
 function looksLikeCommandMarkdown(filePath, content) {
@@ -531,11 +584,14 @@ function looksLikeCommandMarkdown(filePath, content) {
 
 function looksLikeAgentDefinition(filePath, content) {
   const normalizedPath = filePath.toLowerCase().replace(/\\/g, '/');
+  const baseName = path.basename(filePath);
 
   return (
-    normalizedPath.includes('/agents/')
+    baseName === 'AGENTS.md'
+    || normalizedPath.includes('/agents/')
     || /(^|\n)##?\s+(role|responsibilities|handoff|operating rules|mission)\b/i.test(content)
-    || /\bagent\b/i.test(path.basename(filePath))
+    || /\bagent\b/i.test(baseName)
+    || /(multi[_-]?agent|agent[_-]?team|agent[_-]?apps)/i.test(normalizedPath)
   );
 }
 

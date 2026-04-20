@@ -6,12 +6,15 @@ import {
 
 export function isCatalogMarkdown(filePath, content) {
   const catalogEntryCount = (content.match(/^- \*\*\[[^\]]+\]\([^)]+\)\*\* - /gm) || []).length;
+  const emojiBulletCount = (content.match(/^\*\s+\[.+\]\([^)]+\)/gm) || []).length;
 
   return (
     /curates links only/i.test(content) ||
     /awesome agent skills/i.test(content) ||
     /skills count/i.test(content) ||
-    catalogEntryCount >= 20
+    catalogEntryCount >= 20 ||
+    (/awesome llm apps/i.test(content) && emojiBulletCount >= 30) ||
+    (/table of contents/i.test(content) && emojiBulletCount >= 50)
   );
 }
 
@@ -46,25 +49,43 @@ export function parseCatalogMarkdown({ filePath, content, localSkillIndex }) {
     }
 
     const entryMatch = line.match(/^- \*\*\[([^\]]+)\]\(([^)]+)\)\*\* - (.*)$/);
-    if (!entryMatch) {
+    if (entryMatch) {
+      const [, name, url, description] = entryMatch;
+      const baseEntry = {
+        name: cleanInline(name),
+        title: cleanInline(name),
+        url: url.trim(),
+        description: cleanInline(description),
+        section: currentSection,
+        subsection: currentSubsection,
+        sourceType: inferCatalogSourceType(url)
+      };
+      const localMatches = matchCatalogEntryToLocalSkills(baseEntry, localSkillIndex);
+      const entry = buildCatalogSkillReference(baseEntry, { localMatches });
+      entries.push(entry);
+      sectionCounts[currentSection] = (sectionCounts[currentSection] || 0) + 1;
       continue;
     }
 
-    const [, name, url, description] = entryMatch;
-    const baseEntry = {
-      name: cleanInline(name),
-      title: cleanInline(name),
-      url: url.trim(),
-      description: cleanInline(description),
-      section: currentSection,
-      subsection: currentSubsection,
-      sourceType: inferCatalogSourceType(url)
-    };
-    const localMatches = matchCatalogEntryToLocalSkills(baseEntry, localSkillIndex);
-    const entry = buildCatalogSkillReference(baseEntry, { localMatches });
-
-    entries.push(entry);
-    sectionCounts[currentSection] = (sectionCounts[currentSection] || 0) + 1;
+    // Also match awesome-llm-apps bullet format: *   [emoji Title](path/)
+    const emojiBulletMatch = line.match(/^\*\s+\[([^\]]+)\]\(([^)]+)\)\s*$/);
+    if (emojiBulletMatch) {
+      const [, name, url] = emojiBulletMatch;
+      const baseEntry = {
+        name: cleanInline(name),
+        title: cleanInline(name),
+        url: url.trim(),
+        description: `${cleanInline(name)} — AI app template from ${currentSection}.`,
+        section: currentSection,
+        subsection: currentSubsection,
+        sourceType: inferCatalogSourceType(url)
+      };
+      const localMatches = matchCatalogEntryToLocalSkills(baseEntry, localSkillIndex);
+      const entry = buildCatalogSkillReference(baseEntry, { localMatches });
+      entries.push(entry);
+      sectionCounts[currentSection] = (sectionCounts[currentSection] || 0) + 1;
+      continue;
+    }
   }
 
   return {

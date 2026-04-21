@@ -131,7 +131,9 @@ export class FlowfexServer {
     const rejectMatch = url.pathname.match(/^\/node\/([^/]+)\/reject$/);
     const rerouteMatch = url.pathname.match(/^\/node\/([^/]+)\/reroute$/);
     const constrainMatch = url.pathname.match(/^\/session\/([^/]+)\/constrain$/);
+    const skillsMatch = url.pathname === '/skills';
     const skillsSearchMatch = url.pathname === '/skills/search';
+    const skillsCategoriesMatch = url.pathname === '/skills/categories';
     const ingestMatch = url.pathname === '/ingest';
     const sseStreamMatch = url.pathname.match(/^\/session\/([^/]+)\/stream$/);
 
@@ -234,7 +236,32 @@ export class FlowfexServer {
       return this._writeJson(response, 200, payload);
     }
 
-    // ─── Skills Search ────────────────────────────────────────────────
+    // ─── Skills API ───────────────────────────────────────────────────
+    if (request.method === 'GET' && skillsMatch) {
+      const registry = this.connectionService?.orchestrator?.registry || this.connectionService?.registry;
+      if (!registry) {
+        return this._writeJson(response, 200, { tools: [] });
+      }
+      const tools = registry.getAllTools().map(t => ({
+        id: t.id,
+        name: t.name,
+        description: t.description,
+        category: t.metadata?.category || 'uncategorized',
+        tags: t.metadata?.tags || [],
+        source: t.metadata?.source || 'unknown',
+        confidence: t.metadata?.confidence || 100
+      }));
+      return this._writeJson(response, 200, { tools });
+    }
+
+    if (request.method === 'GET' && skillsCategoriesMatch) {
+      const registry = this.connectionService?.orchestrator?.registry || this.connectionService?.registry;
+      if (!registry) {
+        return this._writeJson(response, 200, { categories: {} });
+      }
+      return this._writeJson(response, 200, { categories: registry.getIndex('category') });
+    }
+
     if (request.method === 'POST' && skillsSearchMatch) {
       const body = await this._readJsonBody(request);
       const query = body.query || '';

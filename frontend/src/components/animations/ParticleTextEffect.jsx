@@ -223,8 +223,8 @@ export function ParticleTextEffect({ words = ['Flowfex', 'Connect', 'Orchestrate
     const resize = () => {
       const container = canvas.parentElement;
       const w = container ? container.clientWidth : 800;
-      canvas.width = Math.min(w, 1000);
-      canvas.height = Math.round(canvas.width * 0.4);
+      canvas.width = Math.min(w, 1100);
+      canvas.height = Math.round(canvas.width * 0.5);
     };
     resize();
     window.addEventListener('resize', resize);

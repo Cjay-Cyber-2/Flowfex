@@ -9,14 +9,15 @@ import {
   CheckCircle, XCircle, Clock, AlertTriangle, Info
 } from 'lucide-react';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
-import { motion, AnimatePresence } from 'framer-motion';import ConnectAgentModal from '../components/ConnectAgentModal';import './MainDashboard.css';
+import { motion, AnimatePresence } from 'framer-motion';import ConnectAgentModal from '../components/ConnectAgentModal';import './MainDashboard.css';
+import useStore from '../store/useStore';
 
 export default function MainDashboard() {
   const [selectedNode, setSelectedNode] = useState(null);
   const [viewMode, setViewMode] = useState('flow'); // map, flow, live
   const [isExecuting, setIsExecuting] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [showConnectModal, setShowConnectModal] = useState(false);  const [isModalOpen, setIsModalOpen] = useState(false);  const [showTaskTooltip, setShowTaskTooltip] = useState(true);
+  const [showConnectModal, setShowConnectModal] = useState(false);  const [isModalOpen, setIsModalOpen] = useState(false);  const [showTaskTooltip, setShowTaskTooltip] = useState(true);
   const [connectedAgents, setConnectedAgents] = useState([
     { id: 1, name: 'Claude Assistant', type: 'chat', status: 'connected', lastSeen: '2 min ago' },
     { id: 2, name: 'VS Code Agent', type: 'ide', status: 'offline', lastSeen: '1 hour ago' }
@@ -112,15 +113,25 @@ export default function MainDashboard() {
     { from: 5, to: 6, status: 'waiting' }
   ];
 
-  // Available skills (380+ in real system)
-  const availableSkills = [
-    { id: 'sql_executor', name: 'SQL Database Query', category: 'Data', confidence: 95 },
-    { id: 'api_caller', name: 'REST API Client', category: 'Integration', confidence: 88 },
-    { id: 'file_reader', name: 'File System Reader', category: 'I/O', confidence: 92 },
-    { id: 'chart_generator', name: 'Chart Generator', category: 'Visualization', confidence: 85 },
-    { id: 'text_analyzer', name: 'Text Analysis', category: 'NLP', confidence: 90 },
-    { id: 'image_processor', name: 'Image Processing', category: 'Vision', confidence: 78 }
-  ];
+  const backendUrl = useStore(state => state.backendUrl);
+  const [availableSkills, setAvailableSkills] = useState([]);
+
+  useEffect(() => {
+    async function loadSkills() {
+      try {
+        const response = await fetch(`${backendUrl}/skills`);
+        if (response.ok) {
+          const data = await response.json();
+          // Sort by source so 'skill' (real imported skills) come after or before logic
+          // Actually just set them and show first 6
+          setAvailableSkills(data.tools || []);
+        }
+      } catch (err) {
+        console.error('Failed to load skills:', err);
+      }
+    }
+    loadSkills();
+  }, [backendUrl]);
 
   const connectionMethods = [
     { 
@@ -175,7 +186,7 @@ export default function MainDashboard() {
   const handleApproveNode = (nodeId) => {
     // Simulate approval - move to next step
     setExecutionStep(prev => prev + 1);
-    setIsExecuting(true);    setShowTaskTooltip(false);
+    setIsExecuting(true);    setShowTaskTooltip(false);
   };
 
   const handleRejectNode = (nodeId) => {
@@ -317,7 +328,7 @@ This will route all your tool selections through Flowfex for visual orchestratio
                     </div>
                   ))}
                   <button className="view-all-skills">
-                    View All 380+ Skills
+                    View All {availableSkills.length > 0 ? availableSkills.length : '380+'} Skills
                   </button>
                 </div>
               </div>

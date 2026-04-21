@@ -1,3 +1,5 @@
+import { getSessionConnectUrl, getSessionSocketUrl } from '../utils/runtimeConfig';
+
 export const DEMO_SESSION_ID = 'session-resource-bridge';
 
 export const DEMO_SKILL_LIBRARY = [
@@ -64,10 +66,11 @@ export const CONNECT_METHOD_TABS = [
   { id: 'live', label: 'Live Channel' },
 ];
 
-export const CONNECT_PROMPT = `Connect this agent to Flowfex.
+export function buildConnectPrompt(sessionId = DEMO_SESSION_ID) {
+  return `Connect this agent to Flowfex.
 
-Session ID: session-resource-bridge
-Session URL: https://app.flowfex.io/connect/live/session-resource-bridge
+Session ID: ${sessionId}
+Session URL: ${getSessionConnectUrl(sessionId)}
 
 Rules:
 1. Ask Flowfex for the best tools, skills, or workflows before you act.
@@ -79,13 +82,17 @@ Rules:
    WHY: <one short reason>
 4. Wait when Flowfex marks a step as approval_required.
 5. Return the final result through the same Flowfex session.`;
+}
 
-export const CONNECT_LINK = 'https://app.flowfex.io/connect/live/session-resource-bridge';
+export function buildConnectLink(sessionId = DEMO_SESSION_ID) {
+  return getSessionConnectUrl(sessionId);
+}
 
-export const CONNECT_SDK_SNIPPET = `import { FlowfexBridge } from 'flowfex-sdk';
+export function buildConnectSdkSnippet(sessionId = DEMO_SESSION_ID) {
+  return `import { FlowfexBridge } from 'flowfex-sdk';
 
 const bridge = new FlowfexBridge({
-  sessionId: 'session-resource-bridge',
+  sessionId: '${sessionId}',
   transport: 'websocket',
 });
 
@@ -101,11 +108,22 @@ const resourcePlan = await bridge.requestResources({
 await bridge.runWithResources(resourcePlan, async (ctx) => {
   return ctx.execute('summarize_deployment_issue');
 });`;
+}
 
-export const CONNECT_LIVE_SNIPPET = `wss://app.flowfex.io/ws/session-resource-bridge
+export function buildConnectLiveSnippet(sessionId = DEMO_SESSION_ID) {
+  return `${getSessionSocketUrl(sessionId)}
 channel: live
 resource_mode: flowfex_required
 approval_mode: supervised`;
+}
+
+export const CONNECT_PROMPT = buildConnectPrompt();
+
+export const CONNECT_LINK = buildConnectLink();
+
+export const CONNECT_SDK_SNIPPET = buildConnectSdkSnippet();
+
+export const CONNECT_LIVE_SNIPPET = buildConnectLiveSnippet();
 
 const FALLBACK_AGENT_POOL = [
   {

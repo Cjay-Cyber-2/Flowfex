@@ -26,6 +26,7 @@ function ScrollFrameSection() {
   const easedProgressRef = useRef(0)
   const scrollDistanceRef = useRef(Math.max(scrollFrameCount * SCROLL_PIXELS_PER_FRAME, 2400))
   const canvasSizeRef = useRef({ w: 0, h: 0 })
+  const [isLoaded, setIsLoaded] = React.useState(false)
 
   useEffect(() => {
     const section = sectionRef.current
@@ -201,6 +202,7 @@ function ScrollFrameSection() {
       frameImagesRef.current = loadedFrames
       hasLoadedAllFramesRef.current = true
       renderedFrameIndexRef.current = -1
+      setIsLoaded(true)
 
       // Draw the first frame immediately
       syncCanvasSize()
@@ -272,6 +274,12 @@ function ScrollFrameSection() {
       aria-hidden="true"
     >
       <div className="landing-scroll-cinema-sticky">
+        {!isLoaded && (
+          <div className="landing-scroll-cinema-loading">
+            <div className="landing-scroll-cinema-shimmer" />
+            <span>Loading preview…</span>
+          </div>
+        )}
         <canvas ref={canvasRef} className="landing-scroll-cinema-canvas" />
       </div>
     </section>

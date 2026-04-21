@@ -159,6 +159,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
   const [connections, setConnections] = useState({});
   const [errors, setErrors] = useState({});
   const [loadingTab, setLoadingTab] = useState(null);
+  const fetchAttemptedRef = React.useRef(new Set());
   const TabContent = TAB_CONTENT[activeTab];
 
   const requestForTab = (tab) => {
@@ -259,10 +260,11 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
   };
 
   useEffect(() => {
-    if (!isOpen || connections[activeTab] || loadingTab === activeTab) {
+    if (!isOpen || connections[activeTab] || loadingTab === activeTab || fetchAttemptedRef.current.has(activeTab)) {
       return;
     }
 
+    fetchAttemptedRef.current.add(activeTab);
     fetchConnection(activeTab);
   }, [activeTab, connections, isOpen, loadingTab]);
 

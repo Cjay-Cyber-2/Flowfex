@@ -27,7 +27,7 @@ export function ContainerScroll({ titleComponent, children }) {
     <div
       ref={containerRef}
       style={{
-        height: isMobile ? '45rem' : '55rem',
+        height: isMobile ? '45rem' : '62rem',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -66,7 +66,7 @@ function ScrollCard({ rotate, scale, children }) {
         marginTop: '-3rem',
         marginLeft: 'auto',
         marginRight: 'auto',
-        height: '30rem',
+        height: '36rem',
         width: '100%',
         border: '4px solid #6C6C6C',
         padding: '0.5rem',

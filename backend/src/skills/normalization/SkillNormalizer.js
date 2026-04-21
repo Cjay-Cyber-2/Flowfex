@@ -110,12 +110,14 @@ export function normalizeParsedSkill(parsedSkill, context = {}) {
 
 function selectInstructionSections(sections) {
   const prioritized = sections.filter(section =>
-    /instruction|workflow|process|steps|guidelines|rules|checklist|when to use|use when|command|best practices/i.test(
+    /instruction|workflow|process|steps|guidelines|rules|checklist|when to use|use when|command|best practices|approach|planning|how to|setup|getting started|usage|prerequisites|overview|features|configuration|quick start/i.test(
       section.title
     )
   );
 
-  return prioritized.length > 0 ? prioritized : sections.slice(0, 4);
+  // Include ALL sections — never truncate the skill's content.
+  // If no prioritized sections found, use all sections as instructions.
+  return prioritized.length > 0 ? prioritized : sections;
 }
 
 function buildPrompt({ title, description, preamble, sections, instructions, sourceClassification }) {
@@ -125,23 +127,26 @@ function buildPrompt({ title, description, preamble, sections, instructions, sou
   promptSections.push(`Skill type: ${sourceClassification.replace(/_/g, ' ')}.`);
   promptSections.push(`Skill summary:\n${description}`);
 
+  // FULL CONTENT — never truncate skill preamble or sections.
+  // The user's skill content is preserved exactly as written.
   if (preamble) {
-    promptSections.push(`Skill context:\n${limitBlock(preamble, 1200)}`);
+    promptSections.push(`Skill context:\n${preamble}`);
   }
 
   if (instructions.length > 0) {
     promptSections.push(
       `Instructions:\n${instructions
-        .map(section => `## ${section.title}\n${limitBlock(section.content, 1400)}`)
+        .map(section => `## ${section.title}\n${section.content}`)
         .join('\n\n')}`
     );
   }
 
-  const supportingSections = sections.filter(section => !instructions.includes(section)).slice(0, 3);
+  // Include ALL remaining sections — not just 3.
+  const supportingSections = sections.filter(section => !instructions.includes(section));
   if (supportingSections.length > 0) {
     promptSections.push(
       `Supporting notes:\n${supportingSections
-        .map(section => `## ${section.title}\n${limitBlock(section.content, 800)}`)
+        .map(section => `## ${section.title}\n${section.content}`)
         .join('\n\n')}`
     );
   }
@@ -169,6 +174,11 @@ function inferCategory({ title, description, relativePath, sections }) {
     { category: 'gaming', pattern: /\b(game|pygame|chess|tic[\s_-]?tac[\s_-]?toe|play|3d[\s_-]?game)\b/ },
     { category: 'mcp', pattern: /\b(mcp|model[\s_-]?context[\s_-]?protocol)\b/ },
     { category: 'agent-team', pattern: /\b(multi[\s_-]?agent|agent[\s_-]?team|crew|swarm|orchestrat|handoff)\b/ },
+    { category: 'framework-tutorial', pattern: /\b(crash[\s_-]?course|framework|tutorial|adk|agents[\s_-]?sdk|pydantic[\s_-]?ai)\b/ },
+    { category: 'chat-with-x', pattern: /\b(chat[\s_-]?with|chatbot|conversation)\b/ },
+    { category: 'llm-memory', pattern: /\b(memory|stateful|personalized[\s_-]?memory|shared[\s_-]?memory)\b/ },
+    { category: 'llm-finetuning', pattern: /\b(fine[\s_-]?tun|finetun|lora|qlora|training|unsloth)\b/ },
+    { category: 'llm-optimization', pattern: /\b(token[\s_-]?optim|context[\s_-]?optim|toonify|headroom|cost[\s_-]?reduc)\b/ },
     { category: 'finance', pattern: /\b(finance|investment|trading|stock|portfolio|due[\s_-]?diligence|fintech)\b/ },
     { category: 'research', pattern: /\b(research|arxiv|paper|deep[\s_-]?research|literature|citation)\b/ },
     { category: 'frontend', pattern: /\b(frontend|react|next\.js|nextjs|css|html|ui|ux|component|accessibility)\b|design-system/ },

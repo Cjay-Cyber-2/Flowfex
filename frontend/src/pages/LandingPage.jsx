@@ -377,14 +377,14 @@ function LandingPage() {
         id="statement"
         data-section-id="statement"
         className="landing-section"
-        style={{ padding: '4rem 0', minHeight: '45vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1.5rem' }}
+        style={{ padding: '4rem 0', minHeight: '55vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1.5rem' }}
       >
         <p style={{ color: 'var(--color-bistre, rgba(255,255,255,0.35))', fontSize: '0.8rem', letterSpacing: '0.2em', textTransform: 'uppercase', margin: 0 }}>
           What Flowfex does
         </p>
-        <div style={{ width: '100%', maxWidth: '1100px', padding: '0 1.5rem' }}>
+        <div style={{ width: '100%', maxWidth: '1200px', padding: '0 1.5rem' }}>
           <ParticleTextEffect
-            words={['Connect', 'Route', 'Orchestrate', 'Approve', 'Monitor']}
+            words={['Connect', 'Route', '328 Skills', '20 Agent Teams', 'Orchestrate']}
           />
         </div>
       </section>

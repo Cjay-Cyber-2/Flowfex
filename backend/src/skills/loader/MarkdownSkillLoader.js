@@ -37,7 +37,7 @@ export const DEFAULT_MARKDOWN_SKILL_SOURCES = [
 const DEFAULT_CHUNK_SIZE = 100;
 const DEFAULT_MAX_FILE_SIZE_BYTES = 1024 * 1024;
 const IGNORED_DIRECTORIES = new Set(['.git', '.github', 'node_modules', '__pycache__', '.venv', 'venv', '.tox']);
-const IGNORED_FILES = new Set(['license.md', 'contributing.md', 'changelog.md', 'code_of_conduct.md']);
+const IGNORED_FILES = new Set(['license.md', 'contributing.md', 'changelog.md', 'code_of_conduct.md', 'fix_summary.md']);
 
 export function discoverMarkdownFiles(rootDirectory) {
   if (!rootDirectory || !fs.existsSync(rootDirectory)) {
@@ -315,8 +315,8 @@ function processMarkdownFile({
   let content = fs.readFileSync(filePath, 'utf8');
   if (truncated) {
     const lines = content.split('\n');
-    if (lines.length > 500) {
-      content = lines.slice(0, 500).join('\n') + '\n\n[Content truncated — original file exceeded size limit]';
+    if (lines.length > 2000) {
+      content = lines.slice(0, 2000).join('\n') + '\n\n[Content truncated — original file exceeded 2000 lines]';
     }
   }
 
@@ -538,8 +538,18 @@ function isLikelySkillMarkdown(filePath, content) {
     score += 2;
   }
 
-  // Boost for files inside known AI/LLM app directories
+  // Boost for files inside known AI/LLM app directories — comprehensive coverage
   if (/(^|\/)(awesome[-_]llm[-_]apps|awesome[-_]agent[-_]skills|advanced[-_]ai[-_]agents|starter[-_]ai[-_]agents|rag[-_]tutorials|mcp[-_]ai[-_]agents|voice[-_]ai[-_]agents|advanced[-_]llm[-_]apps|ai[-_]agent[-_]framework)\//i.test(normalizedPath)) {
+    score += 2;
+  }
+
+  // Additional directory-level boosts for all categories
+  if (/(^|\/)(chat[-_]with[-_]x[-_]tutorials|llm[-_]apps[-_]with[-_]memory[-_]tutorials|llm[-_]finetuning[-_]tutorials|llm[-_]optimization[-_]tools|multi[-_]agent|game[-_]agents|cursor[-_]ai[-_]experiments)\//i.test(normalizedPath)) {
+    score += 2;
+  }
+
+  // Specific sub-directories containing agents/apps
+  if (/(^|\/)(chat[-_]with[-_](github|gmail|pdf|substack|research|youtube|tarots)|ai[-_](blog|breakup|data|medical|meme|music|travel|consultant|finance|fraud|health|investment|journalist|meeting|mental|product|sales|self|social|system|movie|recruitment|teaching|legal|real[-_]estate|competitor)|multimodal[-_](ai|coding|design|video|ui)|web[-_]scraping|openai[-_]research|mixture[-_]of[-_]agents|xai[-_]finance|deepseek|llama|gemini|gemma|corrective[-_]rag|agentic[-_]rag|autonomous[-_]rag|hybrid[-_]search|knowledge[-_]graph|rag[-_]diagnostics|rag[-_]as[-_]a[-_]service|trust[-_]gated|openwork|browser[-_]mcp|github[-_]mcp|notion[-_]mcp|multi[-_]mcp)\//i.test(normalizedPath)) {
     score += 2;
   }
 
@@ -549,7 +559,7 @@ function isLikelySkillMarkdown(filePath, content) {
   }
 
   // Has instruction-like sections
-  if (/(^|\n)##?\s+(instructions|steps|workflow|when to use|use when|guidelines|rules|best practices|approach|checklist|command|features|how to get started|how to use|quick start|getting started|setup|usage|prerequisites)/i.test(content)) {
+  if (/(^|\n)##?\s+(instructions|steps|workflow|when to use|use when|guidelines|rules|best practices|approach|checklist|command|features|how to get started|how to use|quick start|getting started|setup|usage|prerequisites|overview|run|architecture|configuration)/i.test(content)) {
     score += 2;
   }
 
@@ -563,14 +573,30 @@ function isLikelySkillMarkdown(filePath, content) {
     score += 1;
   }
 
+  // Python/app content signals — these are real agent implementations
+  if (/\b(import\s+(streamlit|phi|crewai|langchain|openai|google)|def\s+\w+|class\s+\w+|app\.py|main\.py)\b/i.test(content)) {
+    score += 1;
+  }
+
+  // Framework crash course signals
+  if (/\b(crash[\s_-]?course|tutorial|lesson|chapter|module|exercise|hands[\s_-]?on)\b/i.test(content)) {
+    score += 1;
+  }
+
+  // Memory/conversation signals
+  if (/\b(memory|conversation|chat[\s_-]?history|stateful|session|personalized)\b/i.test(content)) {
+    score += 1;
+  }
+
   // Negative signals — pure curation/meta documents
   if (/curates links only|adding a skill|contributing to/i.test(content)) {
     score -= 3;
   }
 
-  // Lower threshold for files inside known AI source repos
+  // Lower threshold for files inside known AI source repos —
+  // EVERY README.md in those repos is a valid agent/skill/tutorial.
   const isInAIRepo = /(awesome[-_]llm[-_]apps|awesome[-_]agent[-_]skills)\//i.test(normalizedPath);
-  return score >= (isInAIRepo ? 2 : 3);
+  return score >= (isInAIRepo ? 1 : 3);
 }
 
 function looksLikeCommandMarkdown(filePath, content) {
@@ -591,7 +617,7 @@ function looksLikeAgentDefinition(filePath, content) {
     || normalizedPath.includes('/agents/')
     || /(^|\n)##?\s+(role|responsibilities|handoff|operating rules|mission)\b/i.test(content)
     || /\bagent\b/i.test(baseName)
-    || /(multi[_-]?agent|agent[_-]?team|agent[_-]?apps)/i.test(normalizedPath)
+    || /(multi[_-]?agent|agent[_-]?team|agent[_-]?apps|advanced[_-]?ai[_-]?agents|starter[_-]?ai[_-]?agents)\//i.test(normalizedPath)
   );
 }
 

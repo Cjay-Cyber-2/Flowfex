@@ -3,8 +3,7 @@ import { ArrowRight, ChevronRight, Play, ShieldCheck, Sparkles, Workflow, Zap } 
 import { useNavigate } from 'react-router-dom';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import FlowIcon from '../components/common/FlowIcon';
-import ParticleField from '../components/animations/ParticleFieldSimple';
-import SignalWave from '../components/animations/SignalWave';
+import FlowField from '../components/animations/FlowField';
 import ScrollFrameSection from '../components/landing/ScrollFrameSection';
 import { DEMO_SKILL_LIBRARY, buildDemoWorkspace } from '../store/demoData';
 import { ContainerScroll } from '../components/animations/ContainerScroll';
@@ -172,57 +171,13 @@ function renderFlowGraph(nodes, edges, prefix, showLabels = false, customViewBox
   );
 }
 
-// Full desktop hero graph (7 nodes)
-const HERO_GRAPH_FULL = {
-  nodes: [
-    { id: 'hero-cli', shape: 'rect', x: 80, y: 120, width: 120, height: 50, title: 'CLI', subtitle: '', state: 'completed', icon: 'message-square' },
-    { id: 'hero-ide', shape: 'rect', x: 80, y: 220, width: 120, height: 50, title: 'IDE', subtitle: '', state: 'completed', icon: 'layers' },
-    { id: 'hero-web', shape: 'rect', x: 80, y: 320, width: 120, height: 50, title: 'Web', subtitle: '', state: 'queued', icon: 'globe' },
-    { id: 'hero-bridge', shape: 'rect', x: 380, y: 210, width: 140, height: 60, title: 'Flowfex', subtitle: '', state: 'active', icon: 'git-branch' },
-    { id: 'hero-skill-pull', shape: 'rect', x: 680, y: 130, width: 120, height: 50, title: 'Skills', subtitle: '', state: 'completed', icon: 'sparkles' },
-    { id: 'hero-tool-pull', shape: 'rect', x: 680, y: 290, width: 120, height: 50, title: 'Tools', subtitle: '', state: 'queued', icon: 'database' },
-    { id: 'hero-canvas', shape: 'rect', x: 980, y: 210, width: 120, height: 60, title: 'Canvas', subtitle: '', state: 'approval', icon: 'shield-check' },
-  ],
-  edges: [
-    { id: 'hero-edge-cli', from: 'hero-cli', to: 'hero-bridge', state: 'completed' },
-    { id: 'hero-edge-ide', from: 'hero-ide', to: 'hero-bridge', state: 'completed' },
-    { id: 'hero-edge-web', from: 'hero-web', to: 'hero-bridge', state: 'queued' },
-    { id: 'hero-edge-skill', from: 'hero-bridge', to: 'hero-skill-pull', state: 'completed' },
-    { id: 'hero-edge-tool', from: 'hero-bridge', to: 'hero-tool-pull', state: 'queued' },
-    { id: 'hero-edge-canvas-skill', from: 'hero-skill-pull', to: 'hero-canvas', state: 'active' },
-    { id: 'hero-edge-canvas-tool', from: 'hero-tool-pull', to: 'hero-canvas', state: 'queued' },
-  ],
-};
-
-// Simplified mobile hero graph (4 nodes — cleaner on small screens)
-const HERO_GRAPH_MOBILE = {
-  nodes: [
-    { id: 'hero-cli', shape: 'rect', x: 40, y: 160, width: 120, height: 50, title: 'Agent', subtitle: '', state: 'completed', icon: 'message-square' },
-    { id: 'hero-bridge', shape: 'rect', x: 260, y: 155, width: 140, height: 60, title: 'Flowfex', subtitle: '', state: 'active', icon: 'git-branch' },
-    { id: 'hero-skill-pull', shape: 'rect', x: 500, y: 120, width: 120, height: 50, title: 'Skills', subtitle: '', state: 'completed', icon: 'sparkles' },
-    { id: 'hero-canvas', shape: 'rect', x: 500, y: 210, width: 120, height: 50, title: 'Canvas', subtitle: '', state: 'approval', icon: 'shield-check' },
-  ],
-  edges: [
-    { id: 'hero-edge-cli', from: 'hero-cli', to: 'hero-bridge', state: 'completed' },
-    { id: 'hero-edge-skill', from: 'hero-bridge', to: 'hero-skill-pull', state: 'completed' },
-    { id: 'hero-edge-canvas', from: 'hero-bridge', to: 'hero-canvas', state: 'active' },
-  ],
-};
 
 function LandingPage() {
   const navigate = useNavigate();
   const scrollProgressRef = useRef(null);
   const [activeSection, setActiveSection] = useState('hero');
   const clickLockRef = useRef(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-
-  const HERO_GRAPH = isMobile ? HERO_GRAPH_MOBILE : HERO_GRAPH_FULL;
   const workspace = useMemo(() => buildDemoWorkspace(), []);
   const skillCount = useMemo(
     () => DEMO_SKILL_LIBRARY.reduce((total, group) => total + group.items.length, 0),
@@ -343,18 +298,18 @@ function LandingPage() {
       </div>
 
       <section id="hero" data-section-id="hero" className="landing-section hero-section">
-        <ParticleField />
-        <SignalWave />
-        <div className="hero-copy">
+        {/* New FlowField animation - living orchestration network */}
+        <FlowField />
+
+        <div className="hero-copy hero-copy-centered">
           <span className="section-kicker">Agent bridge and orchestration layer</span>
           <h1 className="hero-headline">
             <span>Connect any agent to the right tools and skills.</span>
-            <span className="hero-headline-accent">Watch Flowfex route the work live.</span>
+            <span className="hero-headline-accent">Watch Flowfex orchestrate the work live.</span>
           </h1>
           <p className="hero-subheadline">
-            Flowfex is a web app that sits between any agent and a shared store of tools, skills, and workflows.
-            The agent pulls what it needs through Flowfex, and the dashboard shows the route in real time while
-            you guide it when needed.
+            Flowfex is the visual control surface where users can see, guide, and supervise what an AI agent is doing
+            while it selects skills, chains tools, executes workflows, and sends results back to any connected agent.
           </p>
 
           <div className="hero-actions">
@@ -364,7 +319,7 @@ function LandingPage() {
             </button>
             <button className="btn btn-ghost" onClick={() => navigate('/dashboard')}>
               <Play size={16} />
-              Watch App Demo
+              Watch Live Demo
             </button>
           </div>
 
@@ -382,19 +337,6 @@ function LandingPage() {
               <span>Pause, approve, reject, or reroute the flow</span>
             </div>
           </div>
-        </div>
-
-        <div className="hero-graph-shell">
-          <div className="hero-graph-chrome">
-            <span />
-            <span />
-            <span />
-            <div className="hero-graph-status">
-              <span className="hero-graph-status-dot" />
-              Bridge live · resource pull visible
-            </div>
-          </div>
-          <div className="hero-graph-surface">{renderFlowGraph(HERO_GRAPH.nodes, HERO_GRAPH.edges, 'hero', false, isMobile ? "0 0 680 380" : "0 0 1180 480")}</div>
         </div>
       </section>
 

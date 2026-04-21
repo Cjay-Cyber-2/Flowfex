@@ -589,21 +589,33 @@
 }
 
 .hero-section {
+  position: relative;
   min-height: 100vh;
   width: 100%;
   max-width: 100vw;
-  display: grid;
-  grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr);
-  gap: clamp(24px, 4vw, 56px);
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-items: stretch;
+  justify-content: center;
   padding: 132px 24px 64px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .hero-copy {
   animation: landingRise 0.8s var(--ease-expo-out) both;
   min-width: 0;
+  max-width: 900px;
+  text-align: center;
+  margin: 0 auto;
+  position: relative;
+  z-index: 10;
+}
+
+.hero-copy-centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .hero-graph-shell {
@@ -627,6 +639,13 @@
   gap: 14px;
   font-size: clamp(2.4rem, 5vw, 4.2rem);
   margin: 0 0 22px;
+  text-align: center;
+}
+
+.hero-copy-centered .hero-headline {
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .hero-headline-accent {
@@ -644,8 +663,11 @@
 }
 
 .hero-subheadline {
-  max-width: 60ch;
+  max-width: 75ch;
   margin-bottom: 30px;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .hero-actions,
@@ -655,6 +677,7 @@
   flex-wrap: wrap;
   gap: 14px;
   align-items: center;
+  justify-content: center;
 }
 
 .hero-primary-cta,
@@ -681,6 +704,9 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   margin-top: 30px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .hero-metrics div,
@@ -712,90 +738,32 @@
   color: var(--color-bistre);
 }
 
-.hero-graph-shell {
-  position: relative;
-  overflow: hidden;
-  border-radius: 32px;
-  border: 1px solid rgba(0, 212, 170, 0.08);
-  background:
-    radial-gradient(circle at top center, rgba(0, 212, 170, 0.14), transparent 28%),
-    linear-gradient(180deg, rgba(8, 12, 16, 0.94), rgba(13, 19, 27, 0.92));
-  box-shadow:
-    0 42px 120px rgba(0, 0, 0, 0.38),
-    0 0 0 1px rgba(0, 212, 170, 0.05);
+/* FlowField Animation Styles */
+.flow-field-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
 }
 
-.hero-graph-shell::before {
+.hero-section::before {
   content: '';
   position: absolute;
   inset: 0;
-  background-image:
-    radial-gradient(circle at center, rgba(232, 237, 242, 0.08) 0.7px, transparent 0.7px),
-    linear-gradient(rgba(0, 212, 170, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 212, 170, 0.02) 1px, transparent 1px);
-  background-size: 24px 24px, 120px 120px, 120px 120px;
-  opacity: 0.14;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0, 212, 170, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 20% 30%, rgba(127, 239, 220, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(0, 212, 170, 0.03) 0%, transparent 35%);
   pointer-events: none;
+  z-index: 0;
 }
 
-.hero-graph-shell::after {
-  content: '';
-  position: absolute;
-  inset: 12% 20% auto;
-  height: 240px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(0, 212, 170, 0.18), transparent 72%);
-  filter: blur(30px);
-  pointer-events: none;
-}
-
-.hero-graph-chrome {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 18px 22px;
-  border-bottom: 1px solid rgba(0, 212, 170, 0.06);
-}
-
-.hero-graph-chrome > span {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: rgba(232, 237, 242, 0.18);
-}
-
-.hero-graph-chrome > span:first-child {
-  background: rgba(0, 212, 170, 0.7);
-}
-
-.hero-graph-status {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  border-radius: 999px;
-  background: rgba(17, 24, 32, 0.74);
-  border: 1px solid rgba(0, 212, 170, 0.08);
-  color: var(--color-velin);
-  font-size: 0.8rem;
-}
-
-.hero-graph-status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-sinoper);
-  box-shadow: 0 0 14px rgba(0, 212, 170, 0.65);
-  animation: statusPulse 2.1s ease-in-out infinite;
-}
-
-.hero-graph-surface {
-  position: relative;
-  z-index: 1;
-  padding: 26px 18px 16px;
+/* Enhanced hero section background */
+.hero-section {
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(0, 212, 170, 0.02) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(8, 12, 16, 0.8) 0%, rgba(13, 19, 27, 0.9) 100%);
 }
 
 .landing-flow-graph {
@@ -1356,19 +1324,8 @@
 }
 
 @media (max-width: 1180px) {
-  .hero-section,
-  .problem-section,
-  .reveal-stage,
-  .demo-browser-body {
-    grid-template-columns: 1fr;
-  }
-
   .hero-section {
     padding: 128px 16px 64px;
-  }
-
-  .hero-copy {
-    max-width: none;
   }
 
   .hero-metrics,
@@ -1386,29 +1343,21 @@
     border: none;
     border-top: 1px solid rgba(0, 212, 170, 0.06);
   }
+
+  .problem-section,
+  .reveal-stage,
+  .demo-browser-body {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (min-width: 881px) and (max-width: 1180px) {
-  .hero-section {
-    grid-template-columns: 1fr;
-    text-align: center;
-    gap: 2rem;
-    padding: 128px 24px 64px;
-  }
-
   .hero-copy {
     max-width: 720px;
-    margin: 0 auto;
-  }
-
-  .hero-graph-shell {
-    max-width: 800px;
-    margin: 0 auto;
   }
 
   .hero-metrics {
     max-width: 720px;
-    margin: 30px auto 0;
   }
 }
 

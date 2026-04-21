@@ -6,7 +6,7 @@ import FlowIcon from '../components/common/FlowIcon';
 import ParticleField from '../components/animations/ParticleFieldSimple';
 import SignalWave from '../components/animations/SignalWave';
 import ScrollFrameSection from '../components/landing/ScrollFrameSection';
-import { buildDemoWorkspace } from '../store/demoData';
+import { DEMO_SKILL_LIBRARY, buildDemoWorkspace } from '../store/demoData';
 import { ContainerScroll } from '../components/animations/ContainerScroll';
 import { ParticleTextEffect } from '../components/animations/ParticleTextEffect';
 
@@ -224,6 +224,32 @@ function LandingPage() {
 
   const HERO_GRAPH = isMobile ? HERO_GRAPH_MOBILE : HERO_GRAPH_FULL;
   const workspace = useMemo(() => buildDemoWorkspace(), []);
+  const skillCount = useMemo(
+    () => DEMO_SKILL_LIBRARY.reduce((total, group) => total + group.items.length, 0),
+    []
+  );
+  const toolCount = useMemo(
+    () => workspace.nodes.filter((node) => node.type === 'tool').length,
+    [workspace.nodes]
+  );
+  const agentCount = workspace.connectedAgents.length;
+  const statementWords = useMemo(
+    () => [
+      `300+ Skills Ready`,
+      `14 Skill Categories`,
+      `Multi-Agent Teams`,
+      'Live Bridge in Motion',
+    ],
+    []
+  );
+  const statementStats = useMemo(
+    () => [
+      { label: 'skills loaded', value: '300+' },
+      { label: 'skill categories', value: 14 },
+      { label: 'agent templates', value: '50+' },
+    ],
+    []
+  );
   const sectionIds = [
     { id: 'hero', label: 'Hero' },
     { id: 'statement', label: 'Vision' },
@@ -377,15 +403,26 @@ function LandingPage() {
         id="statement"
         data-section-id="statement"
         className="landing-section"
-        style={{ padding: '4rem 0', minHeight: '55vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1.5rem' }}
+        style={{ padding: '6rem 0', minHeight: '65vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2.5rem', background: 'radial-gradient(ellipse at center, rgba(0, 212, 170, 0.03) 0%, transparent 70%)' }}
       >
-        <p style={{ color: 'var(--color-bistre, rgba(255,255,255,0.35))', fontSize: '0.8rem', letterSpacing: '0.2em', textTransform: 'uppercase', margin: 0 }}>
+        <p className="statement-kicker">
           What Flowfex does
         </p>
-        <div style={{ width: '100%', maxWidth: '1200px', padding: '0 1.5rem' }}>
+        <div className="statement-animation-wrap">
           <ParticleTextEffect
-            words={['Connect', 'Route', '328 Skills', '20 Agent Teams', 'Orchestrate']}
+            words={statementWords}
+            intervalMs={4000}
+            fontScale={0.15}
+            maxFontSize={160}
           />
+        </div>
+        <div className="statement-stats">
+          {statementStats.map((stat) => (
+            <div key={stat.label} className="statement-stat">
+              <strong>{stat.value}</strong>
+              <span>{stat.label}</span>
+            </div>
+          ))}
         </div>
       </section>
 

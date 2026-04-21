@@ -20,7 +20,7 @@ function ScrollFrameSection() {
   const offscreenRef = useRef(null)
   const frameImagesRef = useRef([])
   const rafRef = useRef(0)
-  const hasLoadedAllFramesRef = useRef(false)
+  const hasLoadedFirstFrameRef = useRef(false)
   const renderedFrameIndexRef = useRef(-1)
   const targetProgressRef = useRef(0)
   const easedProgressRef = useRef(0)
@@ -66,14 +66,25 @@ function ScrollFrameSection() {
       offscreen.height = nextHeight
       canvasSizeRef.current = { w: nextWidth, h: nextHeight }
 
-      // Paint black on both canvases after resize
-      context.fillStyle = '#000'
+      // Paint with the branded dark base while frames are loading.
+      context.fillStyle = '#0b1118'
       context.fillRect(0, 0, nextWidth, nextHeight)
-      offCtx.fillStyle = '#000'
+      offCtx.fillStyle = '#0b1118'
       offCtx.fillRect(0, 0, nextWidth, nextHeight)
 
       return true
     }
+
+    const loadFrame = (frameUrl, index) =>
+      new Promise((resolve, reject) => {
+        const image = new Image()
+
+        image.decoding = 'async'
+        image.fetchPriority = index < 8 ? 'high' : 'auto'
+        image.src = frameUrl
+        image.onload = () => resolve(image)
+        image.onerror = () => reject(new Error(`Failed to load scroll frame: ${frameUrl}`))
+      })
 
     const drawFrameToCanvas = (frameIndex) => {
       const image = frameImagesRef.current[frameIndex]
@@ -83,7 +94,7 @@ function ScrollFrameSection() {
       if (!canvasWidth || !canvasHeight) return
 
       // Draw to offscreen canvas first (double-buffer)
-      offCtx.fillStyle = '#000'
+      offCtx.fillStyle = '#0b1118'
       offCtx.fillRect(0, 0, canvasWidth, canvasHeight)
 
       const canvasAspectRatio = canvasWidth / canvasHeight
@@ -132,7 +143,7 @@ function ScrollFrameSection() {
     }
 
     const animationLoop = () => {
-      if (cancelled || !hasLoadedAllFramesRef.current) {
+      if (cancelled || !hasLoadedFirstFrameRef.current) {
         isAnimating = false
         return
       }
@@ -180,34 +191,44 @@ function ScrollFrameSection() {
     }
 
     const preloadFrames = async () => {
-      const loadedFrames = await Promise.all(
-        scrollFrameUrls.map(
-          (frameUrl, index) =>
-            new Promise((resolve, reject) => {
-              const image = new Image()
+      const firstFramePromise = loadFrame(scrollFrameUrls[0], 0)
+        .then((firstFrame) => {
+          if (cancelled) {
+            return null
+          }
 
-              image.decoding = 'async'
-              image.fetchPriority = index < 12 ? 'high' : 'auto'
-              image.src = frameUrl
-              image.onload = () => resolve(image)
-              image.onerror = () => reject(new Error(`Failed to load scroll frame: ${frameUrl}`))
-            })
-        )
-      )
+          frameImagesRef.current[0] = firstFrame
+          hasLoadedFirstFrameRef.current = true
+          renderedFrameIndexRef.current = -1
+          setIsLoaded(true)
 
-      if (cancelled) {
-        return
-      }
+          // Draw the first frame immediately.
+          syncCanvasSize()
+          drawFrameToCanvas(0)
+          updateFrameTarget()
 
-      frameImagesRef.current = loadedFrames
-      hasLoadedAllFramesRef.current = true
-      renderedFrameIndexRef.current = -1
-      setIsLoaded(true)
+          return firstFrame
+        })
+        .catch((error) => {
+          console.error(error)
+          return null
+        })
 
-      // Draw the first frame immediately
-      syncCanvasSize()
-      drawFrameToCanvas(0)
-      updateFrameTarget()
+      scrollFrameUrls.slice(1).forEach((frameUrl, index) => {
+        loadFrame(frameUrl, index + 1)
+          .then((image) => {
+            if (cancelled) {
+              return;
+            }
+
+            frameImagesRef.current[index + 1] = image;
+          })
+          .catch((error) => {
+            console.error(error)
+          })
+      })
+
+      await firstFramePromise
     }
 
     const handleViewportChange = () => {
@@ -215,7 +236,7 @@ function ScrollFrameSection() {
       syncCanvasSize()
 
       // Re-render current frame after resize without flicker
-      if (hasLoadedAllFramesRef.current && renderedFrameIndexRef.current >= 0) {
+      if (hasLoadedFirstFrameRef.current && renderedFrameIndexRef.current >= 0) {
         drawFrameToCanvas(renderedFrameIndexRef.current)
       }
 
@@ -224,7 +245,7 @@ function ScrollFrameSection() {
 
     scrollDistanceRef.current = Math.max(scrollFrameCount * SCROLL_PIXELS_PER_FRAME, window.innerHeight * 2.75)
     syncCanvasSize()
-    context.fillStyle = '#000'
+    context.fillStyle = '#0b1118'
     context.fillRect(0, 0, canvas.width, canvas.height)
 
     preloadFrames().catch((error) => {
@@ -248,7 +269,7 @@ function ScrollFrameSection() {
     return () => {
       cancelled = true
       isAnimating = false
-      hasLoadedAllFramesRef.current = false
+      hasLoadedFirstFrameRef.current = false
       window.removeEventListener('scroll', updateFrameTarget)
       window.removeEventListener('resize', handleViewportChange)
 

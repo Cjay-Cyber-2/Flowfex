@@ -17,7 +17,7 @@ export function ContainerScroll({ titleComponent, children }) {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  const scaleDimensions = () => (isMobile ? [0.7, 0.9] : [1.05, 1]);
+  const scaleDimensions = () => (isMobile ? [0.74, 0.92] : [1.04, 1]);
 
   const rotate = useTransform(scrollYProgress, [0, 1], [20, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], scaleDimensions());
@@ -27,17 +27,25 @@ export function ContainerScroll({ titleComponent, children }) {
     <div
       ref={containerRef}
       style={{
-        height: isMobile ? '45rem' : '62rem',
+        height: isMobile ? '48rem' : '66rem',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
-        padding: isMobile ? '0.5rem' : '3rem',
+        padding: isMobile ? '0.75rem' : '2rem',
       }}
     >
-      <div style={{ paddingTop: isMobile ? '2.5rem' : '10rem', paddingBottom: isMobile ? '2.5rem' : '10rem', width: '100%', position: 'relative', perspective: '1000px' }}>
+      <div
+        style={{
+          paddingTop: isMobile ? '2rem' : '8rem',
+          paddingBottom: isMobile ? '2rem' : '8rem',
+          width: '100%',
+          position: 'relative',
+          perspective: '1000px'
+        }}
+      >
         <ScrollHeader translate={translate} titleComponent={titleComponent} />
-        <ScrollCard rotate={rotate} translate={translate} scale={scale}>
+        <ScrollCard rotate={rotate} isMobile={isMobile}>
           {children}
         </ScrollCard>
       </div>
@@ -48,33 +56,40 @@ export function ContainerScroll({ titleComponent, children }) {
 function ScrollHeader({ translate, titleComponent }) {
   return (
     <motion.div
-      style={{ translateY: translate, maxWidth: '64rem', margin: '0 auto', textAlign: 'center' }}
+      style={{ translateY: translate, maxWidth: '68rem', margin: '0 auto', textAlign: 'center' }}
     >
       {titleComponent}
     </motion.div>
   );
 }
 
-function ScrollCard({ rotate, scale, children }) {
+function ScrollCard({ rotate, isMobile, children }) {
   return (
     <motion.div
       style={{
         rotateX: rotate,
-        scale,
         boxShadow: '0 0 #0000004d, 0 9px 20px #0000004a, 0 37px 37px #00000042, 0 84px 50px #00000026, 0 149px 60px #0000000a, 0 233px 65px #00000003',
-        maxWidth: '64rem',
-        marginTop: '-3rem',
+        maxWidth: '68rem',
+        marginTop: isMobile ? '-1.5rem' : '-2.75rem',
         marginLeft: 'auto',
         marginRight: 'auto',
-        height: '36rem',
+        height: isMobile ? '32rem' : '40rem',
         width: '100%',
-        border: '4px solid #6C6C6C',
-        padding: '0.5rem',
-        background: '#111318',
-        borderRadius: '30px',
+        border: '1px solid rgba(0, 212, 170, 0.18)',
+        padding: '0.75rem',
+        background: 'linear-gradient(180deg, rgba(13, 19, 27, 0.96), rgba(8, 12, 16, 0.98))',
+        borderRadius: '28px',
       }}
     >
-      <div style={{ height: '100%', width: '100%', overflow: 'hidden', borderRadius: '1rem', background: 'var(--surface-01, #181d26)' }}>
+      <div
+        style={{
+          height: '100%',
+          width: '100%',
+          overflow: 'hidden',
+          borderRadius: '1rem',
+          background: 'var(--surface-01, #181d26)'
+        }}
+      >
         {children}
       </div>
     </motion.div>

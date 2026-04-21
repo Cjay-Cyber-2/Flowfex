@@ -41,6 +41,12 @@ const WARNING_PATTERNS = [
   {
     type: 'quality',
     severity: 'medium',
+    pattern: /\b(todo|tbd|placeholder|lorem ipsum|coming soon|fill in)\b/i,
+    message: 'Contains placeholder content that should be reviewed.'
+  },
+  {
+    type: 'quality',
+    severity: 'medium',
     pattern: /\b(as an ai language model|chatgpt|claude)\b/i,
     message: 'Contains assistant persona noise that should not be in a reusable skill.'
   },
@@ -54,9 +60,15 @@ const WARNING_PATTERNS = [
 
 export function validateNormalizedSkill(skill, context = {}) {
   const findings = [];
+  const rawPrompt = typeof skill.prompt === 'string' ? skill.prompt : '';
+  const rawDescription = typeof skill.description === 'string' ? skill.description : '';
+  const sourceType = skill.sourceType || skill.normalizedSourceType || context.sourceType || 'skill';
+  const minimumDescriptionLength = sourceType === 'command' ? 10 : sourceType === 'agent' ? 15 : 20;
+  const minimumPromptLength = sourceType === 'command' ? 60 : sourceType === 'agent' ? 80 : 100;
   const scanTargets = [
-    skill.prompt,
-    skill.description,
+    rawPrompt,
+    rawDescription,
+    typeof skill.title === 'string' ? skill.title : '',
     ...(skill.sections || []).map(section => section.content)
   ];
   const seenFindings = new Set();
@@ -87,13 +99,22 @@ export function validateNormalizedSkill(skill, context = {}) {
     }
   }
 
-  const sanitizedPrompt = sanitizePrompt(skill.prompt);
-  if (sanitizedPrompt !== skill.prompt) {
+  const sanitizedPrompt = sanitizePrompt(rawPrompt);
+  if (sanitizedPrompt !== rawPrompt) {
     pushFinding(findings, seenFindings, {
       type: 'sanitization',
       severity: 'medium',
       message: 'Prompt content was sanitized during import.',
       evidence: 'Removed one or more risky or irrelevant lines.'
+    });
+  }
+
+  if (context.fileSizeBytes && context.maxFileSizeBytes && context.fileSizeBytes > context.maxFileSizeBytes) {
+    pushFinding(findings, seenFindings, {
+      type: 'oversized-file',
+      severity: 'medium',
+      message: 'Skill source file exceeds the configured size threshold but was imported intact.',
+      evidence: `${context.fileSizeBytes} bytes`
     });
   }
 
@@ -115,16 +136,25 @@ export function validateNormalizedSkill(skill, context = {}) {
     });
   }
 
-  if (skill.description.length < 20) {
+  if (!skill.title || !skill.name || !skill.prompt || !skill.description) {
+    pushFinding(findings, seenFindings, {
+      type: 'broken-skill',
+      severity: 'high',
+      message: 'Imported skill is missing required content.',
+      evidence: skill.id || skill.title || 'unknown-skill'
+    });
+  }
+
+  if (rawDescription.length < minimumDescriptionLength) {
     pushFinding(findings, seenFindings, {
       type: 'quality',
       severity: 'medium',
       message: 'Description is too short to be reliable.',
-      evidence: skill.description
+      evidence: rawDescription
     });
   }
 
-  if (sanitizedPrompt.length < 100) {
+  if (sanitizedPrompt.length < minimumPromptLength) {
     pushFinding(findings, seenFindings, {
       type: 'quality',
       severity: 'medium',
@@ -151,12 +181,21 @@ export function validateNormalizedSkill(skill, context = {}) {
     });
   }
 
+  if (typeof skill.title === 'string' && /^(readme|index|untitled|skill|agent|command|example|template)$/i.test(skill.title.trim())) {
+    pushFinding(findings, seenFindings, {
+      type: 'quality',
+      severity: 'medium',
+      message: 'Skill title is generic and should be reviewed.',
+      evidence: skill.title
+    });
+  }
+
   const hasBlockingFinding = findings.some(finding => finding.severity === 'high');
   const hasDuplicateFinding = findings.some(finding =>
     finding.type === 'duplicate-id' || finding.type === 'duplicate-content'
   );
   const hasWarnings = findings.some(finding => finding.severity === 'medium');
-  const validationStatus = hasBlockingFinding ? 'blocked' : hasWarnings ? 'review' : 'approved';
+  const validationStatus = hasBlockingFinding || hasDuplicateFinding ? 'blocked' : hasWarnings ? 'review' : 'approved';
   const trustLevel = resolveTrustLevel(context.sourceTrustLevel, validationStatus);
   const qualityScore = calculateQualityScore(findings);
   // Allow skills with only medium-severity quality warnings to load.
@@ -180,7 +219,7 @@ export function validateNormalizedSkill(skill, context = {}) {
 }
 
 export function sanitizePrompt(prompt) {
-  return prompt
+  return String(prompt || '')
     .replace(/<!--[\s\S]*?-->/g, '')
     .split('\n')
     .filter(line => !isSanitizedNoise(line))

@@ -48,9 +48,14 @@ const STOP_WORDS = new Set([
   'your'
 ]);
 
+const MAX_PROMPT_SECTION_CHARS = 6000;
+const MAX_PROMPT_SUPPORTING_CHARS = 4500;
+const MAX_PROMPT_TOTAL_CHARS = 40000;
+
 export function normalizeParsedSkill(parsedSkill, context = {}) {
   const relativePath = context.relativePath || parsedSkill.fileName;
   const sourceClassification = context.classification || inferMarkdownClassification(relativePath);
+  const sourceType = inferSourceType(relativePath, sourceClassification);
   const cleanedPreamble = cleanBlock(parsedSkill.preamble);
   const cleanedSections = parsedSkill.sections
     .map(section => ({
@@ -62,13 +67,17 @@ export function normalizeParsedSkill(parsedSkill, context = {}) {
     .filter(section => !NOISE_SECTION_TITLES.has(section.title.toLowerCase()));
 
   const primaryInstructions = selectInstructionSections(cleanedSections);
+  const parsedInstructions = Array.isArray(parsedSkill.instructions)
+    ? parsedSkill.instructions.map(instruction => cleanSentence(cleanInline(instruction))).filter(Boolean)
+    : [];
   const description = cleanSentence(parsedSkill.description);
-  const title = cleanInline(parsedSkill.title);
+  const title = normalizeTitle(parsedSkill.title, sourceType);
   const category = inferCategory({
     title,
     description,
     relativePath,
-    sections: cleanedSections
+    sections: cleanedSections,
+    sourceType
   });
   const tags = inferTags({
     title,
@@ -76,7 +85,9 @@ export function normalizeParsedSkill(parsedSkill, context = {}) {
     relativePath,
     sections: cleanedSections,
     frontmatter: parsedSkill.frontmatter,
-    category
+    category,
+    sourceType,
+    sourceClassification
   });
   const keywords = buildKeywords(title, description, tags);
   const id = buildSkillId(relativePath, title);
@@ -86,8 +97,18 @@ export function normalizeParsedSkill(parsedSkill, context = {}) {
     preamble: cleanedPreamble,
     sections: cleanedSections,
     instructions: primaryInstructions,
-    sourceClassification
+    parsedInstructions,
+    sourceClassification,
+    sourceType,
+    relativePath,
+    tags,
+    frontmatter: parsedSkill.frontmatter,
+    frontmatterRaw: parsedSkill.frontmatterRaw
   });
+  const sourcePath = context.sourcePath || parsedSkill.filePath || null;
+  const sourceRoot = context.sourceDirectory || null;
+  const sourceName = context.sourceName || null;
+  const sourceTrustLevel = context.sourceTrustLevel || null;
 
   return {
     id,
@@ -99,11 +120,35 @@ export function normalizeParsedSkill(parsedSkill, context = {}) {
     tags,
     keywords,
     sections: cleanedSections,
+    instructions: parsedInstructions,
     relativePath,
-    normalizedSourceType: inferSourceType(relativePath, sourceClassification),
+    sourcePath,
+    sourceRoot,
+    sourceName,
+    sourceType,
+    normalizedSourceType: sourceType,
     sourceClassification,
+    sourceTrustLevel,
+    frontmatter: parsedSkill.frontmatter,
+    frontmatterRaw: parsedSkill.frontmatterRaw || '',
+    metadata: {
+      sourcePath,
+      sourceRoot,
+      sourceName,
+      sourceTrustLevel,
+      sourceClassification,
+      sourceType,
+      frontmatter: parsedSkill.frontmatter || {},
+      frontmatterRaw: parsedSkill.frontmatterRaw || '',
+      sectionTitles: cleanedSections.map(section => section.title),
+      instructionTitles: primaryInstructions.map(section => section.title),
+      parsedInstructions,
+      lineCount: parsedSkill.lineCount,
+      contentHash: parsedSkill.contentHash
+    },
     contentHash: parsedSkill.contentHash,
     lineCount: parsedSkill.lineCount,
+    sourceSizeBytes: context.fileSizeBytes || null,
     originalFileName: parsedSkill.fileName
   };
 }
@@ -120,23 +165,67 @@ function selectInstructionSections(sections) {
   return prioritized.length > 0 ? prioritized : sections;
 }
 
-function buildPrompt({ title, description, preamble, sections, instructions, sourceClassification }) {
+function buildPrompt({
+  title,
+  description,
+  preamble,
+  sections,
+  instructions,
+  parsedInstructions = [],
+  sourceClassification,
+  sourceType,
+  relativePath,
+  tags = [],
+  frontmatter = {},
+  frontmatterRaw = ''
+}) {
   const promptSections = [];
+  const blockCharLimit = sourceClassification === 'catalog_markdown' ? 8000 : 12000;
 
   promptSections.push(`You are executing the Flowfex skill "${title}".`);
-  promptSections.push(`Skill type: ${sourceClassification.replace(/_/g, ' ')}.`);
+  promptSections.push(`Execution mode: ${formatExecutionMode(sourceType, sourceClassification)}.`);
+  promptSections.push(`Source path: ${relativePath}.`);
   promptSections.push(`Skill summary:\n${description}`);
+
+  if (tags.length > 0) {
+    promptSections.push(`Skill tags: ${Array.from(new Set(tags)).join(', ')}.`);
+  }
+
+  const metadataSummary = summarizeFrontmatter(frontmatter, frontmatterRaw);
+  if (metadataSummary) {
+    promptSections.push(`Metadata:\n${metadataSummary}`);
+  }
+
+  if (parsedInstructions.length > 0) {
+    promptSections.push(
+      `Parsed instructions:\n${parsedInstructions
+        .map(instruction => `- ${instruction}`)
+        .join('\n')}`
+    );
+  }
+
+  if (sourceClassification === 'command_markdown') {
+    promptSections.push(
+      'Source form: slash command imported from markdown. Preserve the command workflow, operator cues, and sequential steps.'
+    );
+  }
+
+  if (sourceClassification === 'agent_definition') {
+    promptSections.push(
+      'Source form: agent definition imported from markdown. Preserve the role, responsibilities, handoff behavior, and operating rules.'
+    );
+  }
 
   // FULL CONTENT — never truncate skill preamble or sections.
   // The user's skill content is preserved exactly as written.
   if (preamble) {
-    promptSections.push(`Skill context:\n${preamble}`);
+    promptSections.push(`Skill context:\n${limitBlock(preamble, blockCharLimit)}`);
   }
 
   if (instructions.length > 0) {
     promptSections.push(
       `Instructions:\n${instructions
-        .map(section => `## ${section.title}\n${section.content}`)
+        .map(section => `## ${section.title}\n${limitBlock(section.content, blockCharLimit)}`)
         .join('\n\n')}`
     );
   }
@@ -146,7 +235,7 @@ function buildPrompt({ title, description, preamble, sections, instructions, sou
   if (supportingSections.length > 0) {
     promptSections.push(
       `Supporting notes:\n${supportingSections
-        .map(section => `## ${section.title}\n${section.content}`)
+        .map(section => `## ${section.title}\n${limitBlock(section.content, blockCharLimit)}`)
         .join('\n\n')}`
     );
   }
@@ -164,7 +253,7 @@ function buildPrompt({ title, description, preamble, sections, instructions, sou
   return promptSections.join('\n\n').trim();
 }
 
-function inferCategory({ title, description, relativePath, sections }) {
+function inferCategory({ title, description, relativePath, sections, sourceType = 'skill' }) {
   const signal = `${relativePath} ${title} ${description} ${sections.map(section => section.title).join(' ')}`.toLowerCase();
 
   const categoryMatchers = [
@@ -195,16 +284,26 @@ function inferCategory({ title, description, relativePath, sections }) {
     { category: 'productivity', pattern: /\b(review|planning|checklist|process|coordination)\b/ }
   ];
 
+  if (sourceType === 'command') {
+    categoryMatchers.unshift({ category: 'automation', pattern: /\b(command|slash)\b/ });
+  }
+
+  if (sourceType === 'agent') {
+    categoryMatchers.unshift({ category: 'agent-team', pattern: /\bagent\b/ });
+  }
+
   const matched = categoryMatchers.find(entry => entry.pattern.test(signal));
   return matched ? matched.category : 'general';
 }
 
-function inferTags({ title, description, relativePath, sections, frontmatter, category }) {
+function inferTags({ title, description, relativePath, sections, frontmatter, category, sourceType, sourceClassification }) {
   const explicitTags = Array.isArray(frontmatter.tags)
     ? frontmatter.tags.map(tag => slugify(tag))
     : typeof frontmatter.tags === 'string'
       ? frontmatter.tags.split(',').map(tag => slugify(tag))
       : [];
+
+  const metadataTags = extractFrontmatterTags(frontmatter);
 
   const pathTags = relativePath
     .split(path.sep)
@@ -225,8 +324,11 @@ function inferTags({ title, description, relativePath, sections, frontmatter, ca
   // Framework/library detection from content signals
   const contentSignal = `${title} ${description} ${sections.map(s => s.content).join(' ')}`;
   const frameworkTags = detectFrameworks(contentSignal);
+  const sourceTags = [slugify(sourceType), slugify(sourceClassification)].filter(Boolean);
 
-  return Array.from(new Set([category, ...explicitTags, ...pathTags, ...titleTags, ...sectionTags, ...frameworkTags])).slice(0, 24);
+  return Array.from(
+    new Set([category, ...sourceTags, ...explicitTags, ...metadataTags, ...pathTags, ...titleTags, ...sectionTags, ...frameworkTags])
+  ).slice(0, 24);
 }
 
 function buildKeywords(title, description, tags) {
@@ -253,6 +355,100 @@ function buildSkillId(relativePath, title) {
   }
 
   return ['skill', ...segments].join('.');
+}
+
+function normalizeTitle(title, sourceType) {
+  const cleaned = cleanInline(title);
+
+  if (sourceType === 'command' && cleaned.startsWith('/')) {
+    return prettifyName(cleaned.slice(1));
+  }
+
+  return cleaned;
+}
+
+function formatExecutionMode(sourceType, sourceClassification) {
+  if (sourceType === 'command') {
+    return 'slash command';
+  }
+
+  if (sourceType === 'agent') {
+    return 'agent definition';
+  }
+
+  return sourceClassification.replace(/_/g, ' ');
+}
+
+function summarizeFrontmatter(frontmatter = {}, frontmatterRaw = '') {
+  const entries = [];
+  const preferredKeys = [
+    'title',
+    'description',
+    'category',
+    'tags',
+    'type',
+    'kind',
+    'role',
+    'model',
+    'provider',
+    'framework',
+    'tool',
+    'tools',
+    'mode',
+    'target',
+    'audience'
+  ];
+
+  for (const key of preferredKeys) {
+    const value = frontmatter[key];
+    if (typeof value === 'undefined' || value === null || value === '') {
+      continue;
+    }
+
+    if (Array.isArray(value)) {
+      entries.push(`${key}: ${value.join(', ')}`);
+      continue;
+    }
+
+    entries.push(`${key}: ${String(value)}`);
+  }
+
+  if (entries.length > 0) {
+    return entries.join('\n');
+  }
+
+  const raw = String(frontmatterRaw || '').trim();
+  if (raw) {
+    return limitBlock(raw.replace(/\n{3,}/g, '\n\n'), 2000);
+  }
+
+  return '';
+}
+
+function collectFrontmatterTags(frontmatter = {}) {
+  const fields = [
+    frontmatter.category,
+    frontmatter.type,
+    frontmatter.kind,
+    frontmatter.role,
+    frontmatter.model,
+    frontmatter.provider,
+    frontmatter.framework,
+    frontmatter.mode,
+    frontmatter.target,
+    frontmatter.audience
+  ];
+
+  return fields
+    .flatMap(value => {
+      if (Array.isArray(value)) {
+        return value;
+      }
+
+      return [value];
+    })
+    .map(value => slugify(value))
+    .filter(Boolean);
 }
 
 const FRAMEWORK_PATTERNS = [
@@ -325,6 +521,48 @@ function cleanBlock(value) {
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+function extractFrontmatterTags(frontmatter = {}) {
+  const tags = [];
+
+  for (const [key, value] of Object.entries(frontmatter)) {
+    if (key === 'title' || key === 'description' || key === 'instructions' || key === 'tags') {
+      continue;
+    }
+
+    if (Array.isArray(value)) {
+      for (const entry of value) {
+        const normalized = slugify(entry);
+        if (normalized) {
+          tags.push(normalized);
+        }
+      }
+      continue;
+    }
+
+    if (typeof value !== 'string') {
+      continue;
+    }
+
+    const pieces = value
+      .split(/[,/|]/g)
+      .map(part => slugify(part))
+      .filter(Boolean)
+      .filter(part => part.length > 1 && part.length < 48);
+
+    if (pieces.length > 0) {
+      tags.push(...pieces);
+      continue;
+    }
+
+    const normalized = slugify(value);
+    if (normalized && normalized.length > 1 && normalized.length < 48) {
+      tags.push(normalized);
+    }
+  }
+
+  return tags;
 }
 
 function isNoiseLine(line) {

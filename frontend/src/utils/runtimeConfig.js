@@ -23,21 +23,21 @@ function getBrowserLocation() {
 }
 
 export function getAppOrigin() {
+  const location = getBrowserLocation();
+  if (location?.origin) {
+    return location.origin;
+  }
+
   const configuredOrigin = normalizeOrigin(import.meta.env.VITE_APP_URL);
   if (configuredOrigin) {
     return configuredOrigin;
-  }
-
-  const location = getBrowserLocation();
-  if (location) {
-    return location.origin;
   }
 
   return DEFAULT_APP_ORIGIN;
 }
 
 export function getBackendOrigin() {
-  const configuredOrigin = normalizeOrigin(import.meta.env.VITE_BACKEND_URL);
+  const configuredOrigin = normalizeOrigin(import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL);
   if (configuredOrigin) {
     return configuredOrigin;
   }
@@ -55,7 +55,46 @@ export function getBackendOrigin() {
 }
 
 export function getSessionConnectUrl(sessionId) {
-  return new URL(`/connect/live/${encodeURIComponent(sessionId)}`, `${getAppOrigin()}/`).toString();
+  return new URL(`/connect/live/${encodeURIComponent(sessionId)}`, `${getBackendOrigin()}/`).toString();
+}
+
+export function normalizeSessionConnectUrl(value) {
+  if (!value) {
+    return '';
+  }
+
+  const location = getBrowserLocation();
+  if (!location?.origin) {
+    return trimTrailingSlash(value);
+  }
+
+  try {
+    const parsed = new URL(value, location.origin);
+    if (parsed.pathname.startsWith('/connect/live/')) {
+      return new URL(`${parsed.pathname}${parsed.search}${parsed.hash}`, location.origin).toString();
+    }
+
+    return parsed.toString();
+  } catch {
+    if (value.startsWith('/connect/live/')) {
+      return new URL(value, location.origin).toString();
+    }
+
+    return trimTrailingSlash(value);
+  }
+}
+
+export function rewriteConnectPrompt(prompt, sessionUrl) {
+  if (!prompt) {
+    return '';
+  }
+
+  const normalizedSessionUrl = normalizeSessionConnectUrl(sessionUrl);
+  if (!normalizedSessionUrl) {
+    return prompt;
+  }
+
+  return prompt.replace(/(^Session URL:\s*).+$/m, `$1${normalizedSessionUrl}`);
 }
 
 export function getSessionSocketUrl(sessionId) {

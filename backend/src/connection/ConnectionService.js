@@ -26,7 +26,7 @@ export class ConnectionService {
     this.apiSessionTtlSeconds = config.apiSessionTtlSeconds || 60 * 60;
     this.linkSessionTtlSeconds = config.linkSessionTtlSeconds || 60 * 60 * 24;
     this.promptToolLimit = config.promptToolLimit || 5;
-    this.publicBaseUrl = config.publicBaseUrl || process.env.FLOWFEX_PUBLIC_ORIGIN || 'http://127.0.0.1:4000';
+    this.publicBaseUrl = normalizeBaseUrl(config.publicBaseUrl || process.env.FLOWFEX_PUBLIC_ORIGIN || 'http://127.0.0.1:4000');
     this.linkSessions = config.linkSessions || new Map();
     this.linkSecret = config.linkSecret || process.env.FLOWFEX_LINK_SECRET || randomToken(32);
   }
@@ -356,7 +356,7 @@ export class ConnectionService {
   }
 
   _buildSessionResponse(session, token = null, options = {}) {
-    const baseUrl = options.baseUrl || this.publicBaseUrl;
+    const baseUrl = normalizeBaseUrl(options.baseUrl || this.publicBaseUrl);
     return {
       ...publicSessionView(session),
       ...(token ? { token } : {}),
@@ -436,19 +436,21 @@ export class ConnectionService {
   }
 
   _buildTransport(baseUrl, sessionId, protocol) {
+    const normalizedBaseUrl = normalizeBaseUrl(baseUrl || this.publicBaseUrl);
     return {
-      restBaseUrl: baseUrl || this.publicBaseUrl,
-      orchestrationNamespace: `${baseUrl || this.publicBaseUrl}/orchestration`,
-      sessionNamespace: `${baseUrl || this.publicBaseUrl}/session`,
-      controlNamespace: `${baseUrl || this.publicBaseUrl}/control`,
-      sseUrl: `${baseUrl || this.publicBaseUrl}/session/${sessionId}/stream`,
+      restBaseUrl: normalizedBaseUrl,
+      orchestrationNamespace: `${normalizedBaseUrl}/orchestration`,
+      sessionNamespace: `${normalizedBaseUrl}/session`,
+      controlNamespace: `${normalizedBaseUrl}/control`,
+      sseUrl: `${normalizedBaseUrl}/session/${sessionId}/stream`,
       protocol,
     };
   }
 
   _buildConnectUrl(baseUrl, identifier, token = null) {
+    const normalizedBaseUrl = normalizeBaseUrl(baseUrl || this.publicBaseUrl);
     const query = token ? `?token=${encodeURIComponent(token)}` : '';
-    return `${baseUrl || this.publicBaseUrl}/connect/live/${identifier}${query}`;
+    return `${normalizedBaseUrl}/connect/live/${identifier}${query}`;
   }
 
   _buildPromptInstruction(prompt, sessionId, token, baseUrl) {
@@ -458,7 +460,7 @@ export class ConnectionService {
       '',
       `Session ID: ${sessionId}`,
       `Session URL: ${this._buildConnectUrl(baseUrl, sessionId, token)}`,
-      `Ingest URL: ${(baseUrl || this.publicBaseUrl)}/ingest`,
+      `Ingest URL: ${normalizeBaseUrl(baseUrl || this.publicBaseUrl)}/ingest`,
       '',
       'Rules:',
       '1. Prefix every task you send to Flowfex with the exact first line below.',
@@ -520,6 +522,10 @@ function createConnectionError(message, statusCode) {
   const error = new Error(message);
   error.statusCode = statusCode;
   return error;
+}
+
+function normalizeBaseUrl(baseUrl) {
+  return String(baseUrl || '').trim().replace(/\/+$/, '') || 'http://127.0.0.1:4000';
 }
 
 function randomToken(size) {

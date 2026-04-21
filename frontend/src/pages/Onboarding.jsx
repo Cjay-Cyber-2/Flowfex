@@ -5,7 +5,6 @@ import { CheckCircle } from 'lucide-react';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import ConnectAgentModal from '../components/ConnectAgentModal';
 import PulseBeams from '../components/animations/PulseBeams';
-import useStore from '../store/useStore';
 import '../styles/onboarding.css';
 
 // ─── PulseBeams config ────────────────────────────────────────────────────────
@@ -197,18 +196,6 @@ export default function Onboarding() {
   // Modal starts CLOSED — user sees the onboarding page first
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [connectionStage, setConnectionStage] = useState('idle'); // idle | connecting | connected | navigating
-  const connectedAgents = useStore((state) => state.connectedAgents);
-  const prevAgentCountRef = useRef(connectedAgents.length);
-
-  // Auto-detect real connection via store (WebSocket-driven)
-  useEffect(() => {
-    if (connectionStage !== 'idle') return;
-    if (connectedAgents.length > prevAgentCountRef.current) {
-      // A real agent just connected — trigger success flow
-      handleConnected();
-    }
-    prevAgentCountRef.current = connectedAgents.length;
-  }, [connectedAgents.length, connectionStage]);
 
   const handleConnected = useCallback(() => {
     setIsModalOpen(false);

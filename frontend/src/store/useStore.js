@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { buildApprovalQueue, buildDemoWorkspace } from './demoData';
 import { CONTROL_EVENTS } from '../../../shared/control-contracts.js';
+import { getBackendOrigin } from '../utils/runtimeConfig';
 
 function syncSelectedNode(selectedNode, nodes) {
   if (!selectedNode) return null;
@@ -415,7 +416,7 @@ const useStore = create((set, get) => ({
       },
     })),
 
-  backendUrl: import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000',
+  backendUrl: getBackendOrigin(),
   applySessionSnapshot: (snapshot) =>
     set((state) => applySessionSnapshotToState(state, snapshot)),
 

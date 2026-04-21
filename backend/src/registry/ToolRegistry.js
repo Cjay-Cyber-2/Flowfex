@@ -151,11 +151,30 @@ export class ToolRegistry {
     return this.toolsByTag.get(tag) || [];
   }
 
+  /**
+   * Returns a normalized index snapshot for the requested dimension.
+   * The server uses this to expose searchable metadata without leaking live maps.
+   * @param {string} indexName
+   * @returns {Object<string, string[]>}
+   */
+  getIndex(indexName) {
+    const index = this._resolveIndex(indexName);
+    if (!index) {
+      return {};
+    }
+
+    return Array.from(index.entries()).reduce((result, [key, tools]) => {
+      result[key] = tools.map(tool => tool.id);
+      return result;
+    }, {});
+  }
+
   filterTools(filters = {}) {
     const {
       category,
       tag,
       source,
+      sourcePath,
       trustLevel,
       validationStatus,
       sourceType,
@@ -168,6 +187,7 @@ export class ToolRegistry {
       category,
       tag,
       source,
+      sourcePath,
       trustLevel,
       validationStatus,
       sourceType,
@@ -323,12 +343,13 @@ export class ToolRegistry {
         tag.toLowerCase().includes(lowerQuery)
       );
       const sourceMatch = (tool.metadata?.source || '').toLowerCase().includes(lowerQuery);
+      const sourcePathMatch = (tool.metadata?.sourcePath || '').toLowerCase().includes(lowerQuery);
       const sourceTypeMatch = (tool.metadata?.sourceType || '').toLowerCase().includes(lowerQuery);
       const trustMatch = (tool.metadata?.trustLevel || '').toLowerCase().includes(lowerQuery);
       const validationMatch = (tool.metadata?.validationStatus || '').toLowerCase().includes(lowerQuery);
 
       if (
-        (nameMatch || descMatch || categoryMatch || tagMatch || sourceMatch || sourceTypeMatch || trustMatch || validationMatch) &&
+        (nameMatch || descMatch || categoryMatch || tagMatch || sourceMatch || sourcePathMatch || sourceTypeMatch || trustMatch || validationMatch) &&
         !seen.has(tool.id)
       ) {
         seen.add(tool.id);
@@ -434,11 +455,42 @@ export class ToolRegistry {
       version: tool.metadata?.version || '1.0.0',
       source: tool.metadata?.source || null,
       sourcePath: tool.metadata?.sourcePath || null,
+      sourceRoot: tool.metadata?.sourceRoot || null,
       sourceType: tool.metadata?.sourceType || null,
+      sourceClassification: tool.metadata?.sourceClassification || null,
       trustLevel: tool.metadata?.trustLevel || null,
       validationStatus: tool.metadata?.validationStatus || null,
+      qualityScore: tool.metadata?.qualityScore ?? null,
+      executable: tool.metadata?.executable ?? true,
       embeddingIndexed: Boolean(embedding && !embedding.error)
     };
+  }
+
+  _resolveIndex(indexName) {
+    const normalized = String(indexName || '').toLowerCase();
+
+    switch (normalized) {
+      case 'category':
+      case 'categories':
+        return this.toolsByCategory;
+      case 'tag':
+      case 'tags':
+        return this.toolsByTag;
+      case 'source':
+      case 'sources':
+        return this.toolsBySource;
+      case 'trustlevel':
+      case 'trustlevels':
+        return this.toolsByTrustLevel;
+      case 'validationstatus':
+      case 'validationstatuses':
+        return this.toolsByValidationStatus;
+      case 'sourcetype':
+      case 'sourcetypes':
+        return this.toolsBySourceType;
+      default:
+        return null;
+    }
   }
 
   _indexToolEmbedding(tool) {
@@ -493,6 +545,7 @@ export class ToolRegistry {
       category,
       tag,
       source,
+      sourcePath,
       trustLevel,
       validationStatus,
       sourceType,
@@ -514,6 +567,10 @@ export class ToolRegistry {
     }
 
     if (source && (tool.metadata?.source || null) !== source) {
+      return false;
+    }
+
+    if (sourcePath && (tool.metadata?.sourcePath || null) !== sourcePath) {
       return false;
     }
 

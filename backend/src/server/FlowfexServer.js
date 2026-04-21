@@ -249,9 +249,45 @@ export class FlowfexServer {
         category: t.metadata?.category || 'uncategorized',
         tags: t.metadata?.tags || [],
         source: t.metadata?.source || 'unknown',
-        confidence: t.metadata?.confidence || 100
+        sourcePath: t.metadata?.sourcePath || null,
+        sourceRoot: t.metadata?.sourceRoot || null,
+        sourceType: t.metadata?.sourceType || 'skill',
+        sourceClassification: t.metadata?.sourceClassification || null,
+        trustLevel: t.metadata?.trustLevel || 'unknown',
+        validationStatus: t.metadata?.validationStatus || 'unknown',
+        qualityScore: t.metadata?.qualityScore ?? null,
+        executable: t.metadata?.executable ?? true,
+        confidence: t.metadata?.qualityScore ?? t.metadata?.confidence ?? 100
       }));
-      return this._writeJson(response, 200, { tools });
+
+      const markdownTools = tools.filter(tool => Boolean(tool.sourcePath));
+      const summary = markdownTools.reduce((accumulator, tool) => {
+        accumulator.totalTools += 1;
+        accumulator.categories.add(tool.category);
+        accumulator.sourceTypes[tool.sourceType] = (accumulator.sourceTypes[tool.sourceType] || 0) + 1;
+        accumulator.trustLevels[tool.trustLevel] = (accumulator.trustLevels[tool.trustLevel] || 0) + 1;
+        accumulator.validationStatuses[tool.validationStatus] = (accumulator.validationStatuses[tool.validationStatus] || 0) + 1;
+        return accumulator;
+      }, {
+        totalTools: 0,
+        categories: new Set(),
+        sourceTypes: {},
+        trustLevels: {},
+        validationStatuses: {}
+      });
+
+      return this._writeJson(response, 200, {
+        tools,
+        summary: {
+          totalRegistryTools: tools.length,
+          totalTools: summary.totalTools,
+          totalCategories: summary.categories.size,
+          sourceTypes: summary.sourceTypes,
+          trustLevels: summary.trustLevels,
+          validationStatuses: summary.validationStatuses,
+          markdownTools: markdownTools.length
+        }
+      });
     }
 
     if (request.method === 'GET' && skillsCategoriesMatch) {
@@ -278,6 +314,15 @@ export class FlowfexServer {
         name: m.tool.name,
         description: m.tool.description,
         category: m.tool.metadata?.category || 'uncategorized',
+        tags: m.tool.metadata?.tags || [],
+        source: m.tool.metadata?.source || 'unknown',
+        sourcePath: m.tool.metadata?.sourcePath || null,
+        sourceRoot: m.tool.metadata?.sourceRoot || null,
+        sourceType: m.tool.metadata?.sourceType || 'skill',
+        sourceClassification: m.tool.metadata?.sourceClassification || null,
+        trustLevel: m.tool.metadata?.trustLevel || 'unknown',
+        validationStatus: m.tool.metadata?.validationStatus || 'unknown',
+        qualityScore: m.tool.metadata?.qualityScore ?? null,
         score: m.score,
         strategy: m.strategy,
       }));
@@ -591,12 +636,19 @@ export class FlowfexServer {
   }
 
   _buildBaseUrl(request) {
+    const configuredOrigin = process.env.FLOWFEX_PUBLIC_ORIGIN || this.connectionService?.publicBaseUrl || null;
+    if (configuredOrigin) {
+      return configuredOrigin.replace(/\/+$/, '');
+    }
+
     const forwardedProto = request.headers['x-forwarded-proto'];
     const proto = typeof forwardedProto === 'string' && forwardedProto.trim().length > 0
       ? forwardedProto
       : 'http';
-    const host = request.headers.host || `${this.host}:${this.port}`;
-    return `${proto}://${host}`;
+    const forwardedHost = request.headers['x-forwarded-host'];
+    const host = forwardedHost || request.headers.host || `${this.host}:${this.port}`;
+    const prefix = String(request.headers['x-forwarded-prefix'] || '').replace(/\/+$/, '');
+    return `${proto}://${host}${prefix}`;
   }
 
   async _listenWithFallback(port, host) {

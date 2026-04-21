@@ -12,6 +12,7 @@ import {
   CONNECT_PROMPT,
   CONNECT_SDK_SNIPPET,
 } from '../store/demoData';
+import { normalizeSessionConnectUrl, rewriteConnectPrompt } from '../utils/runtimeConfig';
 import '../styles/canvas.css';
 
 function OrchestrationCanvas() {
@@ -45,8 +46,11 @@ function OrchestrationCanvas() {
   );
 
   const modalContent = {
-    prompt: connectionPayloads.prompt?.connection?.instructions?.prompt || CONNECT_PROMPT,
-    link: connectionPayloads.link?.connection?.link?.url || CONNECT_LINK,
+    prompt: rewriteConnectPrompt(
+      connectionPayloads.prompt?.connection?.instructions?.prompt || CONNECT_PROMPT,
+      connectionPayloads.prompt?.connection?.instructions?.sessionUrl || CONNECT_LINK
+    ),
+    link: normalizeSessionConnectUrl(connectionPayloads.link?.connection?.link?.url || CONNECT_LINK),
     sdk: connectionPayloads.sdk?.connection?.session
       ? `const response = await fetch('${connectionPayloads.sdk.connection.session.endpoints.execute}', {
   method: 'POST',

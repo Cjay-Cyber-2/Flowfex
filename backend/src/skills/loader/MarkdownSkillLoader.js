@@ -11,33 +11,184 @@ import { validateNormalizedSkill } from '../validation/SkillValidator.js';
 
 const FLOWFEX_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../');
 
-export const DEFAULT_MARKDOWN_SKILL_SOURCES = [
-  {
-    name: 'local-skills-md',
-    directory: path.join(FLOWFEX_ROOT, 'skills-md'),
-    trustLevel: 'trusted'
-  },
-  {
-    name: 'imported-skill-source',
-    directory: path.join(FLOWFEX_ROOT, 'awesome-agent-skills'),
-    trustLevel: 'unverified'
-  },
-  {
-    name: 'awesome-llm-apps-skills',
-    directory: path.join(FLOWFEX_ROOT, 'awesome-llm-apps', 'awesome_agent_skills'),
-    trustLevel: 'unverified'
-  },
-  {
-    name: 'awesome-llm-apps',
-    directory: path.join(FLOWFEX_ROOT, 'awesome-llm-apps'),
-    trustLevel: 'unverified'
-  }
-];
-
 const DEFAULT_CHUNK_SIZE = 100;
 const DEFAULT_MAX_FILE_SIZE_BYTES = 1024 * 1024;
-const IGNORED_DIRECTORIES = new Set(['.git', '.github', 'node_modules', '__pycache__', '.venv', 'venv', '.tox']);
+const IGNORED_DIRECTORIES = new Set([
+  '.git',
+  '.github',
+  '.flowfex',
+  '.cache',
+  '.next',
+  '.turbo',
+  'build',
+  'coverage',
+  'dist',
+  'node_modules',
+  '__pycache__',
+  '.venv',
+  'venv',
+  '.tox'
+]);
 const IGNORED_FILES = new Set(['license.md', 'contributing.md', 'changelog.md', 'code_of_conduct.md', 'fix_summary.md']);
+
+export const DEFAULT_MARKDOWN_SKILL_SOURCES = discoverMarkdownSkillSources(FLOWFEX_ROOT);
+
+const SKILL_SOURCE_NAME_PATTERN = /(skill|skills|agent|agents|llm|rag|mcp|voice|memory|chat|tutorial|awesome|ai)/i;
+const SKILL_SOURCE_CONTENT_PATTERN = /(table of contents|skills count|awesome agent skills|awesome llm apps|multi-agent|agent skill|agentic|slash command|use when|instructions|workflow|tutorial|rag|mcp|voice|memory)/i;
+
+export function discoverMarkdownSkillSources(rootDirectory = FLOWFEX_ROOT, options = {}) {
+  const resolvedRoot = resolveSourceDirectory(rootDirectory, FLOWFEX_ROOT);
+  const maxDiscoveryDepth = Math.max(0, Number(options.maxDiscoveryDepth) || 1);
+  const minMarkdownFiles = Math.max(1, Number(options.minMarkdownFiles) || 5);
+  const sources = [];
+  const seenDirectories = new Set();
+
+  addSourceCandidate(sources, seenDirectories, path.join(resolvedRoot, 'skills-md'), {
+    name: 'local-skills-md',
+    trustLevel: 'trusted',
+    priority: 0
+  });
+
+  addSourceCandidate(sources, seenDirectories, path.join(resolvedRoot, 'awesome-agent-skills'), {
+    name: 'imported-skill-source',
+    trustLevel: 'unverified',
+    priority: 10
+  });
+
+  addSourceCandidate(sources, seenDirectories, path.join(resolvedRoot, 'awesome-llm-apps', 'awesome_agent_skills'), {
+    name: 'awesome-llm-apps-skills',
+    trustLevel: 'unverified',
+    priority: 20
+  });
+
+  addSourceCandidate(sources, seenDirectories, path.join(resolvedRoot, 'awesome-llm-apps'), {
+    name: 'awesome-llm-apps',
+    trustLevel: 'unverified',
+    priority: 30
+  });
+
+  if (isLikelyMarkdownSkillSource(resolvedRoot, { minMarkdownFiles })) {
+    addSourceCandidate(sources, seenDirectories, resolvedRoot, {
+      trustLevel: resolveSourceTrustLevel(resolvedRoot),
+      priority: 5
+    });
+  }
+
+  for (const entry of fs.readdirSync(resolvedRoot, { withFileTypes: true })) {
+    if (!entry.isDirectory() || IGNORED_DIRECTORIES.has(entry.name)) {
+      continue;
+    }
+
+    const directory = path.join(resolvedRoot, entry.name);
+    if (seenDirectories.has(resolveCanonicalPath(directory))) {
+      continue;
+    }
+
+    if (!isLikelyMarkdownSkillSource(directory, { minMarkdownFiles, maxDiscoveryDepth })) {
+      continue;
+    }
+
+    addSourceCandidate(sources, seenDirectories, directory, {
+      trustLevel: resolveSourceTrustLevel(directory),
+      priority: 100
+    });
+  }
+
+  return sources
+    .sort((left, right) => {
+      const priorityDelta = left.priority - right.priority;
+      if (priorityDelta !== 0) {
+        return priorityDelta;
+      }
+
+      return left.directory.localeCompare(right.directory);
+    })
+    .map(({ priority, ...source }) => source);
+}
+
+function addSourceCandidate(sources, seenDirectories, directory, overrides = {}) {
+  const resolvedDirectory = resolveSourceDirectory(directory, FLOWFEX_ROOT);
+  const canonicalDirectory = resolveCanonicalPath(resolvedDirectory);
+
+  if (seenDirectories.has(canonicalDirectory) || !fs.existsSync(resolvedDirectory)) {
+    return;
+  }
+
+  const stat = fs.statSync(resolvedDirectory);
+  if (!stat.isDirectory()) {
+    return;
+  }
+
+  seenDirectories.add(canonicalDirectory);
+  sources.push({
+    name: overrides.name || inferSourceName(resolvedDirectory),
+    directory: resolvedDirectory,
+    trustLevel: overrides.trustLevel || resolveSourceTrustLevel(resolvedDirectory),
+    priority: overrides.priority ?? 100
+  });
+}
+
+function isLikelyMarkdownSkillSource(directory, options = {}) {
+  if (!directory || !fs.existsSync(directory)) {
+    return false;
+  }
+
+  const stat = fs.statSync(directory);
+  if (!stat.isDirectory()) {
+    return false;
+  }
+
+  const markdownFiles = discoverMarkdownFiles(directory);
+  if (markdownFiles.length === 0) {
+    return false;
+  }
+
+  const minMarkdownFiles = Math.max(1, Number(options.minMarkdownFiles) || 5);
+  const lowerDirectory = directory.toLowerCase().replace(/\\/g, '/');
+  const baseName = path.basename(directory).toLowerCase();
+  const skillNameMatch = SKILL_SOURCE_NAME_PATTERN.test(baseName) || SKILL_SOURCE_NAME_PATTERN.test(lowerDirectory);
+
+  if (skillNameMatch) {
+    return true;
+  }
+
+  const readmePath = markdownFiles.find(filePath => /(^|\/)readme\.md$/i.test(filePath) || /(^|\/)README\.md$/.test(filePath));
+  if (readmePath) {
+    try {
+      const readmeContent = fs.readFileSync(readmePath, 'utf8');
+      if (SKILL_SOURCE_CONTENT_PATTERN.test(readmeContent)) {
+        return true;
+      }
+    } catch {
+      // Ignore read errors during discovery. Processing will surface them later.
+    }
+  }
+
+  if (markdownFiles.length >= minMarkdownFiles && /\b(skill|agent|llm|rag|mcp|voice|memory|chat|tutorial|ai)\b/i.test(lowerDirectory)) {
+    return true;
+  }
+
+  return markdownFiles.length === 1 && Boolean(readmePath) && SKILL_SOURCE_CONTENT_PATTERN.test(fs.readFileSync(readmePath, 'utf8'));
+}
+
+function inferSourceName(directory) {
+  const normalized = resolveSourceDirectory(directory, FLOWFEX_ROOT);
+  const baseName = path.basename(normalized);
+  return baseName || 'markdown-source';
+}
+
+function resolveSourceDirectory(directory, baseDirectory = FLOWFEX_ROOT) {
+  if (!directory) {
+    return baseDirectory;
+  }
+
+  return path.isAbsolute(directory) ? path.resolve(directory) : path.resolve(baseDirectory, directory);
+}
+
+function resolveSourceTrustLevel(directory) {
+  const normalized = resolveSourceDirectory(directory, FLOWFEX_ROOT).toLowerCase().replace(/\\/g, '/');
+  return normalized.includes('/skills-md') ? 'trusted' : 'unverified';
+}
 
 export function discoverMarkdownFiles(rootDirectory) {
   if (!rootDirectory || !fs.existsSync(rootDirectory)) {
@@ -111,10 +262,11 @@ export function loadMarkdownSkills(options = {}) {
   const processedAbsolutePaths = new Set();
   for (const entry of inventory) {
     entry.files = entry.files.filter(filePath => {
-      if (processedAbsolutePaths.has(filePath)) {
+      const canonicalPath = resolveCanonicalPath(filePath);
+      if (processedAbsolutePaths.has(canonicalPath)) {
         return false;
       }
-      processedAbsolutePaths.add(filePath);
+      processedAbsolutePaths.add(canonicalPath);
       return true;
     });
   }
@@ -305,20 +457,8 @@ function processMarkdownFile({
 }) {
   const lowerFileName = path.basename(filePath).toLowerCase();
   const stat = fs.statSync(filePath);
-  let truncated = false;
-
-  if (stat.size > settings.maxFileSizeBytes) {
-    // Instead of skipping oversized files, truncate and preserve useful content
-    truncated = true;
-  }
 
   let content = fs.readFileSync(filePath, 'utf8');
-  if (truncated) {
-    const lines = content.split('\n');
-    if (lines.length > 2000) {
-      content = lines.slice(0, 2000).join('\n') + '\n\n[Content truncated — original file exceeded 2000 lines]';
-    }
-  }
 
   const classification = classifyMarkdownFile(filePath, content);
   sourceSummary.classifications[classification] = (sourceSummary.classifications[classification] || 0) + 1;
@@ -346,18 +486,22 @@ function processMarkdownFile({
   const parsedSkill = parseMarkdownSkillFile({ filePath, content });
   const normalizedSkill = normalizeParsedSkill(parsedSkill, {
     relativePath,
-    classification
+    classification,
+    fileSizeBytes: stat.size
   });
   const validation = validateNormalizedSkill(normalizedSkill, {
     seenIds,
     seenHashes,
-    sourceTrustLevel: source.trustLevel
+    sourceTrustLevel: source.trustLevel,
+    fileSizeBytes: stat.size,
+    maxFileSizeBytes: settings.maxFileSizeBytes
   });
   const record = {
     source: source.name,
     filePath,
     relativePath,
     classification,
+    sourceSizeBytes: stat.size,
     normalizedSkill,
     validation
   };
@@ -369,6 +513,7 @@ function processMarkdownFile({
     validationStatus: validation.validationStatus,
     trustLevel: validation.trustLevel,
     qualityScore: validation.qualityScore,
+    sourceSizeBytes: stat.size,
     findings: validation.findings
   });
 
@@ -430,13 +575,16 @@ function createMarkdownSkillTool(record) {
       category: normalizedSkill.category,
       version: '1.0.0',
       tags: normalizedSkill.tags,
-      source,
+      source: source.name,
+      sourceDirectory: source.directory,
+      sourceTrustLevel: source.trustLevel,
       sourcePath: filePath,
       sourceType: normalizedSkill.normalizedSourceType,
       sourceClassification: classification,
       trustLevel: validation.trustLevel,
       validationStatus: validation.validationStatus,
       qualityScore: validation.qualityScore,
+      sourceSizeBytes: normalizedSkill.sourceSizeBytes,
       imported: true,
       contentHash: normalizedSkill.contentHash,
       sections: normalizedSkill.sections.map(section => section.title),
@@ -659,6 +807,7 @@ function buildReportIndexes(report) {
     bySourceType: {},
     byTag: {},
     byTrustLevel: {},
+    byValidationStatus: {},
     catalogByProvider: report.catalogRegistry.byProvider,
     catalogByCategory: report.catalogRegistry.byCategory
   };
@@ -667,6 +816,7 @@ function buildReportIndexes(report) {
     indexValue(indexes.byCategory, entry.normalizedSkill.category, entry.normalizedSkill.id);
     indexValue(indexes.bySourceType, entry.normalizedSkill.normalizedSourceType, entry.normalizedSkill.id);
     indexValue(indexes.byTrustLevel, entry.validation.trustLevel, entry.normalizedSkill.id);
+    indexValue(indexes.byValidationStatus, entry.validation.validationStatus, entry.normalizedSkill.id);
 
     for (const tag of entry.normalizedSkill.tags) {
       indexValue(indexes.byTag, tag, entry.normalizedSkill.id);
@@ -691,6 +841,8 @@ function buildLoadStats(report) {
     blockedByReason: countFindings(report.blockedSkills),
     loadedByCategory: countBy(report.loadedTools, entry => entry.normalizedSkill.category),
     loadedBySourceType: countBy(report.loadedTools, entry => entry.normalizedSkill.normalizedSourceType),
+    loadedByTrustLevel: countBy(report.loadedTools, entry => entry.validation.trustLevel),
+    loadedByValidationStatus: countBy(report.loadedTools, entry => entry.validation.validationStatus),
     catalogByProvider: countBy(report.catalogEntries, entry => entry.provider),
     catalogByCategory: countBy(report.catalogEntries, entry => entry.category),
     catalogLocalMatches: report.catalogEntries.filter(entry => entry.hasLocalMatch).length,
@@ -752,4 +904,12 @@ function indexValue(index, key, id) {
   }
 
   index[key].push(id);
+}
+
+function resolveCanonicalPath(filePath) {
+  try {
+    return fs.realpathSync(filePath);
+  } catch {
+    return path.resolve(filePath);
+  }
 }

@@ -6,7 +6,7 @@ const HEADING_PATTERN = /^(#{1,6})\s+(.*)$/;
 
 export function parseMarkdownSkillFile({ filePath, content }) {
   const normalizedContent = normalizeLineEndings(content);
-  const { frontmatter, body } = extractFrontmatter(normalizedContent);
+  const { frontmatter, frontmatterRaw, body } = extractFrontmatter(normalizedContent);
   const relativeName = path.basename(filePath, path.extname(filePath));
   const title = extractTitle(frontmatter, body, relativeName);
   const { preamble, sections } = splitSections(body);
@@ -20,10 +20,12 @@ export function parseMarkdownSkillFile({ filePath, content }) {
     rawContent: content,
     body,
     frontmatter,
+    frontmatterRaw,
     title,
     description,
     preamble,
     sections,
+    sectionTitles: sections.map(section => section.title),
     instructions,
     lineCount: normalizedContent.split('\n').length,
     contentHash: crypto.createHash('sha256').update(content).digest('hex')
@@ -35,12 +37,14 @@ function extractFrontmatter(content) {
   if (!match) {
     return {
       frontmatter: {},
+      frontmatterRaw: '',
       body: content
     };
   }
 
   return {
     frontmatter: parseFrontmatter(match[1]),
+    frontmatterRaw: match[1],
     body: content.slice(match[0].length)
   };
 }

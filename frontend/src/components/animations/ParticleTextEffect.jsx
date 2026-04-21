@@ -10,8 +10,7 @@ const BRAND_COLORS = [
   { r: 0, g: 212, b: 170 },    // #00D4AA — primary green
   { r: 127, g: 255, b: 240 },  // #7FFFF0 — bright teal
   { r: 70, g: 189, b: 169 },   // #46BDA9 — muted teal
-  { r: 99, g: 68, b: 245 },    // #6344F5 — accent purple
-  { r: 174, g: 72, b: 255 },   // #AE48FF — accent violet
+  { r: 0, g: 229, b: 195 },    // #00E5C3 — saturated teal
 ];
 
 class Particle {
@@ -118,14 +117,19 @@ function pickBrandColor() {
   return { ...BRAND_COLORS[Math.floor(Math.random() * BRAND_COLORS.length)] };
 }
 
-export function ParticleTextEffect({ words = ['Flowfex', 'Connect', 'Orchestrate', 'Guide', 'Automate'] }) {
+export function ParticleTextEffect({
+  words = ['Flowfex', 'Connect', 'Orchestrate', 'Guide', 'Automate'],
+  intervalMs = 4000,
+  fontScale = 0.15,
+  maxFontSize = 156,
+}) {
   const canvasRef = useRef(null);
   const animRef = useRef(null);
   const particlesRef = useRef([]);
-  const frameCountRef = useRef(0);
   const wordIndexRef = useRef(0);
   const pixelSteps = 6;
   const drawAsPoints = true;
+  const safeWords = Array.isArray(words) && words.length > 0 ? words : ['Flowfex'];
 
   function nextWord(word, canvas) {
     const off = document.createElement('canvas');
@@ -133,7 +137,7 @@ export function ParticleTextEffect({ words = ['Flowfex', 'Connect', 'Orchestrate
     off.height = canvas.height;
     const octx = off.getContext('2d');
     octx.fillStyle = 'white';
-    const fontSize = Math.min(120, canvas.width * 0.12);
+    const fontSize = Math.min(maxFontSize, canvas.width * fontScale);
     octx.font = `bold ${fontSize}px Inter, Arial, sans-serif`;
     octx.textAlign = 'center';
     octx.textBaseline = 'middle';
@@ -189,7 +193,7 @@ export function ParticleTextEffect({ words = ['Flowfex', 'Connect', 'Orchestrate
     }
   }
 
-  function animate(canvas) {
+  function animate(canvas, timestamp) {
     const ctx = canvas.getContext('2d');
     const particles = particlesRef.current;
 
@@ -208,12 +212,16 @@ export function ParticleTextEffect({ words = ['Flowfex', 'Connect', 'Orchestrate
       }
     }
 
-    frameCountRef.current++;
-    if (frameCountRef.current % 240 === 0) {
+    if (!animate.lastSwapAt) {
+      animate.lastSwapAt = timestamp;
+    }
+
+    if (timestamp - animate.lastSwapAt >= intervalMs && words.length > 1) {
       wordIndexRef.current = (wordIndexRef.current + 1) % words.length;
       nextWord(words[wordIndexRef.current], canvas);
+      animate.lastSwapAt = timestamp;
     }
-    animRef.current = requestAnimationFrame(() => animate(canvas));
+    animRef.current = requestAnimationFrame((nextTimestamp) => animate(canvas, nextTimestamp));
   }
 
   useEffect(() => {
@@ -224,19 +232,21 @@ export function ParticleTextEffect({ words = ['Flowfex', 'Connect', 'Orchestrate
       const container = canvas.parentElement;
       const w = container ? container.clientWidth : 800;
       canvas.width = Math.min(w, 1100);
-      canvas.height = Math.round(canvas.width * 0.5);
+      canvas.height = Math.round(canvas.width * 0.56);
     };
     resize();
     window.addEventListener('resize', resize);
 
-    nextWord(words[0], canvas);
-    animate(canvas);
+    wordIndexRef.current = 0;
+    nextWord(safeWords[0], canvas);
+    animate.lastSwapAt = 0;
+    animRef.current = requestAnimationFrame((timestamp) => animate(canvas, timestamp));
 
     return () => {
       if (animRef.current) cancelAnimationFrame(animRef.current);
       window.removeEventListener('resize', resize);
     };
-  }, []);
+  }, [safeWords, intervalMs, fontScale, maxFontSize]);
 
   return (
     <canvas

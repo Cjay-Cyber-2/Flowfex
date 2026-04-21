@@ -116,6 +116,12 @@ export const defaultEmbeddingService = new EmbeddingService();
 export function buildToolEmbeddingText(tool) {
   const tags = tool.metadata?.tags || [];
   const category = tool.metadata?.category || 'uncategorized';
+  const sourcePath = tool.metadata?.sourcePath || '';
+  const sourceType = tool.metadata?.sourceType || '';
+  const sourceClassification = tool.metadata?.sourceClassification || '';
+  const trustLevel = tool.metadata?.trustLevel || '';
+  const validationStatus = tool.metadata?.validationStatus || '';
+  const qualityScore = tool.metadata?.qualityScore ?? '';
   const prompt = typeof tool.prompt === 'string' ? tool.prompt.slice(0, 1200) : '';
 
   return [
@@ -123,6 +129,13 @@ export function buildToolEmbeddingText(tool) {
     tool.name,
     tool.description,
     `category ${category}`,
+    `source ${tool.metadata?.source || ''}`,
+    `sourcePath ${sourcePath}`,
+    `sourceType ${sourceType}`,
+    `sourceClassification ${sourceClassification}`,
+    `trustLevel ${trustLevel}`,
+    `validationStatus ${validationStatus}`,
+    `qualityScore ${qualityScore}`,
     `keywords ${(tool.keywords || []).join(' ')}`,
     `tags ${tags.join(' ')}`,
     prompt

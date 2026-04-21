@@ -3,10 +3,10 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { X, Copy, CheckCheck, RefreshCw } from 'lucide-react';
 import { CONNECT_LINK, CONNECT_LIVE_SNIPPET, CONNECT_PROMPT, CONNECT_SDK_SNIPPET } from '../store/demoData';
 import useStore from '../store/useStore';
+import { normalizeSessionConnectUrl, rewriteConnectPrompt } from '../utils/runtimeConfig';
 import '../styles/landing-sections3.css';
 
 const TABS = ['Prompt', 'Link', 'SDK', 'Live Channel'];
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
 
 function useCopy() {
   const [copied, setCopied] = useState(false);
@@ -29,8 +29,8 @@ function CopyBtn({ text, style }) {
 
 function PromptTab({ connection, loading, onRefresh, error }) {
   const [open, setOpen] = useState(false);
-  const promptText = connection?.connection?.instructions?.prompt || CONNECT_PROMPT;
-  const sessionUrl = connection?.connection?.instructions?.sessionUrl || CONNECT_LINK;
+  const sessionUrl = normalizeSessionConnectUrl(connection?.connection?.instructions?.sessionUrl || CONNECT_LINK);
+  const promptText = rewriteConnectPrompt(connection?.connection?.instructions?.prompt || CONNECT_PROMPT, sessionUrl);
   return (
     <div>
       <p className="cam-tab-desc">Paste this into the target agent so it connects to this Flowfex session and asks Flowfex for resources before acting.</p>
@@ -55,7 +55,7 @@ function PromptTab({ connection, loading, onRefresh, error }) {
 
 function LinkTab({ connection, loading, onRefresh, error }) {
   const [copied, copy] = useCopy();
-  const url = connection?.connection?.link?.url || CONNECT_LINK;
+  const url = normalizeSessionConnectUrl(connection?.connection?.link?.url || CONNECT_LINK);
   return (
     <div>
       <p className="cam-tab-desc">Share this link when you want a fast attach flow without editing code.</p>
@@ -155,6 +155,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
   const addAgent = useStore((state) => state.addAgent);
   const addSession = useStore((state) => state.addSession);
   const setActiveSession = useStore((state) => state.setActiveSession);
+  const backendUrl = useStore((state) => state.backendUrl);
   const [activeTab, setActiveTab] = useState('Prompt');
   const [connections, setConnections] = useState({});
   const [errors, setErrors] = useState({});
@@ -202,7 +203,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     setErrors((current) => ({ ...current, [tab]: null }));
 
     try {
-      const response = await fetch(`${BACKEND_URL}/connect`, {
+      const response = await fetch(`${backendUrl}/connect`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -218,37 +219,6 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
         ...current,
         [tab]: payload,
       }));
-
-      // Auto-detect: if we got a live session with a token, the connection is established
-      const session = payload?.connection?.session;
-      if (session?.id && session?.token) {
-        // Register in store automatically
-        const agentLabel = tab;
-        addAgent({
-          id: session.agent?.id || `agent-${session.id}`,
-          name: session.agent?.name || `${agentLabel} Agent`,
-          type: tab,
-          status: 'connected',
-          lastSeen: 'Live now',
-        });
-        const sessionRecord = {
-          id: session.id,
-          name: `${agentLabel} Session`,
-          task: 'Connected through Flowfex',
-          heartbeat: `${agentLabel} connection ready`,
-          status: 'ready',
-          revision: 0,
-          token: session.token,
-          executionId: null,
-        };
-        addSession(sessionRecord);
-        setActiveSession(sessionRecord);
-
-        // Auto-fire connected callback after short delay for UX
-        if (onConnected) {
-          setTimeout(() => onConnected(), 600);
-        }
-      }
     } catch (error) {
       setErrors((current) => ({
         ...current,
@@ -271,27 +241,29 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
   const handleConnected = () => {
     const connection = connections[activeTab];
     const session = connection?.connection?.session;
-    if (session) {
-      addAgent({
-        id: session.agent?.id || `agent-${session.id}`,
-        name: session.agent?.name || `${activeTab} Agent`,
-        type: activeTab,
-        status: 'connected',
-        lastSeen: 'Live now',
-      });
-      const sessionRecord = {
-        id: session.id,
-        name: `${activeTab} Session`,
-        task: 'Connected through Flowfex',
-        heartbeat: `${activeTab} connection ready`,
-        status: 'ready',
-        revision: 0,
-        token: session.token,
-        executionId: null,
-      };
-      addSession(sessionRecord);
-      setActiveSession(sessionRecord);
+    if (!session) {
+      return;
     }
+
+    addAgent({
+      id: session.agent?.id || `agent-${session.id}`,
+      name: session.agent?.name || `${activeTab} Agent`,
+      type: activeTab,
+      status: 'connected',
+      lastSeen: 'Live now',
+    });
+    const sessionRecord = {
+      id: session.id,
+      name: `${activeTab} Session`,
+      task: 'Connected through Flowfex',
+      heartbeat: `${activeTab} connection ready`,
+      status: 'ready',
+      revision: 0,
+      token: session.token,
+      executionId: null,
+    };
+    addSession(sessionRecord);
+    setActiveSession(sessionRecord);
 
     if (onConnected) {
       onConnected();
@@ -302,7 +274,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
   };
 
   return (
-    <AnimatePresence>
+    <AnimatePresence initial={false}>
       {isOpen && (
         <>
           <motion.div
@@ -338,7 +310,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
               ))}
             </div>
 
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="sync" initial={false}>
               <motion.div
                 key={activeTab}
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -356,9 +328,16 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
 
             <div className="cam-footer">
               <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--color-bistre)' }}>
-                Prompt attach is the fastest way to test a session. Move to SDK or live channel when you want a tighter integration.
+                Prompt attach is the fastest way to test a session. Copy the prompt or link, then continue when the agent is ready.
               </span>
               <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  className="cam-connected-btn"
+                  onClick={handleConnected}
+                  disabled={loadingTab === activeTab || !connections[activeTab]?.connection?.session}
+                >
+                  {loadingTab === activeTab ? 'Preparing...' : onConnected ? 'Continue' : 'Attach Agent'}
+                </button>
                 <button className="cam-done-btn" onClick={onClose}>Done</button>
               </div>
             </div>

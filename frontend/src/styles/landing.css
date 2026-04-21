@@ -273,7 +273,7 @@
   justify-content: center;
   pointer-events: none;
   z-index: 2;
-  perspective: 1200px;
+  perspective: 2000px;
 }
 
 .landing-scroll-cinema-logo-3d-wrapper {
@@ -282,6 +282,8 @@
   align-items: center;
   justify-content: center;
   transform-style: preserve-3d;
+  width: clamp(280px, 35vw, 480px);
+  height: clamp(280px, 35vw, 480px);
 }
 
 .landing-scroll-cinema-logo-3d-scene {
@@ -290,157 +292,200 @@
   align-items: center;
   justify-content: center;
   transform-style: preserve-3d;
-  animation: logo3DFloat 5s ease-in-out infinite;
+  width: 100%;
+  height: 100%;
+  animation: logo3DFloat 6s ease-in-out infinite;
 }
 
 /* Core glow - brightest center */
 .landing-scroll-cinema-logo-glow-core {
   position: absolute;
-  width: clamp(180px, 22vw, 320px);
-  height: clamp(180px, 22vw, 320px);
+  width: clamp(240px, 30vw, 400px);
+  height: clamp(240px, 30vw, 400px);
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(0, 212, 170, 0.35) 0%,
-    rgba(0, 212, 170, 0.15) 35%,
-    transparent 65%
+    rgba(0, 212, 170, 0.45) 0%,
+    rgba(0, 212, 170, 0.2) 40%,
+    transparent 70%
   );
-  filter: blur(25px);
-  animation: logoGlowCore 3s ease-in-out infinite alternate;
+  filter: blur(35px);
+  animation: logoGlowCore 3.5s ease-in-out infinite alternate;
+  z-index: 1;
 }
 
 /* Outer glow - larger ambient */
 .landing-scroll-cinema-logo-glow-outer {
   position: absolute;
-  width: clamp(240px, 30vw, 420px);
-  height: clamp(240px, 30vw, 420px);
+  width: clamp(320px, 40vw, 520px);
+  height: clamp(320px, 40vw, 520px);
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(0, 212, 170, 0.12) 0%,
-    rgba(0, 180, 150, 0.06) 40%,
-    transparent 70%
+    rgba(0, 212, 170, 0.15) 0%,
+    rgba(0, 180, 150, 0.08) 45%,
+    transparent 75%
   );
-  filter: blur(40px);
-  animation: logoGlowOuter 4s ease-in-out infinite alternate;
+  filter: blur(50px);
+  animation: logoGlowOuter 4.5s ease-in-out infinite alternate;
+  z-index: 0;
 }
 
 /* Accent glow - subtle color shift */
 .landing-scroll-cinema-logo-glow-accent {
   position: absolute;
-  width: clamp(200px, 25vw, 350px);
-  height: clamp(200px, 25vw, 350px);
+  width: clamp(280px, 35vw, 460px);
+  height: clamp(280px, 35vw, 460px);
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(100, 220, 255, 0.15) 0%,
-    rgba(0, 212, 170, 0.08) 50%,
-    transparent 70%
+    rgba(100, 220, 255, 0.2) 0%,
+    rgba(0, 212, 170, 0.1) 55%,
+    transparent 75%
   );
-  filter: blur(35px);
-  animation: logoGlowAccent 5s ease-in-out infinite alternate;
-  transform: translateZ(10px);
+  filter: blur(45px);
+  animation: logoGlowAccent 5.5s ease-in-out infinite alternate;
+  transform: translateZ(20px);
+  z-index: 1;
 }
 
 /* 3D face container for the logo */
 .landing-scroll-cinema-logo-3d-face {
   position: relative;
   transform-style: preserve-3d;
-  transform: translateZ(60px) rotateX(2deg);
-  animation: logo3DRotate 8s ease-in-out infinite;
+  transform: translateZ(80px) rotateX(3deg);
+  animation: logo3DRotate 9s ease-in-out infinite;
+  z-index: 3;
 }
 
-/* The actual logo image - much larger now */
+/* The actual logo image - significantly larger */
 .landing-scroll-cinema-logo-img {
   position: relative;
-  width: clamp(120px, 15vw, 200px);
+  width: clamp(160px, 20vw, 280px);
   height: auto;
   object-fit: contain;
   display: block;
   filter:
-    drop-shadow(0 0 30px rgba(0, 212, 170, 0.7))
-    drop-shadow(0 0 60px rgba(0, 212, 170, 0.4))
-    drop-shadow(0 4px 20px rgba(0, 0, 0, 0.5))
-    brightness(1.15)
-    saturate(1.1);
-  animation: logoImagePulse 4s ease-in-out infinite;
+    drop-shadow(0 0 40px rgba(0, 212, 170, 0.8))
+    drop-shadow(0 0 80px rgba(0, 212, 170, 0.5))
+    drop-shadow(0 8px 30px rgba(0, 0, 0, 0.6))
+    brightness(1.2)
+    saturate(1.15);
+  animation: logoImagePulse 4.5s ease-in-out infinite;
 }
 
 /* 3D shine overlay effect */
 .landing-scroll-cinema-logo-3d-shine {
   position: absolute;
-  inset: -20%;
+  inset: -25%;
   background: linear-gradient(
     135deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.08) 45%,
-    rgba(255, 255, 255, 0.15) 50%,
-    rgba(255, 255, 255, 0.08) 55%,
-    transparent 70%
+    transparent 25%,
+    rgba(255, 255, 255, 0.12) 40%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.12) 60%,
+    transparent 75%
   );
   border-radius: 50%;
-  transform: translateZ(70px) rotateX(2deg);
-  animation: logoShineSweep 6s ease-in-out infinite;
+  transform: translateZ(90px) rotateX(3deg);
+  animation: logoShineSweep 7s ease-in-out infinite;
   pointer-events: none;
+  z-index: 4;
 }
 
 /* Animations */
 @keyframes logo3DFloat {
-  0%, 100% { transform: translateY(0) rotateX(0deg); }
-  25% { transform: translateY(-8px) rotateX(1deg); }
-  50% { transform: translateY(-12px) rotateX(0deg); }
-  75% { transform: translateY(-6px) rotateX(-1deg); }
+  0%, 100% { 
+    transform: translateY(0) rotateX(0deg) rotateZ(0deg);
+  }
+  25% { 
+    transform: translateY(-12px) rotateX(2deg) rotateZ(1deg);
+  }
+  50% { 
+    transform: translateY(-18px) rotateX(0deg) rotateZ(0deg);
+  }
+  75% { 
+    transform: translateY(-8px) rotateX(-2deg) rotateZ(-1deg);
+  }
 }
 
 @keyframes logo3DRotate {
-  0%, 100% { transform: translateZ(60px) rotateX(2deg) rotateY(0deg); }
-  25% { transform: translateZ(65px) rotateX(3deg) rotateY(2deg); }
-  50% { transform: translateZ(60px) rotateX(2deg) rotateY(0deg); }
-  75% { transform: translateZ(55px) rotateX(1deg) rotateY(-2deg); }
+  0%, 100% { 
+    transform: translateZ(80px) rotateX(3deg) rotateY(0deg) rotateZ(0deg);
+  }
+  25% { 
+    transform: translateZ(85px) rotateX(4deg) rotateY(3deg) rotateZ(1deg);
+  }
+  50% { 
+    transform: translateZ(80px) rotateX(3deg) rotateY(0deg) rotateZ(0deg);
+  }
+  75% { 
+    transform: translateZ(75px) rotateX(2deg) rotateY(-3deg) rotateZ(-1deg);
+  }
 }
 
 @keyframes logoGlowCore {
-  from { opacity: 0.8; transform: scale(0.95); }
-  to   { opacity: 1;   transform: scale(1.05); }
+  from { 
+    opacity: 0.85;
+    transform: scale(0.92);
+  }
+  to { 
+    opacity: 1;
+    transform: scale(1.08);
+  }
 }
 
 @keyframes logoGlowOuter {
-  from { opacity: 0.6; transform: scale(0.98); }
-  to   { opacity: 0.9; transform: scale(1.03); }
+  from { 
+    opacity: 0.65;
+    transform: scale(0.95);
+  }
+  to { 
+    opacity: 0.95;
+    transform: scale(1.05);
+  }
 }
 
 @keyframes logoGlowAccent {
-  from { opacity: 0.5; transform: scale(0.96) translateZ(8px); }
-  to   { opacity: 0.8; transform: scale(1.04) translateZ(12px); }
+  from { 
+    opacity: 0.6;
+    transform: scale(0.94) translateZ(18px);
+  }
+  to { 
+    opacity: 0.9;
+    transform: scale(1.06) translateZ(25px);
+  }
 }
 
 @keyframes logoImagePulse {
   0%, 100% { 
     filter:
-      drop-shadow(0 0 30px rgba(0, 212, 170, 0.7))
-      drop-shadow(0 0 60px rgba(0, 212, 170, 0.4))
-      drop-shadow(0 4px 20px rgba(0, 0, 0, 0.5))
-      brightness(1.15)
-      saturate(1.1);
+      drop-shadow(0 0 40px rgba(0, 212, 170, 0.8))
+      drop-shadow(0 0 80px rgba(0, 212, 170, 0.5))
+      drop-shadow(0 8px 30px rgba(0, 0, 0, 0.6))
+      brightness(1.2)
+      saturate(1.15);
+    transform: scale(1);
   }
   50% { 
     filter:
-      drop-shadow(0 0 40px rgba(0, 212, 170, 0.85))
-      drop-shadow(0 0 80px rgba(0, 212, 170, 0.5))
-      drop-shadow(0 6px 25px rgba(0, 0, 0, 0.6))
-      brightness(1.25)
-      saturate(1.15);
+      drop-shadow(0 0 50px rgba(0, 212, 170, 0.95))
+      drop-shadow(0 0 100px rgba(0, 212, 170, 0.6))
+      drop-shadow(0 10px 35px rgba(0, 0, 0, 0.7))
+      brightness(1.3)
+      saturate(1.2);
+    transform: scale(1.02);
   }
 }
 
 @keyframes logoShineSweep {
   0%, 100% { 
-    opacity: 0.3;
-    transform: translateZ(70px) rotateX(2deg) translateX(-30%);
+    opacity: 0.35;
+    transform: translateZ(90px) rotateX(3deg) translateX(-35%);
   }
   50% { 
-    opacity: 0.6;
-    transform: translateZ(70px) rotateX(2deg) translateX(30%);
+    opacity: 0.7;
+    transform: translateZ(90px) rotateX(3deg) translateX(35%);
   }
 }
 

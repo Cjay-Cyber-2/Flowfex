@@ -1063,6 +1063,7 @@
 .section-heading-block {
   max-width: 760px;
   margin-bottom: 34px;
+  padding: 0 1rem;
 }
 
 .layers-grid {
@@ -1168,6 +1169,7 @@
 .demo-browser-body {
   grid-template-columns: 220px minmax(0, 1fr) 270px;
   min-height: 620px;
+  height: 100%;
 }
 
 .demo-browser-rail,

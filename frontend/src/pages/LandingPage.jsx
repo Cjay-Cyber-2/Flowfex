@@ -543,13 +543,13 @@ function LandingPage() {
       <ScrollFrameSection />
 
       {/* ContainerScroll wraps the demo browser — 3D perspective reveals on scroll */}
-      <section id="demo" data-section-id="demo" className="landing-section demo-section" style={{ padding: 0, overflow: 'hidden' }}>
+      <section id="demo" data-section-id="demo" className="landing-section demo-section" style={{ padding: '4rem 0 0', overflow: 'visible' }}>
         <ContainerScroll
           titleComponent={
-            <div className="section-heading-block" style={{ marginBottom: '2rem' }}>
+            <div className="section-heading-block" style={{ marginBottom: '2rem', maxWidth: '900px' }}>
               <span className="section-kicker">Product preview</span>
-              <h2 style={{ marginBottom: '0.75rem' }}>The dashboard shows what connected, what was pulled, and where the flow is going.</h2>
-              <p>
+              <h2 style={{ marginBottom: '0.75rem', fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)' }}>The dashboard shows what connected, what was pulled, and where the flow is going.</h2>
+              <p style={{ maxWidth: '800px', margin: '0 auto' }}>
                 Flowfex is not a static graph mock. The main app is a live control surface with sessions, a graph
                 canvas, and clear places where the user can step in.
               </p>
@@ -557,7 +557,7 @@ function LandingPage() {
           }
         >
           {/* Dashboard preview lives inside the 3D card */}
-          <div className="demo-browser-body" style={{ height: '100%', background: 'var(--surface-01, #12171f)', borderRadius: '0.75rem', overflow: 'hidden' }}>
+          <div className="demo-browser-body" style={{ height: '100%', background: 'var(--surface-01, #12171f)', borderRadius: '0.75rem', overflow: 'auto' }}>
             <div className="demo-browser-rail">
               <strong>Connected now</strong>
               <span>CLI agent</span>
@@ -568,7 +568,7 @@ function LandingPage() {
             <div className="demo-browser-panel">
               <strong>Visible in one place</strong>
               <span>Current step + pulled resources</span>
-              <p>Users can inspect nodes, see why a resource was chosen, and step in without rebuilding the whole flow.</p>
+              <p style={{ lineHeight: 1.6, marginBottom: 0 }}>Users can inspect nodes, see why a resource was chosen, and step in without rebuilding the whole flow.</p>
             </div>
           </div>
         </ContainerScroll>

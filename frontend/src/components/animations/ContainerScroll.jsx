@@ -27,7 +27,7 @@ export function ContainerScroll({ titleComponent, children }) {
     <div
       ref={containerRef}
       style={{
-        height: isMobile ? '48rem' : '66rem',
+        height: isMobile ? '52rem' : '72rem',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -56,7 +56,14 @@ export function ContainerScroll({ titleComponent, children }) {
 function ScrollHeader({ translate, titleComponent }) {
   return (
     <motion.div
-      style={{ translateY: translate, maxWidth: '68rem', margin: '0 auto', textAlign: 'center' }}
+      style={{ 
+        translateY: translate, 
+        maxWidth: '68rem', 
+        margin: '0 auto 2rem', 
+        textAlign: 'center',
+        position: 'relative',
+        zIndex: 10
+      }}
     >
       {titleComponent}
     </motion.div>
@@ -73,7 +80,7 @@ function ScrollCard({ rotate, isMobile, children }) {
         marginTop: isMobile ? '-1.5rem' : '-2.75rem',
         marginLeft: 'auto',
         marginRight: 'auto',
-        height: isMobile ? '32rem' : '40rem',
+        height: isMobile ? '36rem' : '48rem',
         width: '100%',
         border: '1px solid rgba(0, 212, 170, 0.18)',
         padding: '0.75rem',
@@ -85,7 +92,7 @@ function ScrollCard({ rotate, isMobile, children }) {
         style={{
           height: '100%',
           width: '100%',
-          overflow: 'hidden',
+          overflow: 'auto',
           borderRadius: '1rem',
           background: 'var(--surface-01, #181d26)'
         }}

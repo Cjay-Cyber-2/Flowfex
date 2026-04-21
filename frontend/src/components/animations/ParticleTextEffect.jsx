@@ -120,8 +120,8 @@ function pickBrandColor() {
 export function ParticleTextEffect({
   words = ['Flowfex', 'Connect', 'Orchestrate', 'Guide', 'Automate'],
   intervalMs = 4000,
-  fontScale = 0.15,
-  maxFontSize = 156,
+  fontScale = 0.10,
+  maxFontSize = 90,
 }) {
   const canvasRef = useRef(null);
   const animRef = useRef(null);
@@ -232,7 +232,7 @@ export function ParticleTextEffect({
       const container = canvas.parentElement;
       const w = container ? container.clientWidth : 800;
       canvas.width = Math.min(w, 1100);
-      canvas.height = Math.round(canvas.width * 0.56);
+      canvas.height = Math.round(canvas.width * 0.45);
     };
     resize();
     window.addEventListener('resize', resize);

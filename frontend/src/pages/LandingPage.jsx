@@ -403,7 +403,7 @@ function LandingPage() {
         id="statement"
         data-section-id="statement"
         className="landing-section"
-        style={{ padding: '6rem 0', minHeight: '65vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2.5rem', background: 'radial-gradient(ellipse at center, rgba(0, 212, 170, 0.03) 0%, transparent 70%)' }}
+        style={{ padding: '6rem 24px', minHeight: '65vh', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2.5rem', background: 'radial-gradient(ellipse at center, rgba(0, 212, 170, 0.03) 0%, transparent 70%)' }}
       >
         <p className="statement-kicker">
           What Flowfex does
@@ -412,8 +412,8 @@ function LandingPage() {
           <ParticleTextEffect
             words={statementWords}
             intervalMs={4000}
-            fontScale={0.15}
-            maxFontSize={160}
+            fontScale={0.08}
+            maxFontSize={72}
           />
         </div>
         <div className="statement-stats">

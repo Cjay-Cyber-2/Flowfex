@@ -304,15 +304,24 @@ function ScrollFrameSection() {
         )}
         <canvas ref={canvasRef} className="landing-scroll-cinema-canvas" />
 
-        {/* Flowfex logo centered inside the donut ring */}
+        {/* Flowfex 3D logo centered inside the donut ring - counter-rotates to stay centered */}
         <div className="landing-scroll-cinema-logo" aria-hidden="true">
-          <div className="landing-scroll-cinema-logo-glow" />
-          <img
-            src={flowfexLogo}
-            alt=""
-            className="landing-scroll-cinema-logo-img"
-            draggable="false"
-          />
+          <div className="landing-scroll-cinema-logo-3d-wrapper">
+            <div className="landing-scroll-cinema-logo-3d-scene">
+              <div className="landing-scroll-cinema-logo-glow-core" />
+              <div className="landing-scroll-cinema-logo-glow-outer" />
+              <div className="landing-scroll-cinema-logo-glow-accent" />
+              <div className="landing-scroll-cinema-logo-3d-face">
+                <img
+                  src={flowfexLogo}
+                  alt=""
+                  className="landing-scroll-cinema-logo-img"
+                  draggable="false"
+                />
+              </div>
+              <div className="landing-scroll-cinema-logo-3d-shine" />
+            </div>
+          </div>
         </div>
       </div>
     </section>

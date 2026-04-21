@@ -264,7 +264,7 @@
   100% { background-position: -200% 0; }
 }
 
-/* ── Flowfex logo centered inside the donut scroll animation ── */
+/* ── Flowfex 3D logo centered inside the donut scroll animation ── */
 .landing-scroll-cinema-logo {
   position: absolute;
   inset: 0;
@@ -273,44 +273,175 @@
   justify-content: center;
   pointer-events: none;
   z-index: 2;
+  perspective: 1200px;
 }
 
-.landing-scroll-cinema-logo-glow {
+.landing-scroll-cinema-logo-3d-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+}
+
+.landing-scroll-cinema-logo-3d-scene {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  animation: logo3DFloat 5s ease-in-out infinite;
+}
+
+/* Core glow - brightest center */
+.landing-scroll-cinema-logo-glow-core {
   position: absolute;
-  width: clamp(120px, 14vw, 200px);
-  height: clamp(120px, 14vw, 200px);
+  width: clamp(180px, 22vw, 320px);
+  height: clamp(180px, 22vw, 320px);
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(0, 212, 170, 0.18) 0%,
-    rgba(0, 212, 170, 0.06) 45%,
-    transparent 70%
+    rgba(0, 212, 170, 0.35) 0%,
+    rgba(0, 212, 170, 0.15) 35%,
+    transparent 65%
   );
-  filter: blur(18px);
-  animation: cinemaLogoGlow 3.6s ease-in-out infinite alternate;
+  filter: blur(25px);
+  animation: logoGlowCore 3s ease-in-out infinite alternate;
 }
 
+/* Outer glow - larger ambient */
+.landing-scroll-cinema-logo-glow-outer {
+  position: absolute;
+  width: clamp(240px, 30vw, 420px);
+  height: clamp(240px, 30vw, 420px);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(0, 212, 170, 0.12) 0%,
+    rgba(0, 180, 150, 0.06) 40%,
+    transparent 70%
+  );
+  filter: blur(40px);
+  animation: logoGlowOuter 4s ease-in-out infinite alternate;
+}
+
+/* Accent glow - subtle color shift */
+.landing-scroll-cinema-logo-glow-accent {
+  position: absolute;
+  width: clamp(200px, 25vw, 350px);
+  height: clamp(200px, 25vw, 350px);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(100, 220, 255, 0.15) 0%,
+    rgba(0, 212, 170, 0.08) 50%,
+    transparent 70%
+  );
+  filter: blur(35px);
+  animation: logoGlowAccent 5s ease-in-out infinite alternate;
+  transform: translateZ(10px);
+}
+
+/* 3D face container for the logo */
+.landing-scroll-cinema-logo-3d-face {
+  position: relative;
+  transform-style: preserve-3d;
+  transform: translateZ(60px) rotateX(2deg);
+  animation: logo3DRotate 8s ease-in-out infinite;
+}
+
+/* The actual logo image - much larger now */
 .landing-scroll-cinema-logo-img {
   position: relative;
-  width: clamp(64px, 7vw, 108px);
+  width: clamp(120px, 15vw, 200px);
   height: auto;
   object-fit: contain;
   display: block;
   filter:
-    drop-shadow(0 0 18px rgba(0, 212, 170, 0.55))
-    drop-shadow(0 0 6px rgba(0, 212, 170, 0.35))
-    brightness(1.08);
-  animation: cinemaLogoFloat 4s ease-in-out infinite;
+    drop-shadow(0 0 30px rgba(0, 212, 170, 0.7))
+    drop-shadow(0 0 60px rgba(0, 212, 170, 0.4))
+    drop-shadow(0 4px 20px rgba(0, 0, 0, 0.5))
+    brightness(1.15)
+    saturate(1.1);
+  animation: logoImagePulse 4s ease-in-out infinite;
 }
 
-@keyframes cinemaLogoGlow {
-  from { opacity: 0.7; transform: scale(0.92); }
-  to   { opacity: 1;   transform: scale(1.08); }
+/* 3D shine overlay effect */
+.landing-scroll-cinema-logo-3d-shine {
+  position: absolute;
+  inset: -20%;
+  background: linear-gradient(
+    135deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.08) 45%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.08) 55%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  transform: translateZ(70px) rotateX(2deg);
+  animation: logoShineSweep 6s ease-in-out infinite;
+  pointer-events: none;
 }
 
-@keyframes cinemaLogoFloat {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-6px); }
+/* Animations */
+@keyframes logo3DFloat {
+  0%, 100% { transform: translateY(0) rotateX(0deg); }
+  25% { transform: translateY(-8px) rotateX(1deg); }
+  50% { transform: translateY(-12px) rotateX(0deg); }
+  75% { transform: translateY(-6px) rotateX(-1deg); }
+}
+
+@keyframes logo3DRotate {
+  0%, 100% { transform: translateZ(60px) rotateX(2deg) rotateY(0deg); }
+  25% { transform: translateZ(65px) rotateX(3deg) rotateY(2deg); }
+  50% { transform: translateZ(60px) rotateX(2deg) rotateY(0deg); }
+  75% { transform: translateZ(55px) rotateX(1deg) rotateY(-2deg); }
+}
+
+@keyframes logoGlowCore {
+  from { opacity: 0.8; transform: scale(0.95); }
+  to   { opacity: 1;   transform: scale(1.05); }
+}
+
+@keyframes logoGlowOuter {
+  from { opacity: 0.6; transform: scale(0.98); }
+  to   { opacity: 0.9; transform: scale(1.03); }
+}
+
+@keyframes logoGlowAccent {
+  from { opacity: 0.5; transform: scale(0.96) translateZ(8px); }
+  to   { opacity: 0.8; transform: scale(1.04) translateZ(12px); }
+}
+
+@keyframes logoImagePulse {
+  0%, 100% { 
+    filter:
+      drop-shadow(0 0 30px rgba(0, 212, 170, 0.7))
+      drop-shadow(0 0 60px rgba(0, 212, 170, 0.4))
+      drop-shadow(0 4px 20px rgba(0, 0, 0, 0.5))
+      brightness(1.15)
+      saturate(1.1);
+  }
+  50% { 
+    filter:
+      drop-shadow(0 0 40px rgba(0, 212, 170, 0.85))
+      drop-shadow(0 0 80px rgba(0, 212, 170, 0.5))
+      drop-shadow(0 6px 25px rgba(0, 0, 0, 0.6))
+      brightness(1.25)
+      saturate(1.15);
+  }
+}
+
+@keyframes logoShineSweep {
+  0%, 100% { 
+    opacity: 0.3;
+    transform: translateZ(70px) rotateX(2deg) translateX(-30%);
+  }
+  50% { 
+    opacity: 0.6;
+    transform: translateZ(70px) rotateX(2deg) translateX(30%);
+  }
 }
 
 .landing-section .section-kicker,

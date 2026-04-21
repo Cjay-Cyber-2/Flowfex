@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react'
+import flowfexLogo from '../../assets/flowfex-logo-official.png'
 
 import {
   scrollFrameAspectRatio,
@@ -302,6 +303,17 @@ function ScrollFrameSection() {
           </div>
         )}
         <canvas ref={canvasRef} className="landing-scroll-cinema-canvas" />
+
+        {/* Flowfex logo centered inside the donut ring */}
+        <div className="landing-scroll-cinema-logo" aria-hidden="true">
+          <div className="landing-scroll-cinema-logo-glow" />
+          <img
+            src={flowfexLogo}
+            alt=""
+            className="landing-scroll-cinema-logo-img"
+            draggable="false"
+          />
+        </div>
       </div>
     </section>
   )

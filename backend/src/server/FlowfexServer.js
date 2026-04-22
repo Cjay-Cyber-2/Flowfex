@@ -5,22 +5,34 @@ import { defaultConnectionService } from '../connection/index.js';
 import { FlowfexSocketServer, initSocketServer, getSocketServer } from '../ws/server.js';
 import { ControlController } from '../control/ControlController.js';
 import { executionRateLimiter } from './RateLimiter.js';
+import { defaultSessionStateRepository } from '../persistence/defaultSessionStateRepository.js';
+import { isSupabaseConfigured, resolveSupabaseUser } from '../session/supabaseAdmin.js';
+import { AnonymousSessionService } from '../session/AnonymousSessionService.js';
+import { ApiKeyService } from '../session/ApiKeyService.js';
 
 /**
  * Minimal HTTP surface for external agent connections.
  */
 export class FlowfexServer {
   constructor(config = {}) {
+    const sessionStateRepository = config.sessionStateRepository || defaultSessionStateRepository;
+
     this.connectionService = config.connectionService || defaultConnectionService;
     this.controlController = config.controlController || new ControlController({
       orchestrator: this.connectionService.orchestrator,
-      sessionStateRepository: config.sessionStateRepository,
+      sessionStateRepository,
       lockManager: config.lockManager,
       socketServer: config.socketServer || null,
     });
+    this.sessionStateRepository = sessionStateRepository;
     this.host = config.host || process.env.FLOWFEX_HOST || '127.0.0.1';
     this.port = Number(config.port ?? process.env.PORT ?? process.env.FLOWFEX_PORT ?? 4000);
     this.maxBodySize = config.maxBodySize || 1024 * 1024;
+    this.supabaseEnabled = config.supabaseEnabled ?? isSupabaseConfigured();
+    this.anonymousSessionService = config.anonymousSessionService
+      || (this.supabaseEnabled ? new AnonymousSessionService() : null);
+    this.apiKeyService = config.apiKeyService
+      || (this.supabaseEnabled ? new ApiKeyService() : null);
     this.server = null;
     this.socketServer = null;
   }
@@ -136,6 +148,12 @@ export class FlowfexServer {
     const skillsCategoriesMatch = url.pathname === '/skills/categories';
     const ingestMatch = url.pathname === '/ingest';
     const sseStreamMatch = url.pathname.match(/^\/session\/([^/]+)\/stream$/);
+    const anonymousSessionCreateMatch = request.method === 'POST' && url.pathname === '/api/session/create-anonymous';
+    const anonymousSessionValidateMatch = request.method === 'POST' && url.pathname === '/api/session/validate-anonymous';
+    const sessionUpgradeMatch = request.method === 'POST' && url.pathname === '/api/session/upgrade';
+    const recentSessionMatch = request.method === 'GET' && url.pathname === '/api/session/recent';
+    const apiKeysMatch = url.pathname === '/api/api-keys';
+    const apiKeyRevokeMatch = url.pathname.match(/^\/api\/api-keys\/([^/]+)$/);
 
     if (request.method === 'GET' && url.pathname === '/health') {
       return this._writeJson(response, 200, {
@@ -145,10 +163,152 @@ export class FlowfexServer {
       });
     }
 
+    if (anonymousSessionCreateMatch) {
+      this._assertSupabaseEnabled();
+      const payload = await this.anonymousSessionService.createAnonymousSession();
+      const session = await this.anonymousSessionService.validateAnonymousSession(payload.anonymousToken);
+
+      this._setCookie(response, 'fx_session', payload.anonymousToken, {
+        httpOnly: true,
+        sameSite: 'Strict',
+        secure: this._shouldUseSecureCookies(request),
+        path: '/',
+      });
+
+      return this._writeJson(response, 200, {
+        ok: true,
+        anonymousToken: payload.anonymousToken,
+        session,
+      });
+    }
+
+    if (anonymousSessionValidateMatch) {
+      this._assertSupabaseEnabled();
+      const body = await this._readJsonBody(request);
+      const anonymousToken = body.anonymousToken || this._readCookie(request, 'fx_session');
+      const session = anonymousToken
+        ? await this.anonymousSessionService.validateAnonymousSession(anonymousToken)
+        : null;
+
+      if (!session) {
+        return this._writeJson(response, 404, {
+          error: {
+            message: 'Anonymous session not found',
+          },
+        });
+      }
+
+      return this._writeJson(response, 200, {
+        ok: true,
+        anonymousToken,
+        session,
+      });
+    }
+
+    if (sessionUpgradeMatch) {
+      this._assertSupabaseEnabled();
+      const body = await this._readJsonBody(request);
+      const accessToken = this._extractBearerToken(request) || body.accessToken || null;
+      const anonymousToken = body.anonymousToken || this._readCookie(request, 'fx_session');
+      const user = await this._requireSupabaseUser(accessToken);
+      const session = await this.anonymousSessionService.upgradeAnonymousSession({
+        anonymousToken,
+        authId: user.id,
+        displayName: user.user_metadata?.full_name || user.user_metadata?.name || null,
+        avatarUrl: user.user_metadata?.avatar_url || null,
+      });
+
+      this._clearCookie(response, 'fx_session', {
+        path: '/',
+        sameSite: 'Strict',
+        secure: this._shouldUseSecureCookies(request),
+      });
+
+      return this._writeJson(response, 200, {
+        ok: true,
+        session,
+      });
+    }
+
+    if (recentSessionMatch) {
+      this._assertSupabaseEnabled();
+      const user = await this._requireSupabaseUser(this._extractBearerToken(request));
+      const session = await this.anonymousSessionService.getMostRecentSessionForUser(user.id);
+
+      return this._writeJson(response, 200, {
+        ok: true,
+        session,
+      });
+    }
+
+    if (request.method === 'GET' && apiKeysMatch) {
+      this._assertSupabaseEnabled();
+      const user = await this._requireSupabaseUser(this._extractBearerToken(request));
+      const apiKeys = await this.apiKeyService.listApiKeys(user.id);
+
+      return this._writeJson(response, 200, {
+        ok: true,
+        apiKeys,
+      });
+    }
+
+    if (request.method === 'POST' && apiKeysMatch) {
+      this._assertSupabaseEnabled();
+      const user = await this._requireSupabaseUser(this._extractBearerToken(request));
+      const body = await this._readJsonBody(request);
+      const label = typeof body.label === 'string' ? body.label.trim() : '';
+
+      if (!label) {
+        return this._writeJson(response, 400, {
+          error: {
+            message: 'API key label is required',
+          },
+        });
+      }
+
+      const result = await this.apiKeyService.generateApiKey(user.id, label);
+
+      return this._writeJson(response, 200, {
+        ok: true,
+        apiKey: result.key,
+        record: result.record,
+      });
+    }
+
+    if (request.method === 'DELETE' && apiKeyRevokeMatch) {
+      this._assertSupabaseEnabled();
+      const user = await this._requireSupabaseUser(this._extractBearerToken(request));
+      const record = await this.apiKeyService.revokeApiKey(user.id, apiKeyRevokeMatch[1]);
+
+      return this._writeJson(response, 200, {
+        ok: true,
+        record,
+      });
+    }
+
     if (request.method === 'POST' && url.pathname === '/connect') {
       const body = await this._readJsonBody(request);
+      const validatedApiKey = this.apiKeyService
+        ? await this.apiKeyService.validateApiKey(this._extractApiKey(request))
+        : null;
+      const accessToken = this._extractBearerToken(request);
+      const authUser = accessToken && this.supabaseEnabled
+        ? await resolveSupabaseUser(accessToken).catch(() => null)
+        : null;
+
+      if (this.apiKeyService && (body.mode === 'sdk' || body.mode === 'live') && !validatedApiKey && !authUser) {
+        return this._writeJson(response, 401, {
+          error: {
+            code: 'invalid_api_key',
+            message: 'A valid Flowfex API key is required for SDK and live channel connections.',
+          },
+        });
+      }
+
       const payload = await this.connectionService.connect(body, {
         apiKey: this._extractApiKey(request),
+        validatedApiKey,
+        authUserId: authUser?.id || null,
         baseUrl: this._buildBaseUrl(request),
       });
 
@@ -405,6 +565,107 @@ export class FlowfexServer {
     return header.slice(7).trim();
   }
 
+  _assertSupabaseEnabled() {
+    if (!this.supabaseEnabled || !this.anonymousSessionService) {
+      throw createHttpError('Supabase-backed sessions are not configured on this server.', 503);
+    }
+  }
+
+  async _requireSupabaseUser(accessToken) {
+    if (!accessToken) {
+      throw createHttpError('Authentication is required for this route.', 401);
+    }
+
+    const user = await resolveSupabaseUser(accessToken);
+    if (!user) {
+      throw createHttpError('Supabase user could not be resolved from the provided token.', 401);
+    }
+
+    return user;
+  }
+
+  _readCookie(request, name) {
+    const source = request.headers.cookie || '';
+    const pairs = String(source).split(';');
+
+    for (const pair of pairs) {
+      const trimmed = pair.trim();
+      if (!trimmed) {
+        continue;
+      }
+
+      const separatorIndex = trimmed.indexOf('=');
+      if (separatorIndex === -1) {
+        continue;
+      }
+
+      const key = trimmed.slice(0, separatorIndex).trim();
+      if (key !== name) {
+        continue;
+      }
+
+      return decodeURIComponent(trimmed.slice(separatorIndex + 1).trim());
+    }
+
+    return null;
+  }
+
+  _setCookie(response, name, value, options = {}) {
+    const serialized = this._serializeCookie(name, value, options);
+    const existing = response.getHeader('Set-Cookie');
+    const next = Array.isArray(existing)
+      ? [...existing, serialized]
+      : existing
+        ? [existing, serialized]
+        : [serialized];
+
+    response.setHeader('Set-Cookie', next);
+  }
+
+  _clearCookie(response, name, options = {}) {
+    this._setCookie(response, name, '', {
+      ...options,
+      expires: new Date(0),
+      maxAge: 0,
+    });
+  }
+
+  _serializeCookie(name, value, options = {}) {
+    const parts = [`${name}=${encodeURIComponent(value)}`];
+
+    parts.push(`Path=${options.path || '/'}`);
+
+    if (typeof options.maxAge === 'number') {
+      parts.push(`Max-Age=${Math.floor(options.maxAge)}`);
+    }
+
+    if (options.expires instanceof Date) {
+      parts.push(`Expires=${options.expires.toUTCString()}`);
+    }
+
+    if (options.httpOnly) {
+      parts.push('HttpOnly');
+    }
+
+    if (options.sameSite) {
+      parts.push(`SameSite=${options.sameSite}`);
+    }
+
+    if (options.secure) {
+      parts.push('Secure');
+    }
+
+    return parts.join('; ');
+  }
+
+  _shouldUseSecureCookies(request) {
+    const origin = request.headers.origin || '';
+    const host = request.headers.host || '';
+    const source = `${origin} ${host}`.toLowerCase();
+
+    return !(source.includes('localhost') || source.includes('127.0.0.1'));
+  }
+
   _resolvePromptIngestRequest(body, request) {
     if (!body || typeof body !== 'object') {
       throw createHttpError('Prompt ingest requires a JSON object body', 400);
@@ -583,7 +844,9 @@ export class FlowfexServer {
 
     // CORS Hardening
     const origin = request?.headers?.origin || '';
-    const allowed = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:5173', 'http://127.0.0.1:5173'];
+    const allowed = process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(',')
+      : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173'];
     
     if (allowed.includes('*') || allowed.includes(origin)) {
       response.setHeader('Access-Control-Allow-Origin', origin || '*');

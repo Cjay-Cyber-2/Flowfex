@@ -69,6 +69,7 @@ export class ConnectionService {
     });
     const recommendedToolIds = retrieval.matches.map(match => match.tool.id);
     const { session, token } = this.sessionManager.createSession({
+      id: payload.sessionId,
       mode: 'prompt',
       agent: payload.agent,
       metadata: payload.metadata,
@@ -103,6 +104,7 @@ export class ConnectionService {
       ? requestedTools.map(tool => tool.id)
       : this.registry.getAllTools().map(tool => tool.id);
     const { session, token } = this.sessionManager.createSession({
+      id: payload.sessionId,
       mode: CONNECTION_MODES.SDK,
       agent: payload.agent,
       metadata: payload.metadata,
@@ -128,6 +130,7 @@ export class ConnectionService {
       ? requestedTools.map(tool => tool.id)
       : this.registry.getAllTools().map(tool => tool.id);
     const { session, token } = this.sessionManager.createSession({
+      id: payload.sessionId,
       mode: CONNECTION_MODES.LINK,
       agent: payload.agent,
       metadata: payload.metadata,
@@ -187,6 +190,7 @@ export class ConnectionService {
       : this.registry.getAllTools().map(tool => tool.id);
     const protocol = payload.protocol || LIVE_CHANNEL_PROTOCOLS.SOCKET_IO;
     const { session, token } = this.sessionManager.createSession({
+      id: payload.sessionId,
       mode: CONNECTION_MODES.LIVE,
       agent: payload.agent,
       metadata: {
@@ -417,6 +421,14 @@ export class ConnectionService {
   }
 
   _authorizeApiConnection(payload, authContext) {
+    if (authContext?.validatedApiKey?.authId) {
+      return;
+    }
+
+    if (authContext?.authUserId) {
+      return;
+    }
+
     if (!this.connectionApiKey) {
       return;
     }

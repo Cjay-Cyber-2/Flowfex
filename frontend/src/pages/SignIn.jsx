@@ -1,22 +1,59 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Globe, Github } from 'lucide-react';
 import LiveCanvasBackground from '../components/canvas/LiveCanvasBackground';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
-import useStore from '../store/useStore';
+import { useSessionContext } from '../context/SessionContext';
+import {
+  signInWithEmail,
+  signInWithGitHub,
+  signInWithGoogle,
+} from '../services/authService';
 
 function SignIn() {
   const navigate = useNavigate();
-  const setUser = useStore(s => s.setUser);
+  const { configured, isAuthenticated, sessionReady } = useSessionContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    if (sessionReady && isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate, sessionReady]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setUser({ email, name: email.split('@')[0] });
-    navigate('/canvas');
+    setErrorMessage('');
+    setIsSubmitting(true);
+
+    try {
+      await signInWithEmail(email, password);
+      navigate('/dashboard');
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to sign in.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleProviderSignIn = async (provider) => {
+    setErrorMessage('');
+
+    try {
+      if (provider === 'google') {
+        await signInWithGoogle();
+        return;
+      }
+
+      await signInWithGitHub();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to start social sign-in.');
+    }
   };
 
   return (
@@ -39,8 +76,14 @@ function SignIn() {
         <p style={styles.subtitle}>Your orchestrations are waiting.</p>
 
         <div style={styles.socialRow}>
-          {[{ icon: Globe, label: 'Continue with Google' }, { icon: Github, label: 'Continue with GitHub' }].map(({ icon: Icon, label }) => (
-            <button key={label} style={styles.socialBtn}>
+          {[{ icon: Globe, label: 'Continue with Google', provider: 'google' }, { icon: Github, label: 'Continue with GitHub', provider: 'github' }].map(({ icon: Icon, label, provider }) => (
+            <button
+              key={label}
+              style={{ ...styles.socialBtn, opacity: isSubmitting ? 0.7 : 1 }}
+              onClick={() => handleProviderSignIn(provider)}
+              type="button"
+              disabled={isSubmitting}
+            >
               <Icon size={16} style={{ marginRight: 8 }} />{label}
             </button>
           ))}
@@ -86,8 +129,18 @@ function SignIn() {
             <a href="#forgot" style={styles.forgotLink}>Forgot password?</a>
           </div>
 
-          <button type="submit" style={styles.submitBtn}>Sign In</button>
+          <button type="submit" style={{ ...styles.submitBtn, opacity: isSubmitting ? 0.7 : 1 }} disabled={isSubmitting}>
+            {isSubmitting ? 'Signing In...' : 'Sign In'}
+          </button>
         </form>
+
+        {!configured ? (
+          <p style={styles.noticeText}>
+            Supabase auth is not configured yet. Add the required project keys in `.env` to enable sign-in.
+          </p>
+        ) : null}
+
+        {errorMessage ? <p style={styles.errorText}>{errorMessage}</p> : null}
 
         <p style={styles.switchText}>
           Don't have an account?{' '}
@@ -128,6 +181,8 @@ const styles = {
   eyeBtn: { position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--color-bistre)', cursor: 'pointer', padding: 0, display: 'flex' },
   forgotLink: { fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--color-sinoper)', textDecoration: 'none' },
   submitBtn: { width: '100%', height: 50, background: 'var(--color-sinoper)', border: 'none', borderRadius: 14, fontFamily: 'var(--font-inter)', fontSize: 15, fontWeight: 700, color: '#031014', cursor: 'pointer', marginBottom: 20, boxShadow: '0 18px 38px rgba(0,212,170,0.22)' },
+  noticeText: { fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--color-bistre)', textAlign: 'center', margin: '0 0 12px' },
+  errorText: { fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#ff8d8d', textAlign: 'center', margin: '0 0 16px' },
   switchText: { fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--color-bistre)', textAlign: 'center', margin: 0 },
   switchLink: { color: 'var(--color-sinoper)', cursor: 'pointer' },
 };

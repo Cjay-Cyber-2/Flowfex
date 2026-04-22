@@ -19,7 +19,7 @@ import {
 } from '../../../shared/control-contracts.js';
 import { defaultSessionLockManager } from './SessionLockManager.js';
 import { createControlError, toControlError } from './errors.js';
-import { defaultSessionStateRepository } from '../persistence/FileSessionStateRepository.js';
+import { defaultSessionStateRepository } from '../persistence/defaultSessionStateRepository.js';
 
 const FALLBACK_NODE_PATTERN = /\b(manual|review|fallback|reject|alternate|rerout|human)\b/i;
 

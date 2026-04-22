@@ -186,10 +186,7 @@ function runNodeTransition(state, nodeId, action) {
 }
 
 const useStore = create((set, get) => ({
-  user: {
-    name: 'Chiji',
-    initials: 'CC',
-  },
+  user: null,
   isAuthenticated: false,
   setUser: (user) =>
     set({
@@ -842,13 +839,29 @@ const useStore = create((set, get) => ({
     if (state.nodes.length && state.edges.length && state.activeSession) return;
 
     const workspace = buildDemoWorkspace(state.connectedAgents);
+    const activeSession = state.activeSession
+      ? {
+          ...workspace.activeSession,
+          ...state.activeSession,
+        }
+      : workspace.activeSession;
+    const sessions = activeSession
+      ? [
+          activeSession,
+          ...workspace.sessions.filter(
+            (session) =>
+              session.id !== workspace.activeSession?.id
+              && session.id !== activeSession.id
+          ),
+        ]
+      : workspace.sessions;
     const selectedNode =
       workspace.nodes.find((node) => node.id === workspace.selectedNodeId) || null;
 
     set({
       connectedAgents: workspace.connectedAgents,
-      sessions: workspace.sessions,
-      activeSession: workspace.activeSession,
+      sessions,
+      activeSession,
       nodes: workspace.nodes,
       edges: workspace.edges,
       approvalQueue: workspace.approvalQueue,
@@ -859,11 +872,11 @@ const useStore = create((set, get) => ({
     });
 
     const ws = get().ws;
-    if (workspace.activeSession?.id && ws?.sessionId !== workspace.activeSession.id) {
-      ws.connect(workspace.activeSession.id);
+    if (activeSession?.id && ws?.sessionId !== activeSession.id) {
+      ws.connect(activeSession.id);
     }
-    if (workspace.activeSession?.id) {
-      get().hydrateSessionState(workspace.activeSession.id);
+    if (activeSession?.id) {
+      get().hydrateSessionState(activeSession.id);
     }
   },
 }));

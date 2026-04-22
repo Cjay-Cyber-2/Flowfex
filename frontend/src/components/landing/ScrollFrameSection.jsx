@@ -25,6 +25,7 @@ function ScrollFrameSection() {
   const renderedFrameIndexRef = useRef(-1)
   const targetProgressRef = useRef(0)
   const easedProgressRef = useRef(0)
+  const motionVelocityRef = useRef(0)
   const scrollDistanceRef = useRef(Math.max(scrollFrameCount * SCROLL_PIXELS_PER_FRAME, 2400))
   const canvasSizeRef = useRef({ w: 0, h: 0 })
   const [isLoaded, setIsLoaded] = React.useState(false)
@@ -158,6 +159,8 @@ function ScrollFrameSection() {
         easedProgressRef.current = targetProgressRef.current
       }
 
+      motionVelocityRef.current = motionVelocityRef.current * 0.78 + delta * 18
+
       const nextFrameIndex = clamp(
         Math.round(easedProgressRef.current * (scrollFrameCount - 1)),
         0,
@@ -187,13 +190,36 @@ function ScrollFrameSection() {
 
     const syncLogoMotion = () => {
       const progress = clamp(easedProgressRef.current, 0, 1)
+      const velocity = clamp(motionVelocityRef.current, -1, 1)
+      const momentum = Math.abs(velocity)
       const rotation = progress * 360
-      const scale = 0.94 + progress * 0.08
+      const scale = 0.924 + progress * 0.082 + momentum * 0.024
+      const tiltX = 15 + Math.sin(progress * Math.PI * 2) * 2.8 + momentum * 8.5
+      const tiltY = -6 + Math.cos(progress * Math.PI * 2) * 3.8 - velocity * 11
+      const roll = Math.sin(progress * Math.PI * 2.4) * 3.2 - velocity * 9
+      const lift = -10 - Math.sin(progress * Math.PI) * 8.5 - momentum * 10
+      const driftX = Math.sin(progress * Math.PI * 4) * 4.5 + velocity * 18
+      const counterRotation = -rotation * 0.93 + roll
+      const shadowScale = 0.96 + Math.sin(progress * Math.PI) * 0.05 + momentum * 0.14
+      const shadowOpacity = 0.32 + Math.sin(progress * Math.PI) * 0.12 + momentum * 0.18
+      const highlightX = 32 + velocity * 14
+      const shellGlow = 0.08 + momentum * 0.12
+      const sheenOpacity = 0.52 + momentum * 0.22
 
       section.style.setProperty('--scroll-cinema-progress', progress.toFixed(4))
       section.style.setProperty('--scroll-cinema-target-progress', targetProgressRef.current.toFixed(4))
       section.style.setProperty('--scroll-cinema-rotation', `${rotation.toFixed(2)}deg`)
       section.style.setProperty('--scroll-cinema-logo-scale', scale.toFixed(4))
+      section.style.setProperty('--scroll-cinema-logo-tilt-x', `${tiltX.toFixed(2)}deg`)
+      section.style.setProperty('--scroll-cinema-logo-tilt-y', `${tiltY.toFixed(2)}deg`)
+      section.style.setProperty('--scroll-cinema-logo-lift', `${lift.toFixed(2)}px`)
+      section.style.setProperty('--scroll-cinema-logo-drift-x', `${driftX.toFixed(2)}px`)
+      section.style.setProperty('--scroll-cinema-logo-counter-rotation', `${counterRotation.toFixed(2)}deg`)
+      section.style.setProperty('--scroll-cinema-logo-shadow-scale', shadowScale.toFixed(4))
+      section.style.setProperty('--scroll-cinema-logo-shadow-opacity', shadowOpacity.toFixed(4))
+      section.style.setProperty('--scroll-cinema-logo-highlight-x', `${highlightX.toFixed(2)}%`)
+      section.style.setProperty('--scroll-cinema-logo-shell-glow', shellGlow.toFixed(4))
+      section.style.setProperty('--scroll-cinema-logo-sheen-opacity', sheenOpacity.toFixed(4))
     }
 
     const updateFrameTarget = () => {
@@ -323,7 +349,7 @@ function ScrollFrameSection() {
         <div className="landing-scroll-cinema-logo" aria-hidden="true">
           <div className="landing-scroll-cinema-logo-orbit">
             <div className="landing-scroll-cinema-logo-stage">
-              <ThreeDLogoMark className="landing-scroll-cinema-logo-mark" depth={16} glow="none" sheen={false} />
+              <ThreeDLogoMark className="landing-scroll-cinema-logo-mark" depth={18} glow="none" />
             </div>
           </div>
         </div>

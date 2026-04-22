@@ -24,7 +24,9 @@ export class SessionManager {
       this.minimumTtlSeconds,
       this.maxTtlSeconds
     );
-    const id = `sess_${randomBytes(12).toString('hex')}`;
+    const id = typeof config.id === 'string' && config.id.trim().length > 0
+      ? config.id.trim()
+      : `sess_${randomBytes(12).toString('hex')}`;
     const token = `ffx_${randomBytes(24).toString('hex')}`;
     const session = {
       id,

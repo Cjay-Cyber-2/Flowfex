@@ -5,6 +5,7 @@ import LeftRail from '../components/layout/LeftRail';
 import RightDrawer from '../components/layout/RightDrawer';
 import TopBar from '../components/layout/TopBar';
 import useStore from '../store/useStore';
+import { useSessionContext } from '../context/SessionContext';
 import {
   CONNECT_LINK,
   CONNECT_LIVE_SNIPPET,
@@ -16,6 +17,7 @@ import { normalizeSessionConnectUrl, rewriteConnectPrompt } from '../utils/runti
 import '../styles/canvas.css';
 
 function OrchestrationCanvas() {
+  const { accessToken, sessionReady } = useSessionContext();
   const {
     activeSession,
     addAgent,
@@ -37,8 +39,12 @@ function OrchestrationCanvas() {
   const [connectionErrors, setConnectionErrors] = useState({});
 
   useEffect(() => {
+    if (!sessionReady) {
+      return;
+    }
+
     bootstrapWorkspace();
-  }, [bootstrapWorkspace]);
+  }, [bootstrapWorkspace, sessionReady]);
 
   const currentNode = useMemo(
     () => nodes.find((node) => node.state === 'approval') || nodes.find((node) => node.state === 'active'),
@@ -111,23 +117,27 @@ control: ${connectionPayloads.live.connection.transport.controlNamespace}`
     switch (tab) {
       case 'prompt':
         return {
+          sessionId: activeSession?.id,
           mode: 'prompt',
           prompt: 'Connect this agent to Flowfex and ask Flowfex for resources before acting.',
           agent: { name: 'Prompt Agent', type: 'prompt' },
         };
       case 'link':
         return {
+          sessionId: activeSession?.id,
           mode: 'link',
           singleUse: true,
           agent: { name: 'Link Agent', type: 'link' },
         };
       case 'sdk':
         return {
+          sessionId: activeSession?.id,
           mode: 'sdk',
           agent: { name: 'SDK Agent', type: 'sdk' },
         };
       case 'live':
         return {
+          sessionId: activeSession?.id,
           mode: 'live',
           protocol: 'socket.io',
           agent: { name: 'Live Channel Agent', type: 'live' },
@@ -149,6 +159,7 @@ control: ${connectionPayloads.live.connection.transport.controlNamespace}`
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify(request),
       });

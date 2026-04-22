@@ -19,6 +19,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@supabase/ssr": "^0.10.2",
+    "@supabase/supabase-js": "^2.104.0",
     "jsonwebtoken": "^9.0.3",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",

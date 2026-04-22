@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url';
 // ─── Load .env before anything else ─────────────────────────────────────
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+loadEnvFile(resolve(__dirname, '..', '..', '.env'));
 loadEnvFile(resolve(__dirname, '..', '.env'));
 
 // ─── Imports ────────────────────────────────────────────────────────────

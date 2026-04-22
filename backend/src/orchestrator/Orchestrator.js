@@ -4,7 +4,7 @@ import { ExecutionEventPublisher } from '../execution/ExecutionEventPublisher.js
 import { defaultLLM } from '../llm/LLMWrapper.js';
 import { getSocketServer } from '../ws/server.js';
 import { OrchestrationEngine, SessionStateStore, createEngineLogger } from '../orchestration-engine/index.js';
-import { defaultSessionStateRepository } from '../persistence/FileSessionStateRepository.js';
+import { defaultSessionStateRepository } from '../persistence/defaultSessionStateRepository.js';
 
 export class Orchestrator {
   constructor(config = {}) {

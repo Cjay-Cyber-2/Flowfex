@@ -11,13 +11,19 @@ import History from './pages/History';
 import Settings from './pages/Settings';
 import Toast from './components/common/Toast';
 import useStore from './store/useStore';
+import { useSessionContext } from './context/SessionContext';
 
 function App() {
+  const { sessionReady } = useSessionContext();
   const initSocketListeners = useStore((state) => state.initSocketListeners);
 
   useEffect(() => {
+    if (!sessionReady) {
+      return;
+    }
+
     initSocketListeners();
-  }, [initSocketListeners]);
+  }, [initSocketListeners, sessionReady]);
 
   return (
     <>

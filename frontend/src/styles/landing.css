@@ -179,6 +179,16 @@
   --scroll-cinema-target-progress: 0;
   --scroll-cinema-rotation: 0deg;
   --scroll-cinema-logo-scale: 1;
+  --scroll-cinema-logo-tilt-x: 18deg;
+  --scroll-cinema-logo-tilt-y: -8deg;
+  --scroll-cinema-logo-lift: -8px;
+  --scroll-cinema-logo-drift-x: 0px;
+  --scroll-cinema-logo-counter-rotation: 0deg;
+  --scroll-cinema-logo-shadow-scale: 1;
+  --scroll-cinema-logo-shadow-opacity: 0.46;
+  --scroll-cinema-logo-highlight-x: 32%;
+  --scroll-cinema-logo-shell-glow: 0.08;
+  --scroll-cinema-logo-sheen-opacity: 0.52;
   position: relative;
   width: 100%;
   height: calc(100vh + var(--scroll-cinema-distance));
@@ -279,11 +289,41 @@
   isolation: isolate;
 }
 
+.three-d-logo-mark::before,
+.three-d-logo-mark::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.three-d-logo-mark::before {
+  inset: 30% 16% 10%;
+  background: radial-gradient(ellipse at center, rgba(2, 5, 8, 0.82) 0%, rgba(2, 5, 8, 0.3) 46%, transparent 78%);
+  filter: blur(22px);
+  opacity: 0.82;
+  transform: translateY(16px) translateZ(-64px) rotateX(78deg) scale(1.04);
+}
+
+.three-d-logo-mark::after {
+  inset: 16%;
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.18), transparent 34%),
+    radial-gradient(circle at 50% 44%, rgba(15, 23, 31, 0.96) 0%, rgba(8, 12, 16, 0.9) 58%, rgba(2, 5, 8, 0.72) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -20px 28px rgba(0, 0, 0, 0.4),
+    0 20px 44px rgba(0, 0, 0, 0.34);
+  transform: translateZ(-20px);
+}
+
 .three-d-logo-mark-aura {
   position: absolute;
   inset: 16%;
   border-radius: 50%;
   pointer-events: none;
+  z-index: 0;
 }
 
 .three-d-logo-mark-aura-primary {
@@ -304,6 +344,7 @@
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
+  z-index: 1;
 }
 
 .three-d-logo-mark-layer,
@@ -320,13 +361,14 @@
 .three-d-logo-mark-layer {
   transform:
     translateZ(calc(var(--logo-layer-depth) * -1))
-    translateY(calc(var(--logo-layer-index) * 0.72px))
-    scale(calc(1 - var(--logo-layer-index) * 0.015));
-  opacity: calc(0.88 - var(--logo-layer-index) * 0.065);
+    translateY(calc(var(--logo-layer-index) * 0.82px))
+    scale(calc(1 - var(--logo-layer-index) * 0.013));
+  opacity: calc(0.9 - var(--logo-layer-index) * 0.058);
   filter:
-    brightness(calc(0.82 - var(--logo-layer-index) * 0.02))
-    saturate(1.3)
-    drop-shadow(0 12px 30px rgba(0, 0, 0, 0.34));
+    brightness(calc(0.84 - var(--logo-layer-index) * 0.018))
+    saturate(1.22)
+    contrast(1.04)
+    drop-shadow(0 14px 32px rgba(0, 0, 0, 0.36));
 }
 
 .three-d-logo-mark-front-shell {
@@ -334,14 +376,42 @@
   inset: 0;
   transform: translateZ(32px);
   border-radius: 50%;
+  overflow: visible;
+}
+
+.three-d-logo-mark-front-shell::before,
+.three-d-logo-mark-front-shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.three-d-logo-mark-front-shell::before {
+  inset: 7%;
+  background:
+    radial-gradient(circle at 28% 18%, rgba(255, 255, 255, 0.18), transparent 30%),
+    linear-gradient(155deg, rgba(127, 255, 240, 0.18), transparent 54%);
+  mix-blend-mode: screen;
+  opacity: 0.72;
+  transform: translateZ(10px);
+}
+
+.three-d-logo-mark-front-shell::after {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -14px 26px rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(0, 212, 170, 0.12);
 }
 
 .three-d-logo-mark-front {
   filter:
-    drop-shadow(0 0 24px rgba(0, 229, 195, 0.34))
-    drop-shadow(0 18px 48px rgba(0, 0, 0, 0.52))
-    brightness(1.18)
-    saturate(1.14);
+    drop-shadow(0 0 20px rgba(0, 229, 195, 0.24))
+    drop-shadow(0 22px 52px rgba(0, 0, 0, 0.5))
+    brightness(1.1)
+    contrast(1.04)
+    saturate(1.12);
 }
 
 .three-d-logo-mark-sheen {
@@ -369,9 +439,10 @@
 
 .three-d-logo-mark-glow-none .three-d-logo-mark-front {
   filter:
-    drop-shadow(0 18px 42px rgba(0, 0, 0, 0.5))
-    brightness(1.16)
-    saturate(1.08);
+    drop-shadow(0 22px 44px rgba(0, 0, 0, 0.54))
+    brightness(1.08)
+    contrast(1.04)
+    saturate(1.04);
 }
 
 .three-d-logo-mark-no-sheen .three-d-logo-mark-sheen {
@@ -426,8 +497,8 @@
   position: relative;
   display: grid;
   place-items: center;
-  width: clamp(250px, 20vw, 330px);
-  height: clamp(250px, 20vw, 330px);
+  width: clamp(254px, 20vw, 334px);
+  height: clamp(254px, 20vw, 334px);
   transform-style: preserve-3d;
   transform:
     rotateZ(var(--scroll-cinema-rotation))
@@ -436,21 +507,64 @@
 }
 
 .landing-scroll-cinema-logo-stage {
-  width: clamp(212px, 17vw, 292px);
-  height: clamp(212px, 17vw, 292px);
+  position: relative;
+  width: clamp(214px, 17vw, 296px);
+  height: clamp(214px, 17vw, 296px);
   display: grid;
   place-items: center;
   transform-style: preserve-3d;
+  transform:
+    translateX(var(--scroll-cinema-logo-drift-x))
+    translateY(var(--scroll-cinema-logo-lift))
+    rotateZ(var(--scroll-cinema-logo-counter-rotation))
+    rotateX(var(--scroll-cinema-logo-tilt-x))
+    rotateY(var(--scroll-cinema-logo-tilt-y));
+}
+
+.landing-scroll-cinema-logo-stage::before,
+.landing-scroll-cinema-logo-stage::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.landing-scroll-cinema-logo-stage::before {
+  inset: 30% 18% 10%;
+  background: radial-gradient(ellipse at center, rgba(1, 3, 5, 0.78) 0%, rgba(1, 3, 5, 0.3) 48%, transparent 76%);
+  filter: blur(20px);
+  opacity: var(--scroll-cinema-logo-shadow-opacity);
+  transform: translateY(18px) translateZ(-74px) rotateX(82deg) scale(var(--scroll-cinema-logo-shadow-scale));
+}
+
+.landing-scroll-cinema-logo-stage::after {
+  inset: 14%;
+  background:
+    radial-gradient(circle at var(--scroll-cinema-logo-highlight-x) 22%, rgba(255, 255, 255, 0.22), transparent 34%),
+    linear-gradient(150deg, rgba(127, 255, 240, var(--scroll-cinema-logo-shell-glow)) 0%, transparent 52%),
+    radial-gradient(circle at 50% 44%, rgba(13, 19, 27, 0.96) 0%, rgba(7, 11, 15, 0.9) 60%, rgba(3, 5, 7, 0.7) 100%);
+  border: 1px solid rgba(127, 255, 240, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -20px 30px rgba(0, 0, 0, 0.4),
+    0 26px 54px rgba(0, 0, 0, 0.34),
+    0 0 34px rgba(0, 212, 170, var(--scroll-cinema-logo-shell-glow));
+  transform: translateZ(-26px);
 }
 
 .landing-scroll-cinema-logo-mark {
-  width: clamp(176px, 14vw, 244px);
-  height: clamp(176px, 14vw, 244px);
+  width: clamp(172px, 13.8vw, 238px);
+  height: clamp(172px, 13.8vw, 238px);
   transform:
-    rotateX(22deg)
-    translateY(-4px)
-    translateZ(54px)
+    rotateX(16deg)
+    translateY(-2px)
+    translateZ(62px)
     rotateZ(-4deg);
+  filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.4));
+}
+
+.landing-scroll-cinema-logo-mark .three-d-logo-mark-sheen {
+  opacity: var(--scroll-cinema-logo-sheen-opacity);
 }
 
 @keyframes scrollCinemaLogoFloat {
@@ -1003,7 +1117,8 @@
   .landing-scroll-cinema-logo-orbit,
   .hero-orchestration-center-aura,
   .hero-orchestration-link,
-  .hero-orchestration-core-shell {
+  .hero-orchestration-core-shell,
+  .hero-orchestration-core-border {
     animation: none !important;
   }
 }
@@ -1584,6 +1699,7 @@
     height: clamp(224px, 24vw, 292px);
   }
 
+  .hero-metrics,
   .layers-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -1669,6 +1785,7 @@
     font-size: 0.9rem;
   }
 
+  .hero-metrics,
   .layers-grid {
     grid-template-columns: 1fr;
   }
@@ -1689,18 +1806,13 @@
   }
 
   .landing-scroll-cinema-logo-stage {
-    width: clamp(176px, 30vw, 220px);
-    height: clamp(176px, 30vw, 220px);
+    width: clamp(178px, 30vw, 224px);
+    height: clamp(178px, 30vw, 224px);
   }
 
   .landing-scroll-cinema-logo-mark {
-    width: clamp(152px, 27vw, 206px);
-    height: clamp(152px, 27vw, 206px);
-  }
-
-  .landing-scroll-cinema-logo-mark {
-    width: clamp(152px, 27vw, 196px);
-    height: clamp(152px, 27vw, 196px);
+    width: clamp(142px, 25vw, 188px);
+    height: clamp(142px, 25vw, 188px);
   }
 }
 

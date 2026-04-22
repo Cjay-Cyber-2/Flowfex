@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import FlowIcon from '../components/common/FlowIcon';
 import FlowField from '../components/animations/FlowField';
+import ParticleField from '../components/animations/ParticleFieldSimple';
 import ScrollFrameSection from '../components/landing/ScrollFrameSection';
 import { DEMO_SKILL_LIBRARY, buildDemoWorkspace } from '../store/demoData';
 import { ContainerScroll } from '../components/animations/ContainerScroll';

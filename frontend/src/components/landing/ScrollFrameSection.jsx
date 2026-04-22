@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import flowfexLogo from '../../assets/flowfex-logo-official.png'
+import ThreeDLogoMark from '../common/ThreeDLogoMark'
 
 import {
   scrollFrameAspectRatio,
@@ -164,6 +164,8 @@ function ScrollFrameSection() {
         scrollFrameCount - 1
       )
 
+      syncLogoMotion()
+
       // Only redraw if the frame actually changed
       if (nextFrameIndex !== renderedFrameIndexRef.current) {
         drawFrameToCanvas(nextFrameIndex)
@@ -183,11 +185,23 @@ function ScrollFrameSection() {
       rafRef.current = window.requestAnimationFrame(animationLoop)
     }
 
+    const syncLogoMotion = () => {
+      const progress = clamp(easedProgressRef.current, 0, 1)
+      const rotation = progress * 360
+      const scale = 0.94 + progress * 0.08
+
+      section.style.setProperty('--scroll-cinema-progress', progress.toFixed(4))
+      section.style.setProperty('--scroll-cinema-target-progress', targetProgressRef.current.toFixed(4))
+      section.style.setProperty('--scroll-cinema-rotation', `${rotation.toFixed(2)}deg`)
+      section.style.setProperty('--scroll-cinema-logo-scale', scale.toFixed(4))
+    }
+
     const updateFrameTarget = () => {
       const sectionRect = section.getBoundingClientRect()
       const progress = clamp(-sectionRect.top / scrollDistanceRef.current, 0, 1)
 
       targetProgressRef.current = progress
+      syncLogoMotion()
       startAnimation()
     }
 
@@ -248,6 +262,7 @@ function ScrollFrameSection() {
     syncCanvasSize()
     context.fillStyle = '#0b1118'
     context.fillRect(0, 0, canvas.width, canvas.height)
+    syncLogoMotion()
 
     preloadFrames().catch((error) => {
       console.error(error)
@@ -304,23 +319,13 @@ function ScrollFrameSection() {
         )}
         <canvas ref={canvasRef} className="landing-scroll-cinema-canvas" />
 
-        {/* Flowfex 3D logo centered inside the donut ring - counter-rotates to stay centered */}
+        {/* Flowfex 3D logo centered inside the donut ring and synced to the scroll rotation */}
         <div className="landing-scroll-cinema-logo" aria-hidden="true">
-          <div className="landing-scroll-cinema-logo-3d-wrapper">
-            <div className="landing-scroll-cinema-logo-3d-scene">
-              <div className="landing-scroll-cinema-logo-glow-core" />
-              <div className="landing-scroll-cinema-logo-glow-outer" />
-              <div className="landing-scroll-cinema-logo-glow-accent" />
-              <div className="landing-scroll-cinema-logo-3d-face">
-                <img
-                  src={flowfexLogo}
-                  alt=""
-                  className="landing-scroll-cinema-logo-img"
-                  draggable="false"
-                />
-              </div>
-              <div className="landing-scroll-cinema-logo-3d-shine" />
-            </div>
+          <div className="landing-scroll-cinema-logo-orbit">
+            <div className="landing-scroll-cinema-logo-core" />
+            <div className="landing-scroll-cinema-logo-ring" />
+            <div className="landing-scroll-cinema-logo-ring landing-scroll-cinema-logo-ring-delayed" />
+            <ThreeDLogoMark className="landing-scroll-cinema-logo-mark" depth={10} />
           </div>
         </div>
       </div>

@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { ArrowRight, ChevronRight, Play, ShieldCheck, Sparkles, Workflow, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
+import HeroOrchestrationScene from '../components/animations/HeroOrchestrationScene';
 import FlowIcon from '../components/common/FlowIcon';
-import FlowField from '../components/animations/FlowField';
 import ParticleField from '../components/animations/ParticleFieldSimple';
 import ScrollFrameSection from '../components/landing/ScrollFrameSection';
 import { DEMO_SKILL_LIBRARY, buildDemoWorkspace } from '../store/demoData';
@@ -299,8 +299,7 @@ function LandingPage() {
       </div>
 
       <section id="hero" data-section-id="hero" className="landing-section hero-section">
-        {/* New FlowField animation - living orchestration network */}
-        <FlowField />
+        <HeroOrchestrationScene />
 
         <div className="hero-copy hero-copy-centered">
           <span className="section-kicker">Agent bridge and orchestration layer</span>

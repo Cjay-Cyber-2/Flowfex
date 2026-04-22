@@ -5,6 +5,84 @@ import { DEMO_SKILL_LIBRARY } from '../../store/demoData';
 import FlowIcon from '../common/FlowIcon';
 import './LeftRail.css';
 
+const CATEGORY_ICON_MAP = {
+  ai: 'brain',
+  agentTeam: 'radar',
+  api: 'globe',
+  automation: 'shuffle',
+  backend: 'layers',
+  code: 'zap',
+  data: 'database',
+  design: 'sparkles',
+  devops: 'send',
+  documentation: 'file-text',
+  frontend: 'layers',
+  general: 'sparkles',
+  productivity: 'sparkles',
+  rag: 'database',
+  research: 'search',
+  security: 'shield',
+  testing: 'shield-check',
+  voice: 'message-square',
+};
+
+function normalizeCategoryKey(value) {
+  return String(value || 'general').replace(/[^a-z0-9]+(.)/gi, (_, letter) => letter.toUpperCase());
+}
+
+function formatCategoryLabel(value) {
+  return String(value || 'general')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function resolveCategoryIcon(value) {
+  return CATEGORY_ICON_MAP[normalizeCategoryKey(value)] || 'sparkles';
+}
+
+function groupSkillsByCategory(skills) {
+  const grouped = new Map();
+
+  for (const skill of skills) {
+    const category = skill.category || 'general';
+    if (!grouped.has(category)) {
+      grouped.set(category, []);
+    }
+
+    grouped.get(category).push({
+      id: skill.id,
+      label: skill.name,
+      icon: resolveCategoryIcon(category),
+      description: skill.description,
+      score: skill.score,
+    });
+  }
+
+  return Array.from(grouped.entries())
+    .sort((left, right) => right[1].length - left[1].length || left[0].localeCompare(right[0]))
+    .map(([category, items]) => ({
+      id: category,
+      label: formatCategoryLabel(category),
+      items: items.sort((left, right) => {
+        const scoreDelta = (right.score || 0) - (left.score || 0);
+        if (scoreDelta !== 0) {
+          return scoreDelta;
+        }
+        return left.label.localeCompare(right.label);
+      }),
+    }));
+}
+
+function toCompactSkillRecord(skill) {
+  return {
+    id: skill.id,
+    name: skill.name,
+    description: skill.description,
+    category: skill.category,
+    score: skill.score,
+  };
+}
+
 function LeftRail() {
   const {
     activeSession,
@@ -16,6 +94,7 @@ function LeftRail() {
   } = useStore();
   const [searchValue, setSearchValue] = useState('');
   const [liveResults, setLiveResults] = useState(null);
+  const [liveSkills, setLiveSkills] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const debounceRef = useRef(null);
   const [expandedSections, setExpandedSections] = useState({
@@ -23,11 +102,7 @@ function LeftRail() {
     skills: true,
     history: true,
   });
-  const [expandedCategories, setExpandedCategories] = useState({
-    reasoning: true,
-    research: true,
-    control: false,
-  });
+  const [expandedCategories, setExpandedCategories] = useState({});
 
   const historyItems = useMemo(
     () => sessions.filter((session) => session.id !== activeSession?.id).slice(0, 3),
@@ -42,14 +117,14 @@ function LeftRail() {
     }
     setIsSearching(true);
     try {
-      const res = await fetch(`${backendUrl}/skills/search`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
-      });
+        const res = await fetch(`${backendUrl}/skills/search`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query }),
+        });
       if (res.ok) {
         const data = await res.json();
-        setLiveResults(data.results || []);
+        setLiveResults((data.results || []).map(toCompactSkillRecord));
       }
     } catch {
       // Backend unreachable — fall back to local filter
@@ -65,31 +140,67 @@ function LeftRail() {
     return () => clearTimeout(debounceRef.current);
   }, [searchValue, searchSkills]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadSkills = async () => {
+      try {
+        const res = await fetch(`${backendUrl}/skills`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) {
+          setLiveSkills(Array.isArray(data.tools) ? data.tools.map(toCompactSkillRecord) : []);
+        }
+      } catch {
+        if (!cancelled) {
+          setLiveSkills([]);
+        }
+      }
+    };
+
+    loadSkills();
+    return () => {
+      cancelled = true;
+    };
+  }, [backendUrl]);
+
+  const skillLibrary = useMemo(() => {
+    const groupedLiveSkills = groupSkillsByCategory(liveSkills);
+    return groupedLiveSkills.length > 0 ? groupedLiveSkills : DEMO_SKILL_LIBRARY;
+  }, [liveSkills]);
+
   // Falls back to local filtering when backend is unreachable
   const filteredCategories = useMemo(() => {
-    if (liveResults) {
-      // Group live results into a single "Search Results" category
-      return [{
-        id: 'search-results',
-        label: `Results (${liveResults.length})`,
-        items: liveResults.map((r) => ({
-          id: r.id,
-          label: r.name,
-          icon: 'sparkles',
-          description: r.description,
-          score: r.score,
-        })),
-      }];
+    if (liveResults && liveResults.length > 0) {
+      return groupSkillsByCategory(liveResults);
     }
 
     const query = searchValue.trim().toLowerCase();
-    if (!query) return DEMO_SKILL_LIBRARY;
+    if (!query) return skillLibrary;
 
-    return DEMO_SKILL_LIBRARY.map((category) => ({
+    return skillLibrary.map((category) => ({
       ...category,
-      items: category.items.filter((item) => item.label.toLowerCase().includes(query)),
+      items: category.items.filter((item) =>
+        item.label.toLowerCase().includes(query)
+        || item.description?.toLowerCase().includes(query)
+        || category.label.toLowerCase().includes(query)
+      ),
     })).filter((category) => category.items.length > 0);
-  }, [searchValue, liveResults]);
+  }, [searchValue, liveResults, skillLibrary]);
+
+  useEffect(() => {
+    if (filteredCategories.length === 0) return;
+
+    setExpandedCategories((current) => {
+      const next = { ...current };
+      filteredCategories.slice(0, 4).forEach((category) => {
+        if (typeof next[category.id] !== 'boolean') {
+          next[category.id] = true;
+        }
+      });
+      return next;
+    });
+  }, [filteredCategories]);
 
   const toggleSection = (section) => {
     setExpandedSections((current) => ({
@@ -163,7 +274,7 @@ function LeftRail() {
           {expandedSections.skills ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           <span>Skill Library</span>
           <span className="rail-section-count">
-            {DEMO_SKILL_LIBRARY.reduce((total, category) => total + category.items.length, 0)}
+            {skillLibrary.reduce((total, category) => total + category.items.length, 0)}
           </span>
         </button>
 
@@ -172,15 +283,15 @@ function LeftRail() {
             {filteredCategories.map((category) => (
               <div key={category.id} className="skill-category">
                 <button className="skill-category-header" onClick={() => toggleCategory(category.id)}>
-                  {expandedCategories[category.id] ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                  {(expandedCategories[category.id] ?? true) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                   <span>{category.label}</span>
                   <span className="skill-category-count">{category.items.length}</span>
                 </button>
 
-                {expandedCategories[category.id] && (
+                {(expandedCategories[category.id] ?? true) && (
                   <div className="skill-tile-grid">
                     {category.items.map((item) => (
-                      <button key={item.id} className="skill-tile">
+                      <button key={item.id} className="skill-tile" title={item.description || item.label}>
                         <FlowIcon name={item.icon} size={18} />
                         <span>{item.label}</span>
                       </button>

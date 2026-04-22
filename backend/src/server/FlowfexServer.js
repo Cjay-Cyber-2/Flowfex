@@ -242,31 +242,18 @@ export class FlowfexServer {
       if (!registry) {
         return this._writeJson(response, 200, { tools: [] });
       }
-      const tools = registry.getAllTools().map(t => ({
-        id: t.id,
-        name: t.name,
-        description: t.description,
-        category: t.metadata?.category || 'uncategorized',
-        tags: t.metadata?.tags || [],
-        source: t.metadata?.source || 'unknown',
-        sourcePath: t.metadata?.sourcePath || null,
-        sourceRoot: t.metadata?.sourceRoot || null,
-        sourceType: t.metadata?.sourceType || 'skill',
-        sourceClassification: t.metadata?.sourceClassification || null,
-        trustLevel: t.metadata?.trustLevel || 'unknown',
-        validationStatus: t.metadata?.validationStatus || 'unknown',
-        qualityScore: t.metadata?.qualityScore ?? null,
-        executable: t.metadata?.executable ?? true,
-        confidence: t.metadata?.qualityScore ?? t.metadata?.confidence ?? 100
-      }));
+      const tools = registry.getCanonicalSkillRecords();
 
-      const markdownTools = tools.filter(tool => Boolean(tool.sourcePath));
+      const markdownTools = tools.filter(tool => Boolean(tool.metadata?.sourcePath));
       const summary = markdownTools.reduce((accumulator, tool) => {
         accumulator.totalTools += 1;
         accumulator.categories.add(tool.category);
-        accumulator.sourceTypes[tool.sourceType] = (accumulator.sourceTypes[tool.sourceType] || 0) + 1;
-        accumulator.trustLevels[tool.trustLevel] = (accumulator.trustLevels[tool.trustLevel] || 0) + 1;
-        accumulator.validationStatuses[tool.validationStatus] = (accumulator.validationStatuses[tool.validationStatus] || 0) + 1;
+        const sourceType = tool.metadata?.sourceType || 'unknown';
+        const trustLevel = tool.metadata?.trustLevel || 'unknown';
+        const validationStatus = tool.metadata?.validationStatus || 'unknown';
+        accumulator.sourceTypes[sourceType] = (accumulator.sourceTypes[sourceType] || 0) + 1;
+        accumulator.trustLevels[trustLevel] = (accumulator.trustLevels[trustLevel] || 0) + 1;
+        accumulator.validationStatuses[validationStatus] = (accumulator.validationStatuses[validationStatus] || 0) + 1;
         return accumulator;
       }, {
         totalTools: 0,
@@ -309,22 +296,10 @@ export class FlowfexServer {
       }
 
       const retrieval = registry.retrieveTools(query, { topK: 10 });
-      const results = retrieval.matches.map(m => ({
-        id: m.tool.id,
-        name: m.tool.name,
-        description: m.tool.description,
-        category: m.tool.metadata?.category || 'uncategorized',
-        tags: m.tool.metadata?.tags || [],
-        source: m.tool.metadata?.source || 'unknown',
-        sourcePath: m.tool.metadata?.sourcePath || null,
-        sourceRoot: m.tool.metadata?.sourceRoot || null,
-        sourceType: m.tool.metadata?.sourceType || 'skill',
-        sourceClassification: m.tool.metadata?.sourceClassification || null,
-        trustLevel: m.tool.metadata?.trustLevel || 'unknown',
-        validationStatus: m.tool.metadata?.validationStatus || 'unknown',
-        qualityScore: m.tool.metadata?.qualityScore ?? null,
-        score: m.score,
-        strategy: m.strategy,
+      const results = retrieval.matches.map(match => ({
+        ...registry.getCanonicalSkillRecord(match.tool.id),
+        score: match.score,
+        strategy: match.strategy,
       }));
 
       return this._writeJson(response, 200, { results, query, strategy: retrieval.strategy });

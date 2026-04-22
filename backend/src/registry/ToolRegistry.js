@@ -443,6 +443,15 @@ export class ToolRegistry {
     return this.getAllTools().map(tool => this._toolToSummary(tool));
   }
 
+  getCanonicalSkillRecords(options = {}) {
+    return this.getAllTools().map(tool => this._toolToCanonicalRecord(tool, options));
+  }
+
+  getCanonicalSkillRecord(toolId, options = {}) {
+    const tool = this.getTool(toolId);
+    return tool ? this._toolToCanonicalRecord(tool, options) : null;
+  }
+
   _toolToSummary(tool) {
     const embedding = this.embeddingMetadata.get(tool.id);
 
@@ -462,7 +471,45 @@ export class ToolRegistry {
       validationStatus: tool.metadata?.validationStatus || null,
       qualityScore: tool.metadata?.qualityScore ?? null,
       executable: tool.metadata?.executable ?? true,
-      embeddingIndexed: Boolean(embedding && !embedding.error)
+      embeddingIndexed: Boolean(embedding && !embedding.error),
+      embeddingDimensions: embedding?.dimensions ?? null
+    };
+  }
+
+  _toolToCanonicalRecord(tool, options = {}) {
+    const embedding = this.embeddingMetadata.get(tool.id);
+    const includeEmbeddingVector = options.includeEmbeddingVector !== false;
+    const metadata = tool.metadata || {};
+    const approvalRequired = metadata.approvalRequired === true || metadata.requiresApproval === true;
+
+    return {
+      id: tool.id,
+      name: tool.name,
+      description: tool.description,
+      category: metadata.category || 'uncategorized',
+      subcategory: metadata.subcategory || metadata.sourceType || 'general',
+      inputSchema: metadata.inputSchema || buildDefaultInputSchema(tool),
+      outputSchema: metadata.outputSchema || buildDefaultOutputSchema(tool),
+      executionHandler: metadata.executionHandler || buildDefaultExecutionHandler(tool),
+      approvalRequired,
+      metadata: {
+        source: metadata.source || 'unknown',
+        trustLevel: metadata.trustLevel || metadata.sourceTrustLevel || 'unknown',
+        sourcePath: metadata.sourcePath || null,
+        sourceRoot: metadata.sourceRoot || metadata.sourceDirectory || null,
+        sourceType: metadata.sourceType || null,
+        sourceClassification: metadata.sourceClassification || null,
+        validationStatus: metadata.validationStatus || null,
+        qualityScore: metadata.qualityScore ?? null,
+        version: metadata.version || '1.0.0',
+        executable: metadata.executable ?? true,
+        imported: metadata.imported === true,
+        usage: metadata.usage || null,
+        tags: metadata.tags || [],
+        sectionTitles: metadata.sectionTitles || metadata.sections || [],
+        instructionTitles: metadata.instructionTitles || [],
+      },
+      embeddingVector: includeEmbeddingVector ? embedding?.vector || null : null
     };
   }
 
@@ -508,7 +555,9 @@ export class ToolRegistry {
       this.embeddingMetadata.set(tool.id, {
         document,
         model: embedding.model,
-        terms: embedding.terms
+        terms: embedding.terms,
+        dimensions: embedding.dimensions,
+        vector: embedding.vector
       });
     } catch (error) {
       this.stats.embeddingFailures++;
@@ -651,4 +700,42 @@ function removeIndexedMany(index, keys, toolId) {
   for (const key of keys) {
     removeIndexedTool(index, key, toolId);
   }
+}
+
+function buildDefaultInputSchema(tool) {
+  return {
+    type: 'object',
+    description: 'Task payload accepted by this skill.',
+    properties: {
+      input: {
+        type: 'string',
+        description: `Input provided to ${tool.name}.`
+      }
+    },
+    required: ['input']
+  };
+}
+
+function buildDefaultOutputSchema(tool) {
+  return {
+    type: 'object',
+    description: 'Structured response returned by this skill.',
+    properties: {
+      response: {
+        type: 'string',
+        description: `${tool.name} result payload.`
+      }
+    },
+    required: ['response']
+  };
+}
+
+function buildDefaultExecutionHandler(tool) {
+  return {
+    kind: tool.metadata?.imported ? 'markdown-import' : 'tool-runtime',
+    handlerId: tool.id,
+    runtime: 'tool.run',
+    sourceType: tool.metadata?.sourceType || 'tool',
+    sourceClassification: tool.metadata?.sourceClassification || 'direct'
+  };
 }

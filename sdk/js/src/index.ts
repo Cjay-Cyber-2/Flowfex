@@ -107,7 +107,7 @@ export class FlowfexClient {
     }
 
     const data = await response.json();
-    this.session = data.connection.session;
+    this.session = data.connection.session as Session;
     this.baseUrl = url;
 
     // Auto-connect WebSocket for live mode

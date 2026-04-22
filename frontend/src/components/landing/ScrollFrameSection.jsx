@@ -322,10 +322,9 @@ function ScrollFrameSection() {
         {/* Flowfex 3D logo centered inside the donut ring and synced to the scroll rotation */}
         <div className="landing-scroll-cinema-logo" aria-hidden="true">
           <div className="landing-scroll-cinema-logo-orbit">
-            <div className="landing-scroll-cinema-logo-core" />
-            <div className="landing-scroll-cinema-logo-ring" />
-            <div className="landing-scroll-cinema-logo-ring landing-scroll-cinema-logo-ring-delayed" />
-            <ThreeDLogoMark className="landing-scroll-cinema-logo-mark" depth={10} />
+            <div className="landing-scroll-cinema-logo-stage">
+              <ThreeDLogoMark className="landing-scroll-cinema-logo-mark" depth={16} glow="none" sheen={false} />
+            </div>
           </div>
         </div>
       </div>

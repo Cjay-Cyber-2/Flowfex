@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, Suspense } from 'react';
-import { ArrowRight, ChevronRight, Play, ShieldCheck, Sparkles, Workflow, Zap } from 'lucide-react';
+import { ArrowRight, ChevronRight, Play, ShieldCheck, Sparkles, Workflow } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import HeroOrchestrationScene from '../components/animations/HeroOrchestrationScene';
@@ -180,15 +180,6 @@ function LandingPage() {
   const clickLockRef = useRef(false);
 
   const workspace = useMemo(() => buildDemoWorkspace(), []);
-  const skillCount = useMemo(
-    () => DEMO_SKILL_LIBRARY.reduce((total, group) => total + group.items.length, 0),
-    []
-  );
-  const toolCount = useMemo(
-    () => workspace.nodes.filter((node) => node.type === 'tool').length,
-    [workspace.nodes]
-  );
-  const agentCount = workspace.connectedAgents.length;
   const statementWords = useMemo(
     () => [
       `300+ Skills Ready`,
@@ -302,40 +293,24 @@ function LandingPage() {
         <HeroOrchestrationScene />
 
         <div className="hero-copy hero-copy-centered">
-          <span className="section-kicker">Agent bridge and orchestration layer</span>
+          <span className="section-kicker">Semantic skill orchestration for live agents</span>
           <h1 className="hero-headline">
-            <span>Connect any agent to the right tools and skills.</span>
-            <span className="hero-headline-accent">Watch Flowfex orchestrate the work live.</span>
+            <span>The skill operating layer for connected agents.</span>
+            <span className="hero-headline-accent">Flowfex imports, ranks, routes, and explains every move live.</span>
           </h1>
           <p className="hero-subheadline">
-            Flowfex is the visual control surface where users can see, guide, and supervise what an AI agent is doing
-            while it selects skills, chains tools, executes workflows, and sends results back to any connected agent.
+            Bring in markdown skills at scale, match tasks semantically, and keep human approval and decision
+            transparency inside one orchestration surface.
           </p>
 
           <div className="hero-actions">
             <button className="btn btn-primary hero-primary-cta" onClick={() => navigate('/onboarding')}>
               Start Building Free
-              <span className="cta-note">live in minutes</span>
             </button>
             <button className="btn btn-ghost" onClick={() => navigate('/dashboard')}>
               <Play size={16} />
               Watch Live Demo
             </button>
-          </div>
-
-          <div className="hero-metrics">
-            <div>
-              <strong>Universal bridge</strong>
-              <span>IDE, CLI, web, and embedded agents</span>
-            </div>
-            <div>
-              <strong>Resource routing</strong>
-              <span>Pull the best tools and skills for the task</span>
-            </div>
-            <div>
-              <strong>Live control</strong>
-              <span>Pause, approve, reject, or reroute the flow</span>
-            </div>
           </div>
         </div>
       </section>

@@ -116,12 +116,18 @@ export const defaultEmbeddingService = new EmbeddingService();
 export function buildToolEmbeddingText(tool) {
   const tags = tool.metadata?.tags || [];
   const category = tool.metadata?.category || 'uncategorized';
+  const subcategory = tool.metadata?.subcategory || '';
   const sourcePath = tool.metadata?.sourcePath || '';
   const sourceType = tool.metadata?.sourceType || '';
   const sourceClassification = tool.metadata?.sourceClassification || '';
   const trustLevel = tool.metadata?.trustLevel || '';
   const validationStatus = tool.metadata?.validationStatus || '';
   const qualityScore = tool.metadata?.qualityScore ?? '';
+  const usage = tool.metadata?.usage || '';
+  const inputSchema = stringifyStructuredValue(tool.metadata?.inputSchema);
+  const outputSchema = stringifyStructuredValue(tool.metadata?.outputSchema);
+  const executionHandler = stringifyStructuredValue(tool.metadata?.executionHandler);
+  const approvalRequired = tool.metadata?.approvalRequired === true ? 'approval required' : 'approval optional';
   const prompt = typeof tool.prompt === 'string' ? tool.prompt.slice(0, 1200) : '';
 
   return [
@@ -129,6 +135,7 @@ export function buildToolEmbeddingText(tool) {
     tool.name,
     tool.description,
     `category ${category}`,
+    `subcategory ${subcategory}`,
     `source ${tool.metadata?.source || ''}`,
     `sourcePath ${sourcePath}`,
     `sourceType ${sourceType}`,
@@ -136,6 +143,11 @@ export function buildToolEmbeddingText(tool) {
     `trustLevel ${trustLevel}`,
     `validationStatus ${validationStatus}`,
     `qualityScore ${qualityScore}`,
+    `usage ${usage}`,
+    `inputSchema ${inputSchema}`,
+    `outputSchema ${outputSchema}`,
+    `executionHandler ${executionHandler}`,
+    approvalRequired,
     `keywords ${(tool.keywords || []).join(' ')}`,
     `tags ${tags.join(' ')}`,
     prompt
@@ -230,4 +242,20 @@ function hash(value) {
   }
 
   return hashValue | 0;
+}
+
+function stringifyStructuredValue(value) {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (!value) {
+    return '';
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
 }

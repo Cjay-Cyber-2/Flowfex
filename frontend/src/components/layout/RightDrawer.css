@@ -149,6 +149,21 @@
   line-height: 1.65;
 }
 
+.reasoning-score-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid rgba(0, 212, 170, 0.06);
+}
+
+.reasoning-score-row strong {
+  font-family: var(--font-geist);
+  font-size: 1rem;
+  color: var(--color-sinoper-bright);
+}
+
 .alternatives-toggle {
   width: 100%;
   display: flex;
@@ -189,6 +204,14 @@
   color: var(--color-bistre);
   font-size: 0.78rem;
   margin-top: 3px;
+}
+
+.alternative-row > span {
+  color: var(--color-sinoper-bright);
+  font-family: var(--font-space-grotesk);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .timeline-row {

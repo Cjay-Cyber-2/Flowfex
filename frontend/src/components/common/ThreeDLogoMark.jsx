@@ -9,14 +9,20 @@ export default function ThreeDLogoMark({
   className = '',
   depth = 8,
   alt = '',
+  glow = 'soft',
+  sheen = true,
 }) {
   const decorative = !alt;
   const layers = buildLayers(depth);
+  const glowClass = glow === 'none' ? 'three-d-logo-mark-glow-none' : 'three-d-logo-mark-glow-soft';
 
   return (
-    <div className={`three-d-logo-mark ${className}`.trim()} aria-hidden={decorative || undefined}>
-      <div className="three-d-logo-mark-aura three-d-logo-mark-aura-primary" />
-      <div className="three-d-logo-mark-aura three-d-logo-mark-aura-secondary" />
+    <div
+      className={`three-d-logo-mark ${glowClass} ${sheen ? '' : 'three-d-logo-mark-no-sheen'} ${className}`.trim()}
+      aria-hidden={decorative || undefined}
+    >
+      {glow !== 'none' ? <div className="three-d-logo-mark-aura three-d-logo-mark-aura-primary" /> : null}
+      {glow !== 'none' ? <div className="three-d-logo-mark-aura three-d-logo-mark-aura-secondary" /> : null}
       <div className="three-d-logo-mark-stack">
         {layers.map((layerIndex) => (
           <img
@@ -39,7 +45,7 @@ export default function ThreeDLogoMark({
             draggable="false"
           />
         </div>
-        <div className="three-d-logo-mark-sheen" />
+        {sheen ? <div className="three-d-logo-mark-sheen" /> : null}
       </div>
     </div>
   );

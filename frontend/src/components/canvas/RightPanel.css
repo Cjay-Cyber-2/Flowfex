@@ -179,6 +179,29 @@
   margin-bottom: 16px;
 }
 
+.panel-reasoning-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0 14px;
+  border-bottom: 1px solid rgba(232, 237, 242, 0.08);
+}
+
+.panel-reasoning-meta-label {
+  font-family: var(--font-ui, 'Inter');
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #4A5568;
+}
+
+.panel-reasoning-meta-value {
+  font-family: var(--font-display, 'Syne');
+  font-size: 18px;
+  color: #7FFFF0;
+}
+
 /* Alternatives */
 .panel-alternatives {
   margin-top: 16px;

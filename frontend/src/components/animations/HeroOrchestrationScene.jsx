@@ -1,95 +1,72 @@
 import React, { useEffect, useMemo, useRef } from 'react';
+import { MeshGradient, PulsingBorder } from '@paper-design/shaders-react';
 import ThreeDLogoMark from '../common/ThreeDLogoMark';
 
-const HUB_CENTER = { x: 720, y: 476 };
+const HUB_CENTER = { x: 720, y: 450 };
+const NODE_WIDTH = 226;
+const NODE_HEIGHT = 86;
 
 const HERO_NODES = [
   {
-    id: 'cli',
-    x: 178,
-    y: 254,
-    label: 'CLI Agent',
-    meta: 'Command stream',
-    kind: 'agent',
+    id: 'registry',
+    x: 142,
+    y: 182,
+    label: 'Central Registry',
+    meta: 'Schema-first skill records',
+    kind: 'foundation',
+    side: 'left',
+    accent: '#00d4aa',
   },
   {
-    id: 'ide',
-    x: 192,
-    y: 432,
-    label: 'IDE Agent',
-    meta: 'Code context',
-    kind: 'agent',
+    id: 'importer',
+    x: 124,
+    y: 370,
+    label: 'Bulk Importer',
+    meta: 'Auto-parse markdown skills at scale',
+    kind: 'foundation',
+    side: 'left',
+    accent: '#00e5c3',
   },
   {
-    id: 'web',
-    x: 170,
-    y: 618,
-    label: 'Web Agent',
-    meta: 'Live interface',
-    kind: 'agent',
+    id: 'category',
+    x: 156,
+    y: 558,
+    label: 'Category System',
+    meta: 'Counts, filters, grouped lanes',
+    kind: 'foundation',
+    side: 'left',
+    accent: '#7ffff0',
   },
   {
-    id: 'skills',
-    x: 1260,
-    y: 224,
-    label: 'Skill Graph',
-    meta: 'Ranked capabilities',
-    kind: 'resource',
+    id: 'semantic',
+    x: 1072,
+    y: 182,
+    label: 'Semantic Search',
+    meta: 'Embeddings and similarity ranking',
+    kind: 'intelligence',
+    side: 'right',
+    accent: '#7ffff0',
   },
   {
-    id: 'tools',
-    x: 1274,
-    y: 414,
-    label: 'Tool Router',
-    meta: 'Safe execution',
-    kind: 'resource',
+    id: 'selection',
+    x: 1090,
+    y: 370,
+    label: 'Ranked Selection',
+    meta: 'Constraints, trust, approvals',
+    kind: 'intelligence',
+    side: 'right',
+    accent: '#46bda9',
   },
   {
-    id: 'memory',
-    x: 1244,
-    y: 612,
-    label: 'Memory Layer',
-    meta: 'Persistent context',
-    kind: 'resource',
+    id: 'transparency',
+    x: 1058,
+    y: 558,
+    label: 'Decision Transparency',
+    meta: 'Why chosen, score, rejected options',
+    kind: 'intelligence',
+    side: 'right',
+    accent: '#00d4aa',
   },
-  {
-    id: 'approvals',
-    x: 720,
-    y: 122,
-    label: 'Approvals',
-    meta: 'Human checkpoints',
-    kind: 'control',
-  },
-  {
-    id: 'results',
-    x: 720,
-    y: 794,
-    label: 'Result Channel',
-    meta: 'Structured output',
-    kind: 'output',
-  },
-];
-
-const HUB_ANCHORS = {
-  cli: { x: 526, y: 332 },
-  ide: { x: 492, y: 472 },
-  web: { x: 542, y: 626 },
-  skills: { x: 916, y: 302 },
-  tools: { x: 944, y: 466 },
-  memory: { x: 904, y: 640 },
-  approvals: { x: 720, y: 266 },
-  results: { x: 720, y: 688 },
-};
-
-const LANE_CONFIG = [
-  { id: 'cli', accent: '#7ffff0', duration: 7.2, delay: 0.0, bend: -118 },
-  { id: 'ide', accent: '#00d4aa', duration: 6.4, delay: 1.1, bend: -86 },
-  { id: 'web', accent: '#77c3ff', duration: 7.9, delay: 0.7, bend: -126 },
-  { id: 'skills', accent: '#00e5c3', duration: 6.1, delay: 0.4, bend: 102 },
-  { id: 'tools', accent: '#8ee8ff', duration: 5.8, delay: 1.4, bend: 72 },
-  { id: 'memory', accent: '#50d6ba', duration: 6.8, delay: 0.9, bend: 118 },
-  { id: 'approvals', accent: '#8fffe1', duration: 5.6, delay: 0.5, bend: 0 },
-  { id: 'results', accent: '#b5fff2', duration: 5.9, delay: 1.2, bend: 0 },
 ];
 
 function pathFromTo(from, to, bendAmount) {
@@ -98,7 +75,6 @@ function pathFromTo(from, to, bendAmount) {
   const distance = Math.hypot(dx, dy) || 1;
   const normalX = -dy / distance;
   const normalY = dx / distance;
-  const intensity = distance * 0.14;
 
   const controlOne = {
     x: from.x + dx * 0.32 + normalX * bendAmount,
@@ -113,15 +89,33 @@ function pathFromTo(from, to, bendAmount) {
   return `M ${from.x} ${from.y} C ${controlOne.x} ${controlOne.y}, ${controlTwo.x} ${controlTwo.y}, ${to.x} ${to.y}`;
 }
 
+function buildNodePath(node) {
+  const from = {
+    x: node.side === 'left' ? node.x + NODE_WIDTH : node.x,
+    y: node.y + NODE_HEIGHT / 2,
+  };
+  const to = {
+    x: node.side === 'left' ? HUB_CENTER.x - 164 : HUB_CENTER.x + 164,
+    y: HUB_CENTER.y + (node.y + NODE_HEIGHT / 2 - HUB_CENTER.y) * 0.26,
+  };
+  const bend = node.side === 'left' ? -82 : 82;
+  return pathFromTo(from, to, bend);
+}
+
 function HeroNode({ node }) {
   return (
-    <g className={`hero-orchestration-node hero-orchestration-node-${node.kind}`} transform={`translate(${node.x} ${node.y})`}>
-      <rect x="-84" y="-34" width="168" height="68" rx="24" />
-      <circle className="hero-orchestration-node-dot" cx="-53" cy="0" r="7" />
-      <text className="hero-orchestration-node-label" x="-34" y="-5">
+    <g
+      className={`hero-orchestration-node hero-orchestration-node-${node.kind}`}
+      transform={`translate(${node.x} ${node.y})`}
+      style={{ '--node-accent': node.accent }}
+    >
+      <rect width={NODE_WIDTH} height={NODE_HEIGHT} rx="26" />
+      <rect className="hero-orchestration-node-topline" width={NODE_WIDTH} height="2" rx="2" />
+      <circle className="hero-orchestration-node-dot" cx="28" cy="31" r="6" />
+      <text className="hero-orchestration-node-label" x="46" y="33">
         {node.label}
       </text>
-      <text className="hero-orchestration-node-meta" x="-34" y="15">
+      <text className="hero-orchestration-node-meta" x="46" y="56">
         {node.meta}
       </text>
     </g>
@@ -131,17 +125,12 @@ function HeroNode({ node }) {
 export default function HeroOrchestrationScene() {
   const sceneRef = useRef(null);
 
-  const lanes = useMemo(
+  const links = useMemo(
     () =>
-      LANE_CONFIG.map((lane) => {
-        const from = HERO_NODES.find((node) => node.id === lane.id);
-        const to = HUB_ANCHORS[lane.id];
-        return {
-          ...lane,
-          path: pathFromTo(from, to, lane.bend),
-          packetDelay: lane.delay + lane.duration * 0.5,
-        };
-      }),
+      HERO_NODES.map((node) => ({
+        ...node,
+        path: buildNodePath(node),
+      })),
     []
   );
 
@@ -210,9 +199,29 @@ export default function HeroOrchestrationScene() {
 
   return (
     <div ref={sceneRef} className="hero-orchestration-scene" aria-hidden="true">
-      <div className="hero-orchestration-nebula hero-orchestration-nebula-left" />
-      <div className="hero-orchestration-nebula hero-orchestration-nebula-right" />
-      <div className="hero-orchestration-nebula hero-orchestration-nebula-bottom" />
+      <div className="hero-orchestration-mesh hero-orchestration-mesh-primary">
+        <MeshGradient
+          colors={['#05090d', '#0a131a', '#0d1f24', '#00d4aa', '#46bda9', '#7ffff0']}
+          speed={0.16}
+          distortion={0.72}
+          swirl={0.28}
+          grainMixer={0.06}
+          grainOverlay={0.03}
+          style={{ width: '100%', height: '100%' }}
+        />
+      </div>
+      <div className="hero-orchestration-mesh hero-orchestration-mesh-secondary">
+        <MeshGradient
+          colors={['#081017', '#101a20', '#00d4aa', '#00e5c3', '#7ffff0']}
+          speed={0.1}
+          distortion={0.34}
+          swirl={0.64}
+          grainMixer={0.08}
+          grainOverlay={0.06}
+          style={{ width: '100%', height: '100%' }}
+        />
+      </div>
+      <div className="hero-orchestration-vignette" />
 
       <svg
         className="hero-orchestration-svg"
@@ -220,107 +229,34 @@ export default function HeroOrchestrationScene() {
         preserveAspectRatio="xMidYMid slice"
       >
         <defs>
-          <radialGradient id="hero-kernel-glow" cx="50%" cy="50%" r="60%">
-            <stop offset="0%" stopColor="rgba(127, 255, 240, 0.95)" />
-            <stop offset="20%" stopColor="rgba(0, 229, 195, 0.45)" />
-            <stop offset="55%" stopColor="rgba(0, 212, 170, 0.14)" />
+          <radialGradient id="hero-center-glow" cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stopColor="rgba(127, 255, 240, 0.22)" />
+            <stop offset="52%" stopColor="rgba(0, 212, 170, 0.12)" />
             <stop offset="100%" stopColor="rgba(0, 212, 170, 0)" />
           </radialGradient>
-          <linearGradient id="hero-grid-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="rgba(0, 212, 170, 0.08)" />
-            <stop offset="50%" stopColor="rgba(127, 255, 240, 0.02)" />
-            <stop offset="100%" stopColor="rgba(0, 212, 170, 0.08)" />
-          </linearGradient>
-          <filter id="hero-node-glow" x="-40%" y="-40%" width="180%" height="180%">
-            <feGaussianBlur stdDeviation="16" result="glow" />
+          <filter id="hero-node-shadow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="20" result="shadow" />
             <feColorMatrix
-              in="glow"
+              in="shadow"
               type="matrix"
               values="1 0 0 0 0
-                      0 1 0 0 0.4
-                      0 0 1 0 0.25
-                      0 0 0 12 -4.6"
+                      0 1 0 0 0.34
+                      0 0 1 0 0.22
+                      0 0 0 12 -5.8"
             />
           </filter>
         </defs>
 
-        <g className="hero-orchestration-parallax hero-orchestration-parallax-far">
-          <circle className="hero-orchestration-kernel-aura" cx={HUB_CENTER.x} cy={HUB_CENTER.y} r="290" />
-          <circle className="hero-orchestration-kernel-aura-secondary" cx={HUB_CENTER.x} cy={HUB_CENTER.y} r="420" />
-          <g className="hero-orchestration-grid">
-            {Array.from({ length: 10 }, (_, index) => (
-              <line
-                key={`h-${index}`}
-                x1="96"
-                y1={145 + index * 70}
-                x2="1344"
-                y2={145 + index * 70}
-                stroke="url(#hero-grid-gradient)"
-              />
-            ))}
-            {Array.from({ length: 11 }, (_, index) => (
-              <line
-                key={`v-${index}`}
-                x1={160 + index * 112}
-                y1="108"
-                x2={160 + index * 112}
-                y2="820"
-                stroke="url(#hero-grid-gradient)"
-              />
-            ))}
-          </g>
-        </g>
-
-        <g className="hero-orchestration-parallax hero-orchestration-parallax-mid">
-          {lanes.map((lane) => (
-            <g key={lane.id}>
-              <path
-                className="hero-orchestration-lane hero-orchestration-lane-base"
-                d={lane.path}
-              />
-              <path
-                id={`hero-lane-${lane.id}`}
-                className="hero-orchestration-lane hero-orchestration-lane-flow"
-                d={lane.path}
-                pathLength="1"
-                style={{
-                  '--lane-accent': lane.accent,
-                  '--lane-duration': `${lane.duration}s`,
-                  '--lane-delay': `-${lane.delay}s`,
-                }}
-              />
-              <circle
-                className="hero-orchestration-packet hero-orchestration-packet-primary"
-                r="4"
-                style={{ '--packet-color': lane.accent }}
-              >
-                <animateMotion dur={`${lane.duration}s`} repeatCount="indefinite" begin={`${lane.delay}s`}>
-                  <mpath href={`#hero-lane-${lane.id}`} />
-                </animateMotion>
-              </circle>
-              <circle
-                className="hero-orchestration-packet hero-orchestration-packet-secondary"
-                r="3"
-                style={{ '--packet-color': lane.accent }}
-              >
-                <animateMotion dur={`${lane.duration}s`} repeatCount="indefinite" begin={`${lane.packetDelay}s`}>
-                  <mpath href={`#hero-lane-${lane.id}`} />
-                </animateMotion>
-              </circle>
-            </g>
-          ))}
-        </g>
-
         <g className="hero-orchestration-parallax hero-orchestration-parallax-near">
-          <g className="hero-orchestration-hub-rings">
-            <circle className="hero-orchestration-orbit hero-orchestration-orbit-outer" cx={HUB_CENTER.x} cy={HUB_CENTER.y} r="228" />
-            <circle className="hero-orchestration-orbit hero-orchestration-orbit-mid" cx={HUB_CENTER.x} cy={HUB_CENTER.y} r="178" />
-            <circle className="hero-orchestration-orbit hero-orchestration-orbit-inner" cx={HUB_CENTER.x} cy={HUB_CENTER.y} r="132" />
-            <circle className="hero-orchestration-wave hero-orchestration-wave-one" cx={HUB_CENTER.x} cy={HUB_CENTER.y} r="170" />
-            <circle className="hero-orchestration-wave hero-orchestration-wave-two" cx={HUB_CENTER.x} cy={HUB_CENTER.y} r="170" />
-            <circle className="hero-orchestration-wave hero-orchestration-wave-three" cx={HUB_CENTER.x} cy={HUB_CENTER.y} r="170" />
-          </g>
-
+          <circle className="hero-orchestration-center-aura" cx={HUB_CENTER.x} cy={HUB_CENTER.y} r="284" />
+          {links.map((node) => (
+            <path
+              key={`${node.id}-link`}
+              className="hero-orchestration-link"
+              d={node.path}
+              style={{ '--line-accent': node.accent }}
+            />
+          ))}
           {HERO_NODES.map((node) => (
             <HeroNode key={node.id} node={node} />
           ))}
@@ -328,14 +264,32 @@ export default function HeroOrchestrationScene() {
       </svg>
 
       <div className="hero-orchestration-core">
+        <div className="hero-orchestration-core-border">
+          <PulsingBorder
+            colors={['#00d4aa', '#00e5c3', '#7ffff0', '#46bda9']}
+            colorBack="#00000000"
+            speed={1.05}
+            roundness={1}
+            thickness={0.1}
+            softness={0.18}
+            intensity={4.2}
+            spotsPerColor={4}
+            spotSize={0.1}
+            pulse={0.08}
+            smoke={0.08}
+            smokeSize={1.4}
+            scale={0.86}
+            rotation={0}
+            style={{ width: '100%', height: '100%', borderRadius: '50%' }}
+          />
+        </div>
         <div className="hero-orchestration-core-shell" />
-        <div className="hero-orchestration-core-ping hero-orchestration-core-ping-one" />
-        <div className="hero-orchestration-core-ping hero-orchestration-core-ping-two" />
-        <div className="hero-orchestration-core-ping hero-orchestration-core-ping-three" />
-        <ThreeDLogoMark className="hero-orchestration-logo-mark" depth={10} />
+        <div className="hero-orchestration-core-caption">
+          <span>Flowfex Orchestrator</span>
+          <strong>Import. Rank. Route. Explain.</strong>
+        </div>
+        <ThreeDLogoMark className="hero-orchestration-logo-mark" depth={14} glow="soft" />
       </div>
-
-      <div className="hero-orchestration-film" />
     </div>
   );
 }

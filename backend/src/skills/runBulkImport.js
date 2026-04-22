@@ -198,23 +198,12 @@ if (!reportOnly) {
 
   // Export registry JSON
   const registryPath = path.join(OUTPUT_DIR, 'skill-registry.json');
+  const canonicalTools = registry.getCanonicalSkillRecords();
   const registryExport = {
     exportedAt: new Date().toISOString(),
     totalTools: registry.getAllTools().length,
     stats: report.stats,
-    tools: registry.getAllTools().map(t => ({
-      id: t.id,
-      name: t.name,
-      description: t.description,
-      category: t.metadata?.category,
-      tags: t.metadata?.tags,
-      source: t.metadata?.source,
-      trustLevel: t.metadata?.trustLevel,
-      validationStatus: t.metadata?.validationStatus,
-      qualityScore: t.metadata?.qualityScore,
-      executable: t.metadata?.executable,
-      sourcePath: t.metadata?.sourcePath
-    })),
+    tools: canonicalTools,
     catalogs: (report.catalogEntries || report.catalogReferences || []).map(e => ({
       id: e.id,
       title: e.title,
@@ -249,10 +238,10 @@ if (!reportOnly) {
     '|---|---|---|---|---|---|---|'
   ];
 
-  for (const tool of registry.getToolsSummary()) {
-    const tags = (tool.tags || []).slice(0, 4).join(', ');
+  for (const tool of canonicalTools) {
+    const tags = (tool.metadata?.tags || []).slice(0, 4).join(', ');
     catalogLines.push(
-      `| ${tool.id} | ${tool.name} | ${tool.category} | ${tags} | ${tool.source || '-'} | ${tool.trustLevel || '-'} | ${tool.validationStatus || '-'} |`
+      `| ${tool.id} | ${tool.name} | ${tool.category} | ${tags} | ${tool.metadata?.source || '-'} | ${tool.metadata?.trustLevel || '-'} | ${tool.metadata?.validationStatus || '-'} |`
     );
   }
 

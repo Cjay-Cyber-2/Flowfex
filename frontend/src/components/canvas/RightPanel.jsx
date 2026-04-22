@@ -60,6 +60,12 @@ function RightPanel({ selectedNode, onApprove, onReject, onReroute, onPause }) {
   };
 
   const statusInfo = getStatusInfo();
+  const relevanceScore =
+    typeof (selectedNode.score ?? selectedNode.confidence) === 'number'
+      ? `${Math.round((selectedNode.score ?? selectedNode.confidence) <= 1
+        ? (selectedNode.score ?? selectedNode.confidence) * 100
+        : (selectedNode.score ?? selectedNode.confidence))}%`
+      : 'N/A';
 
   // Check if controls should be enabled
   const isActionable = state === 'awaiting-approval' || state === 'executing';
@@ -105,6 +111,11 @@ function RightPanel({ selectedNode, onApprove, onReject, onReroute, onPause }) {
           {reasoning}
         </div>
 
+        <div className="panel-reasoning-meta">
+          <span className="panel-reasoning-meta-label">Relevance Score</span>
+          <strong className="panel-reasoning-meta-value">{relevanceScore}</strong>
+        </div>
+
         {/* Alternatives Considered */}
         {alternatives && alternatives.length > 0 && (
           <div className="panel-alternatives">
@@ -132,9 +143,15 @@ function RightPanel({ selectedNode, onApprove, onReject, onReroute, onPause }) {
                 >
                   {alternatives.map((alt, index) => (
                     <div key={index} className="panel-alternative-item">
-                      <FlowIcon name={alt.icon || 'workflow'} size={16} />
+                      <FlowIcon name={alt.icon || 'layers'} size={16} />
                       <span className="panel-alternative-name">{alt.name}</span>
-                      <span className="panel-alternative-status">Not selected</span>
+                      <span className="panel-alternative-status">
+                        {typeof (alt.score ?? alt.confidence) === 'number'
+                          ? `${Math.round((alt.score ?? alt.confidence) <= 1
+                            ? (alt.score ?? alt.confidence) * 100
+                            : (alt.score ?? alt.confidence))}% rejected`
+                          : 'Rejected'}
+                      </span>
                     </div>
                   ))}
                 </motion.div>

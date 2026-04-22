@@ -77,7 +77,12 @@ export function normalizeParsedSkill(parsedSkill, context = {}) {
     description,
     relativePath,
     sections: cleanedSections,
-    sourceType
+      sourceType
+  });
+  const subcategory = inferSubcategory({
+    relativePath,
+    frontmatter: parsedSkill.frontmatter,
+    category,
   });
   const tags = inferTags({
     title,
@@ -88,6 +93,33 @@ export function normalizeParsedSkill(parsedSkill, context = {}) {
     category,
     sourceType,
     sourceClassification
+  });
+  const usage = inferUsage({
+    description,
+    sections: cleanedSections,
+    parsedInstructions,
+  });
+  const inputSchema = buildInputSchema({
+    description,
+    frontmatter: parsedSkill.frontmatter,
+    sections: cleanedSections,
+  });
+  const outputSchema = buildOutputSchema({
+    description,
+    frontmatter: parsedSkill.frontmatter,
+    sections: cleanedSections,
+  });
+  const approvalRequired = inferApprovalRequired({
+    frontmatter: parsedSkill.frontmatter,
+    description,
+    sections: cleanedSections,
+    parsedInstructions,
+    tags,
+  });
+  const executionHandler = buildExecutionHandler({
+    relativePath,
+    sourceType,
+    sourceClassification,
   });
   const keywords = buildKeywords(title, description, tags);
   const id = buildSkillId(relativePath, title);
@@ -115,10 +147,16 @@ export function normalizeParsedSkill(parsedSkill, context = {}) {
     name: title,
     title,
     description,
+    usage,
     prompt,
     category,
+    subcategory,
     tags,
     keywords,
+    inputSchema,
+    outputSchema,
+    executionHandler,
+    approvalRequired,
     sections: cleanedSections,
     instructions: parsedInstructions,
     relativePath,
@@ -136,6 +174,12 @@ export function normalizeParsedSkill(parsedSkill, context = {}) {
       sourceRoot,
       sourceName,
       sourceTrustLevel,
+      usage,
+      subcategory,
+      inputSchema,
+      outputSchema,
+      executionHandler,
+      approvalRequired,
       sourceClassification,
       sourceType,
       frontmatter: parsedSkill.frontmatter || {},
@@ -151,6 +195,122 @@ export function normalizeParsedSkill(parsedSkill, context = {}) {
     sourceSizeBytes: context.fileSizeBytes || null,
     originalFileName: parsedSkill.fileName
   };
+}
+
+function inferSubcategory({ relativePath, frontmatter, category }) {
+  if (typeof frontmatter?.subcategory === 'string' && frontmatter.subcategory.trim()) {
+    return slugify(frontmatter.subcategory);
+  }
+
+  const segments = String(relativePath || '')
+    .split(/[\\/]/)
+    .map(segment => slugify(segment))
+    .filter(Boolean)
+    .filter(segment => !GENERIC_PATH_SEGMENTS.has(segment));
+
+  const withoutFileStem = segments.slice(0, -1);
+  const candidate = withoutFileStem.reverse().find(segment => segment !== slugify(category));
+  return candidate || slugify(category) || 'general';
+}
+
+function inferUsage({ description, sections, parsedInstructions }) {
+  const usageSection = sections.find(section =>
+    /usage|use when|when to use|quick start|get started|getting started|workflow|how to use/i.test(section.title)
+  );
+
+  if (usageSection?.content) {
+    return summarizeBlock(usageSection.content, 260);
+  }
+
+  if (parsedInstructions.length > 0) {
+    return summarizeBlock(parsedInstructions.slice(0, 3).join(' • '), 260);
+  }
+
+  return summarizeBlock(description, 220);
+}
+
+function buildInputSchema({ description, frontmatter, sections }) {
+  const frontmatterValue = extractSchemaHint(frontmatter?.inputSchema);
+  const sectionValue = extractSectionSchemaHint(sections, /input|inputs|parameters|arguments|request/i);
+  const schemaDescription = frontmatterValue || sectionValue || `Task payload accepted by this skill. ${description}`;
+  return buildSchemaObject('input', schemaDescription);
+}
+
+function buildOutputSchema({ description, frontmatter, sections }) {
+  const frontmatterValue = extractSchemaHint(frontmatter?.outputSchema);
+  const sectionValue = extractSectionSchemaHint(sections, /output|outputs|response|result|returns/i);
+  const schemaDescription = frontmatterValue || sectionValue || `Structured response returned after this skill completes. ${description}`;
+  return buildSchemaObject('response', schemaDescription);
+}
+
+function inferApprovalRequired({ frontmatter, description, sections, parsedInstructions, tags }) {
+  if (typeof frontmatter?.approvalRequired === 'boolean') {
+    return frontmatter.approvalRequired;
+  }
+
+  if (typeof frontmatter?.requiresApproval === 'boolean') {
+    return frontmatter.requiresApproval;
+  }
+
+  const signal = [
+    description,
+    ...sections.map(section => `${section.title} ${section.content}`),
+    ...parsedInstructions,
+    ...(tags || []),
+  ].join(' ').toLowerCase();
+
+  return /\b(approval|approve|operator|human review|manual review|checkpoint|sign-off)\b/.test(signal);
+}
+
+function buildExecutionHandler({ relativePath, sourceType, sourceClassification }) {
+  return {
+    kind: 'markdown-import',
+    handlerId: `flowfex.${sourceType || 'skill'}.markdown`,
+    runtime: 'llm.generate',
+    sourcePath: relativePath,
+    sourceType,
+    sourceClassification,
+  };
+}
+
+function extractSchemaHint(value) {
+  if (typeof value === 'string' && value.trim()) {
+    return cleanSentence(value);
+  }
+
+  if (Array.isArray(value) && value.length > 0) {
+    return summarizeBlock(value.map(entry => cleanSentence(String(entry))).join(' '), 220);
+  }
+
+  return null;
+}
+
+function extractSectionSchemaHint(sections, pattern) {
+  const section = sections.find(entry => pattern.test(entry.title));
+  return section?.content ? summarizeBlock(section.content, 220) : null;
+}
+
+function buildSchemaObject(fieldName, description) {
+  return {
+    type: 'object',
+    description: summarizeBlock(description, 260),
+    properties: {
+      [fieldName]: {
+        type: 'string',
+        description: summarizeBlock(description, 180),
+      },
+    },
+    required: [fieldName],
+  };
+}
+
+function summarizeBlock(value, limit = 220) {
+  const normalized = cleanSentence(value || '');
+  if (normalized.length <= limit) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, Math.max(0, limit - 1)).trim()}…`;
 }
 
 function selectInstructionSections(sections) {
@@ -365,6 +525,14 @@ function normalizeTitle(title, sourceType) {
   }
 
   return cleaned;
+}
+
+function prettifyName(value) {
+  return String(value || '')
+    .replace(/\.[^.]+$/, '')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b\w/g, letter => letter.toUpperCase())
+    .trim();
 }
 
 function formatExecutionMode(sourceType, sourceClassification) {

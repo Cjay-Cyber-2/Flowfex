@@ -56,6 +56,15 @@ function formatStatusLabel(state) {
   }
 }
 
+function formatRelevanceScore(value) {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return 'N/A';
+  }
+
+  const normalized = value <= 1 ? value * 100 : value;
+  return `${Math.round(normalized)}%`;
+}
+
 function RightDrawer() {
   const {
     approveNode,
@@ -195,6 +204,10 @@ function RightDrawer() {
               <div className="reasoning-card">
                 <span className="drawer-kicker">Why this was chosen</span>
                 <p>{selectedNode.reasoning}</p>
+                <div className="reasoning-score-row">
+                  <span className="drawer-kicker">Relevance score</span>
+                  <strong>{formatRelevanceScore(selectedNode.score ?? selectedNode.confidence)}</strong>
+                </div>
               </div>
 
               <div className="alternatives-list">
@@ -202,7 +215,7 @@ function RightDrawer() {
                   className={`alternatives-toggle ${showAlternatives ? 'is-open' : ''}`}
                   onClick={() => setShowAlternatives((current) => !current)}
                 >
-                  <span className="drawer-kicker">Alternatives considered</span>
+                  <span className="drawer-kicker">Rejected alternatives</span>
                   <ChevronDown size={16} />
                 </button>
                 {showAlternatives
@@ -212,7 +225,7 @@ function RightDrawer() {
                           <strong>{alternative.name}</strong>
                           <p>{alternative.reason}</p>
                         </div>
-                        <span>{alternative.confidence}%</span>
+                        <span>{formatRelevanceScore(alternative.score ?? alternative.confidence)} rejected</span>
                       </div>
                     ))
                   : null}

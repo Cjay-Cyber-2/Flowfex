@@ -31,10 +31,10 @@ const IGNORED_DIRECTORIES = new Set([
 ]);
 const IGNORED_FILES = new Set(['license.md', 'contributing.md', 'changelog.md', 'code_of_conduct.md', 'fix_summary.md']);
 
-export const DEFAULT_MARKDOWN_SKILL_SOURCES = discoverMarkdownSkillSources(FLOWFEX_ROOT);
-
 const SKILL_SOURCE_NAME_PATTERN = /(skill|skills|agent|agents|llm|rag|mcp|voice|memory|chat|tutorial|awesome|ai)/i;
 const SKILL_SOURCE_CONTENT_PATTERN = /(table of contents|skills count|awesome agent skills|awesome llm apps|multi-agent|agent skill|agentic|slash command|use when|instructions|workflow|tutorial|rag|mcp|voice|memory)/i;
+
+export const DEFAULT_MARKDOWN_SKILL_SOURCES = discoverMarkdownSkillSources(FLOWFEX_ROOT);
 
 export function discoverMarkdownSkillSources(rootDirectory = FLOWFEX_ROOT, options = {}) {
   const resolvedRoot = resolveSourceDirectory(rootDirectory, FLOWFEX_ROOT);
@@ -573,6 +573,7 @@ function createMarkdownSkillTool(record) {
     keywords: normalizedSkill.keywords,
     metadata: {
       category: normalizedSkill.category,
+      subcategory: normalizedSkill.subcategory,
       version: '1.0.0',
       tags: normalizedSkill.tags,
       source: source.name,
@@ -586,8 +587,15 @@ function createMarkdownSkillTool(record) {
       qualityScore: validation.qualityScore,
       sourceSizeBytes: normalizedSkill.sourceSizeBytes,
       imported: true,
+      usage: normalizedSkill.usage,
+      inputSchema: normalizedSkill.inputSchema,
+      outputSchema: normalizedSkill.outputSchema,
+      executionHandler: normalizedSkill.executionHandler,
+      approvalRequired: normalizedSkill.approvalRequired,
       contentHash: normalizedSkill.contentHash,
       sections: normalizedSkill.sections.map(section => section.title),
+      sectionTitles: normalizedSkill.sections.map(section => section.title),
+      instructionTitles: normalizedSkill.metadata?.instructionTitles || [],
       executable: validation.executable === true,
     },
     run: async (input, llm, runtime) => {

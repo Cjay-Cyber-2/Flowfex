@@ -1,53 +1,26 @@
-import { DEMO_SESSION_ID, buildConnectPrompt } from '../../store/demoData';
+import { DEMO_SESSION_ID, buildConnectPrompt, buildConnectSdkSnippet } from '../../store/demoData';
 
 export const codeSnippets = {
-  prompt: buildConnectPrompt(DEMO_SESSION_ID).replace('Connect this agent to Flowfex.', 'Connect this session to Flowfex.'),
+  prompt: buildConnectPrompt(DEMO_SESSION_ID).replace('Attach this agent to Flowfex for the full conversation.', 'Attach this session to Flowfex for the full conversation.'),
   
-  javascript: `import { FlowfexBridge } from '@flowfex/sdk';
-
-const bridge = new FlowfexBridge({
-  sessionId: '${DEMO_SESSION_ID}',
-  transport: 'websocket'
-});
-
-await bridge.connect({
-  agentName: 'CLI Agent',
-  source: 'terminal'
-});
-
-const resourcePlan = await bridge.requestResources({
-  task: 'Prepare a deployment summary',
-});
-
-const result = await bridge.runWithResources(resourcePlan, async (ctx) => {
-  const output = await ctx.execute('deployment_summary');
-  return output;
-});
-
-await bridge.complete({ result });`,
+  javascript: buildConnectSdkSnippet(DEMO_SESSION_ID).replace(
+    'Summarize a deployment issue for the operator',
+    'Prepare a deployment summary'
+  ),
   
-  python: `from flowfex import FlowfexBridge
+  python: `from flowfex import FlowfexClient
 
-bridge = FlowfexBridge(
-    session_id='${DEMO_SESSION_ID}',
-    transport='websocket'
+client = FlowfexClient('http://127.0.0.1:4000')
+
+# Stay attached for the full conversation.
+# Send every request to Flowfex first.
+# Use only directly relevant Flowfex resources.
+# If Flowfex has no relevant resource, do not invent one.
+
+client.connect(
+    {'name': 'CLI Agent', 'type': 'terminal'},
+    mode='sdk'
 )
 
-# Connect the agent to Flowfex
-await bridge.connect(
-    agent_name='CLI Agent',
-    source='terminal'
-)
-
-resource_plan = await bridge.request_resources(
-    task='Prepare a deployment summary'
-)
-
-async def run_task(ctx):
-    output = await ctx.execute('deployment_summary')
-    return output
-
-result = await bridge.run_with_resources(resource_plan, run_task)
-
-await bridge.complete(result=result)`
+result = client.send('Prepare a deployment summary')`
 };

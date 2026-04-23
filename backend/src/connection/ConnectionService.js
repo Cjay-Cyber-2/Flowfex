@@ -13,6 +13,16 @@ import {
   connectRequestSchema,
 } from '../../../shared/connection-contracts.js';
 
+const FLOWFEX_AGENT_RULES = [
+  'Stay attached to this Flowfex session for the entire conversation.',
+  'For every user request, route the task to Flowfex before taking action.',
+  'Always ask Flowfex for agent.md files, skills, tools, memory, and workflows before continuing.',
+  'Use every directly relevant Flowfex resource returned for that request.',
+  'If Flowfex has no directly relevant resource for the request, use none and say the capability is unavailable in Flowfex.',
+  'Do not invent substitute tools, skills, workflows, or resources outside Flowfex.',
+  'Send progress, approval waits, and the final result back through the same Flowfex session.',
+];
+
 /**
  * Coordinates external agent connections, session scoping, and tool execution.
  */
@@ -63,9 +73,9 @@ export class ConnectionService {
 
   async connectPrompt(payload, context = {}) {
     const retrieval = this.registry.retrieveTools(payload.prompt, {
-      topK: payload.topK || this.promptToolLimit,
-      minScore: payload.minScore ?? 0.05,
-      allowKeywordFallback: true
+      topK: payload.topK || Math.max(this.promptToolLimit, 12),
+      minScore: payload.minScore ?? 0.18,
+      allowKeywordFallback: false
     });
     const recommendedToolIds = retrieval.matches.map(match => match.tool.id);
     const { session, token } = this.sessionManager.createSession({
@@ -75,22 +85,25 @@ export class ConnectionService {
       metadata: payload.metadata,
       prompt: payload.prompt,
       capabilities: payload.capabilities,
-      allowedToolIds: recommendedToolIds,
+      allowedToolIds: null,
       recommendedToolIds,
       ttlSeconds: payload.ttlSeconds || this.promptSessionTtlSeconds
     });
 
     const taskPrefix = this._buildPromptTaskPrefix(token);
+    const sessionResponse = this._buildSessionResponse(session, token, { baseUrl: context.baseUrl });
     return {
       success: true,
       mode: 'prompt',
       connection: {
-        session: this._buildSessionResponse(session, token, { baseUrl: context.baseUrl }),
+        session: sessionResponse,
         retrieval: this._serializeRetrieval(retrieval),
         instructions: {
           sessionUrl: this._buildConnectUrl(context.baseUrl, session.id, token),
           taskPrefix,
           prompt: this._buildPromptInstruction(payload.prompt, session.id, token, context.baseUrl),
+          summary: 'Flowfex remains the orchestration layer for the entire conversation and only directly relevant Flowfex resources may be used.',
+          rules: this._buildConnectionRules(),
         },
       }
     };
@@ -102,7 +115,7 @@ export class ConnectionService {
     const requestedTools = this._resolveRequestedTools(payload.requestedTools);
     const allowedToolIds = requestedTools.length > 0
       ? requestedTools.map(tool => tool.id)
-      : this.registry.getAllTools().map(tool => tool.id);
+      : null;
     const { session, token } = this.sessionManager.createSession({
       id: payload.sessionId,
       mode: CONNECTION_MODES.SDK,
@@ -113,13 +126,20 @@ export class ConnectionService {
       recommendedToolIds: allowedToolIds,
       ttlSeconds: payload.ttlSeconds || this.apiSessionTtlSeconds
     });
+    const sessionResponse = this._buildSessionResponse(session, token, { baseUrl: authContext.baseUrl });
+    const transport = this._buildTransport(authContext.baseUrl, session.id, LIVE_CHANNEL_PROTOCOLS.SOCKET_IO);
 
     return {
       success: true,
       mode: CONNECTION_MODES.SDK,
       connection: {
-        session: this._buildSessionResponse(session, token, { baseUrl: authContext.baseUrl }),
-        transport: this._buildTransport(authContext.baseUrl, session.id, LIVE_CHANNEL_PROTOCOLS.SOCKET_IO),
+        session: sessionResponse,
+        transport,
+        instructions: {
+          summary: 'Keep the SDK client attached to Flowfex and send every user request through Flowfex before acting.',
+          rules: this._buildConnectionRules(),
+          sdkSnippet: this._buildSdkSnippet(sessionResponse, transport),
+        },
       }
     };
   }
@@ -128,7 +148,7 @@ export class ConnectionService {
     const requestedTools = this._resolveRequestedTools(payload.requestedTools);
     const allowedToolIds = requestedTools.length > 0
       ? requestedTools.map(tool => tool.id)
-      : this.registry.getAllTools().map(tool => tool.id);
+      : null;
     const { session, token } = this.sessionManager.createSession({
       id: payload.sessionId,
       mode: CONNECTION_MODES.LINK,
@@ -164,19 +184,27 @@ export class ConnectionService {
       expiresAt,
       usedAt: null,
     });
+    const sessionResponse = this._buildSessionResponse(session, token, { baseUrl: authContext.baseUrl });
+    const transport = this._buildTransport(authContext.baseUrl, session.id, LIVE_CHANNEL_PROTOCOLS.SOCKET_IO);
+    const linkUrl = this._buildConnectUrl(authContext.baseUrl, signedLink);
 
     return {
       success: true,
       mode: CONNECTION_MODES.LINK,
       connection: {
-        session: this._buildSessionResponse(session, token, { baseUrl: authContext.baseUrl }),
+        session: sessionResponse,
         link: {
-          url: this._buildConnectUrl(authContext.baseUrl, signedLink),
+          url: linkUrl,
           resolverPath: `/connect/live/${signedLink}`,
           singleUse: payload.singleUse !== false,
           expiresAt,
         },
-        transport: this._buildTransport(authContext.baseUrl, session.id, LIVE_CHANNEL_PROTOCOLS.SOCKET_IO),
+        transport,
+        instructions: {
+          summary: 'The link resolves into the same Flowfex-first contract: stay attached, ask Flowfex first, use only directly relevant Flowfex resources, and invent nothing.',
+          rules: this._buildConnectionRules(),
+          attachBrief: this._buildLinkInstruction(linkUrl),
+        },
       },
     };
   }
@@ -187,7 +215,7 @@ export class ConnectionService {
     const requestedTools = this._resolveRequestedTools(payload.requestedTools);
     const allowedToolIds = requestedTools.length > 0
       ? requestedTools.map(tool => tool.id)
-      : this.registry.getAllTools().map(tool => tool.id);
+      : null;
     const protocol = payload.protocol || LIVE_CHANNEL_PROTOCOLS.SOCKET_IO;
     const { session, token } = this.sessionManager.createSession({
       id: payload.sessionId,
@@ -202,16 +230,23 @@ export class ConnectionService {
       recommendedToolIds: allowedToolIds,
       ttlSeconds: payload.ttlSeconds || this.apiSessionTtlSeconds,
     });
+    const sessionResponse = this._buildSessionResponse(session, token, { baseUrl: authContext.baseUrl });
+    const transport = this._buildTransport(authContext.baseUrl, session.id, protocol);
 
     return {
       success: true,
       mode: CONNECTION_MODES.LIVE,
       connection: {
-        session: this._buildSessionResponse(session, token, { baseUrl: authContext.baseUrl }),
-        transport: this._buildTransport(authContext.baseUrl, session.id, protocol),
+        session: sessionResponse,
+        transport,
         live: {
           connectUrl: this._buildConnectUrl(authContext.baseUrl, session.id, token),
           protocol,
+        },
+        instructions: {
+          summary: 'The live channel keeps the agent bound to Flowfex for the full conversation and requires Flowfex-first resource selection on every request.',
+          rules: this._buildConnectionRules(),
+          endpointPayload: this._buildLiveInstruction(transport, protocol),
         },
       },
     };
@@ -361,15 +396,26 @@ export class ConnectionService {
 
   _buildSessionResponse(session, token = null, options = {}) {
     const baseUrl = normalizeBaseUrl(options.baseUrl || this.publicBaseUrl);
+    const visibleToolIds = Array.isArray(session.allowedToolIds)
+      ? session.allowedToolIds
+      : Array.isArray(session.recommendedToolIds)
+        ? session.recommendedToolIds
+        : [];
     return {
       ...publicSessionView(session),
+      allowedToolIds: visibleToolIds,
+      recommendedToolIds: Array.isArray(session.recommendedToolIds) ? session.recommendedToolIds : [],
       ...(token ? { token } : {}),
-      allowedTools: this.orchestrator.getAvailableTools({
-        toolIds: session.allowedToolIds || undefined
-      }),
-      recommendedTools: this.orchestrator.getAvailableTools({
-        toolIds: session.recommendedToolIds || undefined
-      }),
+      allowedTools: visibleToolIds.length > 0
+        ? this.orchestrator.getAvailableTools({
+            toolIds: visibleToolIds
+          })
+        : [],
+      recommendedTools: Array.isArray(session.recommendedToolIds) && session.recommendedToolIds.length > 0
+        ? this.orchestrator.getAvailableTools({
+            toolIds: session.recommendedToolIds
+          })
+        : [],
       endpoints: {
         connect: `${baseUrl}/connect`,
         inspect: `${baseUrl}/sessions/${session.id}`,
@@ -468,28 +514,84 @@ export class ConnectionService {
   _buildPromptInstruction(prompt, sessionId, token, baseUrl) {
     const prefixLine = this._buildPromptTaskPrefix(token);
     return [
-      'Connect this agent to Flowfex.',
+      'Attach this agent to Flowfex for the full conversation.',
       '',
       `Session ID: ${sessionId}`,
       `Session URL: ${this._buildConnectUrl(baseUrl, sessionId, token)}`,
       `Ingest URL: ${normalizeBaseUrl(baseUrl || this.publicBaseUrl)}/ingest`,
       '',
-      'Rules:',
+      'Contract:',
       '1. Prefix every task you send to Flowfex with the exact first line below.',
       `   ${prefixLine}`,
       '2. Put the actual task content on the following lines after the prefix.',
-      '3. Ask Flowfex for the best tools, skills, or workflows before you act.',
-      '4. Report each selected resource and a short reason.',
-      '5. Emit step updates back through Flowfex as the run progresses.',
-      '6. Wait when Flowfex marks a step as awaiting approval.',
-      '7. Return the final result through the same Flowfex session.',
+      '3. For every user request, ask Flowfex first for agent.md files, skills, tools, memory, and workflows.',
+      '4. Use all directly relevant Flowfex resources returned for that request.',
+      '5. If Flowfex has no directly relevant resource for the request, use none and say the capability is unavailable in Flowfex.',
+      '6. Do not invent substitute tools, workflows, or skills outside Flowfex.',
+      '7. Emit step updates, approval waits, and the final result back through the same Flowfex session.',
       '',
-      `Original prompt: ${prompt}`,
+      `Agent context: ${prompt}`,
     ].join('\n');
   }
 
   _buildPromptTaskPrefix(token) {
     return `FLOWFEX_SESSION_TOKEN: ${token}`;
+  }
+
+  _buildConnectionRules() {
+    return [...FLOWFEX_AGENT_RULES];
+  }
+
+  _buildSdkSnippet(session, transport) {
+    return [
+      "import { io } from 'socket.io-client';",
+      '',
+      `const session = { id: '${session.id}', token: '${session.token || ''}' };`,
+      '',
+      '// Flowfex contract:',
+      '// - Stay attached to this session for the full conversation.',
+      '// - Send every user request to Flowfex first.',
+      '// - Use all directly relevant Flowfex resources for that request.',
+      '// - If Flowfex has no relevant resource, do not invent one.',
+      '',
+      `const orchestrationSocket = io('${transport.orchestrationNamespace}', {`,
+      "  query: { sessionId: session.id },",
+      "  transports: ['websocket'],",
+      '});',
+      '',
+      `const response = await fetch('${session.endpoints.execute}', {`,
+      "  method: 'POST',",
+      '  headers: {',
+      "    'Content-Type': 'application/json',",
+      "    Authorization: `Bearer ${session.token}`,",
+      '  },',
+      '  body: JSON.stringify({ input: userRequest }),',
+      '});',
+      '',
+      'const result = await response.json();',
+    ].join('\n');
+  }
+
+  _buildLinkInstruction(linkUrl) {
+    return [
+      `Attach URL: ${linkUrl}`,
+      'After attach, keep the agent in the same Flowfex session for the full conversation.',
+      'For every user request, ask Flowfex first and use only directly relevant Flowfex resources.',
+      'If Flowfex has no relevant resource, use none and do not invent a substitute.',
+    ].join('\n');
+  }
+
+  _buildLiveInstruction(transport, protocol) {
+    return [
+      transport.orchestrationNamespace,
+      `channel: ${protocol}`,
+      `sse: ${transport.sseUrl}`,
+      `control: ${transport.controlNamespace}`,
+      'session_scope: full_conversation',
+      'routing_mode: flowfex_first',
+      'resource_policy: use_all_directly_relevant',
+      'no_match_policy: use_none',
+    ].join('\n');
   }
 
   _resolveSessionProtocol(session) {

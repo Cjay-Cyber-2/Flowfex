@@ -66,22 +66,25 @@ export const CONNECT_METHOD_TABS = [
   { id: 'live', label: 'Live Channel' },
 ];
 
+const FLOWFEX_AGENT_RULE_LINES = [
+  'Stay attached to this Flowfex session for the entire conversation.',
+  'For every user request, route the task to Flowfex before taking action.',
+  'Always ask Flowfex for agent.md files, skills, tools, memory, and workflows before continuing.',
+  'Use every directly relevant Flowfex resource returned for that request.',
+  'If Flowfex has no directly relevant resource for the request, use none and say the capability is unavailable in Flowfex.',
+  'Do not invent substitute tools, skills, workflows, or resources outside Flowfex.',
+  'Send progress, approval waits, and the final result back through the same Flowfex session.',
+];
+
 export function buildConnectPrompt(sessionId = DEMO_SESSION_ID) {
-  return `Connect this agent to Flowfex.
+  const rules = FLOWFEX_AGENT_RULE_LINES.map((rule, index) => `${index + 1}. ${rule}`).join('\n');
+  return `Attach this agent to Flowfex for the full conversation.
 
 Session ID: ${sessionId}
 Session URL: ${getSessionConnectUrl(sessionId)}
 
-Rules:
-1. Ask Flowfex for the best tools, skills, or workflows before you act.
-2. Report each selected resource and a short reason.
-3. Emit step updates in this format:
-   STEP: <label>
-   RESOURCE: <selected tool, skill, or workflow>
-   STATUS: <queued|active|approval_required|completed|failed>
-   WHY: <one short reason>
-4. Wait when Flowfex marks a step as approval_required.
-5. Return the final result through the same Flowfex session.`;
+Contract:
+${rules}`;
 }
 
 export function buildConnectLink(sessionId = DEMO_SESSION_ID) {
@@ -89,31 +92,31 @@ export function buildConnectLink(sessionId = DEMO_SESSION_ID) {
 }
 
 export function buildConnectSdkSnippet(sessionId = DEMO_SESSION_ID) {
-  return `import { FlowfexBridge } from 'flowfex-sdk';
+  return `import { FlowfexClient } from 'flowfex';
 
-const bridge = new FlowfexBridge({
-  sessionId: '${sessionId}',
-  transport: 'websocket',
-});
+const client = new FlowfexClient('http://127.0.0.1:4000');
 
-await bridge.connect({
-  agentName: 'CLI Agent',
-  source: 'terminal',
-});
+await client.connect(
+  { name: 'CLI Agent', type: 'terminal' },
+  { mode: 'sdk' }
+);
 
-const resourcePlan = await bridge.requestResources({
-  task: 'Summarize a deployment issue for the operator',
-});
+// Flowfex contract:
+// - Stay attached for the full conversation.
+// - Send every user request to Flowfex first.
+// - Use all directly relevant Flowfex resources for that request.
+// - If Flowfex has no relevant resource, do not invent one.
 
-await bridge.runWithResources(resourcePlan, async (ctx) => {
-  return ctx.execute('summarize_deployment_issue');
-});`;
+const result = await client.send('Summarize a deployment issue for the operator');`;
 }
 
 export function buildConnectLiveSnippet(sessionId = DEMO_SESSION_ID) {
   return `${getSessionSocketUrl(sessionId)}
 channel: live
-resource_mode: flowfex_required
+session_scope: full_conversation
+routing_mode: flowfex_first
+resource_policy: use_all_directly_relevant
+no_match_policy: use_none
 approval_mode: supervised`;
 }
 

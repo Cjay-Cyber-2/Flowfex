@@ -24,6 +24,7 @@ export class CapabilityRetriever {
       allowedToolIds?: string[];
       topKPerCategory?: number;
       minScore?: number;
+      fallbackMinScore?: number;
     }
   ): CapabilityRetrievalResult {
     const categories = uniqueStrings([
@@ -31,7 +32,8 @@ export class CapabilityRetriever {
       ...intent.suggestedExecutionSteps.map(step => step.capabilityCategory),
     ]);
     const topKPerCategory = options.topKPerCategory ?? 10;
-    const minScore = options.minScore ?? 0.08;
+    const minScore = options.minScore ?? 0.14;
+    const fallbackMinScore = options.fallbackMinScore ?? Math.max(0.2, minScore + 0.06);
     const byCategory: Record<string, CapabilityCandidate[]> = {};
     const mergedByToolId = new Map<string, CapabilityCandidate>();
     let usedFallback = false;
@@ -53,6 +55,7 @@ export class CapabilityRetriever {
         const fallbackMatches = this.runDeterministicFallback(query, category, {
           allowedToolIds: options.allowedToolIds,
           topK: topKPerCategory,
+          minScore: fallbackMinScore,
         });
         byCategory[category] = fallbackMatches;
         usedFallback = usedFallback || fallbackMatches.length > 0;
@@ -122,7 +125,7 @@ export class CapabilityRetriever {
         topK: options.topK,
         minScore: options.minScore,
         filters: Object.keys(filters).length > 0 ? filters : undefined,
-        allowKeywordFallback: true,
+        allowKeywordFallback: false,
       });
     } catch (error) {
       this.logger.warn({
@@ -148,6 +151,7 @@ export class CapabilityRetriever {
     options: {
       allowedToolIds?: string[];
       topK: number;
+      minScore: number;
     }
   ): CapabilityCandidate[] {
     const allowedToolIds = options.allowedToolIds?.length
@@ -170,22 +174,33 @@ export class CapabilityRetriever {
           ...(tool.metadata?.tags || []),
           ...(tool.keywords || []),
         ].join(' ');
+        const lexicalScore = overlapScore(query, haystack);
+        const categoryAlignment = overlapScore(category, String(tool.metadata?.category || ''));
         const score = (
-          overlapScore(query, haystack) * 0.75
-          + overlapScore(category, String(tool.metadata?.category || '')) * 0.2
+          lexicalScore * 0.75
+          + categoryAlignment * 0.2
           + (String(tool.metadata?.validationStatus || '').toLowerCase() === 'approved' ? 0.05 : 0)
         );
 
-        return normalizeCandidate(tool, Number(score.toFixed(4)), 'deterministic-fallback', category, query);
+        return {
+          lexicalScore,
+          categoryAlignment,
+          candidate: normalizeCandidate(tool, Number(score.toFixed(4)), 'deterministic-fallback', category, query),
+        };
       })
-      .filter(candidate => candidate.score > 0)
+      .filter(entry =>
+        entry.candidate.score >= options.minScore
+        && entry.lexicalScore >= 0.12
+        && (entry.lexicalScore >= 0.18 || entry.categoryAlignment >= 0.65)
+      )
       .sort((left, right) => {
-        if (right.score !== left.score) {
-          return right.score - left.score;
+        if (right.candidate.score !== left.candidate.score) {
+          return right.candidate.score - left.candidate.score;
         }
-        return left.toolId.localeCompare(right.toolId);
+        return left.candidate.toolId.localeCompare(right.candidate.toolId);
       })
-      .slice(0, options.topK);
+      .slice(0, options.topK)
+      .map(entry => entry.candidate);
 
     return ranked;
   }

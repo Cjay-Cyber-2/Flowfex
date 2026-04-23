@@ -8,5 +8,6 @@ export declare class ExecutionPlanSelector {
         sessionId: string;
         executionId: string;
         maxSkills?: number;
+        minimumSelectionScore?: number;
     }): PlanSelectionResult;
 }

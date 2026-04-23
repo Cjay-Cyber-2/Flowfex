@@ -312,17 +312,6 @@ export class FlowfexServer {
         baseUrl: this._buildBaseUrl(request),
       });
 
-      // Emit agent:connected via WebSocket
-      if (this.socketServer && payload.connection?.session?.id) {
-        const sid = payload.connection.session.id;
-        this.socketServer.emitAgentConnected(sid, {
-          agentId: body.agent?.name || 'agent-' + Date.now(),
-          agentName: body.agent?.name || 'Connected Agent',
-          connectionType: body.mode || 'prompt',
-          status: 'connected',
-        });
-      }
-
       return this._writeJson(response, 200, payload);
     }
 
@@ -331,6 +320,7 @@ export class FlowfexServer {
         baseUrl: this._buildBaseUrl(request),
         token: url.searchParams.get('token') || null,
       });
+      this._emitAgentConnectedForSession(payload?.connection?.session, payload?.mode || 'live');
       return this._writeJson(response, 200, payload);
     }
 
@@ -476,9 +466,11 @@ export class FlowfexServer {
       };
 
       if (this._wantsEventStream(request, url, body)) {
+        this._emitAgentConnectedForSessionId(executionPayload.sessionId, 'prompt');
         return this._writeEventStream(response, executionPayload);
       }
 
+      this._emitAgentConnectedForSessionId(executionPayload.sessionId, 'prompt');
       const payload = await this.connectionService.execute(executionPayload);
       return this._writeJson(response, 200, payload);
     }
@@ -498,9 +490,11 @@ export class FlowfexServer {
       };
 
       if (this._wantsEventStream(request, url, body)) {
+        this._emitAgentConnectedForSessionId(executionPayload.sessionId, null);
         return this._writeEventStream(response, executionPayload);
       }
 
+      this._emitAgentConnectedForSessionId(executionPayload.sessionId, null);
       const payload = await this.connectionService.execute(executionPayload);
       return this._writeJson(response, 200, payload);
     }
@@ -806,6 +800,29 @@ export class FlowfexServer {
         response.end();
       }
     }
+  }
+
+  _emitAgentConnectedForSessionId(sessionId, connectionType) {
+    if (!sessionId) {
+      return;
+    }
+
+    const session = this.connectionService?.sessionManager?.getSession?.(sessionId);
+    this._emitAgentConnectedForSession(session, connectionType);
+  }
+
+  _emitAgentConnectedForSession(session, connectionType) {
+    if (!this.socketServer || !session?.id) {
+      return;
+    }
+
+    this.socketServer.emitAgentConnected(session.id, {
+      agentId: session.agent?.id || `agent-${session.id}`,
+      agentName: session.agent?.name || 'Connected Agent',
+      connectionType: connectionType || session.mode || 'prompt',
+      status: 'connected',
+      syncedAt: new Date().toISOString(),
+    });
   }
 
   _writeError(response, error) {

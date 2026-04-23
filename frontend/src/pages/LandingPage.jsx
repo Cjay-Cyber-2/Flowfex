@@ -6,6 +6,7 @@ import HeroOrchestrationScene from '../components/animations/HeroOrchestrationSc
 import FlowIcon from '../components/common/FlowIcon';
 import ParticleField from '../components/animations/ParticleFieldSimple';
 import ScrollFrameSection from '../components/landing/ScrollFrameSection';
+import DotNavigation from '../components/landing/DotNavigation';
 import { DEMO_SKILL_LIBRARY, buildDemoWorkspace } from '../store/demoData';
 import { ContainerScroll } from '../components/animations/ContainerScroll';
 import { ParticleTextEffect } from '../components/animations/ParticleTextEffect';
@@ -22,6 +23,7 @@ import '../styles/landing/developer.css';
 import '../styles/landing/pricing.css';
 import '../styles/landing/faq.css';
 import '../styles/landing/modern-pricing.css';
+import '../styles/DotNavigation.css';
 
 function getNodeDimensions(node) {
   return {
@@ -180,23 +182,26 @@ function LandingPage() {
   const clickLockRef = useRef(false);
 
   const workspace = useMemo(() => buildDemoWorkspace(), []);
+  
   const statementWords = useMemo(
     () => [
-      `300+ Skills Ready`,
-      `14 Skill Categories`,
-      `Multi-Agent Teams`,
-      'Live Bridge in Motion',
+      'Reads the request',
+      'Pulls relevant skills',
+      'Builds the live flow',
+      'Keeps the agent synced',
     ],
     []
   );
+  
   const statementStats = useMemo(
     () => [
-      { label: 'skills loaded', value: '300+' },
-      { label: 'skill categories', value: 14 },
-      { label: 'agent templates', value: '50+' },
+      { label: 'routing rule', value: 'Flowfex-first' },
+      { label: 'resource policy', value: 'Relevant only' },
+      { label: 'session scope', value: 'Full conversation' },
     ],
     []
   );
+  
   const sectionIds = [
     { id: 'hero', label: 'Hero' },
     { id: 'statement', label: 'Vision' },
@@ -211,10 +216,9 @@ function LandingPage() {
     { id: 'final', label: 'Start' },
   ];
 
-  const handleDotClick = (event, sectionId) => {
-    event.preventDefault();
-    setActiveSection(sectionId);
+  const handleSectionChange = (sectionId) => {
     clickLockRef.current = true;
+    setActiveSection(sectionId);
     const target = document.getElementById(sectionId);
     if (target) {
       target.scrollIntoView({ behavior: 'smooth' });
@@ -247,7 +251,7 @@ function LandingPage() {
       scrollProgressRef.current.style.width = `${(scrollTop / docHeight) * 100}%`;
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       observer.disconnect();
       window.removeEventListener('scroll', handleScroll);
@@ -276,18 +280,11 @@ function LandingPage() {
         </button>
       </nav>
 
-      <div className="landing-dot-nav">
-        {sectionIds.map((section) => (
-          <a
-            key={section.id}
-            href={`#${section.id}`}
-            className={`landing-dot ${activeSection === section.id ? 'is-active' : ''}`}
-            aria-label={section.label}
-            data-label={section.label}
-            onClick={(event) => handleDotClick(event, section.id)}
-          />
-        ))}
-      </div>
+      <DotNavigation 
+        sections={sectionIds} 
+        activeSection={activeSection} 
+        onSectionChange={handleSectionChange} 
+      />
 
       <section id="hero" data-section-id="hero" className="landing-section hero-section">
         <HeroOrchestrationScene />

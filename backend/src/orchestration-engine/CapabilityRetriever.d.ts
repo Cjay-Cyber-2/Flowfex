@@ -12,6 +12,7 @@ export declare class CapabilityRetriever {
         allowedToolIds?: string[];
         topKPerCategory?: number;
         minScore?: number;
+        fallbackMinScore?: number;
     }): CapabilityRetrievalResult;
     private safeSemanticRetrieval;
     private runDeterministicFallback;

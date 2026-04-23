@@ -87,6 +87,58 @@ export class OrchestrationEngine {
             sessionId: context.sessionId,
             executionId,
         });
+        const buildResult = this.graphBuilder.buildGraph(selection, {
+            sessionId: context.sessionId,
+            executionId,
+        });
+        if (selection.selectedSteps.length === 0) {
+            const error = {
+                message: 'Flowfex could not find any directly relevant skills or resources for this request.',
+                type: 'NoRelevantCapabilitiesError',
+            };
+            this.stateStore.initialize({
+                sessionId: context.sessionId,
+                executionId,
+                task: context.task,
+                graph: buildResult.graph,
+                intent: planning.intent,
+                selection,
+                agent: context.agent || null,
+                sessionContext: context.sessionContext || null,
+                status: 'failed',
+            });
+            this.stateStore.recordError(context.sessionId, 'flowfex:no_relevant_capabilities', error);
+            bridge.emitGraphCreated(buildResult.graph);
+            bridge.emitDiagnostic('execution.failed', {
+                status: 'failed',
+                error,
+                selection: {
+                    strategy: retrieval.strategy,
+                    fallbackUsed: retrieval.fallbackUsed || selection.fallbackUsed,
+                    reason: 'no_directly_relevant_capabilities',
+                },
+                final: true,
+            });
+            const snapshot = this.stateStore.getSnapshot(context.sessionId);
+            return {
+                executionId,
+                sessionId: context.sessionId,
+                status: 'error',
+                input: context.task,
+                intent: planning.intent,
+                graph: buildResult.graph,
+                snapshot,
+                selectedTool: null,
+                toolSelection: null,
+                selectionTrace: selection.rankings,
+                trace: snapshot.trace || [],
+                finalResult: null,
+                output: null,
+                error,
+                duration: Date.now() - startedAt,
+                timestamp: new Date(startedAt).toISOString(),
+            };
+        }
         if (retrieval.fallbackUsed || selection.fallbackUsed) {
             bridge.emitDiagnostic('step.rerouted', {
                 status: 'rerouted',
@@ -104,10 +156,6 @@ export class OrchestrationEngine {
                 },
             });
         }
-        const buildResult = this.graphBuilder.buildGraph(selection, {
-            sessionId: context.sessionId,
-            executionId,
-        });
         this.stateStore.initialize({
             sessionId: context.sessionId,
             executionId,

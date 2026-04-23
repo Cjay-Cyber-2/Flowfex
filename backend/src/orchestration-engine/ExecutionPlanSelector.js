@@ -5,7 +5,8 @@ export class ExecutionPlanSelector {
         this.logger = config.logger;
     }
     selectPlan(intent, retrieval, options) {
-        const maxSkills = options.maxSkills ?? 8;
+        const maxSkills = options.maxSkills ?? 16;
+        const minimumSelectionScore = options.minimumSelectionScore ?? 0.22;
         const steps = intent.suggestedExecutionSteps.slice(0, maxSkills);
         const selectedSteps = [];
         const rankings = [];
@@ -39,7 +40,7 @@ export class ExecutionPlanSelector {
                     candidates: alternatives,
                 };
             rankings.push(ranking);
-            if (!selected || selected.score < 0.12) {
+            if (!selected || selected.score < minimumSelectionScore) {
                 fallbackUsed = true;
                 continue;
             }
@@ -57,38 +58,6 @@ export class ExecutionPlanSelector {
                 reasoning: buildSelectionReason(step, selected.candidate, selected.score),
                 alternatives: alternatives.slice(1),
             });
-        }
-        if (selectedSteps.length === 0 && retrieval.merged[0]) {
-            const first = retrieval.merged[0];
-            const fallbackStep = {
-                id: stableId('plan', 'fallback', first.toolId),
-                stepId: stableId('step', 'fallback', intent.goal),
-                title: `Execute ${first.toolName}`,
-                objective: intent.goal,
-                capabilityCategory: first.category,
-                requiresApproval: resolveApprovalRequirement(false, first),
-                tool: first.tool,
-                toolId: first.toolId,
-                score: first.score,
-                reasoning: 'No higher-confidence multi-step plan was available, so the top real capability was selected',
-                alternatives: retrieval.merged.slice(1, 4).map(candidate => ({
-                    toolId: candidate.toolId,
-                    name: candidate.toolName,
-                    score: candidate.score,
-                    confidence: Math.round(candidate.score * 100),
-                    category: candidate.category,
-                    reason: `Retrieved via ${candidate.strategy}`,
-                })),
-            };
-            selectedSteps.push(fallbackStep);
-            rankings.push({
-                stepId: fallbackStep.stepId,
-                stepTitle: fallbackStep.title,
-                strategy: first.strategy,
-                candidates: [rankToAlternative({ candidate: first, score: first.score })],
-                selectedToolId: first.toolId,
-            });
-            fallbackUsed = true;
         }
         const decisionNodes = resolveDecisionNodes(intent, selectedSteps);
         this.logger.info({

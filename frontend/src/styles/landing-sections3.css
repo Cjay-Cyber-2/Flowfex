@@ -261,6 +261,7 @@
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 12px;
+  position: relative;
 }
 
 .cam-code-block pre {
@@ -271,6 +272,49 @@
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.cam-code-block-concealed {
+  min-height: 220px;
+  overflow: hidden;
+}
+
+.cam-code-block-concealed pre {
+  filter: blur(11px);
+  user-select: none;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.cam-concealed-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  background: linear-gradient(180deg, rgba(8, 12, 16, 0.12), rgba(8, 12, 16, 0.78));
+  backdrop-filter: blur(3px);
+}
+
+.cam-concealed-kicker {
+  font-family: Inter, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-sinoper);
+}
+
+.cam-concealed-overlay p {
+  margin: 0;
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(237, 232, 223, 0.82);
+  max-width: 36ch;
 }
 
 .cam-copy-btn {
@@ -347,6 +391,36 @@
   margin: 12px 0 0;
 }
 
+.cam-rules-panel {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(0, 212, 170, 0.06);
+  border: 1px solid rgba(0, 212, 170, 0.12);
+}
+
+.cam-rules-kicker {
+  display: block;
+  margin-bottom: 10px;
+  font-family: Inter, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-sinoper);
+}
+
+.cam-rules-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+  color: rgba(237, 232, 223, 0.85);
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .cam-pill {
   padding: 5px 12px;
   border-radius: 20px;
@@ -384,6 +458,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
   padding: 20px 0 32px;
   border-top: 1px solid rgba(237, 232, 223, 0.08);
   position: sticky;
@@ -428,4 +503,38 @@
 .cam-connected-btn:hover {
   opacity: 0.9;
   box-shadow: 0 0 20px rgba(0, 212, 170, 0.3);
+}
+
+.cam-sync-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  color: var(--color-bistre);
+}
+
+.cam-sync-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cam-sync-dot-waiting {
+  background: rgba(0, 212, 170, 0.72);
+  box-shadow: 0 0 18px rgba(0, 212, 170, 0.3);
+  animation: cam-pulse 2s ease-in-out infinite;
+}
+
+.cam-sync-dot-live {
+  background: #7FFFF0;
+  box-shadow: 0 0 20px rgba(127, 255, 240, 0.45);
+}
+
+@media (max-width: 720px) {
+  .cam-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

@@ -1,12 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, Copy, CheckCheck, RefreshCw } from 'lucide-react';
+import { io } from 'socket.io-client';
 import { CONNECT_LINK, CONNECT_LIVE_SNIPPET, CONNECT_PROMPT, CONNECT_SDK_SNIPPET } from '../store/demoData';
 import useStore from '../store/useStore';
+import { useSessionContext } from '../context/SessionContext';
 import { normalizeSessionConnectUrl, rewriteConnectPrompt } from '../utils/runtimeConfig';
 import '../styles/landing-sections3.css';
 
 const TABS = ['Prompt', 'Link', 'SDK', 'Live Channel'];
+const SOCKET_OPTIONS = {
+  reconnection: true,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  reconnectionAttempts: Infinity,
+  timeout: 10000,
+  transports: ['websocket', 'polling'],
+};
+const FALLBACK_RULES = [
+  'Stay attached to this Flowfex session for the full conversation.',
+  'Send every user request to Flowfex before taking action.',
+  'Always ask Flowfex for agent.md files, skills, tools, memory, and workflows before continuing.',
+  'Use all directly relevant Flowfex resources for the request.',
+  'If Flowfex has no relevant resource, use none and do not invent a substitute.',
+  'Return progress, approvals, and the final result through the same Flowfex session.',
+];
 
 function useCopy() {
   const [copied, setCopied] = useState(false);
@@ -18,6 +36,11 @@ function useCopy() {
   return [copied, copy];
 }
 
+function getConnectionRules(connection) {
+  const rules = connection?.connection?.instructions?.rules;
+  return Array.isArray(rules) && rules.length > 0 ? rules : FALLBACK_RULES;
+}
+
 function CopyBtn({ text, style }) {
   const [copied, copy] = useCopy();
   return (
@@ -27,27 +50,52 @@ function CopyBtn({ text, style }) {
   );
 }
 
+function ConcealedPayload({ text, title }) {
+  return (
+    <div className="cam-code-block cam-code-block-concealed">
+      <pre aria-hidden="true">{text}</pre>
+      <div className="cam-concealed-overlay">
+        <span className="cam-concealed-kicker">{title}</span>
+        <p>Hidden until copied. Paste it into the target agent to preserve the Flowfex routing contract.</p>
+        <CopyBtn text={text} />
+      </div>
+    </div>
+  );
+}
+
+function RuleList({ connection }) {
+  const rules = getConnectionRules(connection);
+  return (
+    <div className="cam-rules-panel">
+      <span className="cam-rules-kicker">Agent behavior after attach</span>
+      <ul className="cam-rules-list">
+        {rules.map((rule) => (
+          <li key={rule}>{rule}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function PromptTab({ connection, loading, onRefresh, error }) {
   const [open, setOpen] = useState(false);
   const sessionUrl = normalizeSessionConnectUrl(connection?.connection?.instructions?.sessionUrl || CONNECT_LINK);
   const promptText = rewriteConnectPrompt(connection?.connection?.instructions?.prompt || CONNECT_PROMPT, sessionUrl);
   return (
     <div>
-      <p className="cam-tab-desc">Paste this into the target agent so it connects to this Flowfex session and asks Flowfex for resources before acting.</p>
-      <div className="cam-code-block" style={{ position: 'relative' }}>
-        <pre>{promptText}</pre>
-        <CopyBtn text={promptText} style={{ position: 'absolute', bottom: 12, right: 12 }} />
-      </div>
+      <p className="cam-tab-desc">Copy this prompt into the target agent. The prompt keeps the agent attached to Flowfex and forces Flowfex-first routing for the full conversation.</p>
+      <ConcealedPayload text={promptText} title="Prompt contract hidden until copied" />
       <p className="cam-security-note">Session URL: {sessionUrl}</p>
       <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
         <RefreshCw size={13} /> {loading ? 'Generating...' : 'Refresh Session'}
       </button>
       {error ? <p className="cam-security-note">Backend error: {error}</p> : null}
+      <RuleList connection={connection} />
       <button className="cam-expand-row" onClick={() => setOpen(!open)}>
         <span>{open ? '▾' : '▸'} Why this works</span>
       </button>
       <div className="cam-expand-body" style={{ maxHeight: open ? 200 : 0 }}>
-        <p>The prompt names the session, tells the agent to pull resources through Flowfex first, and defines the step format Flowfex uses to map the run back onto the live canvas.</p>
+        <p>The prompt names the session, keeps the agent attached for the entire conversation, and forces the agent to ask Flowfex for only directly relevant resources before it proceeds.</p>
       </div>
     </div>
   );
@@ -56,9 +104,10 @@ function PromptTab({ connection, loading, onRefresh, error }) {
 function LinkTab({ connection, loading, onRefresh, error }) {
   const [copied, copy] = useCopy();
   const url = normalizeSessionConnectUrl(connection?.connection?.link?.url || CONNECT_LINK);
+  const summary = connection?.connection?.instructions?.summary || 'This link resolves into the same Flowfex-first operating contract in the background.';
   return (
     <div>
-      <p className="cam-tab-desc">Share this link when you want a fast attach flow without editing code.</p>
+      <p className="cam-tab-desc">Share this link when you want a fast attach flow without editing code. Once the agent resolves it, the same Flowfex-first rules apply for the rest of the conversation.</p>
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         <input readOnly value={url} className="cam-readonly-input" />
         <button className="cam-copy-btn" onClick={() => copy(url)}>
@@ -68,69 +117,35 @@ function LinkTab({ connection, loading, onRefresh, error }) {
       <button className="cam-text-link" style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={onRefresh} disabled={loading}>
         <RefreshCw size={13} /> {loading ? 'Generating Link...' : 'Regenerate Link'}
       </button>
-      <p className="cam-security-note">🔒 This link expires in 24 hours and is single-use.</p>
+      <p className="cam-security-note">{summary}</p>
       {error ? <p className="cam-security-note">Backend error: {error}</p> : null}
+      <RuleList connection={connection} />
     </div>
   );
 }
 
 function SDKTab({ connection, loading, onRefresh, error }) {
-  const session = connection?.connection?.session;
-  const transport = connection?.connection?.transport;
-  const snippet = session && transport
-    ? `import { io } from 'socket.io-client';
-
-const session = {
-  id: '${session.id}',
-  token: '${session.token || ''}',
-};
-
-const orchestration = io('${transport.orchestrationNamespace}', {
-  query: { sessionId: session.id },
-  transports: ['websocket'],
-});
-
-const response = await fetch('${session.endpoints.execute}', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    Authorization: \`Bearer \${session.token}\`,
-  },
-  body: JSON.stringify({
-    input: 'Run through the live Flowfex session',
-  }),
-});
-
-const result = await response.json();`
-    : CONNECT_SDK_SNIPPET;
+  const snippet = connection?.connection?.instructions?.sdkSnippet || CONNECT_SDK_SNIPPET;
   return (
     <div>
-      <div className="cam-code-block" style={{ position: 'relative' }}>
-        <pre>{snippet}</pre>
-        <CopyBtn text={snippet} style={{ position: 'absolute', bottom: 12, right: 12 }} />
-      </div>
+      <p className="cam-tab-desc">Use the SDK when the agent can stay attached programmatically. The snippet is hidden until copied so the operating contract is preserved cleanly.</p>
+      <ConcealedPayload text={snippet} title="SDK attach payload hidden until copied" />
       <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
         <RefreshCw size={13} /> {loading ? 'Generating SDK Session...' : 'Refresh Session'}
       </button>
       {error ? <p className="cam-security-note">Backend error: {error}</p> : null}
       <p className="cam-security-note">Use the SDK when you want the cleanest app-side integration with Flowfex session control.</p>
+      <RuleList connection={connection} />
     </div>
   );
 }
 
 function LiveChannelTab({ connection, loading, onRefresh, error }) {
   const [copied, copy] = useCopy();
-  const transport = connection?.connection?.transport;
-  const live = connection?.connection?.live;
-  const endpoint = transport && live
-    ? `${transport.orchestrationNamespace}
-channel: ${live.protocol}
-sse: ${transport.sseUrl}
-control: ${transport.controlNamespace}`
-    : CONNECT_LIVE_SNIPPET;
+  const endpoint = connection?.connection?.instructions?.endpointPayload || CONNECT_LIVE_SNIPPET;
   return (
     <div>
-      <p className="cam-tab-desc">Use the live channel when the agent already supports persistent streaming.</p>
+      <p className="cam-tab-desc">Use the live channel when the agent already supports persistent streaming. The transport stays attached to the same Flowfex routing contract for the full session.</p>
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <input readOnly value={endpoint} className="cam-readonly-input" />
         <button className="cam-copy-btn" onClick={() => copy(endpoint)}>
@@ -145,6 +160,7 @@ control: ${transport.controlNamespace}`
         <RefreshCw size={13} /> {loading ? 'Preparing Live Channel...' : 'Refresh Live Channel'}
       </button>
       {error ? <p className="cam-security-note">Backend error: {error}</p> : null}
+      <RuleList connection={connection} />
     </div>
   );
 }
@@ -155,35 +171,43 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
   const addAgent = useStore((state) => state.addAgent);
   const addSession = useStore((state) => state.addSession);
   const setActiveSession = useStore((state) => state.setActiveSession);
+  const activeSession = useStore((state) => state.activeSession);
   const backendUrl = useStore((state) => state.backendUrl);
+  const { accessToken } = useSessionContext();
   const [activeTab, setActiveTab] = useState('Prompt');
   const [connections, setConnections] = useState({});
   const [errors, setErrors] = useState({});
   const [loadingTab, setLoadingTab] = useState(null);
-  const fetchAttemptedRef = React.useRef(new Set());
+  const [syncState, setSyncState] = useState('idle');
+  const fetchAttemptedRef = useRef(new Set());
+  const finalizedSessionIdsRef = useRef(new Set());
   const TabContent = TAB_CONTENT[activeTab];
 
   const requestForTab = (tab) => {
     switch (tab) {
       case 'Prompt':
         return {
+          sessionId: activeSession?.id,
           mode: 'prompt',
-          prompt: 'Connect this agent to Flowfex and ask Flowfex for resources before acting.',
+          prompt: 'Attach this agent to Flowfex for the full conversation and route every request through Flowfex before acting.',
           agent: { name: 'Prompt Agent', type: 'prompt' },
         };
       case 'Link':
         return {
+          sessionId: activeSession?.id,
           mode: 'link',
           singleUse: true,
           agent: { name: 'Link Agent', type: 'link' },
         };
       case 'SDK':
         return {
+          sessionId: activeSession?.id,
           mode: 'sdk',
           agent: { name: 'SDK Agent', type: 'sdk' },
         };
       case 'Live Channel':
         return {
+          sessionId: activeSession?.id,
           mode: 'live',
           protocol: 'socket.io',
           agent: { name: 'Live Channel Agent', type: 'live' },
@@ -207,6 +231,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify(request),
       });
@@ -229,34 +254,27 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     }
   };
 
-  useEffect(() => {
-    if (!isOpen || connections[activeTab] || loadingTab === activeTab || fetchAttemptedRef.current.has(activeTab)) {
-      return;
-    }
-
-    fetchAttemptedRef.current.add(activeTab);
-    fetchConnection(activeTab);
-  }, [activeTab, connections, isOpen, loadingTab]);
-
-  const handleConnected = () => {
-    const connection = connections[activeTab];
+  const finalizeConnection = React.useCallback((tab, eventData = null) => {
+    const connection = connections[tab];
     const session = connection?.connection?.session;
-    if (!session) {
+    if (!session || finalizedSessionIdsRef.current.has(session.id)) {
       return;
     }
+
+    finalizedSessionIdsRef.current.add(session.id);
 
     addAgent({
-      id: session.agent?.id || `agent-${session.id}`,
-      name: session.agent?.name || `${activeTab} Agent`,
-      type: activeTab,
+      id: eventData?.agentId || session.agent?.id || `agent-${session.id}`,
+      name: eventData?.agentName || session.agent?.name || `${tab} Agent`,
+      type: eventData?.connectionType || tab,
       status: 'connected',
       lastSeen: 'Live now',
     });
     const sessionRecord = {
       id: session.id,
-      name: `${activeTab} Session`,
+      name: `${tab} Session`,
       task: 'Connected through Flowfex',
-      heartbeat: `${activeTab} connection ready`,
+      heartbeat: `${tab} connection synced`,
       status: 'ready',
       revision: 0,
       token: session.token,
@@ -271,7 +289,52 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     }
 
     onClose();
-  };
+  }, [addAgent, addSession, connections, onClose, onConnected, setActiveSession]);
+
+  useEffect(() => {
+    if (!isOpen || connections[activeTab] || loadingTab === activeTab || fetchAttemptedRef.current.has(activeTab)) {
+      return;
+    }
+
+    fetchAttemptedRef.current.add(activeTab);
+    fetchConnection(activeTab);
+  }, [activeTab, connections, isOpen, loadingTab]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSyncState('idle');
+      return undefined;
+    }
+
+    const session = connections[activeTab]?.connection?.session;
+    if (!session?.id || !backendUrl) {
+      setSyncState('idle');
+      return undefined;
+    }
+
+    setSyncState('waiting');
+    const socket = io(`${backendUrl}/session`, {
+      ...SOCKET_OPTIONS,
+      query: { sessionId: session.id },
+    });
+
+    socket.on('agent:connected', (eventData) => {
+      if (eventData?.sessionId !== session.id) {
+        return;
+      }
+
+      setSyncState('connected');
+      window.setTimeout(() => finalizeConnection(activeTab, eventData), 320);
+    });
+
+    socket.on('connect_error', () => {
+      setSyncState((current) => (current === 'connected' ? current : 'waiting'));
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [activeTab, backendUrl, connections, finalizeConnection, isOpen]);
 
   return (
     <AnimatePresence initial={false}>
@@ -327,19 +390,15 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
             </AnimatePresence>
 
             <div className="cam-footer">
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--color-bistre)' }}>
-                Prompt attach is the fastest way to test a session. Copy the prompt or link, then continue when the agent is ready.
-              </span>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  className="cam-connected-btn"
-                  onClick={handleConnected}
-                  disabled={loadingTab === activeTab || !connections[activeTab]?.connection?.session}
-                >
-                  {loadingTab === activeTab ? 'Preparing...' : onConnected ? 'Continue' : 'Attach Agent'}
-                </button>
-                <button className="cam-done-btn" onClick={onClose}>Done</button>
+              <div className="cam-sync-status">
+                <span className={`cam-sync-dot cam-sync-dot-${syncState === 'connected' ? 'live' : 'waiting'}`} />
+                <span>
+                  {syncState === 'connected'
+                    ? 'Agent synced with Flowfex. Opening the session.'
+                    : 'Waiting for a real agent attach. Flowfex will only continue after actual sync.'}
+                </span>
               </div>
+              <button className="cam-done-btn" onClick={onClose}>Done</button>
             </div>
           </motion.div>
           </div>

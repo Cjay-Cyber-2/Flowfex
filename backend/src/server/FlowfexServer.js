@@ -9,6 +9,7 @@ import { defaultSessionStateRepository } from '../persistence/defaultSessionStat
 import { isSupabaseConfigured, resolveSupabaseUser } from '../session/supabaseAdmin.js';
 import { AnonymousSessionService } from '../session/AnonymousSessionService.js';
 import { ApiKeyService } from '../session/ApiKeyService.js';
+import { UsageService } from '../session/UsageService.js';
 
 /**
  * Minimal HTTP surface for external agent connections.
@@ -33,6 +34,8 @@ export class FlowfexServer {
       || (this.supabaseEnabled ? new AnonymousSessionService() : null);
     this.apiKeyService = config.apiKeyService
       || (this.supabaseEnabled ? new ApiKeyService() : null);
+    this.usageService = config.usageService
+      || (this.supabaseEnabled ? new UsageService() : null);
     this.server = null;
     this.socketServer = null;
   }
@@ -152,6 +155,7 @@ export class FlowfexServer {
     const anonymousSessionValidateMatch = request.method === 'POST' && url.pathname === '/api/session/validate-anonymous';
     const sessionUpgradeMatch = request.method === 'POST' && url.pathname === '/api/session/upgrade';
     const recentSessionMatch = request.method === 'GET' && url.pathname === '/api/session/recent';
+    const sessionUsageMatch = request.method === 'GET' && url.pathname === '/api/session/usage';
     const apiKeysMatch = url.pathname === '/api/api-keys';
     const apiKeyRevokeMatch = url.pathname.match(/^\/api\/api-keys\/([^/]+)$/);
 
@@ -239,6 +243,39 @@ export class FlowfexServer {
         ok: true,
         session,
       });
+    }
+
+    if (sessionUsageMatch) {
+      this._assertSupabaseEnabled();
+      const sessionId = url.searchParams.get('sessionId') || null;
+      const status = await this.usageService.getUsageStatus({ sessionId });
+
+      if (!status) {
+        return this._writeJson(response, 404, {
+          error: {
+            message: 'Session usage was not found.',
+          },
+        });
+      }
+
+      if (status.authId) {
+        const user = await this._requireSupabaseUser(this._extractBearerToken(request));
+        if (user.id !== status.authId) {
+          return this._writeJson(response, 403, {
+            error: {
+              message: 'You do not have access to this session usage record.',
+            },
+          });
+        }
+      } else if (status.anonymousToken !== this._readCookie(request, 'fx_session')) {
+        return this._writeJson(response, 403, {
+          error: {
+            message: 'Anonymous session usage requires the active Flowfex session cookie.',
+          },
+        });
+      }
+
+      return this._writeJson(response, 200, status);
     }
 
     if (request.method === 'GET' && apiKeysMatch) {
@@ -465,6 +502,12 @@ export class FlowfexServer {
         token: ingestRequest.token,
       };
 
+      if (this.usageService) {
+        await this.usageService.assertExecutionAllowed({
+          sessionId: executionPayload.sessionId,
+        });
+      }
+
       if (this._wantsEventStream(request, url, body)) {
         this._emitAgentConnectedForSessionId(executionPayload.sessionId, 'prompt');
         return this._writeEventStream(response, executionPayload);
@@ -472,6 +515,12 @@ export class FlowfexServer {
 
       this._emitAgentConnectedForSessionId(executionPayload.sessionId, 'prompt');
       const payload = await this.connectionService.execute(executionPayload);
+      if (this.usageService) {
+        await this.usageService.recordExecution({
+          sessionId: executionPayload.sessionId,
+          nodesProcessed: Array.isArray(payload?.graph?.nodes) ? payload.graph.nodes.length : 0,
+        });
+      }
       return this._writeJson(response, 200, payload);
     }
 
@@ -489,6 +538,12 @@ export class FlowfexServer {
         token: this._extractBearerToken(request)
       };
 
+      if (this.usageService) {
+        await this.usageService.assertExecutionAllowed({
+          sessionId: executionPayload.sessionId,
+        });
+      }
+
       if (this._wantsEventStream(request, url, body)) {
         this._emitAgentConnectedForSessionId(executionPayload.sessionId, null);
         return this._writeEventStream(response, executionPayload);
@@ -496,6 +551,12 @@ export class FlowfexServer {
 
       this._emitAgentConnectedForSessionId(executionPayload.sessionId, null);
       const payload = await this.connectionService.execute(executionPayload);
+      if (this.usageService) {
+        await this.usageService.recordExecution({
+          sessionId: executionPayload.sessionId,
+          nodesProcessed: Array.isArray(payload?.graph?.nodes) ? payload.graph.nodes.length : 0,
+        });
+      }
       return this._writeJson(response, 200, payload);
     }
 
@@ -776,9 +837,15 @@ export class FlowfexServer {
     };
 
     try {
-      await this.connectionService.execute(executionPayload, {
+      const result = await this.connectionService.execute(executionPayload, {
         eventSink: sendEvent
       });
+      if (this.usageService) {
+        await this.usageService.recordExecution({
+          sessionId: executionPayload.sessionId,
+          nodesProcessed: Array.isArray(result?.graph?.nodes) ? result.graph.nodes.length : 0,
+        });
+      }
     } catch (error) {
       sendEvent({
         sequence: 0,
@@ -816,16 +883,30 @@ export class FlowfexServer {
       return;
     }
 
-    this.socketServer.emitAgentConnected(session.id, {
+    const agentPayload = {
       agentId: session.agent?.id || `agent-${session.id}`,
       agentName: session.agent?.name || 'Connected Agent',
       connectionType: connectionType || session.mode || 'prompt',
       status: 'connected',
       syncedAt: new Date().toISOString(),
+    };
+
+    this.socketServer.emitAgentConnected(session.id, agentPayload);
+    this.anonymousSessionService?.markConnectedAgent?.(session.id, agentPayload).catch(() => {
+      return;
     });
   }
 
   _writeError(response, error) {
+    if (this.socketServer && error?.code === 'limit_reached' && error?.details?.sessionId) {
+      this.socketServer.broadcastToSession(error.details.sessionId, 'session:limit_reached', {
+        sessionId: error.details.sessionId,
+        tier: error.details.tier || null,
+        blockedLimit: error.details.blockedLimit || null,
+        message: error.message,
+      });
+    }
+
     if (this.socketServer && error?.details?.actionType) {
       this.socketServer.emitControlError(error.details.sessionId || null, {
         action: 'error',

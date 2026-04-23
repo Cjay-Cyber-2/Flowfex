@@ -1,7 +1,8 @@
 import { create } from 'zustand';
-import { buildApprovalQueue, buildDemoWorkspace } from './demoData';
+import { buildApprovalQueue } from './demoData';
 import { CONTROL_EVENTS } from '../../../shared/control-contracts.js';
 import { getBackendOrigin } from '../utils/runtimeConfig';
+import { resolveRehydratedGraphState } from '../../../lib/session/rehydrate';
 
 function syncSelectedNode(selectedNode, nodes) {
   if (!selectedNode) return null;
@@ -57,6 +58,45 @@ function deriveSessionHeartbeat(snapshot) {
   }
 
   return 'Session ready';
+}
+
+function derivePersistedSessionHeartbeat(session, graphState) {
+  const approvalNode = graphState.nodes.find((node) => node.state === 'approval');
+  if (approvalNode) {
+    return `Awaiting approval for ${approvalNode.title}`;
+  }
+
+  const activeNode = graphState.nodes.find((node) => node.state === 'active');
+  if (activeNode) {
+    return `Executing ${activeNode.title}`;
+  }
+
+  if (session?.status === 'paused') {
+    return 'Execution paused';
+  }
+
+  if (graphState.connectedAgents.length > 0 || session?.connectedAgents?.length > 0) {
+    return 'Session live';
+  }
+
+  return 'Waiting for agent';
+}
+
+function toPersistedActiveSession(session, graphState, currentActiveSession) {
+  return {
+    ...(currentActiveSession || {}),
+    id: session.id,
+    name: session.name || currentActiveSession?.name || 'Flowfex Session',
+    task: session.task || graphState.metadata?.task || currentActiveSession?.task || 'Live orchestration',
+    heartbeat: session.heartbeat || derivePersistedSessionHeartbeat(session, graphState),
+    status: session.status || currentActiveSession?.status || 'active',
+    elapsed: 'Just now',
+    executionId: graphState.executionId || currentActiveSession?.executionId || null,
+    revision: currentActiveSession?.revision || 0,
+    currentNodeId: graphState.currentNodeId || session.executionPointer || null,
+    pendingNodeId: graphState.pendingNodeId || null,
+    blockedSkillIds: Array.isArray(graphState.constraints) ? graphState.constraints : [],
+  };
 }
 
 function applySessionSnapshotToState(state, snapshot) {
@@ -211,35 +251,14 @@ const useStore = create((set, get) => ({
         ? state.connectedAgents.map((item) => (item.id === nextAgent.id ? nextAgent : item))
         : [...state.connectedAgents, nextAgent];
 
-      const fallbackState = state.nodes.length
-        ? {}
-        : (() => {
-            const workspace = buildDemoWorkspace(connectedAgents);
-            const selectedNode =
-              workspace.nodes.find((node) => node.id === workspace.selectedNodeId) || null;
-
-            return {
-              sessions: workspace.sessions,
-              activeSession: workspace.activeSession,
-              nodes: workspace.nodes,
-              edges: workspace.edges,
-              approvalQueue: workspace.approvalQueue,
-              selectedNode,
-              rightDrawerOpen: true,
-              canvasMode: 'live',
-              isExecuting: true,
-            };
-          })();
-
       const activeSession = state.activeSession
         ? updateSessionHeartbeat(state.activeSession, `${nextAgent.name} connected`, 'live')
-        : fallbackState.activeSession || null;
+        : null;
 
       return {
         connectedAgents,
         activeSession,
         sessions: activeSession ? syncSessions(state.sessions, activeSession) : state.sessions,
-        ...fallbackState,
       };
     }),
   removeAgent: (agentId) =>
@@ -252,6 +271,10 @@ const useStore = create((set, get) => ({
         agent.id === agentId ? { ...agent, status, lastSeen: 'Just now' } : agent
       ),
     })),
+  replaceConnectedAgents: (connectedAgents) =>
+    set({
+      connectedAgents: Array.isArray(connectedAgents) ? connectedAgents : [],
+    }),
 
   sessions: [],
   activeSession: null,
@@ -280,7 +303,7 @@ const useStore = create((set, get) => ({
     }),
   addSession: (session) =>
     set((state) => ({
-      sessions: [session, ...state.sessions],
+      sessions: session?.id ? syncSessions(state.sessions, session) : state.sessions,
     })),
   updateSession: (sessionId, updates) =>
     set((state) => {
@@ -374,6 +397,7 @@ const useStore = create((set, get) => ({
 
   connectModalOpen: false,
   setConnectModalOpen: (connectModalOpen) => set({ connectModalOpen }),
+  socketListenersInitialized: false,
 
   approvalQueue: [],
   approveNode: (nodeId) => get().apiApproveNode(nodeId),
@@ -401,6 +425,53 @@ const useStore = create((set, get) => ({
   ws: null,
   setWs: (ws) => set({ ws }),
 
+  hydratePersistedSession: (session) =>
+    set((state) => {
+      if (!session?.id) {
+        return {};
+      }
+
+      const graphState = resolveRehydratedGraphState(session.graphState || {}, []);
+      const nodes = Array.isArray(graphState.nodes) ? graphState.nodes : [];
+      const edges = Array.isArray(graphState.edges) ? graphState.edges : [];
+      const connectedAgents = graphState.connectedAgents.length > 0
+        ? graphState.connectedAgents
+        : Array.isArray(session.connectedAgents)
+          ? session.connectedAgents
+          : [];
+      const activeSession = toPersistedActiveSession(session, graphState, state.activeSession);
+      const selectedNode = syncSelectedNode(state.selectedNode, nodes)
+        || nodes.find((node) => node.state === 'approval')
+        || nodes.find((node) => node.state === 'active')
+        || null;
+
+      return {
+        connectedAgents,
+        nodes,
+        edges,
+        approvalQueue: buildApprovalQueue(nodes),
+        selectedNode,
+        activeSession,
+        sessions: syncSessions(state.sessions, activeSession),
+        rightDrawerOpen: Boolean(selectedNode),
+        canvasMode: graphState.mode || session.mode || 'flow',
+        isExecuting: graphState.status === 'running',
+      };
+    }),
+  resetWorkspace: () =>
+    set({
+      connectedAgents: [],
+      sessions: [],
+      activeSession: null,
+      nodes: [],
+      edges: [],
+      approvalQueue: [],
+      selectedNode: null,
+      rightDrawerOpen: false,
+      canvasMode: 'flow',
+      isExecuting: false,
+    }),
+
   usage: {
     steps: 0,
     limit: 100,
@@ -422,11 +493,14 @@ const useStore = create((set, get) => ({
    * Call once when the app mounts.
    */
   initSocketListeners: () => {
+    if (get().socketListenersInitialized) {
+      return;
+    }
+
+    set({ socketListenersInitialized: true });
     // Dynamic import for ESM (Vite)
     import('../services/socketClient.js').then(({ default: client }) => {
       const state = get();
-      const sessionId = state.activeSession?.id || 'default';
-      client.connect(sessionId);
 
       // ─── Orchestration Events ─────────────────────────────────────
       client.subscribe('orchestration', 'graph:created', (data) => {
@@ -597,6 +671,14 @@ const useStore = create((set, get) => ({
           lastSeen: 'Live now',
         };
         get().addAgent(agentData);
+      });
+
+      client.subscribe('session', 'session:limit_reached', (data) => {
+        get().addNotification({
+          title: 'Usage limit reached',
+          message: data?.blockedLimit?.reason || data?.message || 'Flowfex blocked the next execution because the current usage limit has been reached.',
+          type: 'warning',
+        });
       });
 
       client.subscribe('control', CONTROL_EVENTS.SESSION_CONSTRAINED, (data) => {
@@ -836,48 +918,31 @@ const useStore = create((set, get) => ({
 
   bootstrapWorkspace: () => {
     const state = get();
-    if (state.nodes.length && state.edges.length && state.activeSession) return;
+    if (!state.activeSession?.id) {
+      return;
+    }
 
-    const workspace = buildDemoWorkspace(state.connectedAgents);
-    const activeSession = state.activeSession
-      ? {
-          ...workspace.activeSession,
-          ...state.activeSession,
-        }
-      : workspace.activeSession;
-    const sessions = activeSession
-      ? [
-          activeSession,
-          ...workspace.sessions.filter(
-            (session) =>
-              session.id !== workspace.activeSession?.id
-              && session.id !== activeSession.id
-          ),
-        ]
-      : workspace.sessions;
-    const selectedNode =
-      workspace.nodes.find((node) => node.id === workspace.selectedNodeId) || null;
+    if (state.nodes.length || state.edges.length || state.connectedAgents.length) {
+      return;
+    }
+
+    const activeSession = {
+      ...state.activeSession,
+      heartbeat: state.activeSession.heartbeat || 'Waiting for agent',
+      status: state.activeSession.status || 'waiting',
+    };
 
     set({
-      connectedAgents: workspace.connectedAgents,
-      sessions,
       activeSession,
-      nodes: workspace.nodes,
-      edges: workspace.edges,
-      approvalQueue: workspace.approvalQueue,
-      selectedNode,
-      rightDrawerOpen: true,
+      sessions: syncSessions(state.sessions, activeSession),
+      nodes: [],
+      edges: [],
+      approvalQueue: [],
+      selectedNode: null,
+      rightDrawerOpen: false,
       canvasMode: 'flow',
-      isExecuting: true,
+      isExecuting: false,
     });
-
-    const ws = get().ws;
-    if (activeSession?.id && ws?.sessionId !== activeSession.id) {
-      ws.connect(activeSession.id);
-    }
-    if (activeSession?.id) {
-      get().hydrateSessionState(activeSession.id);
-    }
   },
 }));
 

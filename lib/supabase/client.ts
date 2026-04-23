@@ -39,6 +39,15 @@ function readRequiredBrowserSupabaseConfig(): {
   return { url, anonKey };
 }
 
+export function isSupabaseBrowserConfigured(): boolean {
+  try {
+    readRequiredBrowserSupabaseConfig();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function createSupabaseBrowserClient(): SupabaseClient<Database> {
   if (!browserClient) {
     const { url, anonKey } = readRequiredBrowserSupabaseConfig();

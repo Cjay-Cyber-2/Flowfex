@@ -16,6 +16,20 @@ function buildAnonymousToken() {
   return `${randomUUID()}_${timestampHash}`;
 }
 
+function normalizeConnectedAgent(agent) {
+  if (!agent || typeof agent !== 'object') {
+    return null;
+  }
+
+  return {
+    id: agent.agentId || agent.id || 'agent',
+    name: agent.agentName || agent.name || 'Connected Agent',
+    type: agent.connectionType || agent.type || 'unknown',
+    status: agent.status || 'connected',
+    lastSeen: agent.syncedAt || new Date().toISOString(),
+  };
+}
+
 export class AnonymousSessionService {
   constructor(config = {}) {
     this.client = config.client || createSupabaseAdminClient();
@@ -118,6 +132,56 @@ export class AnonymousSessionService {
       logSessionError({
         operation: 'anonymous_session.get_most_recent_for_user',
         sessionId: null,
+        error,
+      });
+      throw error;
+    }
+  }
+
+  async markConnectedAgent(sessionId, agent) {
+    const normalizedAgent = normalizeConnectedAgent(agent);
+    if (!sessionId || !normalizedAgent) {
+      return null;
+    }
+
+    try {
+      const { data: existingRow, error: fetchError } = await this.client
+        .from('sessions')
+        .select('connected_agents')
+        .eq('id', sessionId)
+        .maybeSingle();
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      const existingAgents = Array.isArray(existingRow?.connected_agents)
+        ? existingRow.connected_agents
+        : [];
+      const nextAgents = [
+        ...existingAgents.filter((entry) => entry?.id !== normalizedAgent.id),
+        normalizedAgent,
+      ];
+
+      const { data, error } = await this.client
+        .from('sessions')
+        .update({
+          connected_agents: nextAgents,
+          last_active_at: new Date().toISOString(),
+        })
+        .eq('id', sessionId)
+        .select('*')
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      return data ? toDashboardSessionRecord(data) : null;
+    } catch (error) {
+      logSessionError({
+        operation: 'anonymous_session.mark_connected_agent',
+        sessionId,
         error,
       });
       throw error;

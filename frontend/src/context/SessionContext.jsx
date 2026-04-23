@@ -1,64 +1,37 @@
 import React, {
   createContext,
+  startTransition,
   useCallback,
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
-import useStore from '../store/useStore';
-import { onAuthStateChange, signOutUser } from '../services/authService';
 import {
-  ANONYMOUS_TOKEN_STORAGE_KEY,
   createAnonymousSession,
-  fetchRecentSession,
-  upgradeAnonymousSession,
-  validateAnonymousSession,
-} from '../services/sessionApi';
-import { getSupabaseBrowserClient, isSupabaseConfigured } from '../services/supabaseBrowser';
+  fetchRecentAuthenticatedSession,
+  initializeFlowfexSession,
+  readAnonymousToken,
+  writeAnonymousToken,
+} from '../../../lib/session/initialize';
+import { upgradeAnonymousSession } from '../../../lib/session/upgrade';
+import { fetchFlowfexUsageStatus } from '../../../lib/limits/service';
+import { onAuthStateChange, signOut as signOutFromSupabase } from '../../../lib/auth/service';
+import {
+  createSupabaseBrowserClient,
+  isSupabaseBrowserConfigured,
+} from '../../../lib/supabase/client';
+import useStore from '../store/useStore';
 
-const SessionContext = createContext({
-  session: null,
-  user: null,
-  sessionReady: false,
-  isAuthenticated: false,
-  configured: false,
-  accessToken: null,
-  error: null,
-  refreshSession: async () => null,
-  signOut: async () => null,
-});
-
-function readAnonymousToken() {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  return window.localStorage.getItem(ANONYMOUS_TOKEN_STORAGE_KEY);
-}
-
-function writeAnonymousToken(token) {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  if (!token) {
-    window.localStorage.removeItem(ANONYMOUS_TOKEN_STORAGE_KEY);
-    return;
-  }
-
-  window.localStorage.setItem(ANONYMOUS_TOKEN_STORAGE_KEY, token);
-}
+const SessionContext = createContext(undefined);
 
 function deriveDisplayName(user) {
   if (!user) {
     return null;
   }
 
-  return user.user_metadata?.full_name
-    || user.user_metadata?.name
-    || user.email?.split('@')[0]
-    || 'Flowfex User';
+  return user.displayName || user.email?.split('@')[0] || 'Flowfex User';
 }
 
 function deriveInitials(name) {
@@ -79,7 +52,6 @@ function toStoreUser(user) {
   }
 
   const name = deriveDisplayName(user);
-
   return {
     id: user.id,
     email: user.email || '',
@@ -88,187 +60,264 @@ function toStoreUser(user) {
   };
 }
 
-function toCanvasSession(session) {
-  if (!session) {
+function mapSupabaseUser(user) {
+  if (!user) {
     return null;
   }
 
+  const metadata = user.user_metadata;
+  const displayName = typeof metadata?.full_name === 'string'
+    ? metadata.full_name
+    : typeof metadata?.name === 'string'
+      ? metadata.name
+      : null;
+  const avatarUrl = typeof metadata?.avatar_url === 'string' ? metadata.avatar_url : null;
+
   return {
-    id: session.id,
-    name: session.name || (session.authId ? 'Saved Flowfex Session' : 'Anonymous Flowfex Session'),
-    task: session.task || 'Live orchestration',
-    heartbeat: session.heartbeat || (session.status === 'paused' ? 'Execution paused' : 'Session live'),
-    status: session.status || 'active',
-    elapsed: 'Just now',
-    executionId: session.graphState?.executionId || null,
+    id: user.id,
+    email: user.email ?? null,
+    displayName,
+    avatarUrl,
+  };
+}
+
+async function readSupabaseAuthSession(forceAnonymous) {
+  if (forceAnonymous || !isSupabaseBrowserConfigured()) {
+    return {
+      user: null,
+      accessToken: null,
+    };
+  }
+
+  const client = createSupabaseBrowserClient();
+  const { data, error } = await client.auth.getSession();
+  if (error) {
+    throw error;
+  }
+
+  return {
+    user: mapSupabaseUser(data.session?.user || null),
+    accessToken: data.session?.access_token ?? null,
   };
 }
 
 export function SessionProvider({ children }) {
-  const setUser = useStore((state) => state.setUser);
-  const setActiveSession = useStore((state) => state.setActiveSession);
-  const bootstrapWorkspace = useStore((state) => state.bootstrapWorkspace);
+  const setUser = useStore((store) => store.setUser);
+  const hydratePersistedSession = useStore((store) => store.hydratePersistedSession);
+  const resetWorkspace = useStore((store) => store.resetWorkspace);
+  const connectedAgents = useStore((store) => store.connectedAgents);
   const [state, setState] = useState({
     session: null,
     user: null,
     sessionReady: false,
     isAuthenticated: false,
-    configured: isSupabaseConfigured(),
+    configured: isSupabaseBrowserConfigured(),
     accessToken: null,
     error: null,
+    usage: null,
+    usageError: null,
   });
+  const initializeRequestIdRef = useRef(0);
 
   const syncStore = useCallback((session, user) => {
     setUser(toStoreUser(user));
 
     if (session) {
-      setActiveSession(toCanvasSession(session));
+      hydratePersistedSession(session);
+      return;
     }
 
-    bootstrapWorkspace();
-  }, [bootstrapWorkspace, setActiveSession, setUser]);
+    resetWorkspace();
+  }, [hydratePersistedSession, resetWorkspace, setUser]);
 
-  const initialize = useCallback(async (options = {}) => {
-    if (!isSupabaseConfigured()) {
-      setState({
-        session: null,
-        user: null,
-        sessionReady: true,
-        isAuthenticated: false,
-        configured: false,
-        accessToken: null,
-        error: null,
+  const refreshUsage = useCallback(async (sessionId = state.session?.id || null, accessToken = state.accessToken || null) => {
+    if (!sessionId) {
+      startTransition(() => {
+        setState((current) => ({
+          ...current,
+          usage: null,
+          usageError: null,
+        }));
       });
-      syncStore(null, null);
       return null;
     }
 
-    const client = getSupabaseBrowserClient();
-    if (!client) {
-      throw new Error('Supabase browser client could not be created.');
+    try {
+      const usage = await fetchFlowfexUsageStatus(sessionId, accessToken);
+      startTransition(() => {
+        setState((current) => ({
+          ...current,
+          usage,
+          usageError: null,
+        }));
+      });
+      return usage;
+    } catch (error) {
+      startTransition(() => {
+        setState((current) => ({
+          ...current,
+          usageError: error instanceof Error ? error.message : 'Unable to load usage limits.',
+        }));
+      });
+      return null;
     }
+  }, [state.accessToken, state.session?.id]);
 
-    const { data, error } = await client.auth.getSession();
-    if (error) {
-      throw error;
-    }
+  const initialize = useCallback(async (options = {}) => {
+    const requestId = initializeRequestIdRef.current + 1;
+    initializeRequestIdRef.current = requestId;
 
-    const authSession = options.forceAnonymous ? null : data.session;
-    const authUser = authSession?.user || null;
-    const accessToken = authSession?.access_token || null;
-    const storedAnonymousToken = readAnonymousToken();
-    let backendSession = null;
+    try {
+      const auth = await readSupabaseAuthSession(options.forceAnonymous === true);
+      const storedAnonymousToken = readAnonymousToken();
+      let backendSession = null;
 
-    if (authUser && accessToken && storedAnonymousToken) {
-      try {
-        const upgraded = await upgradeAnonymousSession(accessToken, storedAnonymousToken);
-        backendSession = upgraded.session || null;
-        writeAnonymousToken(null);
-      } catch {
-        writeAnonymousToken(null);
+      if (auth.user && auth.accessToken && storedAnonymousToken) {
+        try {
+          const upgraded = await upgradeAnonymousSession(auth.accessToken, storedAnonymousToken);
+          backendSession = upgraded.session || null;
+          writeAnonymousToken(null);
+        } catch {
+          writeAnonymousToken(null);
+        }
       }
-    }
 
-    if (authUser && accessToken && !backendSession) {
-      try {
-        const recent = await fetchRecentSession(accessToken);
-        backendSession = recent.session || null;
-      } catch {
-        backendSession = null;
+      if (auth.user && auth.accessToken && !backendSession) {
+        try {
+          const recent = await fetchRecentAuthenticatedSession(auth.accessToken);
+          backendSession = recent.session || null;
+        } catch {
+          backendSession = null;
+        }
       }
-    }
 
-    if (!backendSession && authUser && accessToken) {
-      const created = await createAnonymousSession();
-      if (created?.anonymousToken) {
-        const upgraded = await upgradeAnonymousSession(accessToken, created.anonymousToken);
-        backendSession = upgraded.session || created.session || null;
+      if (auth.user && auth.accessToken && !backendSession) {
+        const created = await createAnonymousSession();
+        if (created?.anonymousToken) {
+          const upgraded = await upgradeAnonymousSession(auth.accessToken, created.anonymousToken);
+          backendSession = upgraded.session || created.session || null;
+        } else {
+          backendSession = created.session || null;
+        }
       }
-    }
 
-    if (!backendSession && storedAnonymousToken) {
-      try {
-        const existing = await validateAnonymousSession(storedAnonymousToken);
-        backendSession = existing.session || null;
-      } catch {
-        backendSession = null;
+      if (!backendSession) {
+        const initialized = await initializeFlowfexSession();
+        backendSession = initialized.session || null;
       }
+
+      if (requestId !== initializeRequestIdRef.current) {
+        return backendSession;
+      }
+
+      startTransition(() => {
+        setState({
+          session: backendSession,
+          user: auth.user,
+          sessionReady: true,
+          isAuthenticated: Boolean(auth.user),
+          configured: isSupabaseBrowserConfigured(),
+          accessToken: auth.accessToken,
+          error: null,
+          usage: null,
+          usageError: null,
+        });
+        syncStore(backendSession, auth.user);
+      });
+
+      await refreshUsage(backendSession?.id || null, auth.accessToken);
+      return backendSession;
+    } catch (error) {
+      if (requestId !== initializeRequestIdRef.current) {
+        return null;
+      }
+
+      startTransition(() => {
+        setState((current) => ({
+          ...current,
+          sessionReady: true,
+          configured: isSupabaseBrowserConfigured(),
+          error: error instanceof Error ? error.message : 'Unable to initialize the Flowfex session.',
+        }));
+        syncStore(null, null);
+      });
+      return null;
     }
-
-    if (!backendSession) {
-      const created = await createAnonymousSession();
-      backendSession = created.session || null;
-      writeAnonymousToken(created.anonymousToken || null);
-    }
-
-    setState({
-      session: backendSession,
-      user: authUser,
-      sessionReady: true,
-      isAuthenticated: Boolean(authUser),
-      configured: true,
-      accessToken,
-      error: null,
-    });
-    syncStore(backendSession, authUser);
-
-    return backendSession;
-  }, [syncStore]);
+  }, [refreshUsage, syncStore]);
 
   useEffect(() => {
-    let active = true;
-
-    initialize().catch((error) => {
-      if (!active) {
-        return;
-      }
-
-      setState((current) => ({
-        ...current,
-        sessionReady: true,
-        error: error instanceof Error ? error.message : 'Unable to initialize the Flowfex session.',
-      }));
-      syncStore(null, null);
+    initialize().catch(() => {
+      return;
     });
-
-    return () => {
-      active = false;
-    };
-  }, [initialize, syncStore]);
+  }, [initialize]);
 
   useEffect(() => {
-    if (!isSupabaseConfigured()) {
+    if (!isSupabaseBrowserConfigured()) {
       return undefined;
     }
 
-    return onAuthStateChange((event) => {
-      if (event !== 'SIGNED_IN' && event !== 'SIGNED_OUT' && event !== 'TOKEN_REFRESHED') {
+    const subscription = onAuthStateChange((payload) => {
+      if (!['SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED'].includes(payload.event)) {
         return;
       }
 
       initialize({
-        forceAnonymous: event === 'SIGNED_OUT',
-      }).catch((error) => {
-        setState((current) => ({
-          ...current,
-          sessionReady: true,
-          error: error instanceof Error ? error.message : 'Unable to refresh the Flowfex session.',
-        }));
+        forceAnonymous: payload.event === 'SIGNED_OUT',
+      }).catch(() => {
+        return;
       });
     });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [initialize]);
 
+  useEffect(() => {
+    if (!state.session?.id) {
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      refreshUsage(state.session?.id, state.accessToken).catch(() => {
+        return;
+      });
+    }, 30000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [refreshUsage, state.accessToken, state.session?.id]);
+
   const signOut = useCallback(async () => {
-    await signOutUser();
+    if (isSupabaseBrowserConfigured()) {
+      await signOutFromSupabase();
+    }
+
     writeAnonymousToken(null);
     await initialize({ forceAnonymous: true });
   }, [initialize]);
 
+  const hasConnectedAgent = useMemo(() => {
+    if (connectedAgents.length > 0) {
+      return true;
+    }
+
+    if (Array.isArray(state.session?.connectedAgents) && state.session.connectedAgents.length > 0) {
+      return true;
+    }
+
+    return Array.isArray(state.session?.graphState?.connectedAgents)
+      && state.session.graphState.connectedAgents.length > 0;
+  }, [connectedAgents.length, state.session]);
+
   const value = useMemo(() => ({
     ...state,
-    refreshSession: initialize,
+    hasConnectedAgent,
+    refreshSession: () => initialize(),
+    refreshUsage: () => refreshUsage(),
     signOut,
-  }), [initialize, signOut, state]);
+  }), [hasConnectedAgent, initialize, refreshUsage, signOut, state]);
 
   return (
     <SessionContext.Provider value={value}>
@@ -278,5 +327,10 @@ export function SessionProvider({ children }) {
 }
 
 export function useSessionContext() {
-  return useContext(SessionContext);
+  const context = useContext(SessionContext);
+  if (!context) {
+    throw new Error('useSessionContext must be used within a SessionProvider.');
+  }
+
+  return context;
 }

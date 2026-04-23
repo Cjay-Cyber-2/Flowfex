@@ -19,6 +19,11 @@ export interface FlowfexInitializedSession {
   readonly session: FlowfexAnonymousSessionResponse['session'];
 }
 
+export interface FlowfexRecentSessionResponse {
+  readonly ok: boolean;
+  readonly session: FlowfexAnonymousSessionResponse['session'];
+}
+
 function getDefaultFetch(fetchImpl?: typeof fetch): typeof fetch {
   if (fetchImpl) {
     return fetchImpl;
@@ -118,6 +123,22 @@ export async function validateAnonymousSession(
       body: JSON.stringify({
         anonymousToken,
       }),
+    },
+    options
+  );
+}
+
+export async function fetchRecentAuthenticatedSession(
+  accessToken: string,
+  options: SessionRequestOptions = {}
+): Promise<FlowfexRecentSessionResponse> {
+  return requestJson<FlowfexRecentSessionResponse>(
+    '/api/session/recent',
+    {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     },
     options
   );

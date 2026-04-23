@@ -184,23 +184,15 @@ function LandingPage() {
   
   const statementWords = useMemo(
     () => [
-      'Reads the request',
-      'Pulls relevant skills',
-      'Builds the live flow',
-      'Keeps the agent synced',
+      'Connect',
+      'Route',
+      '328 Skills',
+      '20 Agent Teams',
+      'Orchestrate',
     ],
     []
   );
-  
-  const statementStats = useMemo(
-    () => [
-      { label: 'routing rule', value: 'Flowfex-first' },
-      { label: 'resource policy', value: 'Relevant only' },
-      { label: 'session scope', value: 'Full conversation' },
-    ],
-    []
-  );
-  
+
   const sectionIds = [
     { id: 'hero', label: 'Hero' },
     { id: 'statement', label: 'Vision' },
@@ -321,17 +313,7 @@ function LandingPage() {
           <ParticleTextEffect
             words={statementWords}
             intervalMs={4000}
-            fontScale={0.08}
-            maxFontSize={72}
           />
-        </div>
-        <div className="statement-stats">
-          {statementStats.map((stat) => (
-            <div key={stat.label} className="statement-stat">
-              <strong>{stat.value}</strong>
-              <span>{stat.label}</span>
-            </div>
-          ))}
         </div>
       </section>
 

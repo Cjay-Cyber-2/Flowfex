@@ -1,15 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ThreeDLogoMark from '../common/ThreeDLogoMark';
 
-const HUB_CENTER = { x: 720, y: 450 };
-const NODE_WIDTH = 226;
-const NODE_HEIGHT = 86;
+const HUB_CENTER = { x: 720, y: 404 };
+const NODE_WIDTH = 218;
+const NODE_HEIGHT = 82;
+const EXPLANATION_HEIGHT = 116;
 
 const HERO_NODES = [
   {
     id: 'registry',
-    x: 142,
-    y: 182,
+    x: 186,
+    y: 130,
     label: 'Central Registry',
     meta: 'Schema-first skill records',
     kind: 'foundation',
@@ -19,8 +20,8 @@ const HERO_NODES = [
   },
   {
     id: 'importer',
-    x: 124,
-    y: 370,
+    x: 164,
+    y: 306,
     label: 'Bulk Importer',
     meta: 'Auto-parse markdown skills at scale',
     kind: 'foundation',
@@ -30,8 +31,8 @@ const HERO_NODES = [
   },
   {
     id: 'category',
-    x: 156,
-    y: 558,
+    x: 194,
+    y: 482,
     label: 'Category System',
     meta: 'Counts, filters, grouped lanes',
     kind: 'foundation',
@@ -41,8 +42,8 @@ const HERO_NODES = [
   },
   {
     id: 'semantic',
-    x: 1072,
-    y: 182,
+    x: 1036,
+    y: 130,
     label: 'Semantic Search',
     meta: 'Embeddings and similarity ranking',
     kind: 'intelligence',
@@ -52,8 +53,8 @@ const HERO_NODES = [
   },
   {
     id: 'selection',
-    x: 1090,
-    y: 370,
+    x: 1058,
+    y: 306,
     label: 'Ranked Selection',
     meta: 'Constraints, trust, approvals',
     kind: 'intelligence',
@@ -63,8 +64,8 @@ const HERO_NODES = [
   },
   {
     id: 'transparency',
-    x: 1058,
-    y: 558,
+    x: 1028,
+    y: 482,
     label: 'Decision Transparency',
     meta: 'Why chosen, score, rejected options',
     kind: 'intelligence',
@@ -108,23 +109,34 @@ function buildNodePath(node) {
 }
 
 function HeroNode({ node, isExpanded, onToggle }) {
+  const handleActivate = (event) => {
+    event.stopPropagation();
+    onToggle();
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleActivate(event);
+    }
+  };
+
   return (
     <g
       className={`hero-orchestration-node hero-orchestration-node-${node.kind}${isExpanded ? ' is-expanded' : ''}`}
       transform={`translate(${node.x} ${node.y})`}
       style={{ '--node-accent': node.accent }}
+      role="button"
+      tabIndex={0}
+      aria-label={`${isExpanded ? 'Hide' : 'Show'} details for ${node.label}`}
+      aria-pressed={isExpanded}
+      onClick={handleActivate}
+      onKeyDown={handleKeyDown}
     >
       <rect width={NODE_WIDTH} height={NODE_HEIGHT} rx="26" />
       <rect className="hero-orchestration-node-topline" width={NODE_WIDTH} height="2" rx="2" />
       
-      {/* Interactive dot with pulse rings */}
-      <g 
-        className="hero-orchestration-node-dot-wrapper"
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggle();
-        }}
-      >
+      <g className="hero-orchestration-node-dot-wrapper">
         {/* Outer pulse ring */}
         <circle 
           className="hero-orchestration-node-dot-ring" 
@@ -152,45 +164,18 @@ function HeroNode({ node, isExpanded, onToggle }) {
       
       {/* Explanation dropdown */}
       {isExpanded && (
-        <g className="hero-orchestration-node-explanation">
-          <rect 
-            x="0" 
-            y={NODE_HEIGHT + 12} 
-            width={NODE_WIDTH} 
-            height="80" 
-            rx="12" 
-            className="hero-orchestration-node-explanation-bg"
-            style={{ fill: 'rgba(0, 20, 30, 0.95)', stroke: node.accent }}
-          />
-          <text 
-            className="hero-orchestration-node-explanation-text" 
-            x="12" 
-            y={NODE_HEIGHT + 30}
-          >
-            {node.explanation.split(' ').slice(0, 4).join(' ')}
-          </text>
-          <text 
-            className="hero-orchestration-node-explanation-text" 
-            x="12" 
-            y={NODE_HEIGHT + 46}
-          >
-            {node.explanation.split(' ').slice(4, 8).join(' ')}
-          </text>
-          <text 
-            className="hero-orchestration-node-explanation-text" 
-            x="12" 
-            y={NODE_HEIGHT + 62}
-          >
-            {node.explanation.split(' ').slice(8, 12).join(' ')}
-          </text>
-          <text 
-            className="hero-orchestration-node-explanation-text" 
-            x="12" 
-            y={NODE_HEIGHT + 78}
-          >
-            {node.explanation.split(' ').slice(12).join(' ')}
-          </text>
-        </g>
+        <foreignObject
+          className="hero-orchestration-node-explanation"
+          x="0"
+          y={NODE_HEIGHT + 12}
+          width={NODE_WIDTH}
+          height={EXPLANATION_HEIGHT}
+        >
+          <div xmlns="http://www.w3.org/1999/xhtml" className="hero-orchestration-node-explanation-card">
+            <span className="hero-orchestration-node-explanation-kicker">How Flowfex handles it</span>
+            <p>{node.explanation}</p>
+          </div>
+        </foreignObject>
       )}
     </g>
   );
@@ -277,7 +262,7 @@ export default function HeroOrchestrationScene() {
   }, []);
 
   return (
-    <div ref={sceneRef} className="hero-orchestration-scene" aria-hidden="true">
+    <div ref={sceneRef} className="hero-orchestration-scene" aria-label="Flowfex orchestration overview">
       <div className="hero-orchestration-mesh hero-orchestration-mesh-primary" />
       <div className="hero-orchestration-mesh hero-orchestration-mesh-secondary" />
       <div className="hero-orchestration-grid" />
@@ -286,7 +271,7 @@ export default function HeroOrchestrationScene() {
       <svg
         className="hero-orchestration-svg"
         viewBox="0 0 1440 900"
-        preserveAspectRatio="xMidYMid slice"
+        preserveAspectRatio="xMidYMin slice"
       >
         <defs>
           <radialGradient id="hero-center-glow" cx="50%" cy="50%" r="60%">

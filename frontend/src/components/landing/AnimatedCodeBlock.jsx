@@ -3,58 +3,61 @@ import { motion } from 'framer-motion';
 import { Copy, Check } from 'lucide-react';
 import { codeSnippets } from '../../data/landing/codeSnippets';
 
+const TABS = [
+  { id: 'prompt', label: 'Prompt', code: codeSnippets.prompt },
+  { id: 'javascript', label: 'JavaScript', code: codeSnippets.javascript },
+  { id: 'python', label: 'Python', code: codeSnippets.python }
+];
+
 function AnimatedCodeBlock({ activeTab = 0 }) {
   const [currentTab, setCurrentTab] = useState(0);
-  const [lines, setLines] = useState([]);
+  const [lines, setLines] = useState(() =>
+    TABS[0].code.split('\n').map((line, i) => ({
+      text: line,
+      opacity: 1,
+      key: `0-${i}`
+    }))
+  );
   const [copied, setCopied] = useState(false);
   const transitionRef = useRef(0);
-  
-  const tabs = [
-    { id: 'prompt', label: 'Prompt', code: codeSnippets.prompt },
-    { id: 'javascript', label: 'JavaScript', code: codeSnippets.javascript },
-    { id: 'python', label: 'Python', code: codeSnippets.python }
-  ];
 
-  const currentCode = tabs[currentTab]?.code || '';
+  const currentCode = TABS[currentTab]?.code || '';
+
+  const transitionToTab = React.useCallback(async (newTabIndex) => {
+    if (newTabIndex === currentTab) return;
+    const transitionId = transitionRef.current + 1;
+    transitionRef.current = transitionId;
+
+    const currentLines = currentCode.split('\n');
+    for (let i = currentLines.length - 1; i >= 0; i--) {
+      await new Promise(resolve => setTimeout(resolve, 30));
+      if (transitionRef.current !== transitionId) return;
+      setLines(prev => prev.map((line, idx) =>
+        idx === i ? { ...line, opacity: 0 } : line
+      ));
+    }
+
+    if (transitionRef.current !== transitionId) return;
+    setCurrentTab(newTabIndex);
+    setLines([]);
+
+    const newLines = TABS[newTabIndex].code.split('\n');
+    for (let i = 0; i < newLines.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 30));
+      if (transitionRef.current !== transitionId) return;
+      setLines(prev => [...prev, {
+        text: newLines[i],
+        opacity: 1,
+        key: `${newTabIndex}-${i}`
+      }]);
+    }
+  }, [currentCode, currentTab]);
 
   useEffect(() => {
     if (activeTab !== currentTab) {
       transitionToTab(activeTab);
     }
-  }, [activeTab]);
-
-  const transitionToTab = async (newTabIndex) => {
-    if (newTabIndex === currentTab) return;
-    const transitionId = transitionRef.current + 1;
-    transitionRef.current = transitionId;
-
-    // Fade out current lines (bottom to top)
-    const currentLines = currentCode.split('\n');
-    for (let i = currentLines.length - 1; i >= 0; i--) {
-      await new Promise(resolve => setTimeout(resolve, 30));
-      if (transitionRef.current !== transitionId) return;
-      setLines(prev => prev.map((line, idx) => 
-        idx === i ? { ...line, opacity: 0 } : line
-      ));
-    }
-
-    // Switch tab and clear lines
-    if (transitionRef.current !== transitionId) return;
-    setCurrentTab(newTabIndex);
-    setLines([]);
-
-    // Fade in new lines (top to bottom)
-    const newLines = tabs[newTabIndex].code.split('\n');
-    for (let i = 0; i < newLines.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 30));
-      if (transitionRef.current !== transitionId) return;
-      setLines(prev => [...prev, { 
-        text: newLines[i], 
-        opacity: 1,
-        key: `${newTabIndex}-${i}`
-      }]);
-    }
-  };
+  }, [activeTab, currentTab, transitionToTab]);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(currentCode);
@@ -62,21 +65,11 @@ function AnimatedCodeBlock({ activeTab = 0 }) {
     setTimeout(() => setCopied(false), 1500);
   };
 
-  // Initialize lines on mount
-  useEffect(() => {
-    const initialLines = currentCode.split('\n').map((line, i) => ({
-      text: line,
-      opacity: 1,
-      key: `${currentTab}-${i}`
-    }));
-    setLines(initialLines);
-  }, []);
-
   return (
     <div className="animated-code-block">
       <div className="code-header">
         <div className="code-tabs">
-          {tabs.map((tab, i) => (
+          {TABS.map((tab, i) => (
             <button
               key={tab.id}
               className={`code-tab ${i === currentTab ? 'active' : ''}`}
@@ -108,14 +101,14 @@ function AnimatedCodeBlock({ activeTab = 0 }) {
         <pre className="code-pre">
           <code>
             {lines.map((line, i) => (
-              <motion.div
+            <motion.div
                 key={line.key}
                 className="code-line"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: line.opacity }}
                 transition={{ duration: 0.2 }}
               >
-                {highlightSyntax(line.text, tabs[currentTab].id)}
+                {highlightSyntax(line.text, TABS[currentTab].id)}
               </motion.div>
             ))}
           </code>

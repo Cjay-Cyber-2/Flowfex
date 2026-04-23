@@ -143,36 +143,6 @@ function CanvasContainer({ nodes = [], edges = [], isAgentActive = false }) {
     updateViewport({ zoom: newZoom, panX: newPanX, panY: newPanY });
   }, [viewport, updateViewport]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      // Escape - deselect
-      if (e.key === 'Escape') {
-        deselectAll();
-      }
-      
-      // Cmd/Ctrl + Shift + F - fit to view
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'f') {
-        e.preventDefault();
-        fitToView();
-      }
-      
-      // M, F, L - mode switching
-      if (e.key === 'm' || e.key === 'M') {
-        // Switch to Map mode
-      }
-      if (e.key === 'f' || e.key === 'F') {
-        // Switch to Flow mode
-      }
-      if (e.key === 'l' || e.key === 'L') {
-        // Switch to Live mode
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [deselectAll]);
-
   // Fit to view function
   const fitToView = useCallback(() => {
     if (nodes.length === 0) return;
@@ -199,6 +169,33 @@ function CanvasContainer({ nodes = [], edges = [], isAgentActive = false }) {
     
     updateViewport({ zoom: newZoom, panX: newPanX, panY: newPanY });
   }, [nodes, updateViewport]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        deselectAll();
+      }
+
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'f') {
+        e.preventDefault();
+        fitToView();
+      }
+
+      if (e.key === 'm' || e.key === 'M') {
+        // Switch to Map mode
+      }
+      if (e.key === 'f' || e.key === 'F') {
+        // Switch to Flow mode
+      }
+      if (e.key === 'l' || e.key === 'L') {
+        // Switch to Live mode
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [deselectAll, fitToView]);
 
   // Cursor style based on interaction state
   const getCursorStyle = () => {

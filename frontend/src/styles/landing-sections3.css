@@ -334,32 +334,6 @@
 
 .cam-copy-btn:hover { background: rgba(0, 212, 170, 0.22); }
 
-.cam-expand-row {
-  background: none;
-  border: none;
-  font-family: Inter, sans-serif;
-  font-size: 13px;
-  color: var(--color-bistre);
-  cursor: pointer;
-  padding: 8px 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.cam-expand-body {
-  overflow: hidden;
-  transition: max-height 0.3s ease;
-}
-
-.cam-expand-body p {
-  font-family: Inter, sans-serif;
-  font-size: 13px;
-  color: var(--color-bistre);
-  line-height: 1.6;
-  margin: 8px 0 0;
-}
-
 .cam-readonly-input {
   flex: 1;
   height: 44px;
@@ -389,36 +363,6 @@
   font-size: 12px;
   color: var(--color-bistre);
   margin: 12px 0 0;
-}
-
-.cam-rules-panel {
-  margin-top: 16px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: rgba(0, 212, 170, 0.06);
-  border: 1px solid rgba(0, 212, 170, 0.12);
-}
-
-.cam-rules-kicker {
-  display: block;
-  margin-bottom: 10px;
-  font-family: Inter, sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--color-sinoper);
-}
-
-.cam-rules-list {
-  margin: 0;
-  padding-left: 18px;
-  display: grid;
-  gap: 8px;
-  color: rgba(237, 232, 223, 0.85);
-  font-family: Inter, sans-serif;
-  font-size: 13px;
-  line-height: 1.55;
 }
 
 .cam-pill {

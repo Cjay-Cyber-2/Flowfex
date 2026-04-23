@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { MeshGradient, PulsingBorder } from '@paper-design/shaders-react';
 import ThreeDLogoMark from '../common/ThreeDLogoMark';
 
 const HUB_CENTER = { x: 720, y: 450 };
@@ -279,28 +278,9 @@ export default function HeroOrchestrationScene() {
 
   return (
     <div ref={sceneRef} className="hero-orchestration-scene" aria-hidden="true">
-      <div className="hero-orchestration-mesh hero-orchestration-mesh-primary">
-        <MeshGradient
-          colors={['#05090d', '#0a131a', '#0d1f24', '#00d4aa', '#46bda9', '#7ffff0']}
-          speed={0.16}
-          distortion={0.72}
-          swirl={0.28}
-          grainMixer={0.06}
-          grainOverlay={0.03}
-          style={{ width: '100%', height: '100%' }}
-        />
-      </div>
-      <div className="hero-orchestration-mesh hero-orchestration-mesh-secondary">
-        <MeshGradient
-          colors={['#081017', '#101a20', '#00d4aa', '#00e5c3', '#7ffff0']}
-          speed={0.1}
-          distortion={0.34}
-          swirl={0.64}
-          grainMixer={0.08}
-          grainOverlay={0.06}
-          style={{ width: '100%', height: '100%' }}
-        />
-      </div>
+      <div className="hero-orchestration-mesh hero-orchestration-mesh-primary" />
+      <div className="hero-orchestration-mesh hero-orchestration-mesh-secondary" />
+      <div className="hero-orchestration-grid" />
       <div className="hero-orchestration-vignette" />
 
       <svg
@@ -350,23 +330,8 @@ export default function HeroOrchestrationScene() {
 
       <div className="hero-orchestration-core">
         <div className="hero-orchestration-core-border">
-          <PulsingBorder
-            colors={['#00d4aa', '#00e5c3', '#7ffff0', '#46bda9']}
-            colorBack="#00000000"
-            speed={1.05}
-            roundness={1}
-            thickness={0.1}
-            softness={0.18}
-            intensity={4.2}
-            spotsPerColor={4}
-            spotSize={0.1}
-            pulse={0.08}
-            smoke={0.08}
-            smokeSize={1.4}
-            scale={0.86}
-            rotation={0}
-            style={{ width: '100%', height: '100%', borderRadius: '50%' }}
-          />
+          <div className="hero-orchestration-core-ring hero-orchestration-core-ring-outer" />
+          <div className="hero-orchestration-core-ring hero-orchestration-core-ring-inner" />
         </div>
         <div className="hero-orchestration-core-shell" />
         <div className="hero-orchestration-core-caption">

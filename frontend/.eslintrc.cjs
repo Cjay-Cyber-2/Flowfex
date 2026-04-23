@@ -4,6 +4,7 @@ module.exports = {
     browser: true,
     es2022: true,
   },
+  plugins: ['react-hooks'],
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
@@ -13,6 +14,8 @@ module.exports = {
   },
   ignorePatterns: ['dist/**'],
   rules: {
+    'react-hooks/rules-of-hooks': 'error',
+    'react-hooks/exhaustive-deps': 'warn',
     'no-restricted-imports': [
       'error',
       {

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, Copy, CheckCheck, RefreshCw } from 'lucide-react';
 import { io } from 'socket.io-client';
@@ -17,14 +17,6 @@ const SOCKET_OPTIONS = {
   timeout: 10000,
   transports: ['websocket', 'polling'],
 };
-const FALLBACK_RULES = [
-  'Stay attached to this Flowfex session for the full conversation.',
-  'Send every user request to Flowfex before taking action.',
-  'Always ask Flowfex for agent.md files, skills, tools, memory, and workflows before continuing.',
-  'Use all directly relevant Flowfex resources for the request.',
-  'If Flowfex has no relevant resource, use none and do not invent a substitute.',
-  'Return progress, approvals, and the final result through the same Flowfex session.',
-];
 
 function useCopy() {
   const [copied, setCopied] = useState(false);
@@ -36,9 +28,28 @@ function useCopy() {
   return [copied, copy];
 }
 
-function getConnectionRules(connection) {
-  const rules = connection?.connection?.instructions?.rules;
-  return Array.isArray(rules) && rules.length > 0 ? rules : FALLBACK_RULES;
+async function readConnectResponse(response) {
+  const rawText = await response.text();
+  const trimmed = rawText.trim();
+
+  if (!trimmed) {
+    return {
+      hasBody: false,
+      payload: null,
+    };
+  }
+
+  try {
+    return {
+      hasBody: true,
+      payload: JSON.parse(trimmed),
+    };
+  } catch {
+    return {
+      hasBody: true,
+      payload: null,
+    };
+  }
 }
 
 function CopyBtn({ text, style }) {
@@ -63,22 +74,7 @@ function ConcealedPayload({ text, title }) {
   );
 }
 
-function RuleList({ connection }) {
-  const rules = getConnectionRules(connection);
-  return (
-    <div className="cam-rules-panel">
-      <span className="cam-rules-kicker">Agent behavior after attach</span>
-      <ul className="cam-rules-list">
-        {rules.map((rule) => (
-          <li key={rule}>{rule}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 function PromptTab({ connection, loading, onRefresh, error }) {
-  const [open, setOpen] = useState(false);
   const sessionUrl = normalizeSessionConnectUrl(connection?.connection?.instructions?.sessionUrl || CONNECT_LINK);
   const promptText = rewriteConnectPrompt(connection?.connection?.instructions?.prompt || CONNECT_PROMPT, sessionUrl);
   return (
@@ -90,13 +86,6 @@ function PromptTab({ connection, loading, onRefresh, error }) {
         <RefreshCw size={13} /> {loading ? 'Generating...' : 'Refresh Session'}
       </button>
       {error ? <p className="cam-security-note">Backend error: {error}</p> : null}
-      <RuleList connection={connection} />
-      <button className="cam-expand-row" onClick={() => setOpen(!open)}>
-        <span>{open ? '▾' : '▸'} Why this works</span>
-      </button>
-      <div className="cam-expand-body" style={{ maxHeight: open ? 200 : 0 }}>
-        <p>The prompt names the session, keeps the agent attached for the entire conversation, and forces the agent to ask Flowfex for only directly relevant resources before it proceeds.</p>
-      </div>
     </div>
   );
 }
@@ -119,7 +108,6 @@ function LinkTab({ connection, loading, onRefresh, error }) {
       </button>
       <p className="cam-security-note">{summary}</p>
       {error ? <p className="cam-security-note">Backend error: {error}</p> : null}
-      <RuleList connection={connection} />
     </div>
   );
 }
@@ -135,7 +123,6 @@ function SDKTab({ connection, loading, onRefresh, error }) {
       </button>
       {error ? <p className="cam-security-note">Backend error: {error}</p> : null}
       <p className="cam-security-note">Use the SDK when you want the cleanest app-side integration with Flowfex session control.</p>
-      <RuleList connection={connection} />
     </div>
   );
 }
@@ -160,7 +147,6 @@ function LiveChannelTab({ connection, loading, onRefresh, error }) {
         <RefreshCw size={13} /> {loading ? 'Preparing Live Channel...' : 'Refresh Live Channel'}
       </button>
       {error ? <p className="cam-security-note">Backend error: {error}</p> : null}
-      <RuleList connection={connection} />
     </div>
   );
 }
@@ -183,7 +169,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
   const finalizedSessionIdsRef = useRef(new Set());
   const TabContent = TAB_CONTENT[activeTab];
 
-  const requestForTab = (tab) => {
+  const requestForTab = useCallback((tab) => {
     switch (tab) {
       case 'Prompt':
         return {
@@ -215,9 +201,9 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
       default:
         return null;
     }
-  };
+  }, [activeSession?.id]);
 
-  const fetchConnection = async (tab) => {
+  const fetchConnection = useCallback(async (tab) => {
     const request = requestForTab(tab);
     if (!request) {
       return;
@@ -235,9 +221,22 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
         },
         body: JSON.stringify(request),
       });
-      const payload = await response.json();
+      const { hasBody, payload } = await readConnectResponse(response);
+
       if (!response.ok) {
         throw new Error(payload?.error?.message || 'Connection bootstrap failed');
+      }
+
+      if (!hasBody) {
+        throw new Error('Connection bootstrap returned an empty response');
+      }
+
+      if (!payload) {
+        throw new Error('Connection bootstrap returned an unreadable response');
+      }
+
+      if (!payload.connection) {
+        throw new Error('Connection bootstrap returned incomplete session data');
       }
 
       setConnections((current) => ({
@@ -252,9 +251,9 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     } finally {
       setLoadingTab(null);
     }
-  };
+  }, [accessToken, backendUrl, requestForTab]);
 
-  const finalizeConnection = React.useCallback((tab, eventData = null) => {
+  const finalizeConnection = useCallback((tab, eventData = null) => {
     const connection = connections[tab];
     const session = connection?.connection?.session;
     if (!session || finalizedSessionIdsRef.current.has(session.id)) {
@@ -298,7 +297,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
 
     fetchAttemptedRef.current.add(activeTab);
     fetchConnection(activeTab);
-  }, [activeTab, connections, isOpen, loadingTab]);
+  }, [activeTab, connections, fetchConnection, isOpen, loadingTab]);
 
   useEffect(() => {
     if (!isOpen) {

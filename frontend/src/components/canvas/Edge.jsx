@@ -24,12 +24,20 @@ function Edge({ edge, nodes, zoom }) {
   const sourceNode = nodes.find(n => n.id === from);
   const targetNode = nodes.find(n => n.id === to);
 
-  if (!sourceNode || !targetNode) return null;
-
   // Calculate edge path
   const { path, midpoint, labelPosition } = useMemo(() => {
+    if (!sourceNode || !targetNode) {
+      return {
+        path: null,
+        midpoint: null,
+        labelPosition: null,
+      };
+    }
+
     return calculateEdgePath(sourceNode, targetNode);
   }, [sourceNode, targetNode]);
+
+  if (!path) return null;
 
   // Get marker ID based on state
   const getMarkerId = () => {

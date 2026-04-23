@@ -4,10 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import HeroOrchestrationScene from '../components/animations/HeroOrchestrationScene';
 import FlowIcon from '../components/common/FlowIcon';
-import ParticleField from '../components/animations/ParticleFieldSimple';
 import ScrollFrameSection from '../components/landing/ScrollFrameSection';
 import DotNavigation from '../components/landing/DotNavigation';
-import { DEMO_SKILL_LIBRARY, buildDemoWorkspace } from '../store/demoData';
+import { buildDemoWorkspace } from '../store/demoData';
 import { ContainerScroll } from '../components/animations/ContainerScroll';
 import { ParticleTextEffect } from '../components/animations/ParticleTextEffect';
 
@@ -310,12 +309,10 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* ── Statement section: ParticleTextEffect with landing page theme ── */}
       <section
         id="statement"
         data-section-id="statement"
-        className="landing-section"
-        style={{ padding: '6rem 24px', minHeight: '65vh', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2.5rem', background: 'radial-gradient(ellipse at center, rgba(0, 212, 170, 0.03) 0%, transparent 70%)' }}
+        className="landing-section statement-section"
       >
         <p className="statement-kicker">
           What Flowfex does
@@ -510,9 +507,6 @@ function LandingPage() {
       </Suspense>
 
       <section id="final" data-section-id="final" className="landing-section final-section">
-        <div className="final-canvas-background">
-          <ParticleField />
-        </div>
         <div className="final-panel">
           <span className="section-kicker">Start with one connection</span>
           <h2>

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useCanvasStore from '../../store/canvasStore';
 import './Minimap.css';
@@ -12,8 +12,6 @@ function Minimap({ nodes = [], edges = [], viewport }) {
   const { minimapVisible, updateViewport } = useCanvasStore();
   const minimapRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
-
-  if (!minimapVisible) return null;
 
   // Calculate graph bounds
   const bounds = calculateGraphBounds(nodes);
@@ -42,7 +40,7 @@ function Minimap({ nodes = [], edges = [], viewport }) {
     setIsDragging(true);
   };
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = useCallback((e) => {
     if (!isDragging || !minimapRef.current) return;
 
     const rect = minimapRef.current.getBoundingClientRect();
@@ -58,22 +56,26 @@ function Minimap({ nodes = [], edges = [], viewport }) {
     const newPanY = -canvasY + window.innerHeight / 2;
 
     updateViewport({ panX: newPanX, panY: newPanY });
-  };
+  }, [bounds.minX, bounds.minY, isDragging, scale, updateViewport, viewport.zoom]);
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     setIsDragging(false);
-  };
+  }, []);
 
-  React.useEffect(() => {
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
-      };
+  useEffect(() => {
+    if (!isDragging) {
+      return undefined;
     }
-  }, [isDragging]);
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [handleMouseMove, handleMouseUp, isDragging]);
+
+  if (!minimapVisible) return null;
 
   return (
     <AnimatePresence>

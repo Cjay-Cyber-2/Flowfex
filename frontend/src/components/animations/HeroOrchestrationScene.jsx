@@ -111,57 +111,86 @@ function buildNodePath(node) {
 function HeroNode({ node, isExpanded, onToggle }) {
   return (
     <g
-      className={`hero-orchestration-node hero-orchestration-node-${node.kind}`}
+      className={`hero-orchestration-node hero-orchestration-node-${node.kind}${isExpanded ? ' is-expanded' : ''}`}
       transform={`translate(${node.x} ${node.y})`}
       style={{ '--node-accent': node.accent }}
     >
       <rect width={NODE_WIDTH} height={NODE_HEIGHT} rx="26" />
       <rect className="hero-orchestration-node-topline" width={NODE_WIDTH} height="2" rx="2" />
+      
+      {/* Interactive dot with pulse rings */}
       <g 
-        className="hero-orchestration-node-dot-group" 
-        onClick={onToggle}
-        style={{ cursor: 'pointer' }}
+        className="hero-orchestration-node-dot-wrapper"
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle();
+        }}
       >
-        <circle className="hero-orchestration-node-dot-pulse" cx="28" cy="31" r="10" opacity="0">
-          <animate attributeName="r" from="6" to="12" dur="2s" repeatCount="indefinite" />
-          <animate attributeName="opacity" from="0.6" to="0" dur="2s" repeatCount="indefinite" />
-        </circle>
-        <circle className="hero-orchestration-node-dot" cx="28" cy="31" r="6" />
+        {/* Outer pulse ring */}
+        <circle 
+          className="hero-orchestration-node-dot-ring" 
+          cx="28" 
+          cy="31" 
+          r="6"
+          style={{ stroke: node.accent }}
+        />
+        {/* Inner solid dot */}
+        <circle 
+          className="hero-orchestration-node-dot" 
+          cx="28" 
+          cy="31" 
+          r="5"
+          style={{ fill: node.accent }}
+        />
       </g>
+      
       <text className="hero-orchestration-node-label" x="46" y="33">
         {node.label}
       </text>
       <text className="hero-orchestration-node-meta" x="46" y="56">
         {node.meta}
       </text>
+      
+      {/* Explanation dropdown */}
       {isExpanded && (
         <g className="hero-orchestration-node-explanation">
           <rect 
             x="0" 
-            y={NODE_HEIGHT + 8} 
+            y={NODE_HEIGHT + 12} 
             width={NODE_WIDTH} 
-            height="auto" 
+            height="80" 
             rx="12" 
-            fill="rgba(0, 212, 170, 0.1)" 
-            stroke={node.accent} 
-            strokeWidth="1"
+            className="hero-orchestration-node-explanation-bg"
+            style={{ fill: 'rgba(0, 20, 30, 0.95)', stroke: node.accent }}
           />
-          <foreignObject 
-            x="8" 
-            y={NODE_HEIGHT + 16} 
-            width={NODE_WIDTH - 16} 
-            height="120"
+          <text 
+            className="hero-orchestration-node-explanation-text" 
+            x="12" 
+            y={NODE_HEIGHT + 30}
           >
-            <div style={{
-              fontSize: '11px',
-              lineHeight: '1.4',
-              color: '#7ffff0',
-              padding: '8px',
-              fontFamily: 'system-ui, -apple-system, sans-serif'
-            }}>
-              {node.explanation}
-            </div>
-          </foreignObject>
+            {node.explanation.split(' ').slice(0, 4).join(' ')}
+          </text>
+          <text 
+            className="hero-orchestration-node-explanation-text" 
+            x="12" 
+            y={NODE_HEIGHT + 46}
+          >
+            {node.explanation.split(' ').slice(4, 8).join(' ')}
+          </text>
+          <text 
+            className="hero-orchestration-node-explanation-text" 
+            x="12" 
+            y={NODE_HEIGHT + 62}
+          >
+            {node.explanation.split(' ').slice(8, 12).join(' ')}
+          </text>
+          <text 
+            className="hero-orchestration-node-explanation-text" 
+            x="12" 
+            y={NODE_HEIGHT + 78}
+          >
+            {node.explanation.split(' ').slice(12).join(' ')}
+          </text>
         </g>
       )}
     </g>

@@ -910,6 +910,11 @@
   isolation: isolate;
 }
 
+/* Re-enable pointer events for interactive elements */
+.hero-orchestration-node-dot-wrapper {
+  pointer-events: auto;
+}
+
 .hero-orchestration-mesh,
 .hero-orchestration-vignette {
   position: absolute;
@@ -942,6 +947,7 @@
   width: 104%;
   height: 104%;
   transform: translate3d(calc(var(--hero-parallax-x) * 0.72), calc(var(--hero-parallax-y) * 0.72), 0);
+  pointer-events: auto;
 }
 
 .hero-orchestration-parallax-near {
@@ -967,9 +973,73 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
+/* Interactive dot wrapper */
+.hero-orchestration-node-dot-wrapper {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.hero-orchestration-node-dot-wrapper:hover {
+  transform: scale(1.1);
+}
+
+/* Pulse ring animation */
+.hero-orchestration-node-dot-ring {
+  fill: transparent;
+  stroke-width: 1.5;
+  opacity: 0;
+  animation: dotPulseRing 2.5s ease-out infinite;
+  transform-origin: center;
+}
+
+/* Solid dot with glow */
 .hero-orchestration-node-dot {
-  fill: var(--node-accent);
-  filter: drop-shadow(0 0 10px var(--node-accent));
+  filter: drop-shadow(0 0 8px var(--node-accent));
+  transition: r 0.2s ease, filter 0.2s ease;
+}
+
+.hero-orchestration-node-dot-wrapper:hover .hero-orchestration-node-dot {
+  filter: drop-shadow(0 0 14px var(--node-accent));
+}
+
+/* Pulse animation keyframes */
+@keyframes dotPulseRing {
+  0% {
+    r: 5;
+    opacity: 0.8;
+  }
+  100% {
+    r: 14;
+    opacity: 0;
+  }
+}
+
+/* Explanation dropdown styles */
+.hero-orchestration-node-explanation {
+  animation: explanationFadeIn 0.3s ease-out;
+}
+
+.hero-orchestration-node-explanation-bg {
+  stroke-width: 1;
+  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.5));
+}
+
+.hero-orchestration-node-explanation-text {
+  fill: rgba(127, 255, 240, 0.9);
+  font-family: var(--font-geist);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+@keyframes explanationFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .hero-orchestration-node-topline {

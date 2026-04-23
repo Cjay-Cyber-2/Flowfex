@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { MeshGradient, PulsingBorder } from '@paper-design/shaders-react';
 import ThreeDLogoMark from '../common/ThreeDLogoMark';
 
@@ -16,6 +16,7 @@ const HERO_NODES = [
     kind: 'foundation',
     side: 'left',
     accent: '#00d4aa',
+    explanation: 'Flowfex maintains a unified registry where all skills are stored with structured schemas, making them discoverable and version-controlled.',
   },
   {
     id: 'importer',
@@ -26,6 +27,7 @@ const HERO_NODES = [
     kind: 'foundation',
     side: 'left',
     accent: '#00e5c3',
+    explanation: 'Import hundreds of markdown-based skills at once. Flowfex automatically parses and structures them for immediate use.',
   },
   {
     id: 'category',
@@ -36,6 +38,7 @@ const HERO_NODES = [
     kind: 'foundation',
     side: 'left',
     accent: '#7ffff0',
+    explanation: 'Organize skills into categories with smart filtering and grouping, making it easy to navigate large skill libraries.',
   },
   {
     id: 'semantic',
@@ -46,6 +49,7 @@ const HERO_NODES = [
     kind: 'intelligence',
     side: 'right',
     accent: '#7ffff0',
+    explanation: 'Flowfex uses AI embeddings to match tasks with the most relevant skills based on meaning, not just keywords.',
   },
   {
     id: 'selection',
@@ -56,6 +60,7 @@ const HERO_NODES = [
     kind: 'intelligence',
     side: 'right',
     accent: '#46bda9',
+    explanation: 'Skills are ranked by relevance and filtered by trust levels, with human approval gates for critical decisions.',
   },
   {
     id: 'transparency',
@@ -66,6 +71,7 @@ const HERO_NODES = [
     kind: 'intelligence',
     side: 'right',
     accent: '#00d4aa',
+    explanation: 'Every skill selection shows why it was chosen, its confidence score, and what alternatives were considered.',
   },
 ];
 
@@ -102,7 +108,7 @@ function buildNodePath(node) {
   return pathFromTo(from, to, bend);
 }
 
-function HeroNode({ node }) {
+function HeroNode({ node, isExpanded, onToggle }) {
   return (
     <g
       className={`hero-orchestration-node hero-orchestration-node-${node.kind}`}
@@ -111,19 +117,60 @@ function HeroNode({ node }) {
     >
       <rect width={NODE_WIDTH} height={NODE_HEIGHT} rx="26" />
       <rect className="hero-orchestration-node-topline" width={NODE_WIDTH} height="2" rx="2" />
-      <circle className="hero-orchestration-node-dot" cx="28" cy="31" r="6" />
+      <g 
+        className="hero-orchestration-node-dot-group" 
+        onClick={onToggle}
+        style={{ cursor: 'pointer' }}
+      >
+        <circle className="hero-orchestration-node-dot-pulse" cx="28" cy="31" r="10" opacity="0">
+          <animate attributeName="r" from="6" to="12" dur="2s" repeatCount="indefinite" />
+          <animate attributeName="opacity" from="0.6" to="0" dur="2s" repeatCount="indefinite" />
+        </circle>
+        <circle className="hero-orchestration-node-dot" cx="28" cy="31" r="6" />
+      </g>
       <text className="hero-orchestration-node-label" x="46" y="33">
         {node.label}
       </text>
       <text className="hero-orchestration-node-meta" x="46" y="56">
         {node.meta}
       </text>
+      {isExpanded && (
+        <g className="hero-orchestration-node-explanation">
+          <rect 
+            x="0" 
+            y={NODE_HEIGHT + 8} 
+            width={NODE_WIDTH} 
+            height="auto" 
+            rx="12" 
+            fill="rgba(0, 212, 170, 0.1)" 
+            stroke={node.accent} 
+            strokeWidth="1"
+          />
+          <foreignObject 
+            x="8" 
+            y={NODE_HEIGHT + 16} 
+            width={NODE_WIDTH - 16} 
+            height="120"
+          >
+            <div style={{
+              fontSize: '11px',
+              lineHeight: '1.4',
+              color: '#7ffff0',
+              padding: '8px',
+              fontFamily: 'system-ui, -apple-system, sans-serif'
+            }}>
+              {node.explanation}
+            </div>
+          </foreignObject>
+        </g>
+      )}
     </g>
   );
 }
 
 export default function HeroOrchestrationScene() {
   const sceneRef = useRef(null);
+  const [expandedNode, setExpandedNode] = useState(null);
 
   const links = useMemo(
     () =>
@@ -133,6 +180,10 @@ export default function HeroOrchestrationScene() {
       })),
     []
   );
+
+  const handleNodeToggle = (nodeId) => {
+    setExpandedNode(expandedNode === nodeId ? null : nodeId);
+  };
 
   useEffect(() => {
     const scene = sceneRef.current;
@@ -258,7 +309,12 @@ export default function HeroOrchestrationScene() {
             />
           ))}
           {HERO_NODES.map((node) => (
-            <HeroNode key={node.id} node={node} />
+            <HeroNode 
+              key={node.id} 
+              node={node} 
+              isExpanded={expandedNode === node.id}
+              onToggle={() => handleNodeToggle(node.id)}
+            />
           ))}
         </g>
       </svg>

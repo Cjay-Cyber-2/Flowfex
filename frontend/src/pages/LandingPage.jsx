@@ -293,14 +293,12 @@ function LandingPage() {
         <HeroOrchestrationScene />
 
         <div className="hero-copy hero-copy-centered">
-          <span className="section-kicker">Semantic skill orchestration for live agents</span>
+          <span className="section-kicker">Skill orchestration for live agents</span>
           <h1 className="hero-headline">
-            <span>The skill operating layer for connected agents.</span>
-            <span className="hero-headline-accent">Flowfex imports, ranks, routes, and explains every move live.</span>
+            <span style={{ fontWeight: 'bold', letterSpacing: '0.02em' }}>The skill operating layer for connected agents.</span>
           </h1>
           <p className="hero-subheadline">
-            Bring in markdown skills at scale, match tasks semantically, and keep human approval and decision
-            transparency inside one orchestration surface.
+            Match tasks semantically, and keep human approval and decision transparency inside one orchestration surface.
           </p>
 
           <div className="hero-actions">

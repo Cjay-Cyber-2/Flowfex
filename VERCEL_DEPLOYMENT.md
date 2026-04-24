@@ -56,18 +56,30 @@ After deployment, test these URLs:
 - ✅ `https://your-deployment.vercel.app/canvas` → Canvas page loads (not 404)
 - ✅ Navigate to `/canvas` in-app, then refresh → Page still loads (not 404)
 
-## ⚠️ Known Limitation: WebSocket Backend
+## ⚠️ Known Limitation: Backend Connectivity
 
-The frontend tries to connect to `ws://localhost:4000/ws` for real-time orchestration updates. This will fail on Vercel (frontend-only deployment) but is handled gracefully:
+The frontend needs a separately deployed backend for API and Socket.io features. A frontend-only Vercel deployment will not provide that backend by itself, so realtime and session APIs will fail until you point the frontend at a real backend.
+
+This is handled gracefully:
 
 - The error is caught and logged
 - The canvas renders in offline mode
 - No crashes or broken UI
 
 To enable real-time features, you'll need to:
-1. Deploy the backend separately (e.g., Railway, Render, Fly.io)
-2. Update the WebSocket URL in `OrchestrationCanvas.jsx` to point to your backend deployment
-3. Configure CORS on the backend to allow requests from your Vercel domain
+1. Deploy the backend on Render
+2. Set `VITE_BACKEND_URL` (or `VITE_API_URL`) in Vercel to your Render backend URL
+3. Redeploy the frontend
+4. Configure `ALLOWED_ORIGINS` on the backend to allow requests from your Vercel domain
+
+The frontend resolves the backend origin from:
+
+- [frontend/src/utils/runtimeConfig.js](/home/gamp/Flowfex/frontend/src/utils/runtimeConfig.js:39)
+
+The repo now includes Render backend setup files:
+
+- [render.yaml](/home/gamp/Flowfex/render.yaml)
+- [RENDER_DEPLOYMENT.md](/home/gamp/Flowfex/RENDER_DEPLOYMENT.md)
 
 ## UI/UX Fixes Included
 

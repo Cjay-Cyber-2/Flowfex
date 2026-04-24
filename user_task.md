@@ -21,7 +21,7 @@ What is still on you is the operator work: accounts, secrets, providers, hosting
 
 Recommended stack for this repo:
 - Frontend: Vercel
-- Backend: Railway
+- Backend: Render
 - Database: Neon
 
 Do not plan around a Vercel-only deployment for the current Flowfex architecture.
@@ -40,26 +40,28 @@ You need two deployed surfaces:
    - `/frontend/vercel.json`
 
 2. Backend Node service
-   Recommended: Railway
+   Recommended: Render
    Reason: the backend is a persistent Node server and should not be treated as a static Vercel site.
 
 Recommended public domains:
 - Frontend: `https://app.yourdomain.com`
 - Backend: `https://api.yourdomain.com`
 
-## 2. What is already implemented for Railway
+## 2. What is already implemented for Render
 
-The backend foundation that Railway needs is already present in code:
+The backend foundation that Render needs is already present in code:
 - A real backend start command exists in [backend/package.json](/home/gamp/Flowfex/backend/package.json:1) as `npm start`
 - The backend reads the platform-injected `PORT` in [FlowfexServer.js](/home/gamp/Flowfex/backend/src/server/FlowfexServer.js:29)
 - The backend now binds to `0.0.0.0` by default, which is correct for cloud deployment, in [FlowfexServer.js](/home/gamp/Flowfex/backend/src/server/FlowfexServer.js:29)
 - The backend exposes a health endpoint at `/health` in [FlowfexServer.js](/home/gamp/Flowfex/backend/src/server/FlowfexServer.js:160)
 - Socket.io is already attached to the backend server in [FlowfexServer.js](/home/gamp/Flowfex/backend/src/server/FlowfexServer.js:59)
 - CORS and public origin settings are already driven by `ALLOWED_ORIGINS` and `FLOWFEX_PUBLIC_ORIGIN` in [FlowfexServer.js](/home/gamp/Flowfex/backend/src/server/FlowfexServer.js:64)
+- A repo-root Render Blueprint now exists at [render.yaml](/home/gamp/Flowfex/render.yaml:1)
 
 What this means:
-- You do not need additional Railway-specific application code just to get the current backend online.
-- You do need to create the Railway service, connect the repo, point it at `/backend`, set environment variables, set the healthcheck path, and generate a public domain.
+- You do not need additional Render-specific application code just to get the current backend online.
+- You can either import [render.yaml](/home/gamp/Flowfex/render.yaml:1) into Render or create the Web Service manually.
+- You do still need to set environment variables, choose the Render plan, confirm the health check path, and generate a public domain.
 
 ## 3. What is not yet implemented in code
 
@@ -79,13 +81,18 @@ Concrete examples of current placeholders:
 - [backend/src/session/sessionDataAccess.js](/home/gamp/Flowfex/backend/src/session/sessionDataAccess.js:1) still returns `false` for session-data configuration and throws if used
 
 What this means operationally:
-- Railway deployment preparation can be completed now
+- Render deployment preparation can be completed now
 - Vercel deployment preparation can be completed now
 - The actual production auth/database rollout cannot be completed until the Neon connection string is provided and the remaining migration steps are implemented
 
 ## 4. Configure Neon and Better Auth
 
 Create the Neon project, collect the Postgres connection string, and prepare the Better Auth secret plus provider credentials.
+
+Important:
+- This section is for the later Neon + Better Auth rollout.
+- It is not required for the first taggable hosted version if you are shipping the current pre-auth Flowfex state.
+- For the first tag, focus on frontend + backend hosting, origin config, one LLM provider key, and Render/Vercel wiring.
 
 Current human-provided values that are already known to be required from the codebase:
 - `DATABASE_URL`
@@ -189,18 +196,34 @@ Important implementation detail:
 - The frontend is built with Vite, so public env vars must be present in the frontend build environment
 - Vite is configured to expose `VITE_*` variables
 
-### Required variables
+### First tag minimum variables
+
+These are the values you need for the first hosted Flowfex version that matches the repo today:
 
 | Variable | Where to set it | Required | Purpose |
 | --- | --- | --- | --- |
-| `DATABASE_URL` | Backend only | Yes | Direct DB access / migration tooling |
-| `BETTER_AUTH_SECRET` | Backend only | Yes | Better Auth signing and encryption secret |
-| `BETTER_AUTH_URL` | Backend only | Yes | Public base URL used by the auth handler |
-| `VITE_APP_URL` | Frontend build env | Yes | Public app origin used for redirects |
+| `VITE_APP_URL` | Frontend build env | Yes | Public app origin |
 | `VITE_BACKEND_URL` | Frontend build env | Yes | Backend base URL used by the frontend |
 | `FLOWFEX_PUBLIC_ORIGIN` | Backend runtime | Yes | Public backend origin used when generating connect links |
 | `ALLOWED_ORIGINS` | Backend runtime | Yes | Comma-separated frontend origins allowed by CORS and Socket.io |
-| `PORT` | Backend runtime | Yes | Backend listening port |
+| `FLOWFEX_LINK_SECRET` | Backend runtime | Yes | Stable secret for connect-link generation |
+| `OPENAI_API_KEY` or `GROQ_API_KEY` or `ANTHROPIC_API_KEY` | Backend runtime | Yes for real orchestration | Enables real tool/LLM execution instead of mock mode |
+
+For local-only development:
+
+| Variable | Where to set it | Required | Purpose |
+| --- | --- | --- | --- |
+| `PORT` | Local backend env | Optional | Local backend listening port. Default behavior is `4000`. Do not set this manually on Render. |
+
+### Later migration variables
+
+These are not required for the first tag unless you complete the remaining Neon + Better Auth migration work:
+
+| Variable | Where to set it | Required | Purpose |
+| --- | --- | --- | --- |
+| `DATABASE_URL` | Backend only | Required after migration | Direct DB access / migration tooling |
+| `BETTER_AUTH_SECRET` | Backend only | Required after migration | Better Auth signing and encryption secret |
+| `BETTER_AUTH_URL` | Backend only | Required after migration | Public base URL used by the auth handler |
 | `EMAIL_FROM` | Backend only | Required for email auth flows | Sender address for magic links and verification mail |
 | `SMTP_HOST` | Backend only | Required for email auth flows | SMTP host |
 | `SMTP_PORT` | Backend only | Required for email auth flows | SMTP port |
@@ -211,8 +234,6 @@ Important implementation detail:
 
 | Variable | Required level | Purpose |
 | --- | --- | --- |
-| `FLOWFEX_LINK_SECRET` | Strongly recommended | Stable secret used for connect links; set this explicitly so generated links do not depend on a random boot-time secret |
-| `OPENAI_API_KEY` or `GROQ_API_KEY` or `ANTHROPIC_API_KEY` | Required if orchestration should use an LLM provider | Enables real tool/LLM execution |
 | `FLOWFEX_CONNECTION_API_KEY` | Optional hardening | Shared server-level connection secret for unauthenticated API connections |
 | OAuth provider client IDs and secrets | Required only for providers you enable | Enables social sign-in for the matching provider |
 
@@ -242,6 +263,7 @@ You must choose one of these Vercel modes:
 
 Before you ship:
 - Set frontend build env vars in Vercel
+- Set `VITE_BACKEND_URL` to the real Render backend URL
 - Confirm SPA rewrites work
 - Verify these routes on refresh:
   - `/`
@@ -254,7 +276,7 @@ Before you ship:
 Important:
 - Every change to `VITE_*` values requires a redeploy of the frontend
 
-## 9. Deploy the backend on Railway
+## 9. Deploy the backend on Render
 
 Backend runtime entry:
 ```bash
@@ -269,26 +291,27 @@ What `npm start` does:
 You need a host that supports a long-running Node process.
 
 Required backend deployment actions:
-- Create a Railway project and a backend service
-- Connect the repo to the Railway service
-- Set the Railway service root directory to `/backend`
+- Create a Render Web Service for this repo
+- Preferred: import [render.yaml](/home/gamp/Flowfex/render.yaml:1)
+- Manual fallback: connect the repo in Render and set the service root directory to `/backend`
+- Set the Render build command to `npm ci`
+- Set the Render start command to `npm start`
 - Set all backend env vars
-- Expose the chosen port
-- Configure the Railway healthcheck path as `/health`
+- Configure the Render health check path as `/health`
 - Serve HTTPS in production
 - Make sure WebSocket / Socket.io traffic is allowed
 - Set `FLOWFEX_PUBLIC_ORIGIN` to the real public backend URL
 - Set `ALLOWED_ORIGINS` to the real frontend origin list
 
-Only set a custom start command if Railway fails to auto-detect it.
+Only set a custom start command if Render fails to auto-detect it.
 Expected command:
 ```bash
 npm start
 ```
 
-Only set a custom port if Railway healthchecks fail to detect the app correctly.
+Only set a custom port if Render fails to detect the app correctly.
 Expected runtime behavior in code:
-- Railway injects `PORT`
+- Render injects `PORT`
 - Flowfex listens on that `PORT`
 - Flowfex serves `GET /health` with HTTP 200
 
@@ -298,11 +321,43 @@ FLOWFEX_PUBLIC_ORIGIN=https://api.yourdomain.com
 ALLOWED_ORIGINS=https://app.yourdomain.com,https://staging-app.yourdomain.com
 ```
 
+Recommended Render plan choice:
+- `Free` for testing or preview use only
+- `Starter` or higher for launch
+
+Important Render caveats for this repo:
+- Render Free spins down after 15 minutes without inbound traffic
+- Render Free uses an ephemeral filesystem
+- Render Free cannot attach a persistent disk
+- Render Free blocks outbound SMTP traffic on ports `25`, `465`, and `587`
+- This repo currently falls back to file-backed session state until the Neon migration is finished, so do not rely on Render Free for durable session state in production
+
+## 9A. Scope the first tag honestly
+
+What the first hosted Flowfex tag can honestly support today:
+- Vercel-hosted frontend
+- Render-hosted backend
+- Backend health check at `/health`
+- Socket.io namespaces and control API
+- Prompt, Link, SDK, and Live connection bootstrap through `/connect`
+- One configured LLM provider
+- Manual agent attach flows against the current backend
+
+What the first hosted Flowfex tag should not promise yet:
+- Better Auth sign-in/sign-up
+- Email verification or magic links
+- OAuth sign-in providers
+- Database-backed anonymous session creation
+- API key management UI as a production-ready feature
+- Final Neon-backed session persistence and recovery
+
+If you tag the repo before the migration is finished, treat auth, API keys, and Neon-backed sessions as explicitly out of scope for that tag.
+
 ## 10. DNS and TLS
 
 You need to complete the non-code hosting work:
 - Point the frontend domain to Vercel
-- Point the backend domain to your Node host
+- Point the backend domain to Render
 - Wait for TLS certificates to be valid
 - Verify:
   - `https://app.yourdomain.com`
@@ -317,6 +372,8 @@ That will break secure browser behavior and WebSocket expectations.
 ## 11. Generate your first Flowfex API key
 
 This is required if you want clean production use of SDK or live-channel connections without relying on an active signed-in browser session.
+
+This section applies only after the Better Auth + Neon migration is completed.
 
 How to do it:
 1. Launch the app with the database and auth providers configured
@@ -392,6 +449,8 @@ Recommended operator action:
 
 This app supports anonymous-first onboarding and later upgrade into an authenticated user.
 
+This section applies only after the Better Auth + Neon migration is completed.
+
 You need to test this flow manually:
 
 1. Open the app with no sign-in
@@ -423,6 +482,21 @@ npm run skills:report
 
 Then start the backend and frontend in their actual deployment environments and test the live app.
 
+### First tag verification checklist
+
+Before creating the first hosted tag, verify at least these behaviors with the real deployed URLs:
+- `GET /health` returns HTTP 200 from the Render backend
+- The Vercel frontend points to the Render backend via `VITE_BACKEND_URL`
+- The landing page loads
+- `/dashboard` loads without a hard crash
+- The Connect Agent modal opens
+- Prompt bootstrap works
+- Link bootstrap works
+- SDK bootstrap works
+- Live Channel bootstrap works
+- Socket.io namespaces accept connections from the frontend origin
+- One LLM provider key is present and the backend is not running in mock mode
+
 ## 16. Manual acceptance checklist before launch
 
 Complete all of these with the real deployed URLs:
@@ -437,6 +511,8 @@ Complete all of these with the real deployed URLs:
 - Hard refresh on any route does not 404
 
 ### Auth
+
+This entire section applies only after the Better Auth + Neon migration is completed.
 - Email sign-up works
 - Email confirmation works
 - Email sign-in works
@@ -445,12 +521,16 @@ Complete all of these with the real deployed URLs:
 - Sign-out works
 
 ### Sessions
+
+These checks apply only after the database-backed session migration is completed.
 - Anonymous session creation works
 - Anonymous session validation works
 - Anonymous-to-authenticated upgrade works
 - Recent authenticated session restore works
 
 ### API key management
+
+This section applies only after the Better Auth + Neon migration is completed.
 - Generate key works
 - Key is shown once
 - Key can be used for SDK/live connection
@@ -502,7 +582,7 @@ Do not do this:
 
 You do not need to manually implement:
 - SPA rewrite config files for Vercel
-- basic Railway-compatible backend binding and port handling
+- basic Render-compatible backend binding, port handling, and health checks
 - Backend connection routes
 - Frontend build pipeline
 - Backend build script
@@ -516,19 +596,20 @@ You only need to supply the infrastructure, secrets, provider setup, and final o
 
 Follow this order:
 
-1. Create the Neon project
-2. Paste the Neon connection string into `DATABASE_URL`
-3. Reply `continue` so the remaining migration code can be implemented
-4. After the code migration is complete, apply the generated database migration
-5. Configure auth providers and redirect URLs
-6. Fill production env vars
-7. Deploy backend
-8. Deploy frontend
-9. Verify CORS and real backend connectivity
-10. Create a real user account
-11. Generate your first Flowfex API key
-12. Test Prompt, Link, SDK, and Live Channel attach flows
-13. Review blocked and duplicate skills
-14. Run the launch acceptance checklist
+1. Fill the first-tag env vars from [.env.example](/home/gamp/Flowfex/.env.example:1)
+2. Deploy backend on Render
+3. Deploy frontend on Vercel
+4. Verify CORS and real backend connectivity
+5. Test Prompt, Link, SDK, and Live Channel attach flows
+6. Review blocked and duplicate skills
+7. Run the first tag verification checklist
+8. Create the tag
+9. After that, create the Neon project
+10. Paste the Neon connection string into `DATABASE_URL`
+11. Reply `continue` so the remaining migration code can be implemented
+12. After the code migration is complete, apply the generated database migration
+13. Configure auth providers and redirect URLs
+14. Generate your first Flowfex API key
+15. Run the full post-migration acceptance checklist
 
 If you complete every item in this file, you will have covered the production tasks that still require human action outside the code.

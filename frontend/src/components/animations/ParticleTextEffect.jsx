@@ -232,7 +232,7 @@ export function ParticleTextEffect({
       const container = canvas.parentElement;
       const w = container ? container.clientWidth : 800;
       canvas.width = Math.min(w, 1100);
-      canvas.height = Math.round(canvas.width * 0.56);
+      canvas.height = Math.round(canvas.width * 0.72);
     };
     resize();
     window.addEventListener('resize', resize);

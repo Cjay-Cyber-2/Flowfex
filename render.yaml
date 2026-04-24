@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: flowfex-backend
+    runtime: node
+    plan: free # Change to starter or higher before production to avoid free-tier spin-downs.
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: FLOWFEX_PUBLIC_ORIGIN
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: FLOWFEX_LINK_SECRET
+        generateValue: true

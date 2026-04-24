@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronRight, Sparkles, Workflow, ShieldCheck, Layers, Play, Code, CreditCard, HelpCircle, Rocket } from 'lucide-react'
+import { Sparkles, Workflow, Layers, Play, Code, CreditCard, HelpCircle, Rocket } from 'lucide-react'
 import '../../styles/DotNavigation.css'
 
 const sectionIcons = {
@@ -40,10 +40,14 @@ function DotNavigation({ sections, activeSection, onSectionChange }) {
     event.preventDefault()
     setClickedSection(sectionId)
     setShowTooltip(sectionId === showTooltip ? null : sectionId)
-    
-    const target = document.getElementById(sectionId)
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth' })
+
+    if (typeof onSectionChange === 'function') {
+      onSectionChange(sectionId)
+    } else {
+      const target = document.getElementById(sectionId)
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' })
+      }
     }
     
     setTimeout(() => {

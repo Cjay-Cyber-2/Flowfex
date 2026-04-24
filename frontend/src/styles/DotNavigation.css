@@ -1,5 +1,6 @@
 /* Dot Navigation - Enhanced Interactive Component */
 
+.landing-page > .dot-navigation,
 .dot-navigation {
   position: fixed;
   top: 50%;
@@ -7,7 +8,9 @@
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0;
+  width: max-content;
   z-index: 100;
   padding: 16px 8px;
   background: rgba(13, 19, 27, 0.4);
@@ -258,6 +261,7 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  .landing-page > .dot-navigation,
   .dot-navigation {
     right: 12px;
     padding: 12px 6px;

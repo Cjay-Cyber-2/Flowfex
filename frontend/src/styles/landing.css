@@ -34,9 +34,13 @@
   z-index: 0;
 }
 
-.landing-page > * {
+.landing-page > :not(.landing-scroll-progress):not(.landing-nav):not(.dot-navigation) {
   position: relative;
   z-index: 1;
+}
+
+.landing-page > .dot-navigation {
+  z-index: 105;
 }
 
 .landing-scroll-progress {

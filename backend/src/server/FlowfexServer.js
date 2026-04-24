@@ -27,7 +27,7 @@ export class FlowfexServer {
     });
     this.sessionStateRepository = sessionStateRepository;
     this.host = config.host || process.env.FLOWFEX_HOST || '0.0.0.0';
-    this.port = Number(config.port ?? process.env.PORT ?? process.env.FLOWFEX_PORT ?? 4000);
+    this.port = Number(config.port ?? process.env.PORT ?? process.env.FLOWFEX_PORT ?? 10000);
     this.maxBodySize = config.maxBodySize || 1024 * 1024;
     this.sessionDataEnabled = config.sessionDataEnabled ?? isSessionDataConfigured();
     this.anonymousSessionService = config.anonymousSessionService

@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { createSupabaseAdminClient } from './supabaseAdmin.js';
+import { createSessionDataClient } from './sessionDataAccess.js';
 import { logSessionError } from './sessionLogger.js';
 
 function hashApiKey(rawKey) {
@@ -12,7 +12,7 @@ function firstRow(data) {
 
 export class ApiKeyService {
   constructor(config = {}) {
-    this.client = config.client || createSupabaseAdminClient();
+    this.client = config.client || createSessionDataClient();
   }
 
   async generateApiKey(authId, label) {

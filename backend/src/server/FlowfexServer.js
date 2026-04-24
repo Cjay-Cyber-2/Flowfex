@@ -6,7 +6,7 @@ import { FlowfexSocketServer, initSocketServer, getSocketServer } from '../ws/se
 import { ControlController } from '../control/ControlController.js';
 import { executionRateLimiter } from './RateLimiter.js';
 import { defaultSessionStateRepository } from '../persistence/defaultSessionStateRepository.js';
-import { isSupabaseConfigured, resolveSupabaseUser } from '../session/supabaseAdmin.js';
+import { isSessionDataConfigured, resolveAuthenticatedUser } from '../session/sessionDataAccess.js';
 import { AnonymousSessionService } from '../session/AnonymousSessionService.js';
 import { ApiKeyService } from '../session/ApiKeyService.js';
 import { UsageService } from '../session/UsageService.js';
@@ -26,16 +26,16 @@ export class FlowfexServer {
       socketServer: config.socketServer || null,
     });
     this.sessionStateRepository = sessionStateRepository;
-    this.host = config.host || process.env.FLOWFEX_HOST || '127.0.0.1';
+    this.host = config.host || process.env.FLOWFEX_HOST || '0.0.0.0';
     this.port = Number(config.port ?? process.env.PORT ?? process.env.FLOWFEX_PORT ?? 4000);
     this.maxBodySize = config.maxBodySize || 1024 * 1024;
-    this.supabaseEnabled = config.supabaseEnabled ?? isSupabaseConfigured();
+    this.sessionDataEnabled = config.sessionDataEnabled ?? isSessionDataConfigured();
     this.anonymousSessionService = config.anonymousSessionService
-      || (this.supabaseEnabled ? new AnonymousSessionService() : null);
+      || (this.sessionDataEnabled ? new AnonymousSessionService() : null);
     this.apiKeyService = config.apiKeyService
-      || (this.supabaseEnabled ? new ApiKeyService() : null);
+      || (this.sessionDataEnabled ? new ApiKeyService() : null);
     this.usageService = config.usageService
-      || (this.supabaseEnabled ? new UsageService() : null);
+      || (this.sessionDataEnabled ? new UsageService() : null);
     this.server = null;
     this.socketServer = null;
   }
@@ -168,7 +168,7 @@ export class FlowfexServer {
     }
 
     if (anonymousSessionCreateMatch) {
-      this._assertSupabaseEnabled();
+      this._assertSessionDataEnabled();
       const payload = await this.anonymousSessionService.createAnonymousSession();
       const session = await this.anonymousSessionService.validateAnonymousSession(payload.anonymousToken);
 
@@ -187,7 +187,7 @@ export class FlowfexServer {
     }
 
     if (anonymousSessionValidateMatch) {
-      this._assertSupabaseEnabled();
+      this._assertSessionDataEnabled();
       const body = await this._readJsonBody(request);
       const anonymousToken = body.anonymousToken || this._readCookie(request, 'fx_session');
       const session = anonymousToken
@@ -210,11 +210,11 @@ export class FlowfexServer {
     }
 
     if (sessionUpgradeMatch) {
-      this._assertSupabaseEnabled();
+      this._assertSessionDataEnabled();
       const body = await this._readJsonBody(request);
       const accessToken = this._extractBearerToken(request) || body.accessToken || null;
       const anonymousToken = body.anonymousToken || this._readCookie(request, 'fx_session');
-      const user = await this._requireSupabaseUser(accessToken);
+      const user = await this._requireAuthenticatedUser(accessToken);
       const session = await this.anonymousSessionService.upgradeAnonymousSession({
         anonymousToken,
         authId: user.id,
@@ -235,8 +235,8 @@ export class FlowfexServer {
     }
 
     if (recentSessionMatch) {
-      this._assertSupabaseEnabled();
-      const user = await this._requireSupabaseUser(this._extractBearerToken(request));
+      this._assertSessionDataEnabled();
+      const user = await this._requireAuthenticatedUser(this._extractBearerToken(request));
       const session = await this.anonymousSessionService.getMostRecentSessionForUser(user.id);
 
       return this._writeJson(response, 200, {
@@ -246,7 +246,7 @@ export class FlowfexServer {
     }
 
     if (sessionUsageMatch) {
-      this._assertSupabaseEnabled();
+      this._assertSessionDataEnabled();
       const sessionId = url.searchParams.get('sessionId') || null;
       const status = await this.usageService.getUsageStatus({ sessionId });
 
@@ -259,7 +259,7 @@ export class FlowfexServer {
       }
 
       if (status.authId) {
-        const user = await this._requireSupabaseUser(this._extractBearerToken(request));
+        const user = await this._requireAuthenticatedUser(this._extractBearerToken(request));
         if (user.id !== status.authId) {
           return this._writeJson(response, 403, {
             error: {
@@ -279,8 +279,8 @@ export class FlowfexServer {
     }
 
     if (request.method === 'GET' && apiKeysMatch) {
-      this._assertSupabaseEnabled();
-      const user = await this._requireSupabaseUser(this._extractBearerToken(request));
+      this._assertSessionDataEnabled();
+      const user = await this._requireAuthenticatedUser(this._extractBearerToken(request));
       const apiKeys = await this.apiKeyService.listApiKeys(user.id);
 
       return this._writeJson(response, 200, {
@@ -290,8 +290,8 @@ export class FlowfexServer {
     }
 
     if (request.method === 'POST' && apiKeysMatch) {
-      this._assertSupabaseEnabled();
-      const user = await this._requireSupabaseUser(this._extractBearerToken(request));
+      this._assertSessionDataEnabled();
+      const user = await this._requireAuthenticatedUser(this._extractBearerToken(request));
       const body = await this._readJsonBody(request);
       const label = typeof body.label === 'string' ? body.label.trim() : '';
 
@@ -313,8 +313,8 @@ export class FlowfexServer {
     }
 
     if (request.method === 'DELETE' && apiKeyRevokeMatch) {
-      this._assertSupabaseEnabled();
-      const user = await this._requireSupabaseUser(this._extractBearerToken(request));
+      this._assertSessionDataEnabled();
+      const user = await this._requireAuthenticatedUser(this._extractBearerToken(request));
       const record = await this.apiKeyService.revokeApiKey(user.id, apiKeyRevokeMatch[1]);
 
       return this._writeJson(response, 200, {
@@ -329,8 +329,8 @@ export class FlowfexServer {
         ? await this.apiKeyService.validateApiKey(this._extractApiKey(request))
         : null;
       const accessToken = this._extractBearerToken(request);
-      const authUser = accessToken && this.supabaseEnabled
-        ? await resolveSupabaseUser(accessToken).catch(() => null)
+      const authUser = accessToken && this.sessionDataEnabled
+        ? await resolveAuthenticatedUser(accessToken).catch(() => null)
         : null;
 
       if (this.apiKeyService && (body.mode === 'sdk' || body.mode === 'live') && !validatedApiKey && !authUser) {
@@ -620,20 +620,20 @@ export class FlowfexServer {
     return header.slice(7).trim();
   }
 
-  _assertSupabaseEnabled() {
-    if (!this.supabaseEnabled || !this.anonymousSessionService) {
-      throw createHttpError('Supabase-backed sessions are not configured on this server.', 503);
+  _assertSessionDataEnabled() {
+    if (!this.sessionDataEnabled || !this.anonymousSessionService) {
+      throw createHttpError('Database-backed sessions are not configured on this server yet.', 503);
     }
   }
 
-  async _requireSupabaseUser(accessToken) {
+  async _requireAuthenticatedUser(accessToken) {
     if (!accessToken) {
       throw createHttpError('Authentication is required for this route.', 401);
     }
 
-    const user = await resolveSupabaseUser(accessToken);
+    const user = await resolveAuthenticatedUser(accessToken);
     if (!user) {
-      throw createHttpError('Supabase user could not be resolved from the provided token.', 401);
+      throw createHttpError('The authenticated user could not be resolved from the provided token.', 401);
     }
 
     return user;

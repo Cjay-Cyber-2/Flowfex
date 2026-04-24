@@ -18,7 +18,7 @@ const PROVIDER_PATTERNS = {
   wordpress: /wordpress|wp-/i,
   binance: /binance/i,
   composio: /composio/i,
-  supabase: /supabase|postgres|postgresql/i,
+  postgres: /postgres|postgresql/i,
   github: /github/i,
   notion: /notion/i,
   slack: /slack/i,

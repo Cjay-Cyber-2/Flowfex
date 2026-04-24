@@ -136,7 +136,7 @@ function SignIn() {
 
         {!configured ? (
           <p style={styles.noticeText}>
-            Supabase auth is not configured yet. Add the required project keys in `.env` to enable sign-in.
+            Authentication is being migrated to Better Auth. Finish the backend setup to enable sign-in.
           </p>
         ) : null}
 

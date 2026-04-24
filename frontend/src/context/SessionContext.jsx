@@ -17,11 +17,12 @@ import {
 } from '../../../lib/session/initialize';
 import { upgradeAnonymousSession } from '../../../lib/session/upgrade';
 import { fetchFlowfexUsageStatus } from '../../../lib/limits/service';
-import { onAuthStateChange, signOut as signOutFromSupabase } from '../../../lib/auth/service';
 import {
-  createSupabaseBrowserClient,
-  isSupabaseBrowserConfigured,
-} from '../../../lib/supabase/client';
+  getCurrentAuthSession,
+  isAuthClientConfigured,
+  onAuthStateChange,
+  signOut as signOutFromAuth,
+} from '../../../lib/auth/service';
 import useStore from '../store/useStore';
 
 const SessionContext = createContext(undefined);
@@ -60,45 +61,15 @@ function toStoreUser(user) {
   };
 }
 
-function mapSupabaseUser(user) {
-  if (!user) {
-    return null;
-  }
-
-  const metadata = user.user_metadata;
-  const displayName = typeof metadata?.full_name === 'string'
-    ? metadata.full_name
-    : typeof metadata?.name === 'string'
-      ? metadata.name
-      : null;
-  const avatarUrl = typeof metadata?.avatar_url === 'string' ? metadata.avatar_url : null;
-
-  return {
-    id: user.id,
-    email: user.email ?? null,
-    displayName,
-    avatarUrl,
-  };
-}
-
-async function readSupabaseAuthSession(forceAnonymous) {
-  if (forceAnonymous || !isSupabaseBrowserConfigured()) {
+async function readAuthSession(forceAnonymous) {
+  if (forceAnonymous || !isAuthClientConfigured()) {
     return {
       user: null,
       accessToken: null,
     };
   }
 
-  const client = createSupabaseBrowserClient();
-  const { data, error } = await client.auth.getSession();
-  if (error) {
-    throw error;
-  }
-
-  return {
-    user: mapSupabaseUser(data.session?.user || null),
-    accessToken: data.session?.access_token ?? null,
-  };
+  return getCurrentAuthSession();
 }
 
 export function SessionProvider({ children }) {
@@ -111,7 +82,7 @@ export function SessionProvider({ children }) {
     user: null,
     sessionReady: false,
     isAuthenticated: false,
-    configured: isSupabaseBrowserConfigured(),
+    configured: isAuthClientConfigured(),
     accessToken: null,
     error: null,
     usage: null,
@@ -168,7 +139,7 @@ export function SessionProvider({ children }) {
     initializeRequestIdRef.current = requestId;
 
     try {
-      const auth = await readSupabaseAuthSession(options.forceAnonymous === true);
+      const auth = await readAuthSession(options.forceAnonymous === true);
       const storedAnonymousToken = readAnonymousToken();
       let backendSession = null;
 
@@ -216,7 +187,7 @@ export function SessionProvider({ children }) {
           user: auth.user,
           sessionReady: true,
           isAuthenticated: Boolean(auth.user),
-          configured: isSupabaseBrowserConfigured(),
+          configured: isAuthClientConfigured(),
           accessToken: auth.accessToken,
           error: null,
           usage: null,
@@ -236,7 +207,7 @@ export function SessionProvider({ children }) {
         setState((current) => ({
           ...current,
           sessionReady: true,
-          configured: isSupabaseBrowserConfigured(),
+          configured: isAuthClientConfigured(),
           error: error instanceof Error ? error.message : 'Unable to initialize the Flowfex session.',
         }));
         syncStore(null, null);
@@ -252,7 +223,7 @@ export function SessionProvider({ children }) {
   }, [initialize]);
 
   useEffect(() => {
-    if (!isSupabaseBrowserConfigured()) {
+    if (!isAuthClientConfigured()) {
       return undefined;
     }
 
@@ -290,8 +261,8 @@ export function SessionProvider({ children }) {
   }, [refreshUsage, state.accessToken, state.session?.id]);
 
   const signOut = useCallback(async () => {
-    if (isSupabaseBrowserConfigured()) {
-      await signOutFromSupabase();
+    if (isAuthClientConfigured()) {
+      await signOutFromAuth();
     }
 
     writeAnonymousToken(null);

@@ -1,7 +1,7 @@
 import { FileSessionStateRepository } from './FileSessionStateRepository.js';
-import { SupabaseSessionStateRepository } from './SupabaseSessionStateRepository.js';
-import { isSupabaseConfigured } from '../session/supabaseAdmin.js';
+import { DatabaseSessionStateRepository } from './DatabaseSessionStateRepository.js';
+import { isSessionDataConfigured } from '../session/sessionDataAccess.js';
 
-export const defaultSessionStateRepository = isSupabaseConfigured()
-  ? new SupabaseSessionStateRepository()
+export const defaultSessionStateRepository = isSessionDataConfigured()
+  ? new DatabaseSessionStateRepository()
   : new FileSessionStateRepository();

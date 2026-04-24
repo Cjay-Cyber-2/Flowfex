@@ -1,4 +1,4 @@
-import { createSupabaseAdminClient } from './supabaseAdmin.js';
+import { createSessionDataClient } from './sessionDataAccess.js';
 import { logSessionError } from './sessionLogger.js';
 
 const FLOWFEX_LIMITS = {
@@ -121,7 +121,7 @@ function createLimitError(status, sessionId) {
 
 export class UsageService {
   constructor(config = {}) {
-    this.client = config.client || createSupabaseAdminClient();
+    this.client = config.client || createSessionDataClient();
   }
 
   async getUsageStatus({ sessionId }) {

@@ -2,15 +2,34 @@
 
 This file covers the work that still requires your action outside the codebase.
 
+Status note:
+- This is the current migration-stage checklist, not the final post-migration checklist.
+- The file will need one more regeneration after the Neon + Better Auth implementation is fully finished.
+- Reason: the remaining migration steps still change actual product behavior, database schema, auth routes, email flow, API key flow, and test coverage. Those later code changes can introduce additional real operator tasks, so this file is accurate for the repo today, but it is not the final lockfile of human work yet.
+- Current hard blocker: the migration spec explicitly stops at Step 2 until you provide a real Neon `DATABASE_URL` and reply `continue`.
+- Until that value exists, the backend hosting foundation can be prepared, but the actual Neon + Better Auth implementation cannot honestly be marked complete.
+
 The code is already in place for:
 - Frontend build and routing
 - Backend orchestration server
-- Supabase-backed auth, sessions, usage, and API keys
+- Database and auth migration scaffolding
 - Agent connection flows: Prompt, Link, SDK, and Live Channel
 
 What is still on you is the operator work: accounts, secrets, providers, hosting, DNS, auth setup, database bootstrap, and final production validation.
 
-## 1. Decide the production topology
+## 1. Preferred production topology
+
+Recommended stack for this repo:
+- Frontend: Vercel
+- Backend: Railway
+- Database: Neon
+
+Do not plan around a Vercel-only deployment for the current Flowfex architecture.
+
+Why:
+- The frontend is a static SPA and fits Vercel well.
+- The backend is a long-running Node server with Socket.io namespaces and HTTP endpoints.
+- The backend must stay online for real-time orchestration, agent connections, session APIs, and auth APIs.
 
 You need two deployed surfaces:
 
@@ -21,66 +40,96 @@ You need two deployed surfaces:
    - `/frontend/vercel.json`
 
 2. Backend Node service
-   Recommended: Railway, Render, or Fly.io
+   Recommended: Railway
    Reason: the backend is a persistent Node server and should not be treated as a static Vercel site.
 
 Recommended public domains:
 - Frontend: `https://app.yourdomain.com`
 - Backend: `https://api.yourdomain.com`
 
-## 2. Create and configure Supabase
+## 2. What is already implemented for Railway
 
-Supabase is not optional if you want production auth, saved sessions, API key management, anonymous-to-auth upgrade, and persisted usage.
+The backend foundation that Railway needs is already present in code:
+- A real backend start command exists in [backend/package.json](/home/gamp/Flowfex/backend/package.json:1) as `npm start`
+- The backend reads the platform-injected `PORT` in [FlowfexServer.js](/home/gamp/Flowfex/backend/src/server/FlowfexServer.js:29)
+- The backend now binds to `0.0.0.0` by default, which is correct for cloud deployment, in [FlowfexServer.js](/home/gamp/Flowfex/backend/src/server/FlowfexServer.js:29)
+- The backend exposes a health endpoint at `/health` in [FlowfexServer.js](/home/gamp/Flowfex/backend/src/server/FlowfexServer.js:160)
+- Socket.io is already attached to the backend server in [FlowfexServer.js](/home/gamp/Flowfex/backend/src/server/FlowfexServer.js:59)
+- CORS and public origin settings are already driven by `ALLOWED_ORIGINS` and `FLOWFEX_PUBLIC_ORIGIN` in [FlowfexServer.js](/home/gamp/Flowfex/backend/src/server/FlowfexServer.js:64)
 
-Create one Supabase project, then collect these values:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `SUPABASE_JWT_SECRET`
+What this means:
+- You do not need additional Railway-specific application code just to get the current backend online.
+- You do need to create the Railway service, connect the repo, point it at `/backend`, set environment variables, set the healthcheck path, and generate a public domain.
+
+## 3. What is not yet implemented in code
+
+These are still implementation tasks, not just operator setup:
+- Neon schema and migrations
+- Better Auth server configuration and mounted auth routes
+- SMTP-backed email delivery for magic links and verification
+- Final API key system wiring against Better Auth
+- Final session persistence, rehydration, upgrade, and limits logic on the new stack
+- Final integration test suite for the migrated system
+
+This is why the checklist cannot honestly be called final yet.
+
+Concrete examples of current placeholders:
+- [lib/auth/service.ts](/home/gamp/Flowfex/lib/auth/service.ts:1) still returns placeholder auth state and throws "Authentication is not configured yet"
+- [frontend/src/services/authService.js](/home/gamp/Flowfex/frontend/src/services/authService.js:1) still throws placeholder auth errors
+- [backend/src/session/sessionDataAccess.js](/home/gamp/Flowfex/backend/src/session/sessionDataAccess.js:1) still returns `false` for session-data configuration and throws if used
+
+What this means operationally:
+- Railway deployment preparation can be completed now
+- Vercel deployment preparation can be completed now
+- The actual production auth/database rollout cannot be completed until the Neon connection string is provided and the remaining migration steps are implemented
+
+## 4. Configure Neon and Better Auth
+
+Create the Neon project, collect the Postgres connection string, and prepare the Better Auth secret plus provider credentials.
+
+Current human-provided values that are already known to be required from the codebase:
 - `DATABASE_URL`
+- `BETTER_AUTH_SECRET`
+- `BETTER_AUTH_URL`
+- `VITE_APP_URL`
+- `VITE_BACKEND_URL`
+- `FLOWFEX_PUBLIC_ORIGIN`
+- `ALLOWED_ORIGINS`
+- `FLOWFEX_LINK_SECRET`
+- One LLM provider key: `GROQ_API_KEY` or `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`
+- SMTP values if you want magic links or email verification:
+  - `EMAIL_FROM`
+  - `SMTP_HOST`
+  - `SMTP_PORT`
+  - `SMTP_USER`
+  - `SMTP_PASS`
+- OAuth provider values for every provider you actually enable:
+  - Google: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
+  - GitHub: `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`
+  - Twitter/X: `TWITTER_CLIENT_ID`, `TWITTER_CLIENT_SECRET`
+  - Discord: `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`
+  - Microsoft: `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET`
+  - Apple: `APPLE_CLIENT_ID`, `APPLE_CLIENT_SECRET`
 
-Where they come from:
-- Project URL and anon key: Supabase Dashboard -> Project Settings -> API
-- Service role key: Supabase Dashboard -> Project Settings -> API
-- JWT secret: Supabase Dashboard -> Project Settings -> API
-- Postgres connection string: Supabase Dashboard -> Database -> Connection string
+## 5. Apply the database schema
 
-## 3. Apply the database schema
+The Neon schema and migration steps will be regenerated during the active migration.
 
-The required schema is in:
-- [supabase/migrations/001_initial_schema.sql](/home/gamp/Flowfex/supabase/migrations/001_initial_schema.sql:1)
-
-Apply it using one of these approaches:
-
-1. Supabase SQL editor
-   Paste the migration and run it.
-
-2. CLI / direct Postgres connection
-```bash
-psql "$DATABASE_URL" -f supabase/migrations/001_initial_schema.sql
-```
-
-After the migration, verify these objects exist:
-- `profiles`
-- `sessions`
-- `execution_events`
-- `usage_tracking`
-- `api_keys`
-- `flows`
-- RPC functions for anonymous session creation and upgrade
-- RLS policies on the above tables
-
-## 4. Configure Supabase Auth
+## 6. Configure authentication
 
 The app supports:
 - Email/password sign-up and sign-in
 - Google OAuth
 - GitHub OAuth
+- Twitter/X OAuth
+- Discord OAuth
+- Microsoft OAuth
+- Apple OAuth
 - Anonymous session creation before sign-in
 
 ### Required Auth settings
 
-Set Supabase Auth values for your real frontend:
+Set Better Auth values for your real frontend and backend:
 - Site URL: `https://app.yourdomain.com`
 - Redirect URLs:
   - `https://app.yourdomain.com/dashboard`
@@ -89,14 +138,14 @@ Set Supabase Auth values for your real frontend:
 
 Why this matters:
 - `lib/auth/service.ts` sends sign-up and OAuth redirects to `/dashboard`
-- If these URLs are missing in Supabase, sign-in/sign-up redirects will fail
+- If these URLs are missing in the auth provider configuration, sign-in and sign-up redirects will fail
 
 ### Email/password
 
 If you want email sign-up:
-- Enable email provider in Supabase Auth
+- Enable the email provider in your Better Auth setup
 - Decide whether email confirmation is required
-- Configure your email sender / SMTP in Supabase if you want branded mail
+- Configure your email sender and SMTP provider
 - Test:
   - sign up
   - email confirmation
@@ -106,21 +155,31 @@ If you want email sign-up:
 
 If you want Google sign-in:
 - Create a Google OAuth app in Google Cloud
-- Add the callback URL Supabase gives you
-- Paste the Google client ID and secret into Supabase Auth -> Providers -> Google
+- Add the callback URL exposed by your Better Auth backend
+- Store the Google client ID and secret in backend environment variables
 - Test sign-in end to end
 
 ### GitHub OAuth
 
 If you want GitHub sign-in:
 - Create a GitHub OAuth app
-- Add the callback URL Supabase gives you
-- Paste the GitHub client ID and secret into Supabase Auth -> Providers -> GitHub
+- Add the callback URL exposed by your Better Auth backend
+- Store the GitHub client ID and secret in backend environment variables
 - Test sign-in end to end
 
 If you do not plan to support Google or GitHub at launch, disable those buttons in product planning or leave the providers disabled and accept that those buttons will fail until configured.
 
-## 5. Set production environment variables
+### Other OAuth providers
+
+If you enable any of these, you must create the provider app, configure the callback URL exposed by the Better Auth backend, and set the backend env vars:
+- Twitter/X
+- Discord
+- Microsoft
+- Apple
+
+If you do not enable them at launch, leave their env vars unset and do not expose those sign-in paths in production UX.
+
+## 7. Set production environment variables
 
 The repo-level source of truth is:
 - [.env.example](/home/gamp/Flowfex/.env.example:1)
@@ -128,22 +187,25 @@ The repo-level source of truth is:
 Important implementation detail:
 - The backend loads `.env` from repo root and `backend/.env` if present
 - The frontend is built with Vite, so public env vars must be present in the frontend build environment
-- Vite is configured to expose both `VITE_*` and `NEXT_PUBLIC_*`
+- Vite is configured to expose `VITE_*` variables
 
 ### Required variables
 
 | Variable | Where to set it | Required | Purpose |
 | --- | --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Frontend build env + backend runtime | Yes | Supabase URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Frontend build env + backend runtime | Yes | Browser auth/session access |
-| `SUPABASE_SERVICE_ROLE_KEY` | Backend only | Yes | Server-side Supabase admin access |
-| `SUPABASE_JWT_SECRET` | Backend only | Yes | Supabase JWT support |
 | `DATABASE_URL` | Backend only | Yes | Direct DB access / migration tooling |
+| `BETTER_AUTH_SECRET` | Backend only | Yes | Better Auth signing and encryption secret |
+| `BETTER_AUTH_URL` | Backend only | Yes | Public base URL used by the auth handler |
 | `VITE_APP_URL` | Frontend build env | Yes | Public app origin used for redirects |
 | `VITE_BACKEND_URL` | Frontend build env | Yes | Backend base URL used by the frontend |
 | `FLOWFEX_PUBLIC_ORIGIN` | Backend runtime | Yes | Public backend origin used when generating connect links |
 | `ALLOWED_ORIGINS` | Backend runtime | Yes | Comma-separated frontend origins allowed by CORS and Socket.io |
 | `PORT` | Backend runtime | Yes | Backend listening port |
+| `EMAIL_FROM` | Backend only | Required for email auth flows | Sender address for magic links and verification mail |
+| `SMTP_HOST` | Backend only | Required for email auth flows | SMTP host |
+| `SMTP_PORT` | Backend only | Required for email auth flows | SMTP port |
+| `SMTP_USER` | Backend only | Required for email auth flows | SMTP username |
+| `SMTP_PASS` | Backend only | Required for email auth flows | SMTP password |
 
 ### Strongly recommended variables
 
@@ -152,6 +214,7 @@ Important implementation detail:
 | `FLOWFEX_LINK_SECRET` | Strongly recommended | Stable secret used for connect links; set this explicitly so generated links do not depend on a random boot-time secret |
 | `OPENAI_API_KEY` or `GROQ_API_KEY` or `ANTHROPIC_API_KEY` | Required if orchestration should use an LLM provider | Enables real tool/LLM execution |
 | `FLOWFEX_CONNECTION_API_KEY` | Optional hardening | Shared server-level connection secret for unauthenticated API connections |
+| OAuth provider client IDs and secrets | Required only for providers you enable | Enables social sign-in for the matching provider |
 
 ### LLM provider note
 
@@ -164,7 +227,7 @@ So do one of these:
 - Set only the provider you actually want to use
 - Or be aware that if multiple keys are set, Groq wins first
 
-## 6. Deploy the frontend
+## 8. Deploy the frontend
 
 The frontend deployment instructions already exist in:
 - [VERCEL_DEPLOYMENT.md](/home/gamp/Flowfex/VERCEL_DEPLOYMENT.md:1)
@@ -189,9 +252,9 @@ Before you ship:
   - `/settings`
 
 Important:
-- Every change to `VITE_*` or `NEXT_PUBLIC_*` values requires a redeploy of the frontend
+- Every change to `VITE_*` values requires a redeploy of the frontend
 
-## 7. Deploy the backend
+## 9. Deploy the backend on Railway
 
 Backend runtime entry:
 ```bash
@@ -206,12 +269,28 @@ What `npm start` does:
 You need a host that supports a long-running Node process.
 
 Required backend deployment actions:
+- Create a Railway project and a backend service
+- Connect the repo to the Railway service
+- Set the Railway service root directory to `/backend`
 - Set all backend env vars
 - Expose the chosen port
+- Configure the Railway healthcheck path as `/health`
 - Serve HTTPS in production
 - Make sure WebSocket / Socket.io traffic is allowed
 - Set `FLOWFEX_PUBLIC_ORIGIN` to the real public backend URL
 - Set `ALLOWED_ORIGINS` to the real frontend origin list
+
+Only set a custom start command if Railway fails to auto-detect it.
+Expected command:
+```bash
+npm start
+```
+
+Only set a custom port if Railway healthchecks fail to detect the app correctly.
+Expected runtime behavior in code:
+- Railway injects `PORT`
+- Flowfex listens on that `PORT`
+- Flowfex serves `GET /health` with HTTP 200
 
 Example:
 ```env
@@ -219,7 +298,7 @@ FLOWFEX_PUBLIC_ORIGIN=https://api.yourdomain.com
 ALLOWED_ORIGINS=https://app.yourdomain.com,https://staging-app.yourdomain.com
 ```
 
-## 8. DNS and TLS
+## 10. DNS and TLS
 
 You need to complete the non-code hosting work:
 - Point the frontend domain to Vercel
@@ -235,12 +314,12 @@ Do not launch with mixed origins like:
 
 That will break secure browser behavior and WebSocket expectations.
 
-## 9. Generate your first Flowfex API key
+## 11. Generate your first Flowfex API key
 
 This is required if you want clean production use of SDK or live-channel connections without relying on an active signed-in browser session.
 
 How to do it:
-1. Launch the app with Supabase correctly configured
+1. Launch the app with the database and auth providers configured
 2. Create a real user account
 3. Sign in
 4. Go to `Settings -> API`
@@ -255,13 +334,13 @@ Important:
 This behavior is visible in:
 - [frontend/src/pages/Settings.jsx](/home/gamp/Flowfex/frontend/src/pages/Settings.jsx:210)
 
-## 10. Understand connection security in production
+## 12. Understand connection security in production
 
 Current behavior:
 - Prompt and link connections can work without a user API key
 - SDK and live-channel connections require either:
   - a valid Flowfex API key, or
-  - a valid authenticated Supabase user context
+  - a valid authenticated user context
 
 This rule is enforced in:
 - [backend/src/server/FlowfexServer.js](/home/gamp/Flowfex/backend/src/server/FlowfexServer.js:332)
@@ -270,7 +349,7 @@ Optional extra hardening:
 - Set `FLOWFEX_CONNECTION_API_KEY`
 - Use it for server-to-server or restricted external connection flows
 
-## 11. Review the current skill-ingestion issues
+## 13. Review the current skill-ingestion issues
 
 I ran this report:
 ```bash
@@ -309,7 +388,7 @@ Recommended operator action:
 - Remove or quarantine duplicate markdown from the non-canonical source
 - Keep risky security/exfiltration examples out of the production registry
 
-## 12. Validate anonymous and authenticated session behavior
+## 14. Validate anonymous and authenticated session behavior
 
 This app supports anonymous-first onboarding and later upgrade into an authenticated user.
 
@@ -326,7 +405,7 @@ Why this matters:
 - The product explicitly promises anonymous-first usage before sign-up
 - Session upgrade is a real production path, not a demo-only path
 
-## 13. Run the production verification commands yourself
+## 15. Run the production verification commands yourself
 
 From this repo, the minimum manual verification set is:
 
@@ -344,7 +423,7 @@ npm run skills:report
 
 Then start the backend and frontend in their actual deployment environments and test the live app.
 
-## 14. Manual acceptance checklist before launch
+## 16. Manual acceptance checklist before launch
 
 Complete all of these with the real deployed URLs:
 
@@ -404,49 +483,52 @@ These values come from:
 
 If those numbers are not acceptable for launch, change them before production.
 
-## 15. Secret-handling rules you need to enforce operationally
+## 17. Secret-handling rules you need to enforce operationally
 
 Do this:
-- Keep `SUPABASE_SERVICE_ROLE_KEY` backend-only
+- Keep backend-only secrets out of the frontend bundle
 - Keep raw API keys in a secret manager
 - Rotate leaked keys immediately
 - Set `FLOWFEX_LINK_SECRET` explicitly in production
 - Keep production and staging secrets separate
 
 Do not do this:
-- Put `SUPABASE_SERVICE_ROLE_KEY` in frontend env
+- Put backend-only secrets in frontend env
 - Commit real secrets into `.env`
 - Reuse a dev OAuth app in production
 - Reuse the same API key across team members without ownership tracking
 
-## 16. What is already done in code, so you do not need to repeat it manually
+## 18. What is already done in code, so you do not need to repeat it manually
 
 You do not need to manually implement:
 - SPA rewrite config files for Vercel
-- Supabase browser/client wrappers
+- basic Railway-compatible backend binding and port handling
 - Backend connection routes
-- API key CRUD UI
-- Session creation and upgrade logic
 - Frontend build pipeline
 - Backend build script
+- package installation and initial Supabase removal for the Neon + Better Auth migration
 
-You only need to supply the infrastructure, secrets, provider setup, and final operator verification.
+You do still need the remaining code migration to be finished before auth, API keys, Neon-backed sessions, and Better Auth flows are truly production-ready.
 
-## 17. Final recommended order of operations
+You only need to supply the infrastructure, secrets, provider setup, and final operator verification after that remaining code migration is complete.
+
+## 19. Final recommended order of operations
 
 Follow this order:
 
-1. Create the Supabase project
-2. Apply the SQL migration
-3. Configure auth providers and redirect URLs
-4. Fill production env vars
-5. Deploy backend
-6. Deploy frontend
-7. Verify CORS and real backend connectivity
-8. Create a real user account
-9. Generate your first Flowfex API key
-10. Test Prompt, Link, SDK, and Live Channel attach flows
-11. Review blocked and duplicate skills
-12. Run the launch acceptance checklist
+1. Create the Neon project
+2. Paste the Neon connection string into `DATABASE_URL`
+3. Reply `continue` so the remaining migration code can be implemented
+4. After the code migration is complete, apply the generated database migration
+5. Configure auth providers and redirect URLs
+6. Fill production env vars
+7. Deploy backend
+8. Deploy frontend
+9. Verify CORS and real backend connectivity
+10. Create a real user account
+11. Generate your first Flowfex API key
+12. Test Prompt, Link, SDK, and Live Channel attach flows
+13. Review blocked and duplicate skills
+14. Run the launch acceptance checklist
 
 If you complete every item in this file, you will have covered the production tasks that still require human action outside the code.

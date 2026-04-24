@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { createSupabaseAdminClient } from './supabaseAdmin.js';
+import { createSessionDataClient } from './sessionDataAccess.js';
 import { logSessionError } from './sessionLogger.js';
 import { toDashboardSessionRecord } from './sessionSerializers.js';
 
@@ -32,7 +32,7 @@ function normalizeConnectedAgent(agent) {
 
 export class AnonymousSessionService {
   constructor(config = {}) {
-    this.client = config.client || createSupabaseAdminClient();
+    this.client = config.client || createSessionDataClient();
   }
 
   async createAnonymousSession() {

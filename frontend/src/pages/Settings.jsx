@@ -212,7 +212,7 @@ function Settings() {
 
               {!configured ? (
                 <p style={{ color: 'var(--color-bistre)' }}>
-                  Supabase is not configured yet. Add your project keys in `.env` before API key management can be enabled.
+                  API key management will be available after the Better Auth and Neon migration is configured.
                 </p>
               ) : null}
 

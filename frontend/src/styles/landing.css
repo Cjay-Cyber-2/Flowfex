@@ -647,7 +647,7 @@
 .statement-animation-wrap {
   width: 100%;
   max-width: 1200px;
-  min-height: 280px;
+  min-height: 180px;
   padding: 0 1.5rem;
   display: flex;
   align-items: center;
@@ -754,17 +754,17 @@
 
 .hero-section {
   position: relative;
-  min-height: 110vh;
-  min-height: 110svh;
-  min-height: 110dvh;
+  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh;
   height: auto;
   width: 100%;
   max-width: 100vw;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 140px 24px 120px;
+  justify-content: flex-start;
+  padding: 96px 24px 28px;
   box-sizing: border-box;
   overflow: visible;
   overflow-x: clip;
@@ -778,8 +778,7 @@
   text-align: center;
   margin: 0 auto;
   position: relative;
-  z-index: 100;
-  padding-top: 2rem;
+  z-index: 10;
 }
 
 .hero-copy-centered {
@@ -927,8 +926,7 @@
 
 .hero-copy {
   padding: clamp(10px, 2vw, 18px) clamp(16px, 4vw, 30px);
-  z-index: 100;
-  padding-top: 2rem;
+  z-index: 20;
 }
 
 .hero-copy::before {
@@ -982,7 +980,7 @@
   min-height: 100dvh;
   overflow: visible;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
   isolation: isolate;
 }
 
@@ -2062,9 +2060,9 @@
 
   .hero-section {
     height: auto;
-    min-height: 110svh;
-    min-height: 110dvh;
-    padding: 140px 16px 100px;
+    min-height: 100svh;
+    min-height: 100dvh;
+    padding: 108px 16px 56px;
   }
 
   .hero-copy::before {

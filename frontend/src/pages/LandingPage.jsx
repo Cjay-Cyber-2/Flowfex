@@ -314,7 +314,7 @@ function LandingPage() {
         <div className="statement-animation-wrap">
           <ParticleTextEffect
             words={statementWords}
-            intervalMs={1000}
+            intervalMs={4000}
           />
         </div>
       </section>

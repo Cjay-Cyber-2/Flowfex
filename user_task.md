@@ -1,21 +1,18 @@
-# Flowfex Production User Task Checklist
+# Flowfex User Task Checklist
 
-This file covers the work that still requires your action outside the codebase.
+This is the single source of truth for work that still requires human action outside the codebase.
 
-Status note:
-- This is the current migration-stage checklist, not the final post-migration checklist.
-- The file will need one more regeneration after the Neon + Better Auth implementation is fully finished.
-- Reason: the remaining migration steps still change actual product behavior, database schema, auth routes, email flow, API key flow, and test coverage. Those later code changes can introduce additional real operator tasks, so this file is accurate for the repo today, but it is not the final lockfile of human work yet.
-- Current hard blocker: the migration spec explicitly stops at Step 2 until you provide a real Neon `DATABASE_URL` and reply `continue`.
-- Until that value exists, the backend hosting foundation can be prepared, but the actual Neon + Better Auth implementation cannot honestly be marked complete.
+How to read this file:
+- The first-hosted-tag path is the minimum manual work required to ship the first working Flowfex version from the repo as it exists today.
+- Later Neon + Better Auth rollout tasks stay in this same file so the remaining human work is not split across separate deployment/setup markdown files.
 
 The code is already in place for:
 - Frontend build and routing
 - Backend orchestration server
-- Database and auth migration scaffolding
+- Render and Vercel deployment scaffolding
 - Agent connection flows: Prompt, Link, SDK, and Live Channel
 
-What is still on you is the operator work: accounts, secrets, providers, hosting, DNS, auth setup, database bootstrap, and final production validation.
+What is still on you is the operator work: accounts, secrets, providers, hosting, DNS, final env wiring, and live production validation.
 
 ## 1. Preferred production topology
 
@@ -63,9 +60,9 @@ What this means:
 - You can either import [render.yaml](/home/gamp/Flowfex/render.yaml:1) into Render or create the Web Service manually.
 - You do still need to set environment variables, choose the Render plan, confirm the health check path, and generate a public domain.
 
-## 3. What is not yet implemented in code
+## 3. Later post-migration code work that is not required for the first hosted tag
 
-These are still implementation tasks, not just operator setup:
+These are not human tasks. They stay listed here so the first-tag scope is explicit and the repo is not oversold:
 - Neon schema and migrations
 - Better Auth server configuration and mounted auth routes
 - SMTP-backed email delivery for magic links and verification
@@ -73,17 +70,14 @@ These are still implementation tasks, not just operator setup:
 - Final session persistence, rehydration, upgrade, and limits logic on the new stack
 - Final integration test suite for the migrated system
 
-This is why the checklist cannot honestly be called final yet.
-
 Concrete examples of current placeholders:
 - [lib/auth/service.ts](/home/gamp/Flowfex/lib/auth/service.ts:1) still returns placeholder auth state and throws "Authentication is not configured yet"
 - [frontend/src/services/authService.js](/home/gamp/Flowfex/frontend/src/services/authService.js:1) still throws placeholder auth errors
 - [backend/src/session/sessionDataAccess.js](/home/gamp/Flowfex/backend/src/session/sessionDataAccess.js:1) still returns `false` for session-data configuration and throws if used
 
 What this means operationally:
-- Render deployment preparation can be completed now
-- Vercel deployment preparation can be completed now
-- The actual production auth/database rollout cannot be completed until the Neon connection string is provided and the remaining migration steps are implemented
+- The first hosted Flowfex tag can be completed now without those pieces
+- The full Neon + Better Auth production rollout still cannot be completed until the connection string is provided and the remaining migration work is implemented
 
 ## 4. Configure Neon and Better Auth
 
@@ -250,9 +244,6 @@ So do one of these:
 
 ## 8. Deploy the frontend
 
-The frontend deployment instructions already exist in:
-- [VERCEL_DEPLOYMENT.md](/home/gamp/Flowfex/VERCEL_DEPLOYMENT.md:1)
-
 You must choose one of these Vercel modes:
 
 1. Root directory = repo root `.`
@@ -261,9 +252,15 @@ You must choose one of these Vercel modes:
 2. Root directory = `frontend`
    Uses `/frontend/vercel.json`
 
+Why this matters:
+- The frontend source lives in `/frontend`
+- The repo already includes SPA rewrite rules
+- A Vercel 404 on refresh usually means the wrong root directory was selected or the project was not redeployed after the rewrite config changed
+
 Before you ship:
 - Set frontend build env vars in Vercel
 - Set `VITE_BACKEND_URL` to the real Render backend URL
+- Confirm the selected Vercel root directory matches the `vercel.json` you intend to use
 - Confirm SPA rewrites work
 - Verify these routes on refresh:
   - `/`
@@ -275,6 +272,7 @@ Before you ship:
 
 Important:
 - Every change to `VITE_*` values requires a redeploy of the frontend
+- A frontend-only Vercel deployment is not enough for Flowfex; the app still needs the separately hosted Render backend for API and Socket.io connectivity
 
 ## 9. Deploy the backend on Render
 

@@ -133,10 +133,10 @@ Two demo approval cards:
 - Listed new animation features
 - Listed approvals queue features
 
-#### Updated: VERCEL_DEPLOYMENT.md
-- Clarified SPA routing fix
-- Simplified deployment steps
-- Emphasized the vercel.json solution
+#### Updated: user_task.md
+- Consolidated the remaining deployment/operator steps into the single source-of-truth checklist
+- Clarified the Vercel SPA routing expectations
+- Kept the first-tag hosting path explicit
 
 ## 📊 Completion Status
 

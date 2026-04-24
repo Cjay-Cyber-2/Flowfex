@@ -639,7 +639,7 @@ function createConnectionError(message, statusCode) {
 }
 
 function normalizeBaseUrl(baseUrl) {
-  return String(baseUrl || '').trim().replace(/\/+$/, '') || 'http://127.0.0.1:4000';
+  return String(baseUrl || '').trim().replace(/\/+$/, '') || 'http://0.0.0.0:4000';
 }
 
 function randomToken(size) {

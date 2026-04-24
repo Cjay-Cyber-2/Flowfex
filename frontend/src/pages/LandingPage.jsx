@@ -182,15 +182,14 @@ function LandingPage() {
 
   const workspace = useMemo(() => buildDemoWorkspace(), []);
   
-  // Real data from skills-md directory
+  // Real data from skills-md directory (April 2026)
   const statementWords = useMemo(
     () => [
-      'Connect',
-      'Route',
       '309 Skills',
       '16 Agent Teams',
       '6 MCP Tools',
-      'Orchestrate',
+      '14 Categories',
+      '16 Starter Agents',
     ],
     []
   );
@@ -314,7 +313,7 @@ function LandingPage() {
         <div className="statement-animation-wrap">
           <ParticleTextEffect
             words={statementWords}
-            intervalMs={4000}
+            intervalMs={1000}
           />
         </div>
       </section>

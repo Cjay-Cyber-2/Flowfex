@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import ThreeDLogoMark from '../common/ThreeDLogoMark';
 
 const HUB_CENTER = { x: 720, y: 404 };
 const NODE_WIDTH = 218;
@@ -137,7 +136,6 @@ function HeroNode({ node, isExpanded, onToggle }) {
       <rect className="hero-orchestration-node-topline" width={NODE_WIDTH} height="2" rx="2" />
       
       <g className="hero-orchestration-node-dot-wrapper">
-        {/* Outer pulse ring */}
         <circle 
           className="hero-orchestration-node-dot-ring" 
           cx="28" 
@@ -145,7 +143,6 @@ function HeroNode({ node, isExpanded, onToggle }) {
           r="6"
           style={{ stroke: node.accent }}
         />
-        {/* Inner solid dot */}
         <circle 
           className="hero-orchestration-node-dot" 
           cx="28" 
@@ -162,7 +159,6 @@ function HeroNode({ node, isExpanded, onToggle }) {
         {node.meta}
       </text>
       
-      {/* Explanation dropdown */}
       {isExpanded && (
         <foreignObject
           className="hero-orchestration-node-explanation"
@@ -263,22 +259,12 @@ export default function HeroOrchestrationScene() {
 
   return (
     <div ref={sceneRef} className="hero-orchestration-scene" aria-label="Flowfex orchestration overview">
-      <div className="hero-orchestration-mesh hero-orchestration-mesh-primary" />
-      <div className="hero-orchestration-mesh hero-orchestration-mesh-secondary" />
-      <div className="hero-orchestration-grid" />
-      <div className="hero-orchestration-vignette" />
-
       <svg
         className="hero-orchestration-svg"
         viewBox="0 0 1440 900"
         preserveAspectRatio="xMidYMin slice"
       >
         <defs>
-          <radialGradient id="hero-center-glow" cx="50%" cy="50%" r="60%">
-            <stop offset="0%" stopColor="rgba(127, 255, 240, 0.22)" />
-            <stop offset="52%" stopColor="rgba(0, 212, 170, 0.12)" />
-            <stop offset="100%" stopColor="rgba(0, 212, 170, 0)" />
-          </radialGradient>
           <filter id="hero-node-shadow" x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation="20" result="shadow" />
             <feColorMatrix
@@ -293,7 +279,6 @@ export default function HeroOrchestrationScene() {
         </defs>
 
         <g className="hero-orchestration-parallax hero-orchestration-parallax-near">
-          <circle className="hero-orchestration-center-aura" cx={HUB_CENTER.x} cy={HUB_CENTER.y} r="284" />
           {links.map((node) => (
             <path
               key={`${node.id}-link`}
@@ -312,19 +297,6 @@ export default function HeroOrchestrationScene() {
           ))}
         </g>
       </svg>
-
-      <div className="hero-orchestration-core">
-        <div className="hero-orchestration-core-border">
-          <div className="hero-orchestration-core-ring hero-orchestration-core-ring-outer" />
-          <div className="hero-orchestration-core-ring hero-orchestration-core-ring-inner" />
-        </div>
-        <div className="hero-orchestration-core-shell" />
-        <div className="hero-orchestration-core-caption">
-          <span>Flowfex Orchestrator</span>
-          <strong>Import. Rank. Route. Explain.</strong>
-        </div>
-        <ThreeDLogoMark className="hero-orchestration-logo-mark" depth={14} glow="soft" />
-      </div>
     </div>
   );
 }

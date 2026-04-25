@@ -160,11 +160,9 @@ export class FlowfexServer {
     const apiKeyRevokeMatch = url.pathname.match(/^\/api\/api-keys\/([^/]+)$/);
 
     if (request.method === 'GET' && url.pathname === '/health') {
-      return this._writeJson(response, 200, {
-        status: 'ok',
-        timestamp: new Date().toISOString(),
-        websocket: this.socketServer ? this.socketServer.getStats() : null,
-      });
+      response.writeHead(200, { 'content-type': 'text/plain' });
+      response.end('OK');
+      return;
     }
 
     if (anonymousSessionCreateMatch) {

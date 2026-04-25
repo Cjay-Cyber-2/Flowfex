@@ -1,64 +1,317 @@
-.landing-dot-nav {
+/* Dot Navigation - Enhanced Interactive Component */
+
+.landing-page > .dot-navigation,
+.dot-navigation {
   position: fixed;
   top: 50%;
-  right: 18px;
+  right: 24px;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  gap: 0;
+  width: max-content;
   z-index: 100;
-}
-
-.landing-dot {
-  position: relative;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  border: 1px solid rgba(0, 212, 170, 0.3);
-  background: rgba(0, 212, 170, 0.08);
-  transition: all var(--duration-base, 0.3s) var(--ease-expo-out, cubic-bezier(0.16, 1, 0.3, 1));
-  cursor: pointer;
-  display: block;
-  text-decoration: none;
-}
-
-.landing-dot:hover,
-.landing-dot.is-active {
-  background: var(--color-sinoper, #00D4AA);
-  box-shadow: 0 0 20px rgba(0, 212, 170, 0.55);
-  transform: scale(1.15);
-}
-
-.landing-dot::after {
-  content: attr(data-label);
-  position: absolute;
-  right: 22px;
-  top: 50%;
-  transform: translateY(-50%) translateX(8px);
-  padding: 8px 10px;
+  padding: 16px 8px;
+  background: rgba(13, 19, 27, 0.4);
+  backdrop-filter: blur(12px);
   border-radius: 999px;
-  background: rgba(13, 19, 27, 0.88);
-  border: 1px solid rgba(0, 212, 170, 0.12);
-  color: var(--color-velin, rgba(232, 237, 242, 0.6));
+  border: 1px solid rgba(0, 212, 170, 0.08);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.dot-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+/* Glow effect behind active/hovered dots */
+.dot-glow {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(0, 212, 170, 0.4) 0%,
+    rgba(0, 212, 170, 0.1) 50%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Main interactive dot */
+.dot {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 212, 170, 0.4);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  z-index: 2;
+  transition: border-color 0.3s ease;
+}
+
+.dot::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(0, 212, 170, 0.8),
+    rgba(0, 212, 170, 0.2) 70%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.dot:hover::before,
+.dot.is-active::before {
+  opacity: 1;
+}
+
+.dot.is-active {
+  border-color: rgba(0, 212, 170, 0.9);
+  box-shadow: 
+    0 0 24px rgba(0, 212, 170, 0.6),
+    inset 0 0 12px rgba(0, 212, 170, 0.3);
+}
+
+.dot.is-clicked {
+  animation: dot-click-pulse 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes dot-click-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.4);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Inner breathing core */
+.dot-core {
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 212, 170, 1) 0%,
+    rgba(0, 180, 145, 1) 100%
+  );
+  box-shadow: 0 0 8px rgba(0, 212, 170, 0.8);
+}
+
+/* Expanding ring animation for active state */
+.dot-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 212, 170, 0.6);
+  pointer-events: none;
+}
+
+/* Tooltip card that drops down */
+.dot-tooltip-card {
+  position: absolute;
+  left: calc(100% + 16px);
+  top: 50%;
+  width: 240px;
+  padding: 14px 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(13, 19, 27, 0.95) 0%,
+    rgba(18, 24, 32, 0.98) 100%
+  );
+  border: 1px solid rgba(0, 212, 170, 0.15);
+  border-radius: 16px;
+  box-shadow: 
+    0 12px 48px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(0, 212, 170, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  z-index: 10;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* Gradient overlay for depth */
+.tooltip-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 212, 170, 0.03) 0%,
+    transparent 50%,
+    rgba(0, 212, 170, 0.02) 100%
+  );
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Icon badge in tooltip */
+.tooltip-icon-badge {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 212, 170, 0.15) 0%,
+    rgba(0, 180, 145, 0.1) 100%
+  );
+  border-radius: 10px;
+  border: 1px solid rgba(0, 212, 170, 0.2);
+  color: var(--color-sinoper, #00D4AA);
+  box-shadow: 
+    0 4px 12px rgba(0, 212, 170, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Tooltip content */
+.tooltip-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tooltip-section-label {
   font-family: var(--font-space-grotesk, 'Space Grotesk'), sans-serif;
-  font-size: 0.64rem;
+  font-size: 0.7rem;
+  font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  color: rgba(232, 237, 242, 0.6);
   white-space: nowrap;
-  opacity: 0;
+}
+
+.tooltip-description {
+  font-family: var(--font-inter, 'Inter'), sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: rgba(232, 237, 242, 0.9);
+  font-weight: 500;
+}
+
+/* Decorative arrow pointing to dot */
+.tooltip-arrow {
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-right: 6px solid rgba(0, 212, 170, 0.15);
+  filter: drop-shadow(-1px 0 2px rgba(0, 0, 0, 0.3));
+}
+
+.tooltip-arrow::after {
+  content: '';
+  position: absolute;
+  left: 1px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-right: 5px solid rgba(18, 24, 32, 0.98);
+}
+
+/* Progress line between dots */
+.dot-progress-line {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 20%;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 212, 170, 0.6) 0%,
+    rgba(0, 212, 170, 0.1) 100%
+  );
+  border-radius: 2px;
   pointer-events: none;
-  transition: opacity var(--duration-fast, 0.2s) var(--ease-expo-out, cubic-bezier(0.16, 1, 0.3, 1)), 
-              transform var(--duration-fast, 0.2s) var(--ease-expo-out, cubic-bezier(0.16, 1, 0.3, 1));
 }
 
-.landing-dot:hover::after,
-.landing-dot.is-active::after {
-  opacity: 1;
-  transform: translateY(-50%) translateX(0);
-}
-
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .landing-dot-nav {
-    display: none;
+  .landing-page > .dot-navigation,
+  .dot-navigation {
+    right: 12px;
+    padding: 12px 6px;
+    background: rgba(13, 19, 27, 0.6);
   }
+
+  .dot-tooltip-card {
+    width: 180px;
+    padding: 10px 12px;
+    left: calc(100% + 12px);
+  }
+
+  .tooltip-description {
+    font-size: 0.75rem;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+  }
+
+  .dot-core {
+    inset: 1.5px;
+  }
+}
+
+/* Accessibility - reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    transition: none;
+  }
+
+  .dot-core,
+  .dot-ring,
+  .dot-glow {
+    animation: none;
+    transition: none;
+  }
+
+  .dot-tooltip-card {
+    transition: none;
+  }
+}
+
+/* Focus states for keyboard navigation */
+.dot:focus-visible {
+  outline: 2px solid rgba(0, 212, 170, 0.8);
+  outline-offset: 4px;
+}
+
+.dot:focus-visible::before {
+  opacity: 1;
 }

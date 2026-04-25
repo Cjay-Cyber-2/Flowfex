@@ -48,6 +48,13 @@ export class FlowfexServer {
     const host = overrides.host || this.host;
     const port = Number(overrides.port ?? this.port);
     this.server = http.createServer((request, response) => {
+      // Health check MUST respond immediately for Render
+      if (request.url === '/health' || request.url === '/') {
+        response.writeHead(200, { 'Content-Type': 'text/plain' });
+        response.end('OK');
+        return;
+      }
+
       this._setCorsHeaders(response, request);
       if (request.method === 'OPTIONS') {
         response.writeHead(204);

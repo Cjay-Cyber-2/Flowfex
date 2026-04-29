@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 const HUB_CENTER = { x: 720, y: 404 };
 const NODE_WIDTH = 218;
 const NODE_HEIGHT = 82;
-const EXPLANATION_HEIGHT = 116;
 
 const HERO_NODES = [
   {
@@ -127,7 +126,7 @@ function HeroNode({ node, isExpanded, onToggle }) {
       style={{ '--node-accent': node.accent }}
       role="button"
       tabIndex={0}
-      aria-label={`${isExpanded ? 'Hide' : 'Show'} details for ${node.label}`}
+      aria-label={`${isExpanded ? 'Hide' : 'Show'} Flowfex details for ${node.label}`}
       aria-pressed={isExpanded}
       onClick={handleActivate}
       onKeyDown={handleKeyDown}
@@ -158,6 +157,7 @@ function HeroNode({ node, isExpanded, onToggle }) {
       <text className="hero-orchestration-node-meta" x="46" y="56">
         {node.meta}
       </text>
+<<<<<<< HEAD
       
       {isExpanded && (
         <foreignObject
@@ -173,6 +173,8 @@ function HeroNode({ node, isExpanded, onToggle }) {
           </div>
         </foreignObject>
       )}
+=======
+>>>>>>> bd24a3e (gpt5.5)
     </g>
   );
 }
@@ -188,6 +190,10 @@ export default function HeroOrchestrationScene() {
         path: buildNodePath(node),
       })),
     []
+  );
+  const activeNode = useMemo(
+    () => HERO_NODES.find((node) => node.id === expandedNode) || null,
+    [expandedNode]
   );
 
   const handleNodeToggle = (nodeId) => {
@@ -297,6 +303,46 @@ export default function HeroOrchestrationScene() {
           ))}
         </g>
       </svg>
+<<<<<<< HEAD
+=======
+
+      <div className="hero-orchestration-core">
+        <div className="hero-orchestration-core-border">
+          <div className="hero-orchestration-core-ring hero-orchestration-core-ring-outer" />
+          <div className="hero-orchestration-core-ring hero-orchestration-core-ring-inner" />
+        </div>
+        <div className="hero-orchestration-core-shell" />
+        <div className="hero-orchestration-core-caption">
+          <span>Flowfex Orchestrator</span>
+          <strong>Import. Rank. Route. Explain.</strong>
+        </div>
+        <ThreeDLogoMark className="hero-orchestration-logo-mark" depth={14} glow="soft" />
+      </div>
+
+      <aside
+        className={`hero-orchestration-inspector${activeNode ? ' is-visible' : ''}`}
+        aria-live="polite"
+      >
+        <div className="hero-orchestration-inspector-header">
+          <span className="hero-orchestration-inspector-kicker">Selected layer</span>
+          <button
+            type="button"
+            className="hero-orchestration-inspector-close"
+            onClick={() => setExpandedNode(null)}
+            aria-label="Close selected layer details"
+          >
+            x
+          </button>
+        </div>
+        <strong>{activeNode?.label || 'Click a skill layer'}</strong>
+        <span className="hero-orchestration-inspector-meta">
+          {activeNode?.meta || 'Inspect how Flowfex imports, ranks, routes, and explains resources for connected agents.'}
+        </span>
+        <p>
+          {activeNode?.explanation || 'The orchestration layer keeps agent resources visible and reviewable instead of hiding decisions inside one-off prompts.'}
+        </p>
+      </aside>
+>>>>>>> bd24a3e (gpt5.5)
     </div>
   );
 }

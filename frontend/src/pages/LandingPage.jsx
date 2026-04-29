@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, Suspense } from 'react';
-import { ArrowRight, ChevronRight, Play, ShieldCheck, Sparkles, Workflow } from 'lucide-react';
+import { ArrowRight, ChevronRight, Database, Network, Play, ShieldCheck, Sparkles, Workflow } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import HeroOrchestrationScene from '../components/animations/HeroOrchestrationScene';
@@ -182,7 +182,7 @@ function LandingPage() {
 
   const workspace = useMemo(() => buildDemoWorkspace(), []);
   
-  // Real data from skills-md directory (April 2026)
+  // Catalog totals from the bundled skills-md inventory.
   const statementWords = useMemo(
     () => [
       '309 Skills',
@@ -190,6 +190,29 @@ function LandingPage() {
       '6 MCP Tools',
       '14 Categories',
       '16 Starter Agents',
+    ],
+    []
+  );
+  const statementMetrics = useMemo(
+    () => [
+      {
+        label: 'Skills indexed',
+        value: '309',
+        detail: 'Markdown skills normalized for discovery, validation, and execution routing.',
+        icon: Sparkles,
+      },
+      {
+        label: 'Agent teams',
+        value: '16',
+        detail: 'Multi-agent patterns available as reusable operating playbooks.',
+        icon: Network,
+      },
+      {
+        label: 'MCP tools',
+        value: '6',
+        detail: 'Tooling surfaces grouped so agents can call the right capability at runtime.',
+        icon: Database,
+      },
     ],
     []
   );
@@ -315,6 +338,18 @@ function LandingPage() {
             words={statementWords}
             intervalMs={1000}
           />
+        </div>
+        <div className="statement-metrics" aria-label="Flowfex catalog facts">
+          {statementMetrics.map(({ label, value, detail, icon: Icon }) => (
+            <article key={label} className="statement-metric">
+              <span className="statement-metric-icon">
+                <Icon size={18} />
+              </span>
+              <strong>{value}</strong>
+              <span>{label}</span>
+              <p>{detail}</p>
+            </article>
+          ))}
         </div>
       </section>
 

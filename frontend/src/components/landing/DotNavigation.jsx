@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 function DotNavigation({ sections, activeSection, onSectionChange }) {
   const handleDotClick = (event, sectionId) => {
@@ -14,7 +14,7 @@ function DotNavigation({ sections, activeSection, onSectionChange }) {
   };
 
   return (
-    <div className="landing-dot-nav">
+    <nav className="landing-dot-nav" aria-label="Landing page sections">
       {sections.map((section) => (
         <a
           key={section.id}
@@ -25,7 +25,7 @@ function DotNavigation({ sections, activeSection, onSectionChange }) {
           onClick={(event) => handleDotClick(event, section.id)}
         />
       ))}
-    </div>
+    </nav>
   );
 }
 

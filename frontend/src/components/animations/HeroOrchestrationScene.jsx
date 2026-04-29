@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import ThreeDLogoMark from '../common/ThreeDLogoMark';
 
 const HUB_CENTER = { x: 720, y: 404 };
 const NODE_WIDTH = 218;
@@ -157,24 +158,6 @@ function HeroNode({ node, isExpanded, onToggle }) {
       <text className="hero-orchestration-node-meta" x="46" y="56">
         {node.meta}
       </text>
-<<<<<<< HEAD
-      
-      {isExpanded && (
-        <foreignObject
-          className="hero-orchestration-node-explanation"
-          x="0"
-          y={NODE_HEIGHT + 12}
-          width={NODE_WIDTH}
-          height={EXPLANATION_HEIGHT}
-        >
-          <div xmlns="http://www.w3.org/1999/xhtml" className="hero-orchestration-node-explanation-card">
-            <span className="hero-orchestration-node-explanation-kicker">How Flowfex handles it</span>
-            <p>{node.explanation}</p>
-          </div>
-        </foreignObject>
-      )}
-=======
->>>>>>> bd24a3e (gpt5.5)
     </g>
   );
 }
@@ -265,10 +248,15 @@ export default function HeroOrchestrationScene() {
 
   return (
     <div ref={sceneRef} className="hero-orchestration-scene" aria-label="Flowfex orchestration overview">
+      <div className="hero-orchestration-mesh hero-orchestration-mesh-primary" />
+      <div className="hero-orchestration-mesh hero-orchestration-mesh-secondary" />
+      <div className="hero-orchestration-grid" />
+      <div className="hero-orchestration-vignette" />
+
       <svg
         className="hero-orchestration-svg"
         viewBox="0 0 1440 900"
-        preserveAspectRatio="xMidYMin slice"
+        preserveAspectRatio="xMidYMid meet"
       >
         <defs>
           <filter id="hero-node-shadow" x="-30%" y="-30%" width="160%" height="160%">
@@ -303,8 +291,6 @@ export default function HeroOrchestrationScene() {
           ))}
         </g>
       </svg>
-<<<<<<< HEAD
-=======
 
       <div className="hero-orchestration-core">
         <div className="hero-orchestration-core-border">
@@ -342,7 +328,6 @@ export default function HeroOrchestrationScene() {
           {activeNode?.explanation || 'The orchestration layer keeps agent resources visible and reviewable instead of hiding decisions inside one-off prompts.'}
         </p>
       </aside>
->>>>>>> bd24a3e (gpt5.5)
     </div>
   );
 }

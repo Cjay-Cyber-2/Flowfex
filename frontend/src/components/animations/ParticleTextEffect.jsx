@@ -217,7 +217,9 @@ export function ParticleTextEffect({ words = ['Flowfex', 'Connect', 'Orchestrate
       if (animRef.current) cancelAnimationFrame(animRef.current);
       window.removeEventListener('resize', resize);
     };
-  }, []);
+    // Legacy standalone effect: animation owns its frame loop and is reset only when words change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [words]);
 
   return (
     <canvas

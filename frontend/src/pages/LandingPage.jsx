@@ -8,7 +8,6 @@ import ScrollFrameSection from '../components/landing/ScrollFrameSection';
 import DotNavigation from '../components/landing/DotNavigation';
 import { buildDemoWorkspace } from '../store/demoData';
 import { ContainerScroll } from '../components/animations/ContainerScroll';
-import { ParticleTextEffect } from '../components/animations/ParticleTextEffect';
 
 // Lazy load heavier sections
 const SocialProofSection = React.lazy(() => import('../components/landing/SocialProofSection'));
@@ -183,16 +182,6 @@ function LandingPage() {
   const workspace = useMemo(() => buildDemoWorkspace(), []);
   
   // Catalog totals from the bundled skills-md inventory.
-  const statementWords = useMemo(
-    () => [
-      '309 Skills',
-      '16 Agent Teams',
-      '6 MCP Tools',
-      '14 Categories',
-      '16 Starter Agents',
-    ],
-    []
-  );
   const statementMetrics = useMemo(
     () => [
       {
@@ -202,17 +191,26 @@ function LandingPage() {
         icon: Sparkles,
       },
       {
-        label: 'Agent teams',
-        value: '16',
-        detail: 'Multi-agent patterns available as reusable operating playbooks.',
+        label: 'Starter agents',
+        value: '26',
+        detail: 'Ready-made agent projects for research, data analysis, voice, content, and workflow use cases.',
         icon: Network,
       },
       {
-        label: 'MCP tools',
-        value: '6',
-        detail: 'Tooling surfaces grouped so agents can call the right capability at runtime.',
+        label: 'MCP agent skills',
+        value: '11',
+        detail: 'MCP-focused recipes for browser control, databases, file systems, GitHub, and external tool access.',
         icon: Database,
       },
+    ],
+    []
+  );
+  const catalogSignals = useMemo(
+    () => [
+      { label: 'Multi-agent teams', value: '45', detail: 'Team patterns for coordinated planning, execution, review, and handoff.' },
+      { label: 'Agent skills', value: '52', detail: 'Reusable capabilities normalized so connected agents can retrieve and run the right workflow.' },
+      { label: 'Categories', value: '14', detail: 'Searchable groups spanning RAG, memory, optimization, voice, games, MCP, and frameworks.' },
+      { label: 'Skill records', value: '309', detail: 'Markdown source files parsed into the catalog that powers Flowfex routing.' },
     ],
     []
   );
@@ -333,11 +331,16 @@ function LandingPage() {
         <p className="statement-kicker">
           What Flowfex does
         </p>
-        <div className="statement-animation-wrap">
-          <ParticleTextEffect
-            words={statementWords}
-            intervalMs={1000}
-          />
+        <div className="statement-catalog" aria-label="Flowfex catalog coverage">
+          <div className="statement-catalog-track">
+            {[...catalogSignals, ...catalogSignals].map(({ label, value, detail }, index) => (
+              <article key={`${label}-${index}`} className="statement-catalog-card">
+                <strong>{value}</strong>
+                <span>{label}</span>
+                <p>{detail}</p>
+              </article>
+            ))}
+          </div>
         </div>
         <div className="statement-metrics" aria-label="Flowfex catalog facts">
           {statementMetrics.map(({ label, value, detail, icon: Icon }) => (

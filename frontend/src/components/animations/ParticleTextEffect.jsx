@@ -1,6 +1,7 @@
 /**
  * ParticleTextEffect — canvas-based particle text animation.
- * Adapted from the provided TypeScript component to plain JS/JSX.
+ * Renders animated particle text with transparent background,
+ * using Flowfex theme colors (teal/cyan palette).
  */
 import React, { useRef, useEffect } from 'react';
 
@@ -98,12 +99,22 @@ function generateRandomPos(x, y, mag) {
   return { x: x + dir.x, y: y + dir.y };
 }
 
-export function ParticleTextEffect({ words = ['Flowfex', 'Connect', 'Orchestrate', 'Guide', 'Automate'] }) {
+/** Flowfex theme color palette for particle rendering */
+const FLOWFEX_COLORS = [
+  { r: 0, g: 212, b: 170 },    // --color-sinoper #00d4aa
+  { r: 0, g: 229, b: 195 },    // #00e5c3
+  { r: 127, g: 255, b: 240 },  // #7ffff0
+  { r: 70, g: 189, b: 169 },   // #46bda9
+  { r: 0, g: 180, b: 150 },    // darker teal
+];
+
+export function ParticleTextEffect({ words = ['309 Skills', '64 Agents', '45 Multi-Agents'] }) {
   const canvasRef = useRef(null);
   const animRef = useRef(null);
   const particlesRef = useRef([]);
   const frameCountRef = useRef(0);
   const wordIndexRef = useRef(0);
+  const colorIndexRef = useRef(0);
   const pixelSteps = 6;
   const drawAsPoints = true;
 
@@ -113,7 +124,6 @@ export function ParticleTextEffect({ words = ['Flowfex', 'Connect', 'Orchestrate
     off.height = canvas.height;
     const octx = off.getContext('2d');
     octx.fillStyle = 'white';
-    // Responsive font size based on canvas width
     const fontSize = Math.min(120, canvas.width * 0.12);
     octx.font = `bold ${fontSize}px Inter, Arial, sans-serif`;
     octx.textAlign = 'center';
@@ -123,10 +133,13 @@ export function ParticleTextEffect({ words = ['Flowfex', 'Connect', 'Orchestrate
     const imageData = octx.getImageData(0, 0, canvas.width, canvas.height);
     const pixels = imageData.data;
 
+    // Cycle through Flowfex theme colors
+    const baseColor = FLOWFEX_COLORS[colorIndexRef.current % FLOWFEX_COLORS.length];
+    colorIndexRef.current++;
     const newColor = {
-      r: 0 + Math.random() * 80,
-      g: 180 + Math.random() * 75,
-      b: 150 + Math.random() * 105,
+      r: Math.max(0, Math.min(255, baseColor.r + Math.floor(Math.random() * 30 - 15))),
+      g: Math.max(0, Math.min(255, baseColor.g + Math.floor(Math.random() * 30 - 15))),
+      b: Math.max(0, Math.min(255, baseColor.b + Math.floor(Math.random() * 30 - 15))),
     };
 
     const particles = particlesRef.current;
@@ -175,8 +188,8 @@ export function ParticleTextEffect({ words = ['Flowfex', 'Connect', 'Orchestrate
   function animate(canvas) {
     const ctx = canvas.getContext('2d');
     const particles = particlesRef.current;
-    ctx.fillStyle = 'rgba(0,0,0,0.12)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Transparent background — clear fully then draw with slight fade
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     for (let i = particles.length - 1; i >= 0; i--) {
       particles[i].move();
@@ -224,7 +237,13 @@ export function ParticleTextEffect({ words = ['Flowfex', 'Connect', 'Orchestrate
   return (
     <canvas
       ref={canvasRef}
-      style={{ display: 'block', width: '100%', height: 'auto', borderRadius: '1rem', mixBlendMode: 'screen' }}
+      style={{
+        display: 'block',
+        width: '100%',
+        height: 'auto',
+        borderRadius: '1rem',
+        background: 'transparent',
+      }}
     />
   );
 }

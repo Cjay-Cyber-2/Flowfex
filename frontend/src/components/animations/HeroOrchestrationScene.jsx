@@ -135,16 +135,10 @@ function buildNodePath(node) {
 function getNodePositionStyle(node, index) {
   const positionStyle = {
     '--node-accent': node.accent,
-    '--hero-node-delay': `${0.5 + index * 0.18}s`,
+    // Delay nodes significantly so branches draw first (branches take ~2.2s)
+    '--hero-node-delay': `${1.8 + index * 0.18}s`,
     '--hero-node-enter-x': node.side === 'left' ? '-40px' : '40px',
-    top: `${(node.buttonY / VIEWBOX_HEIGHT) * 100}%`,
   };
-
-  if (node.side === 'left') {
-    positionStyle.left = `${(node.buttonX / VIEWBOX_WIDTH) * 100}%`;
-  } else {
-    positionStyle.right = `${((VIEWBOX_WIDTH - node.buttonX) / VIEWBOX_WIDTH) * 100}%`;
-  }
 
   return positionStyle;
 }
@@ -254,7 +248,7 @@ export default function HeroOrchestrationScene() {
       <svg
         className="hero-orchestration-svg"
         viewBox="0 0 1440 900"
-        preserveAspectRatio="xMidYMid meet"
+        preserveAspectRatio="xMidYMin slice"
       >
         <g className="hero-orchestration-parallax hero-orchestration-parallax-near">
           {links.map((node, index) => (
@@ -266,31 +260,35 @@ export default function HeroOrchestrationScene() {
               />
               <circle className="hero-orchestration-link-terminal" cx={node.branchX} cy={node.branchY} r="7" />
             </g>
+          {HERO_NODES.map((node, index) => (
+            <foreignObject
+              key={node.id}
+              x={node.buttonX}
+              y={node.buttonY - 30} // Offset slightly to vertically center the button over the path
+              width="320"
+              height="100"
+              style={{ overflow: 'visible' }}
+            >
+              <button
+                type="button"
+                className={`hero-orchestration-node hero-orchestration-node-button hero-orchestration-node-${node.kind}${expandedNode === node.id ? ' is-expanded is-active' : ''}`}
+                style={getNodePositionStyle(node, index)}
+                aria-label={`${expandedNode === node.id ? 'Hide' : 'Show'} Flowfex details for ${node.label}`}
+                aria-pressed={expandedNode === node.id}
+                onClick={() => handleNodeToggle(node.id)}
+              >
+                <span className="hero-orchestration-node-marker" aria-hidden="true">
+                  <span className="hero-orchestration-node-marker-core" />
+                </span>
+                <span className="hero-orchestration-node-copy">
+                  <strong>{node.label}</strong>
+                  <small>{node.meta}</small>
+                </span>
+              </button>
+            </foreignObject>
           ))}
         </g>
       </svg>
-
-      <div className="hero-orchestration-labels" aria-label="Flowfex orchestration layers">
-        {HERO_NODES.map((node, index) => (
-          <button
-            key={node.id}
-            type="button"
-            className={`hero-orchestration-node hero-orchestration-node-button hero-orchestration-node-${node.kind}${expandedNode === node.id ? ' is-expanded is-active' : ''}`}
-            style={getNodePositionStyle(node, index)}
-            aria-label={`${expandedNode === node.id ? 'Hide' : 'Show'} Flowfex details for ${node.label}`}
-            aria-pressed={expandedNode === node.id}
-            onClick={() => handleNodeToggle(node.id)}
-          >
-            <span className="hero-orchestration-node-marker" aria-hidden="true">
-              <span className="hero-orchestration-node-marker-core" />
-            </span>
-            <span className="hero-orchestration-node-copy">
-              <strong>{node.label}</strong>
-              <small>{node.meta}</small>
-            </span>
-          </button>
-        ))}
-      </div>
 
       <div className="hero-orchestration-core">
         <div className="hero-orchestration-core-border">

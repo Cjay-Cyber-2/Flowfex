@@ -11,7 +11,7 @@ class Particle {
     this.vel = { x: 0, y: 0 };
     this.acc = { x: 0, y: 0 };
     this.target = { x: 0, y: 0 };
-    this.closeEnoughTarget = 100;
+    this.closeEnoughTarget = 150;
     this.maxSpeed = 1.0;
     this.maxForce = 0.1;
     this.particleSize = 10;
@@ -19,7 +19,7 @@ class Particle {
     this.startColor = { r: 0, g: 0, b: 0 };
     this.targetColor = { r: 0, g: 0, b: 0 };
     this.colorWeight = 0;
-    this.colorBlendRate = 0.01;
+    this.colorBlendRate = 0.02;
   }
 
   move() {
@@ -164,10 +164,10 @@ export function ParticleTextEffect({ words = ['309 Skills', '64 Agents', '45 Mul
           p = new Particle();
           const rp = generateRandomPos(canvas.width / 2, canvas.height / 2, (canvas.width + canvas.height) / 2);
           p.pos.x = rp.x; p.pos.y = rp.y;
-          p.maxSpeed = Math.random() * 6 + 4;
-          p.maxForce = p.maxSpeed * 0.05;
-          p.particleSize = Math.random() * 6 + 6;
-          p.colorBlendRate = Math.random() * 0.0275 + 0.0025;
+          p.maxSpeed = Math.random() * 8 + 6;
+          p.maxForce = p.maxSpeed * 0.08;
+          p.particleSize = Math.random() * 5 + 5;
+          p.colorBlendRate = Math.random() * 0.035 + 0.005;
           particles.push(p);
         }
         p.startColor = {
@@ -203,7 +203,7 @@ export function ParticleTextEffect({ words = ['309 Skills', '64 Agents', '45 Mul
     }
 
     frameCountRef.current++;
-    if (frameCountRef.current % 240 === 0) {
+    if (frameCountRef.current % 150 === 0) {
       wordIndexRef.current = (wordIndexRef.current + 1) % words.length;
       nextWord(words[wordIndexRef.current], canvas);
     }

@@ -54,9 +54,9 @@ const HERO_NODES = [
   },
   {
     id: 'semantic',
-    buttonX: 1118,
+    buttonX: 1368,
     buttonY: 150,
-    branchX: 1110,
+    branchX: 1376,
     branchY: 170,
     laneY: 334,
     bend: -124,
@@ -69,9 +69,9 @@ const HERO_NODES = [
   },
   {
     id: 'selection',
-    buttonX: 1118,
+    buttonX: 1368,
     buttonY: 332,
-    branchX: 1126,
+    branchX: 1360,
     branchY: 372,
     laneY: 404,
     bend: -92,
@@ -84,9 +84,9 @@ const HERO_NODES = [
   },
   {
     id: 'transparency',
-    buttonX: 1118,
+    buttonX: 1368,
     buttonY: 532,
-    branchX: 1102,
+    branchX: 1384,
     branchY: 560,
     laneY: 484,
     bend: -110,
@@ -140,12 +140,26 @@ function getNodePositionStyle(node, index) {
     '--hero-node-enter-x': node.side === 'left' ? '-40px' : '40px',
   };
 
+  if (node.side === 'left') {
+    positionStyle.left = '0';
+  } else {
+    positionStyle.right = '0';
+  }
+
   return positionStyle;
 }
 
 export default function HeroOrchestrationScene() {
   const sceneRef = useRef(null);
   const [expandedNode, setExpandedNode] = useState(null);
+
+  const sortedNodes = useMemo(() => {
+    return [...HERO_NODES].sort((a, b) => {
+      if (expandedNode === a.id) return 1;
+      if (expandedNode === b.id) return -1;
+      return 0;
+    });
+  }, [expandedNode]);
 
   const links = useMemo(
     () =>
@@ -261,10 +275,10 @@ export default function HeroOrchestrationScene() {
               <circle className="hero-orchestration-link-terminal" cx={node.branchX} cy={node.branchY} r="7" />
             </g>
           ))}
-          {HERO_NODES.map((node, index) => (
+          {sortedNodes.map((node, index) => (
             <foreignObject
               key={node.id}
-              x={node.side === 'left' ? node.buttonX : node.buttonX - 50}
+              x={node.side === 'left' ? node.buttonX : node.buttonX - 360}
               y={node.buttonY - 20}
               width="360"
               height="320"

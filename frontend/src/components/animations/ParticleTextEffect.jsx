@@ -144,8 +144,9 @@ export function ParticleTextEffect({ words = ['309 Skills', '64 Agents', '45 Mul
 
     const particles = particlesRef.current;
     let particleIndex = 0;
+    const dynamicPixelSteps = Math.max(12, Math.floor(canvas.width / 80));
     const coordIndexes = [];
-    for (let i = 0; i < pixels.length; i += pixelSteps * 4) coordIndexes.push(i);
+    for (let i = 0; i < pixels.length; i += dynamicPixelSteps * 4) coordIndexes.push(i);
     for (let i = coordIndexes.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [coordIndexes[i], coordIndexes[j]] = [coordIndexes[j], coordIndexes[i]];

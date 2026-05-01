@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, Suspense } from 'react';
-import { ArrowRight, ChevronRight, Network, Play, ShieldCheck, Sparkles, Workflow } from 'lucide-react';
+import { ArrowRight, ChevronRight, Database, Network, Play, ShieldCheck, Sparkles, Workflow } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import HeroOrchestrationScene from '../components/animations/HeroOrchestrationScene';
@@ -7,7 +7,6 @@ import FlowIcon from '../components/common/FlowIcon';
 import ScrollFrameSection from '../components/landing/ScrollFrameSection';
 import DotNavigation from '../components/landing/DotNavigation';
 import { buildDemoWorkspace } from '../store/demoData';
-import useStore from '../store/useStore';
 import { ContainerScroll } from '../components/animations/ContainerScroll';
 
 // Lazy load heavier sections
@@ -173,195 +172,47 @@ function renderFlowGraph(nodes, edges, prefix, showLabels = false, customViewBox
   );
 }
 
-const FALLBACK_CATALOG_STATS = {
-  skillsIndexed: 309,
-  agentTemplates: 64,
-  multiAgentSystems: 45,
-  mcpAgentSkills: 11,
-  categories: 14,
-};
-
-function formatCatalogCount(value) {
-  return new Intl.NumberFormat('en-US').format(value);
-}
-
-function getSkillSourcePath(skill) {
-  return String(skill?.metadata?.sourcePath || skill?.sourcePath || skill?.path || '').replace(/\\/g, '/');
-}
-
-function getCatalogProjectKey(skill) {
-  const sourcePath = getSkillSourcePath(skill);
-  if (!sourcePath) return '';
-
-  const segments = sourcePath.split('/').filter(Boolean);
-  const rootIndex = segments.indexOf('skills-md');
-  const scopedSegments = rootIndex >= 0 ? segments.slice(rootIndex + 1) : segments;
-  const fileName = scopedSegments[scopedSegments.length - 1] || '';
-
-  if (/^readme\.md$/i.test(fileName) && scopedSegments.length > 1) {
-    return scopedSegments.slice(0, -1).join('/');
-  }
-
-  return scopedSegments.join('/');
-}
-
-function isMultiAgentSkill(skill) {
-  const haystack = [
-    getSkillSourcePath(skill),
-    skill?.id,
-    skill?.name,
-    skill?.title,
-    skill?.description,
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase();
-
-  return [
-    '/multi-agent-teams/',
-    '/multi_agent_apps/',
-    'multi agent',
-    'multi-agent',
-    'multi_agent',
-    'agent team',
-    'agent-team',
-    'agent_team',
-    'agent teams',
-    'agent_teams',
-    'mixture_of_agents',
-    'multi_mcp_agent',
-  ].some((pattern) => haystack.includes(pattern));
-}
-
-function isAgentSkill(skill) {
-  if (isMultiAgentSkill(skill)) {
-    return false;
-  }
-
-  const haystack = [
-    getSkillSourcePath(skill),
-    skill?.id,
-    skill?.name,
-    skill?.title,
-    skill?.description,
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase();
-
-  return [
-    '/starter-ai-agents/',
-    '/voice-ai-agents/',
-    '/mcp-ai-agents/',
-    '/advanced-ai-agents/',
-    '/game-agents/',
-    '/agent-skills/',
-    '/chat-with-x/',
-    ' agent ',
-    ' agents ',
-    '_agent',
-    '-agent',
-    '_agents',
-    '-agents',
-  ].some((pattern) => haystack.includes(pattern));
-}
-
-function countUniqueProjects(tools, predicate) {
-  const uniqueProjects = new Set();
-
-  tools.forEach((tool) => {
-    if (!predicate(tool)) return;
-    const projectKey = getCatalogProjectKey(tool);
-    if (projectKey) {
-      uniqueProjects.add(projectKey);
-    }
-  });
-
-  return uniqueProjects.size;
-}
-
-function deriveCatalogStats(payload) {
-  const tools = Array.isArray(payload?.tools) ? payload.tools : [];
-  const summary = payload?.summary || {};
-
-  if (tools.length === 0 && !summary.totalTools) {
-    return FALLBACK_CATALOG_STATS;
-  }
-
-  const agentTemplates = countUniqueProjects(tools, isAgentSkill);
-  const multiAgentSystems = countUniqueProjects(tools, isMultiAgentSkill);
-  const mcpAgentSkills = countUniqueProjects(
-    tools,
-    (tool) => getSkillSourcePath(tool).includes('/mcp-ai-agents/')
-  );
-  const categories = Number(summary.totalCategories) || new Set(tools.map((tool) => tool.category).filter(Boolean)).size;
-
-  return {
-    skillsIndexed: Number(summary.markdownTools || summary.totalTools || tools.length) || FALLBACK_CATALOG_STATS.skillsIndexed,
-    agentTemplates: agentTemplates || FALLBACK_CATALOG_STATS.agentTemplates,
-    multiAgentSystems: multiAgentSystems || FALLBACK_CATALOG_STATS.multiAgentSystems,
-    mcpAgentSkills: mcpAgentSkills || FALLBACK_CATALOG_STATS.mcpAgentSkills,
-    categories: categories || FALLBACK_CATALOG_STATS.categories,
-  };
-}
-
 
 function LandingPage() {
   const navigate = useNavigate();
-  const backendUrl = useStore((state) => state.backendUrl);
   const scrollProgressRef = useRef(null);
   const [activeSection, setActiveSection] = useState('hero');
-  const [catalogStats, setCatalogStats] = useState(FALLBACK_CATALOG_STATS);
   const clickLockRef = useRef(false);
 
   const workspace = useMemo(() => buildDemoWorkspace(), []);
   
+  // Catalog totals from the bundled skills-md inventory.
   const statementMetrics = useMemo(
     () => [
       {
-        label: 'Skill records',
-        value: formatCatalogCount(catalogStats.skillsIndexed),
-        detail: 'Live markdown skill records indexed into Flowfex for search, validation, and routing.',
+        label: 'Skills indexed',
+        value: '309',
+        detail: 'Markdown skills normalized for discovery, validation, and execution routing.',
         icon: Sparkles,
       },
       {
-        label: 'Agent templates',
-        value: formatCatalogCount(catalogStats.agentTemplates),
-        detail: 'Single-agent templates Flowfex can surface across research, workflow, app, and voice use cases.',
+        label: 'Starter agents',
+        value: '26',
+        detail: 'Ready-made agent projects for research, data analysis, voice, content, and workflow use cases.',
         icon: Network,
       },
       {
-        label: 'Multi-agent systems',
-        value: formatCatalogCount(catalogStats.multiAgentSystems),
-        detail: 'Coordinated multi-agent systems available for planning, execution, review, and handoff.',
-        icon: Workflow,
+        label: 'MCP agent skills',
+        value: '11',
+        detail: 'MCP-focused recipes for browser control, databases, file systems, GitHub, and external tool access.',
+        icon: Database,
       },
     ],
-    [catalogStats]
+    []
   );
-  const statementCatalogCards = useMemo(
+  const catalogSignals = useMemo(
     () => [
-      {
-        label: 'Skills',
-        value: formatCatalogCount(catalogStats.skillsIndexed),
-        detail: 'Real skill records currently available to the Flowfex routing layer.',
-      },
-      {
-        label: 'Agents',
-        value: formatCatalogCount(catalogStats.agentTemplates),
-        detail: 'Single-agent templates available across the imported catalog.',
-      },
-      {
-        label: 'Multi Agents',
-        value: formatCatalogCount(catalogStats.multiAgentSystems),
-        detail: 'Multi-agent systems ready for coordinated execution and review.',
-      },
+      { label: 'Multi-agent teams', value: '45', detail: 'Team patterns for coordinated planning, execution, review, and handoff.' },
+      { label: 'Agent skills', value: '52', detail: 'Reusable capabilities normalized so connected agents can retrieve and run the right workflow.' },
+      { label: 'Categories', value: '14', detail: 'Searchable groups spanning RAG, memory, optimization, voice, games, MCP, and frameworks.' },
+      { label: 'Skill records', value: '309', detail: 'Markdown source files parsed into the catalog that powers Flowfex routing.' },
     ],
-    [catalogStats]
-  );
-  const statementCatalogTrack = useMemo(
-    () => [...statementCatalogCards, ...statementCatalogCards],
-    [statementCatalogCards]
+    []
   );
 
   const sectionIds = [
@@ -419,33 +270,6 @@ function LandingPage() {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadCatalogStats() {
-      try {
-        const response = await fetch(`${backendUrl}/skills`);
-        if (!response.ok) return;
-        const payload = await response.json();
-        if (!cancelled) {
-          setCatalogStats(deriveCatalogStats(payload));
-        }
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.warn('Landing catalog stats fallback in use:', error);
-        }
-      }
-    }
-
-    if (backendUrl) {
-      loadCatalogStats();
-    }
-
-    return () => {
-      cancelled = true;
-    };
-  }, [backendUrl]);
 
   return (
     <div className="landing-page">
@@ -507,21 +331,15 @@ function LandingPage() {
         <p className="statement-kicker">
           What Flowfex does
         </p>
-        <div className="statement-animation-wrap" aria-label="Flowfex live catalog coverage">
-          <div className="statement-catalog">
-            <div className="statement-catalog-track">
-              {statementCatalogTrack.map((card, index) => (
-                <article
-                  key={`${card.label}-${index}`}
-                  className="statement-catalog-card"
-                  aria-hidden={index >= statementCatalogCards.length}
-                >
-                  <strong>{card.value}</strong>
-                  <span>{card.label}</span>
-                  <p>{card.detail}</p>
-                </article>
-              ))}
-            </div>
+        <div className="statement-catalog" aria-label="Flowfex catalog coverage">
+          <div className="statement-catalog-track">
+            {[...catalogSignals, ...catalogSignals].map(({ label, value, detail }, index) => (
+              <article key={`${label}-${index}`} className="statement-catalog-card">
+                <strong>{value}</strong>
+                <span>{label}</span>
+                <p>{detail}</p>
+              </article>
+            ))}
           </div>
         </div>
         <div className="statement-metrics" aria-label="Flowfex catalog facts">

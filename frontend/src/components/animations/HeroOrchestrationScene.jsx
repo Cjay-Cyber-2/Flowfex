@@ -260,6 +260,7 @@ export default function HeroOrchestrationScene() {
               />
               <circle className="hero-orchestration-link-terminal" cx={node.branchX} cy={node.branchY} r="7" />
             </g>
+          ))}
           {HERO_NODES.map((node, index) => (
             <foreignObject
               key={node.id}

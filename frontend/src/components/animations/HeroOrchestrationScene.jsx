@@ -153,13 +153,10 @@ export default function HeroOrchestrationScene() {
   const sceneRef = useRef(null);
   const [expandedNode, setExpandedNode] = useState(null);
 
-  const sortedNodes = useMemo(() => {
-    return [...HERO_NODES].sort((a, b) => {
-      if (expandedNode === a.id) return 1;
-      if (expandedNode === b.id) return -1;
-      return 0;
-    });
-  }, [expandedNode]);
+  const activeNode = useMemo(
+    () => HERO_NODES.find((node) => node.id === expandedNode) || null,
+    [expandedNode]
+  );
 
   const links = useMemo(
     () =>
@@ -275,14 +272,14 @@ export default function HeroOrchestrationScene() {
               <circle className="hero-orchestration-link-terminal" cx={node.branchX} cy={node.branchY} r="7" />
             </g>
           ))}
-          {sortedNodes.map((node, index) => (
+          {HERO_NODES.map((node, index) => (
             <foreignObject
               key={node.id}
               x={node.side === 'left' ? node.buttonX : node.buttonX - 360}
               y={node.buttonY - 20}
               width="360"
-              height="320"
-              style={{ overflow: 'visible', zIndex: expandedNode === node.id ? 10 : 1 }}
+              height="100"
+              style={{ overflow: 'visible' }}
             >
               <div className={`hero-orchestration-node-wrapper hero-orchestration-node-${node.side}`} style={{ position: 'relative', width: '100%', height: '100%' }}>
                 <button
@@ -301,36 +298,48 @@ export default function HeroOrchestrationScene() {
                     <small>{node.meta}</small>
                   </span>
                 </button>
-
-                {expandedNode === node.id && (
-                  <aside
-                    className="hero-orchestration-inspector inline-inspector is-visible"
-                    aria-live="polite"
-                  >
-                    <div className="hero-orchestration-inspector-header">
-                      <span className="hero-orchestration-inspector-kicker">Selected layer</span>
-                      <button
-                        type="button"
-                        className="hero-orchestration-inspector-close"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setExpandedNode(null);
-                        }}
-                        aria-label="Close selected layer details"
-                      >
-                        x
-                      </button>
-                    </div>
-                    <strong>{node.label}</strong>
-                    <span className="hero-orchestration-inspector-meta">
-                      {node.meta}
-                    </span>
-                    <p>{node.explanation}</p>
-                  </aside>
-                )}
               </div>
             </foreignObject>
           ))}
+
+          {/* Render the inspector as the very last SVG element so it overlays everything without sorting nodes */}
+          {activeNode && (
+            <foreignObject
+              x={activeNode.side === 'left' ? activeNode.buttonX : activeNode.buttonX - 360}
+              y={activeNode.buttonY - 20}
+              width="360"
+              height="600"
+              style={{ overflow: 'visible', zIndex: 50, pointerEvents: 'none' }}
+            >
+              <div className={`hero-orchestration-node-wrapper hero-orchestration-node-${activeNode.side}`} style={{ position: 'relative', width: '100%', height: '100%', pointerEvents: 'none' }}>
+                <aside
+                  className="hero-orchestration-inspector inline-inspector is-visible"
+                  aria-live="polite"
+                  style={{ pointerEvents: 'auto', top: '70px', position: 'absolute' }}
+                >
+                  <div className="hero-orchestration-inspector-header">
+                    <span className="hero-orchestration-inspector-kicker">Selected layer</span>
+                    <button
+                      type="button"
+                      className="hero-orchestration-inspector-close"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExpandedNode(null);
+                      }}
+                      aria-label="Close selected layer details"
+                    >
+                      x
+                    </button>
+                  </div>
+                  <strong>{activeNode.label}</strong>
+                  <span className="hero-orchestration-inspector-meta">
+                    {activeNode.meta}
+                  </span>
+                  <p>{activeNode.explanation}</p>
+                </aside>
+              </div>
+            </foreignObject>
+          )}
         </g>
       </svg>
 

@@ -1,15 +1,19 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ThreeDLogoMark from '../common/ThreeDLogoMark';
 
+const VIEWBOX_WIDTH = 1440;
+const VIEWBOX_HEIGHT = 900;
 const HUB_CENTER = { x: 720, y: 404 };
-const NODE_WIDTH = 218;
-const NODE_HEIGHT = 82;
 
 const HERO_NODES = [
   {
     id: 'registry',
-    x: 186,
-    y: 130,
+    buttonX: 72,
+    buttonY: 150,
+    branchX: 324,
+    branchY: 170,
+    laneY: 334,
+    bend: 124,
     label: 'Central Registry',
     meta: 'Schema-first skill records',
     kind: 'foundation',
@@ -19,8 +23,12 @@ const HERO_NODES = [
   },
   {
     id: 'importer',
-    x: 164,
-    y: 306,
+    buttonX: 46,
+    buttonY: 332,
+    branchX: 296,
+    branchY: 372,
+    laneY: 404,
+    bend: 92,
     label: 'Bulk Importer',
     meta: 'Auto-parse markdown skills at scale',
     kind: 'foundation',
@@ -30,8 +38,12 @@ const HERO_NODES = [
   },
   {
     id: 'category',
-    x: 194,
-    y: 482,
+    buttonX: 82,
+    buttonY: 532,
+    branchX: 336,
+    branchY: 560,
+    laneY: 484,
+    bend: 110,
     label: 'Category System',
     meta: 'Counts, filters, grouped lanes',
     kind: 'foundation',
@@ -41,8 +53,12 @@ const HERO_NODES = [
   },
   {
     id: 'semantic',
-    x: 1036,
-    y: 130,
+    buttonX: 1118,
+    buttonY: 150,
+    branchX: 1110,
+    branchY: 170,
+    laneY: 334,
+    bend: -124,
     label: 'Semantic Search',
     meta: 'Embeddings and similarity ranking',
     kind: 'intelligence',
@@ -52,8 +68,12 @@ const HERO_NODES = [
   },
   {
     id: 'selection',
-    x: 1058,
-    y: 306,
+    buttonX: 1146,
+    buttonY: 332,
+    branchX: 1138,
+    branchY: 372,
+    laneY: 404,
+    bend: -92,
     label: 'Ranked Selection',
     meta: 'Constraints, trust, approvals',
     kind: 'intelligence',
@@ -63,8 +83,12 @@ const HERO_NODES = [
   },
   {
     id: 'transparency',
-    x: 1028,
-    y: 482,
+    buttonX: 1110,
+    buttonY: 532,
+    branchX: 1102,
+    branchY: 560,
+    laneY: 484,
+    bend: -110,
     label: 'Decision Transparency',
     meta: 'Why chosen, score, rejected options',
     kind: 'intelligence',
@@ -96,70 +120,32 @@ function pathFromTo(from, to, bendAmount) {
 
 function buildNodePath(node) {
   const from = {
-    x: node.side === 'left' ? node.x + NODE_WIDTH : node.x,
-    y: node.y + NODE_HEIGHT / 2,
+    x: node.side === 'left' ? HUB_CENTER.x - 142 : HUB_CENTER.x + 142,
+    y: node.laneY,
   };
   const to = {
-    x: node.side === 'left' ? HUB_CENTER.x - 164 : HUB_CENTER.x + 164,
-    y: HUB_CENTER.y + (node.y + NODE_HEIGHT / 2 - HUB_CENTER.y) * 0.26,
+    x: node.branchX,
+    y: node.branchY,
   };
-  const bend = node.side === 'left' ? -82 : 82;
-  return pathFromTo(from, to, bend);
+
+  return pathFromTo(from, to, node.bend);
 }
 
-function HeroNode({ node, isExpanded, onToggle }) {
-  const handleActivate = (event) => {
-    event.stopPropagation();
-    onToggle();
+function getNodePositionStyle(node, index) {
+  const positionStyle = {
+    '--node-accent': node.accent,
+    '--hero-node-delay': `${0.18 + index * 0.08}s`,
+    '--hero-node-enter-x': node.side === 'left' ? '-40px' : '40px',
+    top: `${(node.buttonY / VIEWBOX_HEIGHT) * 100}%`,
   };
 
-  const handleKeyDown = (event) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      handleActivate(event);
-    }
-  };
+  if (node.side === 'left') {
+    positionStyle.left = `${(node.buttonX / VIEWBOX_WIDTH) * 100}%`;
+  } else {
+    positionStyle.right = `${((VIEWBOX_WIDTH - node.buttonX) / VIEWBOX_WIDTH) * 100}%`;
+  }
 
-  return (
-    <g
-      className={`hero-orchestration-node hero-orchestration-node-${node.kind}${isExpanded ? ' is-expanded' : ''}`}
-      transform={`translate(${node.x} ${node.y})`}
-      style={{ '--node-accent': node.accent }}
-      role="button"
-      tabIndex={0}
-      aria-label={`${isExpanded ? 'Hide' : 'Show'} Flowfex details for ${node.label}`}
-      aria-pressed={isExpanded}
-      onClick={handleActivate}
-      onKeyDown={handleKeyDown}
-    >
-      <rect width={NODE_WIDTH} height={NODE_HEIGHT} rx="26" />
-      <rect className="hero-orchestration-node-topline" width={NODE_WIDTH} height="2" rx="2" />
-      
-      <g className="hero-orchestration-node-dot-wrapper">
-        <circle 
-          className="hero-orchestration-node-dot-ring" 
-          cx="28" 
-          cy="31" 
-          r="6"
-          style={{ stroke: node.accent }}
-        />
-        <circle 
-          className="hero-orchestration-node-dot" 
-          cx="28" 
-          cy="31" 
-          r="5"
-          style={{ fill: node.accent }}
-        />
-      </g>
-      
-      <text className="hero-orchestration-node-label" x="46" y="33">
-        {node.label}
-      </text>
-      <text className="hero-orchestration-node-meta" x="46" y="56">
-        {node.meta}
-      </text>
-    </g>
-  );
+  return positionStyle;
 }
 
 export default function HeroOrchestrationScene() {
@@ -180,7 +166,7 @@ export default function HeroOrchestrationScene() {
   );
 
   const handleNodeToggle = (nodeId) => {
-    setExpandedNode(expandedNode === nodeId ? null : nodeId);
+    setExpandedNode((current) => (current === nodeId ? null : nodeId));
   };
 
   useEffect(() => {
@@ -246,6 +232,17 @@ export default function HeroOrchestrationScene() {
     };
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setExpandedNode(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <div ref={sceneRef} className="hero-orchestration-scene" aria-label="Flowfex orchestration overview">
       <div className="hero-orchestration-mesh hero-orchestration-mesh-primary" />
@@ -258,39 +255,41 @@ export default function HeroOrchestrationScene() {
         viewBox="0 0 1440 900"
         preserveAspectRatio="xMidYMid meet"
       >
-        <defs>
-          <filter id="hero-node-shadow" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="20" result="shadow" />
-            <feColorMatrix
-              in="shadow"
-              type="matrix"
-              values="1 0 0 0 0
-                      0 1 0 0 0.34
-                      0 0 1 0 0.22
-                      0 0 0 12 -5.8"
-            />
-          </filter>
-        </defs>
-
         <g className="hero-orchestration-parallax hero-orchestration-parallax-near">
-          {links.map((node) => (
-            <path
-              key={`${node.id}-link`}
-              className="hero-orchestration-link"
-              d={node.path}
-              style={{ '--line-accent': node.accent }}
-            />
-          ))}
-          {HERO_NODES.map((node) => (
-            <HeroNode 
-              key={node.id} 
-              node={node} 
-              isExpanded={expandedNode === node.id}
-              onToggle={() => handleNodeToggle(node.id)}
-            />
+          {links.map((node, index) => (
+            <g key={`${node.id}-link`} style={{ '--line-accent': node.accent, '--branch-delay': `${0.06 + index * 0.06}s` }}>
+              <path
+                className="hero-orchestration-link"
+                d={node.path}
+                pathLength="1"
+              />
+              <circle className="hero-orchestration-link-terminal" cx={node.branchX} cy={node.branchY} r="7" />
+            </g>
           ))}
         </g>
       </svg>
+
+      <div className="hero-orchestration-labels" aria-label="Flowfex orchestration layers">
+        {HERO_NODES.map((node, index) => (
+          <button
+            key={node.id}
+            type="button"
+            className={`hero-orchestration-node hero-orchestration-node-button hero-orchestration-node-${node.kind}${expandedNode === node.id ? ' is-expanded is-active' : ''}`}
+            style={getNodePositionStyle(node, index)}
+            aria-label={`${expandedNode === node.id ? 'Hide' : 'Show'} Flowfex details for ${node.label}`}
+            aria-pressed={expandedNode === node.id}
+            onClick={() => handleNodeToggle(node.id)}
+          >
+            <span className="hero-orchestration-node-marker" aria-hidden="true">
+              <span className="hero-orchestration-node-marker-core" />
+            </span>
+            <span className="hero-orchestration-node-copy">
+              <strong>{node.label}</strong>
+              <small>{node.meta}</small>
+            </span>
+          </button>
+        ))}
+      </div>
 
       <div className="hero-orchestration-core">
         <div className="hero-orchestration-core-border">

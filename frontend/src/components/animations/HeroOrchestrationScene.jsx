@@ -239,7 +239,7 @@ export default function HeroOrchestrationScene() {
   }, []);
 
   return (
-    <div ref={sceneRef} className="hero-orchestration-scene" aria-label="Flowfex orchestration overview">
+    <div ref={sceneRef} className={`hero-orchestration-scene ${expandedNode ? 'has-active-node' : ''}`} aria-label="Flowfex orchestration overview">
       <div className="hero-orchestration-mesh hero-orchestration-mesh-primary" />
       <div className="hero-orchestration-mesh hero-orchestration-mesh-secondary" />
       <div className="hero-orchestration-grid" />
@@ -264,28 +264,57 @@ export default function HeroOrchestrationScene() {
           {HERO_NODES.map((node, index) => (
             <foreignObject
               key={node.id}
-              x={node.buttonX}
-              y={node.buttonY - 30} // Offset slightly to vertically center the button over the path
-              width="320"
-              height="100"
-              style={{ overflow: 'visible' }}
+              x={node.side === 'left' ? node.buttonX : node.buttonX - 50}
+              y={node.buttonY - 20}
+              width="360"
+              height="320"
+              style={{ overflow: 'visible', zIndex: expandedNode === node.id ? 10 : 1 }}
             >
-              <button
-                type="button"
-                className={`hero-orchestration-node hero-orchestration-node-button hero-orchestration-node-${node.kind}${expandedNode === node.id ? ' is-expanded is-active' : ''}`}
-                style={getNodePositionStyle(node, index)}
-                aria-label={`${expandedNode === node.id ? 'Hide' : 'Show'} Flowfex details for ${node.label}`}
-                aria-pressed={expandedNode === node.id}
-                onClick={() => handleNodeToggle(node.id)}
-              >
-                <span className="hero-orchestration-node-marker" aria-hidden="true">
-                  <span className="hero-orchestration-node-marker-core" />
-                </span>
-                <span className="hero-orchestration-node-copy">
-                  <strong>{node.label}</strong>
-                  <small>{node.meta}</small>
-                </span>
-              </button>
+              <div className={`hero-orchestration-node-wrapper hero-orchestration-node-${node.side}`} style={{ position: 'relative', width: '100%', height: '100%' }}>
+                <button
+                  type="button"
+                  className={`hero-orchestration-node hero-orchestration-node-button hero-orchestration-node-${node.kind}${expandedNode === node.id ? ' is-expanded is-active' : ''}`}
+                  style={getNodePositionStyle(node, index)}
+                  aria-label={`${expandedNode === node.id ? 'Hide' : 'Show'} Flowfex details for ${node.label}`}
+                  aria-pressed={expandedNode === node.id}
+                  onClick={() => handleNodeToggle(node.id)}
+                >
+                  <span className="hero-orchestration-node-marker" aria-hidden="true">
+                    <span className="hero-orchestration-node-marker-core" />
+                  </span>
+                  <span className="hero-orchestration-node-copy">
+                    <strong>{node.label}</strong>
+                    <small>{node.meta}</small>
+                  </span>
+                </button>
+
+                {expandedNode === node.id && (
+                  <aside
+                    className="hero-orchestration-inspector inline-inspector is-visible"
+                    aria-live="polite"
+                  >
+                    <div className="hero-orchestration-inspector-header">
+                      <span className="hero-orchestration-inspector-kicker">Selected layer</span>
+                      <button
+                        type="button"
+                        className="hero-orchestration-inspector-close"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedNode(null);
+                        }}
+                        aria-label="Close selected layer details"
+                      >
+                        x
+                      </button>
+                    </div>
+                    <strong>{node.label}</strong>
+                    <span className="hero-orchestration-inspector-meta">
+                      {node.meta}
+                    </span>
+                    <p>{node.explanation}</p>
+                  </aside>
+                )}
+              </div>
             </foreignObject>
           ))}
         </g>
@@ -303,30 +332,6 @@ export default function HeroOrchestrationScene() {
         </div>
         <ThreeDLogoMark className="hero-orchestration-logo-mark" depth={14} glow="soft" />
       </div>
-
-      <aside
-        className={`hero-orchestration-inspector${activeNode ? ' is-visible' : ''}`}
-        aria-live="polite"
-      >
-        <div className="hero-orchestration-inspector-header">
-          <span className="hero-orchestration-inspector-kicker">Selected layer</span>
-          <button
-            type="button"
-            className="hero-orchestration-inspector-close"
-            onClick={() => setExpandedNode(null)}
-            aria-label="Close selected layer details"
-          >
-            x
-          </button>
-        </div>
-        <strong>{activeNode?.label || 'Click a skill layer'}</strong>
-        <span className="hero-orchestration-inspector-meta">
-          {activeNode?.meta || 'Inspect how Flowfex imports, ranks, routes, and explains resources for connected agents.'}
-        </span>
-        <p>
-          {activeNode?.explanation || 'The orchestration layer keeps agent resources visible and reviewable instead of hiding decisions inside one-off prompts.'}
-        </p>
-      </aside>
     </div>
   );
 }

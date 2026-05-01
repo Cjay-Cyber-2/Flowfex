@@ -1389,6 +1389,33 @@
   pointer-events: auto;
 }
 
+.hero-orchestration-inspector.inline-inspector {
+  top: calc(100% + 14px);
+  left: 0;
+  right: auto;
+  bottom: auto;
+  width: 320px;
+  margin: 0;
+}
+
+.hero-orchestration-node-right .hero-orchestration-inspector.inline-inspector {
+  left: auto;
+  right: 0;
+}
+
+.hero-orchestration-scene.has-active-node .hero-orchestration-node-button:not(.is-active) {
+  opacity: 0.15;
+  filter: blur(4px);
+  pointer-events: none;
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.hero-orchestration-scene.has-active-node .hero-orchestration-link,
+.hero-orchestration-scene.has-active-node .hero-orchestration-link-terminal {
+  opacity: 0.12;
+  transition: opacity 0.3s ease;
+}
+
 .hero-orchestration-inspector-header {
   display: flex;
   align-items: center;
@@ -2382,8 +2409,6 @@
   }
 
   .hero-orchestration-inspector {
-    right: 20px;
-    bottom: 24px;
     width: min(280px, calc(100% - 48px));
     padding: 12px 14px;
   }
@@ -2516,11 +2541,7 @@
   }
 
   .hero-orchestration-inspector {
-    left: 16px;
-    right: 16px;
-    bottom: 16px;
-    width: auto;
-    min-height: 0;
+    width: 260px;
     padding: 12px 14px;
     border-radius: 12px;
   }

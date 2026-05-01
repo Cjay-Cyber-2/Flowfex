@@ -166,10 +166,7 @@ export default function HeroOrchestrationScene() {
       })),
     []
   );
-  const activeNode = useMemo(
-    () => HERO_NODES.find((node) => node.id === expandedNode) || null,
-    [expandedNode]
-  );
+
 
   const handleNodeToggle = (nodeId) => {
     setExpandedNode((current) => (current === nodeId ? null : nodeId));

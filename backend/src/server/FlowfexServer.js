@@ -51,7 +51,7 @@ export class FlowfexServer {
       // Health check MUST respond immediately for Render
       if (request.url === '/health' || request.url === '/') {
         response.writeHead(200, { 'Content-Type': 'text/plain' });
-        response.end('OK');
+        response.end('ok');
         return;
       }
 
@@ -168,7 +168,7 @@ export class FlowfexServer {
 
     if (request.method === 'GET' && url.pathname === '/health') {
       response.writeHead(200, { 'content-type': 'text/plain' });
-      response.end('OK');
+      response.end('ok');
       return;
     }
 

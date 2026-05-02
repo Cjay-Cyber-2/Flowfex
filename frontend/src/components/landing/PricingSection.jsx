@@ -7,7 +7,7 @@ function PricingSection() {
   return (
     <section id="pricing" data-section-id="pricing" className="pricing-section">
       <div className="radial-glow-bg" />
-      
+
       <div className="content-container">
         <header className="section-header">
           <span className="section-kicker">PRICING</span>
@@ -18,21 +18,21 @@ function PricingSection() {
         </header>
 
         <div className="pricing-cards">
-          <PricingCard 
-            tier={pricingTiers[0]} 
-            delay={0} 
-            slideFrom="left" 
+          <PricingCard
+            tier={pricingTiers[0]}
+            delay={0}
+            slideFrom="left"
           />
-          <PricingCard 
-            tier={pricingTiers[1]} 
-            delay={200} 
-            slideFrom="bottom" 
-            featured 
+          <PricingCard
+            tier={pricingTiers[1]}
+            delay={200}
+            slideFrom="bottom"
+            featured
           />
-          <PricingCard 
-            tier={pricingTiers[2]} 
-            delay={0} 
-            slideFrom="right" 
+          <PricingCard
+            tier={pricingTiers[2]}
+            delay={0}
+            slideFrom="right"
           />
         </div>
 

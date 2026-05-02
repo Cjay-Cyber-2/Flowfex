@@ -1,5 +1,5 @@
-import React from 'react';
-import { ChevronDown, Pause, Play } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronDown, Copy, Check, Pause, Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import FlowfexLogoNew from '../FlowfexLogoNew';
 import useStore from '../../store/useStore';
@@ -7,6 +7,7 @@ import './TopBar.css';
 
 function TopBar() {
   const navigate = useNavigate();
+  const [copiedToken, setCopiedToken] = useState(false);
   const {
     activeSession,
     canvasMode,
@@ -30,6 +31,13 @@ function TopBar() {
     { id: 'flow', label: 'Flow' },
     { id: 'live', label: 'Live' },
   ];
+
+  const handleCopyToken = () => {
+    if (!activeSession?.token) return;
+    navigator.clipboard.writeText(activeSession.token);
+    setCopiedToken(true);
+    setTimeout(() => setCopiedToken(false), 2000);
+  };
 
   return (
     <header className="top-bar">
@@ -59,6 +67,16 @@ function TopBar() {
             <div className="status-strip-mainline">
               <strong>{activeSession?.heartbeat || currentNode?.title || 'Ready to orchestrate'}</strong>
               <span className={`status-strip-mode status-strip-mode-${canvasMode}`}>{canvasMode.toUpperCase()}</span>
+              {activeSession?.token && (
+                <button
+                  className={`token-copy-pill ${copiedToken ? 'is-copied' : ''}`}
+                  onClick={handleCopyToken}
+                  title="Copy session token for agent"
+                >
+                  {copiedToken ? <Check size={10} /> : <Copy size={10} />}
+                  <span>{copiedToken ? 'Copied' : 'Token'}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

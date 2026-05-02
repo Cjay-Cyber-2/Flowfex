@@ -3,10 +3,6 @@ import { ArrowRight, ChevronRight, Network, Play, ShieldCheck, Sparkles, Workflo
 import { useNavigate } from 'react-router-dom';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import HeroOrchestrationScene from '../components/animations/HeroOrchestrationScene';
-import ParticleField from '../components/animations/ParticleField';
-import SignalWave from '../components/animations/SignalWave';
-import LiquidMetalText from '../components/animations/LiquidMetalText';
-import PortalButton from '../components/animations/PortalButton';
 import FlowIcon from '../components/common/FlowIcon';
 import ScrollFrameSection from '../components/landing/ScrollFrameSection';
 import DotNavigation from '../components/landing/DotNavigation';
@@ -489,24 +485,21 @@ function LandingPage() {
       />
 
       <section id="hero" data-section-id="hero" className="landing-section hero-section">
-        <ParticleField />
-        <SignalWave />
         <HeroOrchestrationScene />
 
         <div className="hero-copy hero-copy-centered">
           <span className="section-kicker">Skill orchestration for live agents</span>
-          <LiquidMetalText
-            text="The skill operating layer for connected agents."
-            className="hero-headline"
-          />
+          <h1 className="hero-headline">
+            <span style={{ fontWeight: 'bold', letterSpacing: '0.02em' }}>The skill operating layer for connected agents.</span>
+          </h1>
           <p className="hero-subheadline">
             Match tasks semantically, and keep human approval and decision transparency inside one orchestration surface.
           </p>
 
           <div className="hero-actions">
-            <PortalButton className="hero-primary-cta" onClick={() => navigate('/onboarding')}>
+            <button className="btn btn-primary hero-primary-cta" onClick={() => navigate('/onboarding')}>
               Start Building Free
-            </PortalButton>
+            </button>
             <button className="btn btn-ghost" onClick={() => navigate('/dashboard')}>
               <Play size={16} />
               Watch Live Demo
@@ -721,9 +714,9 @@ function LandingPage() {
             Start a session, connect an agent, and let Flowfex turn scattered resources into a live flow you can understand and steer.
           </p>
           <div className="final-actions">
-            <PortalButton className="final-cta-enhanced" onClick={() => navigate('/onboarding')}>
+            <button className="btn btn-primary final-cta-enhanced" onClick={() => navigate('/onboarding')}>
               Start Building Free
-            </PortalButton>
+            </button>
             <button className="btn btn-ghost" onClick={() => navigate('/dashboard')}>
               See the Dashboard
               <ArrowRight size={16} />

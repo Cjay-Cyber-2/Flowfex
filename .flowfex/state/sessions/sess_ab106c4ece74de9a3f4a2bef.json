@@ -1,0 +1,73 @@
+{
+  "sessionId": "sess_ab106c4ece74de9a3f4a2bef",
+  "executionId": "orch_1777722974649_9a0e178d",
+  "task": "Calculate 5*5",
+  "status": "failed",
+  "revision": 2,
+  "agent": {
+    "id": null,
+    "name": "TestPromptAgent",
+    "type": "unknown",
+    "version": null
+  },
+  "sessionContext": {
+    "mode": "prompt",
+    "metadata": {},
+    "capabilities": [],
+    "prompt": "Help me analyze some data"
+  },
+  "createdAt": "2026-05-02T11:56:14.745Z",
+  "updatedAt": "2026-05-02T11:56:14.746Z",
+  "currentNodeId": null,
+  "pendingNodeId": null,
+  "completedNodeIds": [],
+  "blockedSkillIds": [],
+  "graph": {
+    "sessionId": "sess_ab106c4ece74de9a3f4a2bef",
+    "executionId": "orch_1777722974649_9a0e178d",
+    "nodes": [],
+    "edges": []
+  },
+  "outputs": {},
+  "errors": {
+    "flowfex:no_relevant_capabilities": {
+      "message": "Flowfex could not find any directly relevant skills or resources for this request.",
+      "type": "NoRelevantCapabilitiesError"
+    }
+  },
+  "branchChoices": {},
+  "trace": [],
+  "intent": {
+    "goal": "Calculate 5*5",
+    "capabilityCategories": [
+      "general"
+    ],
+    "suggestedExecutionSteps": [
+      {
+        "id": "step_8dcf537ba8",
+        "title": "General task execution",
+        "objective": "Calculate 5*5",
+        "capabilityCategory": "general",
+        "requiresApproval": false
+      }
+    ],
+    "branchPoints": [],
+    "confidence": 0.42,
+    "constraints": []
+  },
+  "selection": {
+    "selectedSteps": [],
+    "decisionNodes": [],
+    "rankings": [
+      {
+        "stepId": "step_8dcf537ba8",
+        "stepTitle": "General task execution",
+        "strategy": "deterministic-fallback",
+        "candidates": []
+      }
+    ],
+    "fallbackUsed": true
+  },
+  "graphUpdates": [],
+  "control": {}
+}

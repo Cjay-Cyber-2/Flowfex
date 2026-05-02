@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Hand,
+  Loader2,
   Maximize,
   MessageSquarePlus,
   Minimize,
@@ -127,6 +128,7 @@ function CanvasRenderer() {
     setCanvasMode,
     setSelectedNode,
     selectNode,
+    setConnectModalOpen,
   } = useStore();
   const [transform, setTransform] = useState({ x: 120, y: 90, scale: 0.56 });
   const [dragState, setDragState] = useState(null);
@@ -305,6 +307,23 @@ function CanvasRenderer() {
   const visibleHeight = viewportSize.height / transform.scale;
   const visibleX = -transform.x / transform.scale;
   const visibleY = -transform.y / transform.scale;
+
+  if (nodes.length === 0) {
+    return (
+      <div className="canvas-renderer canvas-empty-state">
+        <div className="canvas-empty-content">
+          <div className="canvas-empty-icon-wrap">
+            <Loader2 className="canvas-empty-spinner" size={32} />
+          </div>
+          <h3>Waiting for Orchestration</h3>
+          <p>Connect an agent or send a task to visualize the AI execution graph.</p>
+          <button className="canvas-empty-cta" onClick={() => setConnectModalOpen(true)}>
+            Connect Agent
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

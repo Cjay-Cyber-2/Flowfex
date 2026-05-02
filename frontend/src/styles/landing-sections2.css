@@ -367,3 +367,46 @@
     grid-template-columns: 1fr repeat(3, 80px);
   }
 }
+
+@media (max-width: 480px) {
+  .pricing-section,
+  .faq-section {
+    padding: 64px 16px;
+  }
+  .pricing-title {
+    font-size: 32px;
+  }
+  .price-amount {
+    font-size: 36px;
+  }
+  .faq-title {
+    font-size: 32px;
+  }
+  .pt-header,
+  .pt-row {
+    grid-template-columns: 1fr;
+    height: auto;
+    padding: 16px;
+    gap: 12px;
+  }
+  .pt-plan-col {
+    justify-content: flex-start;
+  }
+  .pt-feature-col {
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .pricing-title,
+  .faq-title {
+    font-size: 28px;
+    word-break: break-word;
+  }
+  .pricing-card {
+    padding: 24px 16px;
+  }
+  .plan-name {
+    font-size: 18px;
+  }
+}

@@ -2678,3 +2678,73 @@
     padding: 22px 18px;
   }
 }
+
+/* Ultra-small mobile optimizations */
+@media (max-width: 480px) {
+  .hero-headline {
+    font-size: clamp(1.8rem, 10vw, 2.4rem);
+    word-wrap: break-word;
+  }
+  
+  .hero-subheadline {
+    font-size: 0.95rem;
+  }
+
+  .statement-word-frame {
+    min-height: 140px;
+    padding: 1rem;
+  }
+
+  .statement-word-current strong {
+    font-size: clamp(2rem, 8vw, 3rem);
+  }
+
+  .landing-section {
+    padding: 64px 14px;
+  }
+  
+  .problem-section, .layers-grid, .reveal-stage {
+    gap: 16px;
+  }
+  
+  .layer-visual, .demo-browser-canvas, .reveal-stage-canvas {
+    overflow-x: auto;
+  }
+
+  .final-panel {
+    padding: 32px 16px;
+  }
+}
+
+@media (max-width: 360px) {
+  .landing-nav-brand {
+    transform: scale(0.85);
+    transform-origin: left center;
+  }
+
+  .hero-section {
+    padding: 84px 12px 48px;
+  }
+
+  .hero-headline {
+    font-size: clamp(1.5rem, 9vw, 2rem);
+  }
+  
+  .hero-orchestration-core {
+    width: clamp(160px, 45vw, 188px);
+    height: clamp(160px, 45vw, 188px);
+  }
+
+  .problem-card,
+  .layer-card,
+  .reveal-stage-panel {
+    padding: 16px 14px;
+  }
+  
+  .landing-section .section-copy h2,
+  .landing-section .section-heading-block h2,
+  .landing-section .final-panel h2 {
+    font-size: clamp(1.8rem, 7vw, 2.5rem);
+    word-wrap: break-word;
+  }
+}

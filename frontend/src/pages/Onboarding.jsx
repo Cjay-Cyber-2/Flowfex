@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, ArrowLeft } from 'lucide-react';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import ConnectAgentModal from '../components/ConnectAgentModal';
 import PulseBeams from '../components/animations/PulseBeams';
@@ -215,8 +215,19 @@ export default function Onboarding() {
       {/* Explosion on successful connection */}
       <ExplosionCanvas active={connectionStage === 'connected' || connectionStage === 'navigating'} />
 
-      <header className="ob-topbar">
-        <FlowfexLogoNew size={30} animated={false} />
+      <header className="ob-topbar" style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        <button 
+          onClick={() => navigate(-1)} 
+          className="btn btn-ghost" 
+          style={{ padding: '8px', minWidth: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}
+          aria-label="Go back"
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <FlowfexLogoNew size={30} animated={false} />
+        </div>
+        <div style={{ width: '40px' }} aria-hidden="true" />
       </header>
 
       <main className="ob-center">

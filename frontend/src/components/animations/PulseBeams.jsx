@@ -1,6 +1,6 @@
 /**
  * PulseBeams — animated SVG beam paths with framer-motion gradient pulses.
- * Adapted from the provided TypeScript component to plain JSX.
+ * Enhanced with "Connection Beam" logic for orchestration events.
  */
 import React from 'react';
 import { motion } from 'framer-motion';
@@ -39,9 +39,9 @@ export function PulseBeams({
 
 function BeamSVG({ beams, width, height, baseColor, accentColor, gradientColors }) {
   const colors = gradientColors || {
-    start: '#18CCFC',
-    middle: '#6344F5',
-    end: '#AE48FF',
+    start: '#00D4AA', // Sinoper
+    middle: '#E8B931', // Massicot
+    end: '#46BDA9', // Verdigris
   };
 
   return (
@@ -57,22 +57,44 @@ function BeamSVG({ beams, width, height, baseColor, accentColor, gradientColors 
         <React.Fragment key={index}>
           {/* Static base path */}
           <path d={beam.path} stroke={baseColor} strokeWidth="1" />
-          {/* Animated gradient overlay */}
-          <path
+
+          {/* Animated gradient overlay (The Connection Beam) */}
+          <motion.path
             d={beam.path}
             stroke={`url(#grad${index})`}
-            strokeWidth="2"
+            strokeWidth="2.5"
             strokeLinecap="round"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{
+              pathLength: [0, 1, 1],
+              opacity: [0, 1, 0],
+              transition: {
+                duration: 3,
+                repeat: Infinity,
+                delay: index * 0.4,
+                ease: "easeInOut"
+              }
+            }}
           />
+
           {/* Connection dots */}
           {beam.connectionPoints?.map((point, pi) => (
-            <circle
+            <motion.circle
               key={`${index}-${pi}`}
               cx={point.cx}
               cy={point.cy}
               r={point.r}
               fill={baseColor}
               stroke={accentColor}
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.5, 1, 0.5],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                delay: index * 0.4
+              }}
             />
           ))}
         </React.Fragment>
@@ -84,9 +106,9 @@ function BeamSVG({ beams, width, height, baseColor, accentColor, gradientColors 
             key={index}
             id={`grad${index}`}
             gradientUnits="userSpaceOnUse"
-            initial={beam.gradientConfig.initial}
-            animate={beam.gradientConfig.animate}
-            transition={beam.gradientConfig.transition}
+            initial={beam.gradientConfig?.initial || { x1: '0%', y1: '0%', x2: '100%', y2: '0%' }}
+            animate={beam.gradientConfig?.animate}
+            transition={beam.gradientConfig?.transition}
           >
             <stop offset="0%" stopColor={colors.start} stopOpacity="0" />
             <stop offset="20%" stopColor={colors.start} stopOpacity="1" />

@@ -1,5 +1,8 @@
 import { createSessionDataClient } from './sessionDataAccess.js';
 import { logSessionError } from './sessionLogger.js';
+import { flowfexSessions, usageTracking } from '../db/schema.js';
+import { eq, gte, sql } from 'drizzle-orm';
+import { randomUUID } from 'node:crypto';
 
 const FLOWFEX_LIMITS = {
   anonymous: {
@@ -130,15 +133,17 @@ export class UsageService {
     }
 
     try {
-      const { data: sessionRow, error: sessionError } = await this.client
-        .from('sessions')
-        .select('id, auth_id, anonymous_token, connected_agents, created_at')
-        .eq('id', sessionId)
-        .maybeSingle();
-
-      if (sessionError) {
-        throw sessionError;
-      }
+      const sessionRow = await this.client
+        .select({
+          id: flowfexSessions.id,
+          auth_id: flowfexSessions.auth_id,
+          anonymous_token: flowfexSessions.anonymous_token,
+          connected_agents: flowfexSessions.connected_agents,
+          created_at: flowfexSessions.created_at
+        })
+        .from(flowfexSessions)
+        .where(eq(flowfexSessions.id, sessionId))
+        .limit(1);
 
       const session = firstRow(sessionRow);
       if (!session) {
@@ -149,19 +154,19 @@ export class UsageService {
       const nowMs = Date.now();
       const rollingWindowStartIso = new Date(nowMs - ONE_DAY_MS).toISOString();
 
-      const usageQuery = this.client
-        .from('usage_tracking')
-        .select('executions_count, nodes_processed, session_duration_seconds, period_start, created_at');
-
+      let usageRows;
       if (tier === 'authenticated') {
-        usageQuery.eq('auth_id', session.auth_id).gte('period_start', rollingWindowStartIso);
+        usageRows = await this.client
+          .select()
+          .from(usageTracking)
+          .where(
+            sql`${usageTracking.auth_id} = ${session.auth_id} AND ${usageTracking.period_start} >= ${new Date(rollingWindowStartIso)}`
+          );
       } else {
-        usageQuery.eq('session_id', sessionId);
-      }
-
-      const { data: usageRows, error: usageError } = await usageQuery;
-      if (usageError) {
-        throw usageError;
+        usageRows = await this.client
+          .select()
+          .from(usageTracking)
+          .where(eq(usageTracking.session_id, sessionId));
       }
 
       const normalizedRows = Array.isArray(usageRows) ? usageRows : [];
@@ -232,29 +237,26 @@ export class UsageService {
     }
 
     try {
-      const { data: sessionRow, error: sessionError } = await this.client
-        .from('sessions')
-        .select('auth_id, anonymous_token')
-        .eq('id', sessionId)
-        .maybeSingle();
-
-      if (sessionError) {
-        throw sessionError;
-      }
+      const sessionRow = await this.client
+        .select({
+          auth_id: flowfexSessions.auth_id,
+          anonymous_token: flowfexSessions.anonymous_token
+        })
+        .from(flowfexSessions)
+        .where(eq(flowfexSessions.id, sessionId))
+        .limit(1);
 
       const session = firstRow(sessionRow);
-      const { data, error } = await this.client.rpc('increment_usage_tracking', {
-        p_session_id: sessionId,
-        p_auth_id: session?.auth_id || null,
-        p_anonymous_token: session?.anonymous_token || null,
-        p_executions_increment: 1,
-        p_nodes_processed_increment: Math.max(0, Number(nodesProcessed) || 0),
-        p_duration_seconds_increment: 0,
-      });
-
-      if (error) {
-        throw error;
-      }
+      
+      const usageId = randomUUID();
+      const data = await this.client.insert(usageTracking).values({
+        id: usageId,
+        session_id: sessionId,
+        auth_id: session?.auth_id || null,
+        executions_count: 1,
+        nodes_processed: Math.max(0, Number(nodesProcessed) || 0),
+        session_duration_seconds: 0
+      }).returning();
 
       return firstRow(data);
     } catch (error) {

@@ -2,6 +2,8 @@ import { createHash, randomUUID } from 'node:crypto';
 import { createSessionDataClient } from './sessionDataAccess.js';
 import { logSessionError } from './sessionLogger.js';
 import { toDashboardSessionRecord } from './sessionSerializers.js';
+import { flowfexSessions } from '../db/schema.js';
+import { eq, desc } from 'drizzle-orm';
 
 function firstResult(data) {
   return Array.isArray(data) ? data[0] || null : data || null;
@@ -37,21 +39,18 @@ export class AnonymousSessionService {
 
   async createAnonymousSession() {
     const anonymousToken = buildAnonymousToken();
+    const sessionId = randomUUID();
 
     try {
-      const { data, error } = await this.client.rpc('create_anonymous_session', {
-        p_anonymous_token: anonymousToken,
-        p_mode: 'live',
-      });
-
-      if (error) {
-        throw error;
-      }
+      const data = await this.client.insert(flowfexSessions).values({
+        id: sessionId,
+        anonymous_token: anonymousToken,
+      }).returning();
 
       const row = firstResult(data);
 
       return {
-        sessionId: row?.session_id || null,
+        sessionId: row?.id || sessionId,
         anonymousToken: row?.anonymous_token || anonymousToken,
       };
     } catch (error) {
@@ -66,17 +65,14 @@ export class AnonymousSessionService {
 
   async validateAnonymousSession(anonymousToken) {
     try {
-      const { data, error } = await this.client
-        .from('sessions')
-        .select('*')
-        .eq('anonymous_token', anonymousToken)
-        .maybeSingle();
+      const data = await this.client
+        .select()
+        .from(flowfexSessions)
+        .where(eq(flowfexSessions.anonymous_token, anonymousToken))
+        .limit(1);
 
-      if (error) {
-        throw error;
-      }
-
-      return data ? toDashboardSessionRecord(data) : null;
+      const row = firstResult(data);
+      return row ? toDashboardSessionRecord(row) : null;
     } catch (error) {
       logSessionError({
         operation: 'anonymous_session.validate',
@@ -89,19 +85,13 @@ export class AnonymousSessionService {
 
   async upgradeAnonymousSession({ anonymousToken, authId, displayName = null, avatarUrl = null }) {
     try {
-      const { data, error } = await this.client.rpc('upgrade_anonymous_session', {
-        p_anonymous_token: anonymousToken,
-        p_auth_id: authId,
-        p_display_name: displayName,
-        p_avatar_url: avatarUrl,
-      });
-
-      if (error) {
-        throw error;
-      }
+      const data = await this.client
+        .update(flowfexSessions)
+        .set({ auth_id: authId })
+        .where(eq(flowfexSessions.anonymous_token, anonymousToken))
+        .returning();
 
       const row = firstResult(data);
-
       return row ? toDashboardSessionRecord(row) : null;
     } catch (error) {
       logSessionError({
@@ -115,19 +105,15 @@ export class AnonymousSessionService {
 
   async getMostRecentSessionForUser(authId) {
     try {
-      const { data, error } = await this.client
-        .from('sessions')
-        .select('*')
-        .eq('auth_id', authId)
-        .order('last_active_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const data = await this.client
+        .select()
+        .from(flowfexSessions)
+        .where(eq(flowfexSessions.auth_id, authId))
+        .orderBy(desc(flowfexSessions.last_active_at))
+        .limit(1);
 
-      if (error) {
-        throw error;
-      }
-
-      return data ? toDashboardSessionRecord(data) : null;
+      const row = firstResult(data);
+      return row ? toDashboardSessionRecord(row) : null;
     } catch (error) {
       logSessionError({
         operation: 'anonymous_session.get_most_recent_for_user',
@@ -145,39 +131,33 @@ export class AnonymousSessionService {
     }
 
     try {
-      const { data: existingRow, error: fetchError } = await this.client
-        .from('sessions')
-        .select('connected_agents')
-        .eq('id', sessionId)
-        .maybeSingle();
+      const existingRows = await this.client
+        .select({ connected_agents: flowfexSessions.connected_agents })
+        .from(flowfexSessions)
+        .where(eq(flowfexSessions.id, sessionId))
+        .limit(1);
 
-      if (fetchError) {
-        throw fetchError;
-      }
-
+      const existingRow = firstResult(existingRows);
       const existingAgents = Array.isArray(existingRow?.connected_agents)
         ? existingRow.connected_agents
         : [];
+        
       const nextAgents = [
         ...existingAgents.filter((entry) => entry?.id !== normalizedAgent.id),
         normalizedAgent,
       ];
 
-      const { data, error } = await this.client
-        .from('sessions')
-        .update({
+      const data = await this.client
+        .update(flowfexSessions)
+        .set({
           connected_agents: nextAgents,
-          last_active_at: new Date().toISOString(),
+          last_active_at: new Date(),
         })
-        .eq('id', sessionId)
-        .select('*')
-        .maybeSingle();
+        .where(eq(flowfexSessions.id, sessionId))
+        .returning();
 
-      if (error) {
-        throw error;
-      }
-
-      return data ? toDashboardSessionRecord(data) : null;
+      const row = firstResult(data);
+      return row ? toDashboardSessionRecord(row) : null;
     } catch (error) {
       logSessionError({
         operation: 'anonymous_session.mark_connected_agent',

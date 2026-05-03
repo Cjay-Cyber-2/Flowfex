@@ -1,13 +1,16 @@
+import { db } from '../auth/betterAuth.js';
+
 export function isSessionDataConfigured() {
-  return false;
+  return !!process.env.DATABASE_URL;
 }
 
 export function createSessionDataClient() {
-  throw new Error(
-    'Database-backed session services are not configured yet. Complete the Neon migration to enable them.'
-  );
+  return db;
 }
 
-export async function resolveAuthenticatedUser() {
+export async function resolveAuthenticatedUser(request) {
+  if (request && request.user) {
+    return request.user;
+  }
   return null;
 }

@@ -1,13 +1,16 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { jwt } from "better-auth/plugins";
-import { drizzle } from "drizzle-orm/neon-http";
-import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/node-postgres";
+import pg from "pg";
+const { Pool } = pg;
 import * as schema from "../db/schema.js";
 
-// Initialize Drizzle ORM with Neon
-const sql = neon(process.env.DATABASE_URL || "postgres://dummy:dummy@localhost/dummy");
-export const db = drizzle(sql, { schema });
+// Initialize Drizzle ORM with native PG Pool
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || "postgres://dummy:dummy@localhost/dummy",
+});
+export const db = drizzle(pool, { schema });
 
 // Initialize Better Auth
 export const auth = betterAuth({

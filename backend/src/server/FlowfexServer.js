@@ -10,6 +10,11 @@ import { isSessionDataConfigured, resolveAuthenticatedUser } from '../session/se
 import { AnonymousSessionService } from '../session/AnonymousSessionService.js';
 import { ApiKeyService } from '../session/ApiKeyService.js';
 import { UsageService } from '../session/UsageService.js';
+import { auth } from '../auth/betterAuth.js';
+import { toNodeHandler } from 'better-auth/node';
+import jwt from 'jsonwebtoken';
+
+const authHandler = toNodeHandler(auth);
 
 /**
  * Minimal HTTP surface for external agent connections.
@@ -171,6 +176,35 @@ export class FlowfexServer {
       response.end('ok');
       return;
     }
+
+    if (url.pathname.startsWith('/api/auth')) {
+      return authHandler(request, response);
+    }
+
+    // --- JWT Enforcement ---
+    const isPublic = 
+      url.pathname === '/health' || 
+      url.pathname.startsWith('/socket.io/') || 
+      url.pathname === '/api/session/create-anonymous';
+
+    let decodedUser = null;
+    if (!isPublic) {
+      const authHeader = request.headers['authorization'];
+      const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
+      
+      if (!token) {
+        return this._writeJson(response, 401, { error: { message: 'Unauthorized: Missing JWT token.' } });
+      }
+
+      try {
+        const secret = process.env.JWT_SECRET || process.env.BETTER_AUTH_SECRET;
+        decodedUser = jwt.verify(token, secret);
+        request.user = decodedUser;
+      } catch (err) {
+        return this._writeJson(response, 401, { error: { message: 'Unauthorized: Invalid or expired JWT token.' } });
+      }
+    }
+    // -----------------------
 
     if (anonymousSessionCreateMatch) {
       this._assertSessionDataEnabled();

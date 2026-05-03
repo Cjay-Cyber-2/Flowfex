@@ -138,6 +138,8 @@ export class FlowfexServer {
     const url = new URL(request.url, 'http://flowfex.local');
     const ip = request.headers['x-forwarded-for'] || request.socket?.remoteAddress || 'unknown';
 
+    console.log("[FLOWFEX ROUTER]", url.pathname);
+
     // Rate Limit expensive paths to protect backend/Groq quota
     const isExecutionEndpoint = (request.method === 'POST' && (
       url.pathname === '/connect' || 

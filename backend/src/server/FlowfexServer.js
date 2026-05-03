@@ -53,6 +53,7 @@ export class FlowfexServer {
     const host = overrides.host || this.host;
     const port = Number(overrides.port ?? this.port);
     this.server = http.createServer((request, response) => {
+      console.log("[FLOWFEX ENTRY HIT]", request.url);
       // Health check MUST respond immediately for Render
       if (request.url === '/health' || request.url === '/') {
         response.writeHead(200, { 'Content-Type': 'text/plain' });
@@ -138,7 +139,7 @@ export class FlowfexServer {
     const url = new URL(request.url, 'http://flowfex.local');
     const ip = request.headers['x-forwarded-for'] || request.socket?.remoteAddress || 'unknown';
 
-    console.log("[FLOWFEX ROUTER]", url.pathname);
+    console.log("[FLOWFEX ROUTER HIT]", url.pathname);
 
     // Rate Limit expensive paths to protect backend/Groq quota
     const isExecutionEndpoint = (request.method === 'POST' && (
@@ -180,7 +181,9 @@ export class FlowfexServer {
     }
 
     if (url.pathname.startsWith('/api/auth')) {
-      return authHandler(request, response);
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ ok: true, route: url.pathname }));
+      return;
     }
 
     // --- JWT Enforcement ---

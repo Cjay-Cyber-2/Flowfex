@@ -1,15 +1,19 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { jwt } from "better-auth/plugins";
-import { drizzle } from "drizzle-orm/node-postgres";
-import pg from "pg";
-const { Pool } = pg;
+import { drizzle } from "drizzle-orm/neon-serverless";
+import { Pool } from "@neondatabase/serverless";
 import * as schema from "../db/schema.js";
 
-// Initialize Drizzle ORM with native PG Pool
+// Initialize Drizzle ORM with Neon Serverless WebSocket Pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || "postgres://dummy:dummy@localhost/dummy",
 });
+
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
+});
+
 export const db = drizzle(pool, { schema });
 
 // Initialize Better Auth

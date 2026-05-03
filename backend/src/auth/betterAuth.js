@@ -11,6 +11,7 @@ export const db = drizzle(sql, { schema });
 
 // Initialize Better Auth
 export const auth = betterAuth({
+  baseURL: process.env.BETTER_AUTH_URL || process.env.RENDER_EXTERNAL_URL || "http://localhost:4000",
   database: drizzleAdapter(db, {
     provider: "pg", // PostgreSQL
     schema,

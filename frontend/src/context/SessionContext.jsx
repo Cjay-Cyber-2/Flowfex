@@ -22,7 +22,7 @@ import {
   isAuthClientConfigured,
   onAuthStateChange,
   signOut as signOutFromAuth,
-} from '../../../lib/auth/service';
+} from '../services/authService';
 import useStore from '../store/useStore';
 
 const SessionContext = createContext(undefined);

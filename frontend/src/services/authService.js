@@ -1,14 +1,12 @@
-// Real Better Auth client wired up — replaces the stub
+// Consolidated auth service — single Better Auth client for the entire frontend
 import { createAuthClient } from 'better-auth/client';
 import { jwtClient } from 'better-auth/client/plugins';
 
 function getBackendUrl() {
-  // Check Vite env first, fall back to the known production URL
   if (typeof import.meta !== 'undefined' && import.meta.env) {
     const env = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL;
     if (env) return env;
   }
-  // Hard fallback — always works in production even without env vars
   return 'https://flowfex.onrender.com';
 }
 
@@ -16,6 +14,35 @@ const authClient = createAuthClient({
   baseURL: getBackendUrl(),
   plugins: [jwtClient()],
 });
+
+// ─── Used by SessionContext ──────────────────────────────────────────
+
+export function isAuthClientConfigured() {
+  return true;
+}
+
+export async function getCurrentAuthSession() {
+  const { data, error } = await authClient.getSession();
+  if (error || !data) {
+    return { user: null, accessToken: null };
+  }
+  return {
+    user: data.user,
+    accessToken: data.session?.token || null,
+  };
+}
+
+export function onAuthStateChange(callback) {
+  // Better Auth doesn't have a real-time listener like Firebase.
+  // The frontend uses polling via SessionContext instead.
+  return { unsubscribe() {} };
+}
+
+export async function signOut() {
+  await authClient.signOut();
+}
+
+// ─── Used by SignIn / SignUp pages ───────────────────────────────────
 
 export async function signInWithEmail(email, password) {
   const { data, error } = await authClient.signIn.email({ email, password });
@@ -49,11 +76,5 @@ export async function signInWithGoogle() {
   if (error) throw new Error(error.message);
 }
 
-export async function signOutUser() {
-  await authClient.signOut();
-}
-
-export function onAuthStateChange() {
-  // Better Auth uses polling/hooks — no-op listener for compatibility
-  return () => {};
-}
+// Alias for backward compat
+export { signOut as signOutUser };

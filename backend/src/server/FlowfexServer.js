@@ -181,9 +181,7 @@ export class FlowfexServer {
     }
 
     if (url.pathname.startsWith('/api/auth')) {
-      response.writeHead(200, { 'Content-Type': 'application/json' });
-      response.end(JSON.stringify({ ok: true, route: url.pathname }));
-      return;
+      return authHandler(request, response);
     }
 
     // --- JWT Enforcement ---

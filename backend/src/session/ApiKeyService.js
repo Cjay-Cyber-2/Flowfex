@@ -82,12 +82,11 @@ export class ApiKeyService {
 
   async revokeApiKey(authId, keyId) {
     try {
+      const { and } = await import('drizzle-orm');
       const data = await this.client
         .update(apiKeys)
         .set({ is_active: false })
-        .where(eq(apiKeys.auth_id, authId)) // also need to eq keyId but drizzle eq multiple requires sql
-        // Let's just update using keyId since id is PK
-        // .where(sql`${apiKeys.auth_id} = ${authId} AND ${apiKeys.id} = ${keyId}`)
+        .where(and(eq(apiKeys.auth_id, authId), eq(apiKeys.id, keyId)))
         .returning({
           id: apiKeys.id,
           key_prefix: apiKeys.key_prefix,

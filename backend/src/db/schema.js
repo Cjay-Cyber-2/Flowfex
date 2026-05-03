@@ -51,9 +51,16 @@ export const flowfexSessions = pgTable("sessions", {
   id: text("id").primaryKey(),
   auth_id: text("auth_id"),
   anonymous_token: text("anonymous_token"),
+  name: text("name"),
+  graph_state: jsonb("graph_state"),
+  execution_pointer: text("execution_pointer"),
   connected_agents: jsonb("connected_agents").default([]),
+  constraints: jsonb("constraints").default([]),
+  status: text("status").default("active"),
+  mode: text("mode").default("live"),
   created_at: timestamp("created_at").defaultNow(),
-  last_active_at: timestamp("last_active_at").defaultNow()
+  last_active_at: timestamp("last_active_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
 });
 
 export const usageTracking = pgTable("usage_tracking", {

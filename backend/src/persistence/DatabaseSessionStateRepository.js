@@ -1,5 +1,7 @@
 import { createSessionDataClient } from '../session/sessionDataAccess.js';
 import { logSessionError } from '../session/sessionLogger.js';
+import { flowfexSessions } from '../db/schema.js';
+import { eq } from 'drizzle-orm';
 import {
   mapExecutionStatusToPersistedStatus,
   serializeConnectedAgentsFromSnapshot,
@@ -13,20 +15,25 @@ export class DatabaseSessionStateRepository {
 
   async read(sessionId) {
     try {
-      const { data, error } = await this.client
-        .from('execution_events')
-        .select('payload')
-        .eq('session_id', sessionId)
-        .eq('event_type', 'state_snapshot')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const rows = await this.client
+        .select({
+          graph_state: flowfexSessions.graph_state,
+          execution_pointer: flowfexSessions.execution_pointer,
+          connected_agents: flowfexSessions.connected_agents,
+          constraints: flowfexSessions.constraints,
+          status: flowfexSessions.status,
+          mode: flowfexSessions.mode,
+        })
+        .from(flowfexSessions)
+        .where(eq(flowfexSessions.id, sessionId))
+        .limit(1);
 
-      if (error) {
-        throw error;
+      const row = Array.isArray(rows) ? rows[0] : rows;
+      if (!row || !row.graph_state) {
+        return null;
       }
 
-      return data?.payload || null;
+      return row.graph_state;
     } catch (error) {
       logSessionError({
         operation: 'database_session_repository.read',
@@ -39,25 +46,28 @@ export class DatabaseSessionStateRepository {
 
   async write(snapshot) {
     const sessionId = snapshot?.sessionId || null;
+    if (!sessionId) {
+      return;
+    }
 
     try {
       const graphState = serializeGraphStateFromSnapshot(snapshot);
       const connectedAgents = serializeConnectedAgentsFromSnapshot(snapshot);
       const constraints = Array.isArray(snapshot?.blockedSkillIds) ? snapshot.blockedSkillIds : [];
-      const { error } = await this.client.rpc('save_session_graph_state', {
-        p_session_id: sessionId,
-        p_graph_state: graphState,
-        p_execution_pointer: snapshot?.pendingNodeId || snapshot?.currentNodeId || null,
-        p_connected_agents: connectedAgents,
-        p_constraints: constraints,
-        p_mode: snapshot?.sessionContext?.mode || 'live',
-        p_status: mapExecutionStatusToPersistedStatus(snapshot?.status),
-        p_snapshot: snapshot,
-      });
 
-      if (error) {
-        throw error;
-      }
+      await this.client
+        .update(flowfexSessions)
+        .set({
+          graph_state: graphState,
+          execution_pointer: snapshot?.pendingNodeId || snapshot?.currentNodeId || null,
+          connected_agents: connectedAgents,
+          constraints,
+          mode: snapshot?.sessionContext?.mode || 'live',
+          status: mapExecutionStatusToPersistedStatus(snapshot?.status),
+          last_active_at: new Date(),
+          updated_at: new Date(),
+        })
+        .where(eq(flowfexSessions.id, sessionId));
     } catch (error) {
       logSessionError({
         operation: 'database_session_repository.write',
@@ -70,14 +80,9 @@ export class DatabaseSessionStateRepository {
 
   async delete(sessionId) {
     try {
-      const { error } = await this.client
-        .from('sessions')
-        .delete()
-        .eq('id', sessionId);
-
-      if (error) {
-        throw error;
-      }
+      await this.client
+        .delete(flowfexSessions)
+        .where(eq(flowfexSessions.id, sessionId));
 
       return true;
     } catch (error) {

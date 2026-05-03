@@ -191,6 +191,32 @@ export class FlowfexServer {
       return;
     }
 
+    if (url.pathname === '/api/debug-insert') {
+      try {
+        const { db } = await import('../auth/betterAuth.js');
+        const { user } = await import('../db/schema.js');
+        const { v4: uuidv4 } = await import('uuid');
+        
+        const testId = uuidv4();
+        await db.insert(user).values({
+          id: testId,
+          name: 'Debug Insert Test',
+          email: `debug_insert_${testId}@flowfex.com`,
+          emailVerified: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+        
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ ok: true, message: 'Insert successful' }));
+      } catch (err) {
+        console.error("[DEBUG INSERT ERROR]", err);
+        response.writeHead(500, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ ok: false, error: err.message, stack: err.stack }));
+      }
+      return;
+    }
+
     if (url.pathname.startsWith('/api/auth')) {
       try {
         await authHandler(request, response);

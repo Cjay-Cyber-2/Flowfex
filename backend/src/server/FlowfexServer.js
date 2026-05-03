@@ -184,6 +184,7 @@ export class FlowfexServer {
       response.writeHead(200, { 'Content-Type': 'application/json' });
       response.end(JSON.stringify({ 
         hasDbUrl: !!process.env.DATABASE_URL, 
+        dbUrlPrefix: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 25) : null,
         hasBetterAuthSecret: !!process.env.BETTER_AUTH_SECRET,
         hasJwtSecret: !!process.env.JWT_SECRET
       }));

@@ -180,6 +180,16 @@ export class FlowfexServer {
       return;
     }
 
+    if (url.pathname === '/api/debug-env') {
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ 
+        hasDbUrl: !!process.env.DATABASE_URL, 
+        hasBetterAuthSecret: !!process.env.BETTER_AUTH_SECRET,
+        hasJwtSecret: !!process.env.JWT_SECRET
+      }));
+      return;
+    }
+
     if (url.pathname.startsWith('/api/auth')) {
       return authHandler(request, response);
     }

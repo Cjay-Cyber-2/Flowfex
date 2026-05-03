@@ -10,8 +10,9 @@ export default defineConfig({
   envPrefix: ['VITE_'],
   plugins: [react()],
   resolve: {
-    // Ensure root-level lib/ files resolve node_modules from frontend/
-    modules: [path.resolve(__dirname, 'node_modules'), 'node_modules'],
+    alias: {
+      'better-auth': path.resolve(__dirname, 'node_modules/better-auth')
+    }
   },
   server: {
     port: 3000,

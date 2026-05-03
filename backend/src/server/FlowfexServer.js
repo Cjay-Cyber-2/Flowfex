@@ -191,7 +191,14 @@ export class FlowfexServer {
     }
 
     if (url.pathname.startsWith('/api/auth')) {
-      return authHandler(request, response);
+      try {
+        await authHandler(request, response);
+      } catch (err) {
+        console.error("[AUTH HANDLER ERROR]", err);
+        response.writeHead(500, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ ok: false, error: err.message, stack: err.stack }));
+      }
+      return;
     }
 
     // --- JWT Enforcement ---

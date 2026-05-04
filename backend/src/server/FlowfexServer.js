@@ -228,29 +228,27 @@ export class FlowfexServer {
     }
 
     // --- JWT Enforcement ---
-    const isPublic = 
-      url.pathname === '/health' || 
-      url.pathname.startsWith('/socket.io/') || 
-      url.pathname === '/api/session/create-anonymous' ||
-      url.pathname === '/api/session/validate-anonymous' ||
-      url.pathname === '/api/session/usage';
+    const isJwtEnforced = 
+      url.pathname === '/api/session/upgrade' || 
+      url.pathname === '/api/session/recent' || 
+      url.pathname.startsWith('/api/api-keys');
 
     let decodedUser = null;
-    if (!isPublic) {
-      const authHeader = request.headers['authorization'];
-      const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
-      
-      if (!token) {
-        return this._writeJson(response, 401, { error: { message: 'Unauthorized: Missing JWT token.' } });
-      }
-
+    const authHeader = request.headers['authorization'];
+    const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
+    
+    if (token) {
       try {
         const secret = process.env.JWT_SECRET || process.env.BETTER_AUTH_SECRET;
         decodedUser = jwt.verify(token, secret);
         request.user = decodedUser;
       } catch (err) {
-        return this._writeJson(response, 401, { error: { message: 'Unauthorized: Invalid or expired JWT token.' } });
+        if (isJwtEnforced) {
+          return this._writeJson(response, 401, { error: { message: 'Unauthorized: Invalid or expired JWT token.' } });
+        }
       }
+    } else if (isJwtEnforced) {
+      return this._writeJson(response, 401, { error: { message: 'Unauthorized: Missing JWT token.' } });
     }
     // -----------------------
 

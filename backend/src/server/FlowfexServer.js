@@ -4,7 +4,8 @@ import zlib from 'node:zlib';
 import { defaultConnectionService } from '../connection/index.js';
 import { FlowfexSocketServer, initSocketServer, getSocketServer } from '../ws/server.js';
 import { ControlController } from '../control/ControlController.js';
-import { executionRateLimiter } from './RateLimiter.js';
+import { executionRateLimiter, controlRateLimiter, connectRateLimiter } from './RateLimiter.js';
+import { sessionLockManager } from '../session/SessionLockManager.js';
 import { defaultSessionStateRepository } from '../persistence/defaultSessionStateRepository.js';
 import { isSessionDataConfigured, resolveAuthenticatedUser } from '../session/sessionDataAccess.js';
 import { AnonymousSessionService } from '../session/AnonymousSessionService.js';
@@ -13,6 +14,12 @@ import { UsageService } from '../session/UsageService.js';
 import { auth } from '../auth/betterAuth.js';
 import { toNodeHandler } from 'better-auth/node';
 import jwt from 'jsonwebtoken';
+import { 
+  executeSchema, connectSchema, ingestSchema, createApiKeySchema, 
+  approveSchema, rejectSchema, rerouteSchema, constrainSchema,
+  anonymousValidateSchema, sessionUpgradeSchema, skillsSearchSchema, emptySchema,
+  formatZodError 
+} from './ValidationSchemas.js';
 
 const authHandler = toNodeHandler(auth);
 
@@ -41,6 +48,7 @@ export class FlowfexServer {
       || (this.sessionDataEnabled ? new ApiKeyService() : null);
     this.usageService = config.usageService
       || (this.sessionDataEnabled ? new UsageService() : null);
+    this.sessionLockManager = config.sessionLockManager || sessionLockManager;
     this.server = null;
     this.socketServer = null;
   }
@@ -81,6 +89,9 @@ export class FlowfexServer {
     }
     if (this.controlController?.setSocketServer) {
       this.controlController.setSocketServer(this.socketServer);
+    }
+    if (this.usageService?.setSocketServer) {
+      this.usageService.setSocketServer(this.socketServer);
     }
     console.log('[Flowfex] Socket.io server attached with /orchestration, /session, /control namespaces');
 
@@ -141,14 +152,37 @@ export class FlowfexServer {
 
     console.log("[FLOWFEX ROUTER HIT]", url.pathname);
 
-    // Rate Limit expensive paths to protect backend/Groq quota
+    // ─── Identity-Aware Rate Limiting ──────────────────────────────────
+    const tier = request.user?.tier || 'anonymous';
+
     const isExecutionEndpoint = (request.method === 'POST' && (
       url.pathname === '/connect' || 
       url.pathname === '/ingest' || 
       url.pathname.match(/^\/sessions\/([^/]+)\/execute$/)
     ));
-    if (isExecutionEndpoint && !executionRateLimiter.check(ip)) {
-      return this._writeJson(response, 429, { error: { message: 'Too many requests. Rate limit exceeded.' } });
+    const isControlEndpoint = (request.method === 'POST' && (
+      url.pathname.match(/^\/session\/([^/]+)\/(pause|resume|constrain)$/) ||
+      url.pathname.match(/^\/node\/([^/]+)\/(approve|reject|reroute)$/)
+    ));
+    const isConnectEndpoint = (request.method === 'POST' && url.pathname === '/connect');
+
+    if (isExecutionEndpoint && !executionRateLimiter.check(ip, tier)) {
+      if (this.socketServer) {
+        const sessionId = url.pathname.match(/^\/sessions\/([^/]+)\/execute$/)?.[1] || null;
+        if (sessionId) {
+          this.socketServer.emitLimitEvent(sessionId, 'limit:rate_limited', {
+            sessionId, tier, endpoint: 'execution',
+            timestamp: new Date().toISOString(),
+          });
+        }
+      }
+      return this._writeJson(response, 429, { error: { message: 'Too many execution requests. Please wait.' } });
+    }
+    if (isControlEndpoint && !controlRateLimiter.check(ip, tier)) {
+      return this._writeJson(response, 429, { error: { message: 'Too many control requests. Please wait.' } });
+    }
+    if (isConnectEndpoint && !connectRateLimiter.check(ip, tier)) {
+      return this._writeJson(response, 429, { error: { message: 'Too many connection requests. Please wait.' } });
     }
 
     const sessionMatch = url.pathname.match(/^\/sessions\/([^/]+)$/);
@@ -241,7 +275,7 @@ export class FlowfexServer {
 
     if (anonymousSessionValidateMatch) {
       this._assertSessionDataEnabled();
-      const body = await this._readJsonBody(request);
+      const body = await this._readAndValidateJsonBody(request, anonymousValidateSchema);
       const anonymousToken = body.anonymousToken || this._readCookie(request, 'fx_session');
       const session = anonymousToken
         ? await this.anonymousSessionService.validateAnonymousSession(anonymousToken)
@@ -264,7 +298,7 @@ export class FlowfexServer {
 
     if (sessionUpgradeMatch) {
       this._assertSessionDataEnabled();
-      const body = await this._readJsonBody(request);
+      const body = await this._readAndValidateJsonBody(request, sessionUpgradeSchema);
       const accessToken = this._extractBearerToken(request) || body.accessToken || null;
       const anonymousToken = body.anonymousToken || this._readCookie(request, 'fx_session');
       const user = await this._requireAuthenticatedUser(accessToken);
@@ -345,7 +379,7 @@ export class FlowfexServer {
     if (request.method === 'POST' && apiKeysMatch) {
       this._assertSessionDataEnabled();
       const user = await this._requireAuthenticatedUser(this._extractBearerToken(request));
-      const body = await this._readJsonBody(request);
+      const body = await this._readAndValidateJsonBody(request, createApiKeySchema);
       const label = typeof body.label === 'string' ? body.label.trim() : '';
 
       if (!label) {
@@ -370,6 +404,15 @@ export class FlowfexServer {
       const user = await this._requireAuthenticatedUser(this._extractBearerToken(request));
       const record = await this.apiKeyService.revokeApiKey(user.id, apiKeyRevokeMatch[1]);
 
+      // Broadcast key revocation event — any session using this key should be notified
+      if (this.socketServer && record) {
+        this.socketServer.emitLimitEvent(null, 'limit:key_revoked', {
+          keyId: apiKeyRevokeMatch[1],
+          authId: user.id,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
       return this._writeJson(response, 200, {
         ok: true,
         record,
@@ -377,7 +420,7 @@ export class FlowfexServer {
     }
 
     if (request.method === 'POST' && url.pathname === '/connect') {
-      const body = await this._readJsonBody(request);
+      const body = await this._readAndValidateJsonBody(request, connectSchema);
       const validatedApiKey = this.apiKeyService
         ? await this.apiKeyService.validateApiKey(this._extractApiKey(request))
         : null;
@@ -392,6 +435,14 @@ export class FlowfexServer {
             code: 'invalid_api_key',
             message: 'A valid Flowfex API key is required for SDK and live channel connections.',
           },
+        });
+      }
+
+      // Enforce agent concurrency limit before connecting
+      if (this.usageService && body.sessionId) {
+        await this.usageService.assertAgentConnectionAllowed({
+          sessionId: body.sessionId,
+          apiKeyId: validatedApiKey?.keyId || null,
         });
       }
 
@@ -426,7 +477,7 @@ export class FlowfexServer {
     }
 
     if (request.method === 'POST' && pauseMatch) {
-      const body = await this._readJsonBody(request);
+      const body = await this._readAndValidateJsonBody(request, emptySchema);
       const payload = await this.controlController.pauseSession({
         sessionId: pauseMatch[1],
       }, body);
@@ -434,7 +485,7 @@ export class FlowfexServer {
     }
 
     if (request.method === 'POST' && resumeMatch) {
-      const body = await this._readJsonBody(request);
+      const body = await this._readAndValidateJsonBody(request, emptySchema);
       const payload = await this.controlController.resumeSession({
         sessionId: resumeMatch[1],
       }, body);
@@ -442,7 +493,7 @@ export class FlowfexServer {
     }
 
     if (request.method === 'POST' && approveMatch) {
-      const body = await this._readJsonBody(request);
+      const body = await this._readAndValidateJsonBody(request, approveSchema);
       const payload = await this.controlController.approveNode({
         nodeId: approveMatch[1],
       }, body);
@@ -450,7 +501,7 @@ export class FlowfexServer {
     }
 
     if (request.method === 'POST' && rejectMatch) {
-      const body = await this._readJsonBody(request);
+      const body = await this._readAndValidateJsonBody(request, rejectSchema);
       const payload = await this.controlController.rejectNode({
         nodeId: rejectMatch[1],
       }, body);
@@ -458,7 +509,7 @@ export class FlowfexServer {
     }
 
     if (request.method === 'POST' && rerouteMatch) {
-      const body = await this._readJsonBody(request);
+      const body = await this._readAndValidateJsonBody(request, rerouteSchema);
       const payload = await this.controlController.rerouteNode({
         nodeId: rerouteMatch[1],
       }, body);
@@ -466,7 +517,7 @@ export class FlowfexServer {
     }
 
     if (request.method === 'POST' && constrainMatch) {
-      const body = await this._readJsonBody(request);
+      const body = await this._readAndValidateJsonBody(request, constrainSchema);
       const payload = await this.controlController.constrainSession({
         sessionId: constrainMatch[1],
       }, {
@@ -526,7 +577,7 @@ export class FlowfexServer {
     }
 
     if (request.method === 'POST' && skillsSearchMatch) {
-      const body = await this._readJsonBody(request);
+      const body = await this._readAndValidateJsonBody(request, skillsSearchSchema);
       const query = body.query || '';
       const registry = this.connectionService?.orchestrator?.registry
         || this.connectionService?.registry;
@@ -547,7 +598,7 @@ export class FlowfexServer {
 
     // ─── Agent Ingest (prompt-based connection) ────────────────────────
     if (request.method === 'POST' && ingestMatch) {
-      const body = await this._readJsonBody(request);
+      const body = await this._readAndValidateJsonBody(request, ingestSchema);
       const ingestRequest = this._resolvePromptIngestRequest(body, request);
       const executionPayload = {
         sessionId: ingestRequest.sessionId,
@@ -561,20 +612,31 @@ export class FlowfexServer {
         });
       }
 
-      if (this._wantsEventStream(request, url, body)) {
-        this._emitAgentConnectedForSessionId(executionPayload.sessionId, 'prompt');
-        return this._writeEventStream(response, executionPayload);
-      }
-
-      this._emitAgentConnectedForSessionId(executionPayload.sessionId, 'prompt');
-      const payload = await this.connectionService.execute(executionPayload);
-      if (this.usageService) {
-        await this.usageService.recordExecution({
-          sessionId: executionPayload.sessionId,
-          nodesProcessed: Array.isArray(payload?.graph?.nodes) ? payload.graph.nodes.length : 0,
+      // Acquire execution lock
+      if (!this.sessionLockManager.acquire(executionPayload.sessionId)) {
+        return this._writeJson(response, 409, {
+          error: { code: 'concurrent_execution', message: 'Another execution is already running on this session.' },
         });
       }
-      return this._writeJson(response, 200, payload);
+
+      try {
+        if (this._wantsEventStream(request, url, body)) {
+          this._emitAgentConnectedForSessionId(executionPayload.sessionId, 'prompt');
+          return this._writeEventStream(response, executionPayload);
+        }
+
+        this._emitAgentConnectedForSessionId(executionPayload.sessionId, 'prompt');
+        const payload = await this.connectionService.execute(executionPayload);
+        if (this.usageService) {
+          await this.usageService.recordExecution({
+            sessionId: executionPayload.sessionId,
+            nodesProcessed: Array.isArray(payload?.graph?.nodes) ? payload.graph.nodes.length : 0,
+          });
+        }
+        return this._writeJson(response, 200, payload);
+      } finally {
+        this.sessionLockManager.release(executionPayload.sessionId);
+      }
     }
 
     // ─── SSE Stream ───────────────────────────────────────────────────
@@ -584,7 +646,7 @@ export class FlowfexServer {
     }
 
     if (request.method === 'POST' && executionMatch) {
-      const body = await this._readJsonBody(request);
+      const body = await this._readAndValidateJsonBody(request, executeSchema);
       const executionPayload = {
         ...body,
         sessionId: executionMatch[1],
@@ -597,20 +659,31 @@ export class FlowfexServer {
         });
       }
 
-      if (this._wantsEventStream(request, url, body)) {
-        this._emitAgentConnectedForSessionId(executionPayload.sessionId, null);
-        return this._writeEventStream(response, executionPayload);
-      }
-
-      this._emitAgentConnectedForSessionId(executionPayload.sessionId, null);
-      const payload = await this.connectionService.execute(executionPayload);
-      if (this.usageService) {
-        await this.usageService.recordExecution({
-          sessionId: executionPayload.sessionId,
-          nodesProcessed: Array.isArray(payload?.graph?.nodes) ? payload.graph.nodes.length : 0,
+      // Acquire execution lock
+      if (!this.sessionLockManager.acquire(executionPayload.sessionId)) {
+        return this._writeJson(response, 409, {
+          error: { code: 'concurrent_execution', message: 'Another execution is already running on this session.' },
         });
       }
-      return this._writeJson(response, 200, payload);
+
+      try {
+        if (this._wantsEventStream(request, url, body)) {
+          this._emitAgentConnectedForSessionId(executionPayload.sessionId, null);
+          return this._writeEventStream(response, executionPayload);
+        }
+
+        this._emitAgentConnectedForSessionId(executionPayload.sessionId, null);
+        const payload = await this.connectionService.execute(executionPayload);
+        if (this.usageService) {
+          await this.usageService.recordExecution({
+            sessionId: executionPayload.sessionId,
+            nodesProcessed: Array.isArray(payload?.graph?.nodes) ? payload.graph.nodes.length : 0,
+          });
+        }
+        return this._writeJson(response, 200, payload);
+      } finally {
+        this.sessionLockManager.release(executionPayload.sessionId);
+      }
     }
 
     if (request.method === 'GET' && sessionMatch) {
@@ -658,6 +731,18 @@ export class FlowfexServer {
     } catch (error) {
       throw createHttpError(`Invalid JSON body: ${error.message}`, 400);
     }
+  }
+
+  async _readAndValidateJsonBody(request, schema) {
+    const body = await this._readJsonBody(request);
+    if (!schema) return body;
+    
+    const result = schema.safeParse(body);
+    if (!result.success) {
+      const errorMsg = formatZodError(result.error).join(' | ');
+      throw createHttpError(`Validation failed: ${errorMsg}`, 400);
+    }
+    return result.data;
   }
 
   _extractApiKey(request) {

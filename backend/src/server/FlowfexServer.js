@@ -38,7 +38,7 @@ export class FlowfexServer {
       socketServer: config.socketServer || null,
     });
     this.sessionStateRepository = sessionStateRepository;
-    this.host = config.host || process.env.FLOWFEX_HOST || '0.0.0.0';
+    this.host = config.host || process.env.FLOWFEX_HOST || undefined;
     this.port = Number(config.port ?? process.env.PORT ?? process.env.FLOWFEX_PORT ?? 10000);
     this.maxBodySize = config.maxBodySize || 1024 * 1024;
     this.sessionDataEnabled = config.sessionDataEnabled ?? isSessionDataConfigured();

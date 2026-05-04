@@ -42,6 +42,18 @@ export const CONTROL_EVENTS = {
   SESSION_STATE: SHARED_CONTROL_EVENTS.SESSION_STATE,
 };
 
+// ─── Limit Events ─────────────────────────────────────────────────────────────
+
+export const LIMIT_EVENTS = {
+  USAGE_UPDATED: 'limit:usage_updated',
+  APPROACHING: 'limit:approaching',
+  REACHED: 'limit:reached',
+  EXECUTION_BLOCKED: 'limit:execution_blocked',
+  RATE_LIMITED: 'limit:rate_limited',
+  AGENT_BLOCKED: 'limit:agent_blocked',
+  KEY_REVOKED: 'limit:key_revoked',
+};
+
 // ─── Payload Shapes (JSDoc for type safety in plain JS) ───────────────────────
 
 /**

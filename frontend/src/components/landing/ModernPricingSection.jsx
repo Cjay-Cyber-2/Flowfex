@@ -42,7 +42,7 @@ function ShaderCanvas() {
         mask+=paintCircle(uv,center,radius-.018,.01).r;
         mask+=paintCircle(uv,center,radius+.018,.005).r;
         vec2 v=rotate2d(iTime)*uv;
-        vec3 fg=vec3(v.x*0.2,v.y*0.6+0.4,.7-v.y*v.x);
+        vec3 fg=vec3(0.0, 0.83, 0.66) * (v.y * 0.6 + 0.4);
         vec3 bg=vec3(0.04,0.05,0.08);
         vec3 color=mix(bg,fg,mask);
         color=mix(color,vec3(1.),paintCircle(uv,center,radius,.003).r);

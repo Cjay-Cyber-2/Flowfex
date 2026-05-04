@@ -363,11 +363,32 @@ export class FlowfexSocketServer {
         .emit(CONTROL_EVENTS.CONTROL_ERROR, error);
       this.session
         .to(`session:${sessionId}`)
+      this.session
+        .to(`session:${sessionId}`)
         .emit(CONTROL_EVENTS.CONTROL_ERROR, error);
       return;
     }
 
     this.control.emit(CONTROL_EVENTS.CONTROL_ERROR, error);
+  }
+
+  // ─── Limit Emitters ───────────────────────────────────────────────────
+
+  /**
+   * Broadcast a limit/usage event to all connected clients in a session
+   * @param {string} sessionId
+   * @param {string} eventName
+   * @param {Object} payload
+   */
+  emitLimitEvent(sessionId, eventName, payload) {
+    this._notifySessionListeners(sessionId, {
+      namespace: 'session',
+      type: eventName,
+      payload,
+    });
+    this.session.to(`session:${sessionId}`).emit(eventName, payload);
+    this.orchestration.to(`session:${sessionId}`).emit(eventName, payload);
+    this.control.to(`session:${sessionId}`).emit(eventName, payload);
   }
 
   // ─── Broadcast (all connected clients) ─────────────────────────────

@@ -2,8 +2,12 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { jwt } from "better-auth/plugins";
 import { drizzle } from "drizzle-orm/neon-serverless";
-import { Pool } from "@neondatabase/serverless";
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import ws from "ws";
 import * as schema from "../db/schema.js";
+
+// Enable WebSocket support for local Node.js (Render has this natively)
+neonConfig.webSocketConstructor = ws;
 
 // Initialize Drizzle ORM with Neon Serverless WebSocket Pool
 const pool = new Pool({

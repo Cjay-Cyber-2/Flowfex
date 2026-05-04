@@ -63,21 +63,14 @@ export function normalizeSessionConnectUrl(value) {
     return '';
   }
 
-  const location = getBrowserLocation();
-  if (!location?.origin) {
-    return trimTrailingSlash(value);
-  }
-
   try {
-    const parsed = new URL(value, location.origin);
-    if (parsed.pathname.startsWith('/connect/live/')) {
-      return new URL(`${parsed.pathname}${parsed.search}${parsed.hash}`, location.origin).toString();
-    }
-
+    // If it's a valid absolute URL (like the one returned from the backend), preserve it!
+    const parsed = new URL(value);
     return parsed.toString();
   } catch {
+    // If it's a relative path, resolve it against the backend origin
     if (value.startsWith('/connect/live/')) {
-      return new URL(value, location.origin).toString();
+      return new URL(value, getBackendOrigin()).toString();
     }
 
     return trimTrailingSlash(value);

@@ -75,6 +75,17 @@ function ConcealedPayload({ text, title }) {
 }
 
 function PromptTab({ connection, loading, onRefresh, error }) {
+  if (loading || !connection?.connection?.instructions?.prompt) {
+    return (
+      <div>
+        <p className="cam-tab-desc">Preparing a secure connection prompt for your agent...</p>
+        <div className="cam-code-block cam-code-block-concealed" style={{ opacity: 0.6 }}>
+          <pre aria-hidden="true">Generating unique session credentials...</pre>
+        </div>
+      </div>
+    );
+  }
+
   const sessionUrl = normalizeSessionConnectUrl(connection?.connection?.instructions?.sessionUrl || CONNECT_LINK);
   const promptText = rewriteConnectPrompt(connection?.connection?.instructions?.prompt || CONNECT_PROMPT, sessionUrl);
   return (
@@ -91,6 +102,17 @@ function PromptTab({ connection, loading, onRefresh, error }) {
 }
 
 function LinkTab({ connection, loading, onRefresh, error }) {
+  if (loading || !connection?.connection?.link?.url) {
+    return (
+      <div>
+        <p className="cam-tab-desc">Generating a secure one-time connection link...</p>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12, opacity: 0.6 }}>
+          <input readOnly value="Generating link..." className="cam-readonly-input" />
+        </div>
+      </div>
+    );
+  }
+
   const [copied, copy] = useCopy();
   const url = normalizeSessionConnectUrl(connection?.connection?.link?.url || CONNECT_LINK);
   const summary = connection?.connection?.instructions?.summary || 'This link resolves into the same Flowfex-first operating contract in the background.';
@@ -113,6 +135,17 @@ function LinkTab({ connection, loading, onRefresh, error }) {
 }
 
 function SDKTab({ connection, loading, onRefresh, error }) {
+  if (loading || !connection?.connection?.instructions?.sdkSnippet) {
+    return (
+      <div>
+        <p className="cam-tab-desc">Preparing SDK connection snippet...</p>
+        <div className="cam-code-block cam-code-block-concealed" style={{ opacity: 0.6 }}>
+          <pre aria-hidden="true">Generating unique session credentials...</pre>
+        </div>
+      </div>
+    );
+  }
+
   const snippet = connection?.connection?.instructions?.sdkSnippet || CONNECT_SDK_SNIPPET;
   return (
     <div>
@@ -128,6 +161,17 @@ function SDKTab({ connection, loading, onRefresh, error }) {
 }
 
 function LiveChannelTab({ connection, loading, onRefresh, error }) {
+  if (loading || !connection?.connection?.instructions?.endpointPayload) {
+    return (
+      <div>
+        <p className="cam-tab-desc">Preparing Live Channel connection payload...</p>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, opacity: 0.6 }}>
+          <input readOnly value="Generating live channel snippet..." className="cam-readonly-input" />
+        </div>
+      </div>
+    );
+  }
+
   const [copied, copy] = useCopy();
   const endpoint = connection?.connection?.instructions?.endpointPayload || CONNECT_LIVE_SNIPPET;
   return (

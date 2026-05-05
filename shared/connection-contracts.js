@@ -83,6 +83,7 @@ export const sessionBootstrapSchema = z.object({
   expiresAt: z.string().trim().min(1),
   endpoints: z.object({
     connect: z.string().trim().min(1),
+    attach: z.string().trim().min(1),
     inspect: z.string().trim().min(1),
     execute: z.string().trim().min(1),
     executeStream: z.string().trim().min(1),

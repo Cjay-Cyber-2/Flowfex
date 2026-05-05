@@ -18,8 +18,10 @@ export class FlowfexClient {
             headers: {
                 'Content-Type': 'application/json',
                 ...(options.apiKey ? { 'X-Flowfex-Api-Key': options.apiKey } : {}),
+                ...(options.anonymousToken ? { 'X-Flowfex-Anonymous-Token': options.anonymousToken } : {}),
             },
             body: JSON.stringify({
+                sessionId: options.sessionId,
                 mode,
                 agent,
                 prompt: options.prompt,
@@ -35,6 +37,9 @@ export class FlowfexClient {
         const data = await response.json();
         this.session = data.connection.session;
         this.baseUrl = url;
+        if (mode === 'live' || mode === 'sdk') {
+            await this._attachSession(options);
+        }
         // Auto-connect WebSocket for live mode
         if (mode === 'live' || mode === 'sdk') {
             this._connectSocket();
@@ -202,6 +207,24 @@ export class FlowfexClient {
             for (const handler of handlers) {
                 this.socket.on(event, handler);
             }
+        }
+    }
+    async _attachSession(options) {
+        if (!this.session) {
+            return;
+        }
+        const response = await fetch(this.session.endpoints.attach, {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${this.session.token}`,
+                'X-Flowfex-Agent-Attach': '1',
+                ...(options.apiKey ? { 'X-Flowfex-Api-Key': options.apiKey } : {}),
+                ...(options.anonymousToken ? { 'X-Flowfex-Anonymous-Token': options.anonymousToken } : {}),
+            },
+        });
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ message: 'Session attach failed' }));
+            throw new FlowfexError(error.message || 'Session attach failed', response.status);
         }
     }
 }

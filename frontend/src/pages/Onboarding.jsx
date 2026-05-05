@@ -196,17 +196,25 @@ export default function Onboarding() {
   // Modal starts CLOSED — user sees the onboarding page first
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [connectionStage, setConnectionStage] = useState('idle'); // idle | connecting | connected | navigating
+  const transitionTimersRef = useRef([]);
+
+  const clearTransitionTimers = useCallback(() => {
+    transitionTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
+    transitionTimersRef.current = [];
+  }, []);
 
   const handleConnected = useCallback(() => {
+    clearTransitionTimers();
     setIsModalOpen(false);
     setConnectionStage('connecting');
-    // Quick pulse
-    setTimeout(() => setConnectionStage('connected'), 800);
-    // Show explosive success state
-    setTimeout(() => setConnectionStage('navigating'), 3200);
-    // Navigate to dashboard
-    setTimeout(() => navigate('/dashboard'), 4200);
-  }, [navigate]);
+    transitionTimersRef.current = [
+      window.setTimeout(() => setConnectionStage('connected'), 180),
+      window.setTimeout(() => setConnectionStage('navigating'), 820),
+      window.setTimeout(() => navigate('/dashboard'), 1380),
+    ];
+  }, [clearTransitionTimers, navigate]);
+
+  useEffect(() => clearTransitionTimers, [clearTransitionTimers]);
 
   return (
     <div className="ob-root">
@@ -280,7 +288,7 @@ export default function Onboarding() {
               transition={{ duration: 0.4 }}
             >
               <CheckCircle size={20} />
-              Agent connected successfully
+              Verified agent attach confirmed
             </motion.div>
           )}
         </AnimatePresence>

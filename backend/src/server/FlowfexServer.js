@@ -153,7 +153,7 @@ export class FlowfexServer {
     const authUser = accessToken && this.sessionDataEnabled
       ? await resolveAuthenticatedUser(accessToken).catch(() => null)
       : null;
-    const anonymousToken = this._readCookie(request, 'fx_session');
+    const anonymousToken = this._extractAnonymousSessionToken(request);
     const rateLimitIdentity = authUser?.id
       ? `auth:${authUser.id}`
       : anonymousToken
@@ -261,7 +261,7 @@ export class FlowfexServer {
 
       this._setCookie(response, 'fx_session', payload.anonymousToken, {
         httpOnly: true,
-        sameSite: 'Strict',
+        sameSite: this._resolveCookieSameSite(request),
         secure: this._shouldUseSecureCookies(request),
         path: '/',
       });
@@ -311,7 +311,7 @@ export class FlowfexServer {
 
       this._clearCookie(response, 'fx_session', {
         path: '/',
-        sameSite: 'Strict',
+        sameSite: this._resolveCookieSameSite(request),
         secure: this._shouldUseSecureCookies(request),
       });
 
@@ -354,10 +354,10 @@ export class FlowfexServer {
             },
           });
         }
-      } else if (status.anonymousToken !== this._readCookie(request, 'fx_session')) {
+      } else if (status.anonymousToken !== this._extractAnonymousSessionToken(request)) {
         return this._writeJson(response, 403, {
           error: {
-            message: 'Anonymous session usage requires the active Flowfex session cookie.',
+            message: 'Anonymous session usage requires the active Flowfex session token.',
           },
         });
       }
@@ -425,11 +425,15 @@ export class FlowfexServer {
         ? await this.apiKeyService.validateApiKey(this._extractApiKey(request))
         : null;
 
-      if (this.apiKeyService && (body.mode === 'sdk' || body.mode === 'live') && !validatedApiKey && !authUser) {
+      const anonymousRealtimeAllowed = (body.mode === 'sdk' || body.mode === 'live')
+        ? await this._isAuthorizedAnonymousRealtimeSession(body.sessionId, request)
+        : false;
+
+      if (this.apiKeyService && (body.mode === 'sdk' || body.mode === 'live') && !validatedApiKey && !authUser && !anonymousRealtimeAllowed) {
         return this._writeJson(response, 401, {
           error: {
             code: 'invalid_api_key',
-            message: 'A valid Flowfex API key is required for SDK and live channel connections.',
+            message: 'SDK and live channel connections require a valid Flowfex API key, an authenticated account, or the active anonymous Flowfex session.',
           },
         });
       }
@@ -455,9 +459,13 @@ export class FlowfexServer {
     if (request.method === 'GET' && connectLiveMatch) {
       const payload = this.connectionService.resolveLiveConnection(connectLiveMatch[1], {
         baseUrl: this._buildBaseUrl(request),
-        token: url.searchParams.get('token') || null,
+        token: url.searchParams.get('token') || this._extractBearerToken(request) || null,
       });
-      this._emitAgentConnectedForSession(payload?.connection?.session, payload?.mode || 'live');
+
+      if (this._shouldEmitAttachConfirmation(request, payload?.mode || 'live')) {
+        this._emitAgentConnectedForSession(payload?.connection?.session, payload?.mode || 'live');
+      }
+
       return this._writeJson(response, 200, payload);
     }
 
@@ -745,6 +753,22 @@ export class FlowfexServer {
     return request.headers['x-flowfex-api-key'] || null;
   }
 
+  _extractAnonymousSessionToken(request) {
+    const headerValue = request.headers['x-flowfex-anonymous-token'];
+    if (typeof headerValue === 'string' && headerValue.trim().length > 0) {
+      return headerValue.trim();
+    }
+
+    if (Array.isArray(headerValue)) {
+      const firstValue = headerValue.find((value) => typeof value === 'string' && value.trim().length > 0);
+      if (firstValue) {
+        return firstValue.trim();
+      }
+    }
+
+    return this._readCookie(request, 'fx_session');
+  }
+
   _extractBearerToken(request) {
     const header = request.headers.authorization || '';
     if (!header.toLowerCase().startsWith('bearer ')) {
@@ -853,6 +877,49 @@ export class FlowfexServer {
     const source = `${origin} ${host}`.toLowerCase();
 
     return !(source.includes('localhost') || source.includes('127.0.0.1'));
+  }
+
+  _resolveCookieSameSite(request) {
+    if (!this._shouldUseSecureCookies(request)) {
+      return 'Lax';
+    }
+
+    const origin = request.headers.origin || '';
+    if (!origin) {
+      return 'Strict';
+    }
+
+    try {
+      const requestOrigin = new URL(origin).origin;
+      const apiOrigin = new URL(this._buildBaseUrl(request)).origin;
+      return requestOrigin === apiOrigin ? 'Strict' : 'None';
+    } catch {
+      return 'Strict';
+    }
+  }
+
+  async _isAuthorizedAnonymousRealtimeSession(sessionId, request) {
+    if (!sessionId || !this.sessionDataEnabled || !this.anonymousSessionService) {
+      return false;
+    }
+
+    const anonymousToken = this._extractAnonymousSessionToken(request);
+    if (!anonymousToken) {
+      return false;
+    }
+
+    const session = await this.anonymousSessionService.validateAnonymousSession(anonymousToken).catch(() => null);
+    return Boolean(session?.id && session.id === sessionId && !session.authId);
+  }
+
+  _shouldEmitAttachConfirmation(request, mode) {
+    if (mode === 'link') {
+      return true;
+    }
+
+    const attachHeader = request.headers['x-flowfex-agent-attach'];
+    const normalized = Array.isArray(attachHeader) ? attachHeader[0] : attachHeader;
+    return /^(1|true|yes)$/i.test(String(normalized || '').trim());
   }
 
   _resolvePromptIngestRequest(body, request) {
@@ -1096,7 +1163,7 @@ export class FlowfexServer {
     }
 
     response.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-    response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Flowfex-Api-Key');
+    response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Flowfex-Api-Key, X-Flowfex-Anonymous-Token, X-Flowfex-Agent-Attach');
     response.setHeader('Access-Control-Allow-Credentials', 'true');
   }
 
@@ -1115,7 +1182,7 @@ export class FlowfexServer {
   }
 
   _buildBaseUrl(request) {
-    const configuredOrigin = process.env.FLOWFEX_PUBLIC_ORIGIN || this.connectionService?.publicBaseUrl || null;
+    const configuredOrigin = process.env.BETTER_AUTH_URL || process.env.FLOWFEX_PUBLIC_ORIGIN || this.connectionService?.publicBaseUrl || null;
     if (configuredOrigin) {
       return configuredOrigin.replace(/\/+$/, '');
     }

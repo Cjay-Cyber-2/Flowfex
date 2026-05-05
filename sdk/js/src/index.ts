@@ -12,9 +12,11 @@ export interface ConnectOptions {
   baseUrl?: string;
   mode?: 'prompt' | 'sdk' | 'link' | 'live';
   prompt?: string;
+  sessionId?: string;
   capabilities?: string[];
   requestedTools?: string[];
   apiKey?: string;
+  anonymousToken?: string;
   ttlSeconds?: number;
 }
 
@@ -26,6 +28,7 @@ export interface Session {
   expiresAt: string;
   endpoints: {
     execute: string;
+    attach: string;
     ingest: string;
     state: string;
     stream: string;
@@ -90,8 +93,10 @@ export class FlowfexClient {
       headers: {
         'Content-Type': 'application/json',
         ...(options.apiKey ? { 'X-Flowfex-Api-Key': options.apiKey } : {}),
+        ...(options.anonymousToken ? { 'X-Flowfex-Anonymous-Token': options.anonymousToken } : {}),
       },
       body: JSON.stringify({
+        sessionId: options.sessionId,
         mode,
         agent,
         prompt: options.prompt,
@@ -109,6 +114,10 @@ export class FlowfexClient {
     const data = await response.json();
     this.session = data.connection.session as Session;
     this.baseUrl = url;
+
+    if (mode === 'live' || mode === 'sdk') {
+      await this._attachSession(options);
+    }
 
     // Auto-connect WebSocket for live mode
     if (mode === 'live' || mode === 'sdk') {
@@ -307,6 +316,27 @@ export class FlowfexClient {
       for (const handler of handlers) {
         this.socket.on(event, handler);
       }
+    }
+  }
+
+  private async _attachSession(options: ConnectOptions): Promise<void> {
+    if (!this.session) {
+      return;
+    }
+
+    const response = await fetch(this.session.endpoints.attach, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${this.session.token}`,
+        'X-Flowfex-Agent-Attach': '1',
+        ...(options.apiKey ? { 'X-Flowfex-Api-Key': options.apiKey } : {}),
+        ...(options.anonymousToken ? { 'X-Flowfex-Anonymous-Token': options.anonymousToken } : {}),
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Session attach failed' }));
+      throw new FlowfexError(error.message || 'Session attach failed', response.status);
     }
   }
 }

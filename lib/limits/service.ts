@@ -61,6 +61,7 @@ export interface FlowfexUsageStatusResponse {
 export interface FlowfexUsageRequestOptions {
   readonly apiBaseUrl?: string;
   readonly fetchImpl?: typeof fetch;
+  readonly anonymousToken?: string | null;
 }
 
 function getDefaultFetch(fetchImpl?: typeof fetch): typeof fetch {
@@ -97,6 +98,7 @@ export async function fetchFlowfexUsageStatus(
       credentials: 'include',
       headers: {
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        ...(options.anonymousToken ? { 'X-Flowfex-Anonymous-Token': options.anonymousToken } : {}),
       },
     }
   );

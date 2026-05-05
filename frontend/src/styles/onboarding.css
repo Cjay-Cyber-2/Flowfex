@@ -159,12 +159,13 @@
 }
 
 .ob-copy-subline {
-  max-width: 460px;
+  max-width: 620px;
   margin: -6px 0 0;
   font-family: var(--font-inter, Inter, sans-serif);
-  font-size: 13px;
-  line-height: 1.6;
-  color: rgba(232, 237, 242, 0.66);
+  font-size: clamp(0.98rem, 1.4vw, 1.14rem);
+  font-weight: 600;
+  line-height: 1.65;
+  color: rgba(232, 237, 242, 0.86);
   text-align: center;
 }
 

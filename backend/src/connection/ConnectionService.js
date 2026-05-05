@@ -36,7 +36,12 @@ export class ConnectionService {
     this.apiSessionTtlSeconds = config.apiSessionTtlSeconds || 60 * 60;
     this.linkSessionTtlSeconds = config.linkSessionTtlSeconds || 60 * 60 * 24;
     this.promptToolLimit = config.promptToolLimit || 5;
-    this.publicBaseUrl = normalizeBaseUrl(config.publicBaseUrl || process.env.FLOWFEX_PUBLIC_ORIGIN || 'http://127.0.0.1:4000');
+    this.publicBaseUrl = normalizeBaseUrl(
+      config.publicBaseUrl
+        || process.env.BETTER_AUTH_URL
+        || process.env.FLOWFEX_PUBLIC_ORIGIN
+        || 'http://127.0.0.1:4000'
+    );
     this.linkSessions = config.linkSessions || new Map();
     this.linkSecret = config.linkSecret || process.env.FLOWFEX_LINK_SECRET || randomToken(32);
   }
@@ -128,7 +133,6 @@ export class ConnectionService {
     });
     const sessionResponse = this._buildSessionResponse(session, token, { baseUrl: authContext.baseUrl });
     const transport = this._buildTransport(authContext.baseUrl, session.id, LIVE_CHANNEL_PROTOCOLS.SOCKET_IO);
-    const connectUrl = this._buildConnectUrl(authContext.baseUrl, session.id, token);
 
     return {
       success: true,
@@ -139,7 +143,7 @@ export class ConnectionService {
         instructions: {
           summary: 'Register the agent with Flowfex first, keep the SDK client attached, and send every user request through Flowfex before acting.',
           rules: this._buildConnectionRules(),
-          sdkSnippet: this._buildSdkSnippet(sessionResponse, transport, connectUrl),
+          sdkSnippet: this._buildSdkSnippet(sessionResponse, transport),
         },
       }
     };
@@ -233,7 +237,6 @@ export class ConnectionService {
     });
     const sessionResponse = this._buildSessionResponse(session, token, { baseUrl: authContext.baseUrl });
     const transport = this._buildTransport(authContext.baseUrl, session.id, protocol);
-    const connectUrl = this._buildConnectUrl(authContext.baseUrl, session.id, token);
 
     return {
       success: true,
@@ -242,13 +245,13 @@ export class ConnectionService {
         session: sessionResponse,
         transport,
         live: {
-          connectUrl,
+          connectUrl: sessionResponse.endpoints.attach,
           protocol,
         },
         instructions: {
           summary: 'Call the live attach URL first, then keep the channel bound to Flowfex for the full conversation.',
           rules: this._buildConnectionRules(),
-          endpointPayload: this._buildLiveInstruction(sessionResponse, transport, protocol, connectUrl),
+          endpointPayload: this._buildLiveInstruction(sessionResponse, transport, protocol),
         },
       },
     };
@@ -420,6 +423,7 @@ export class ConnectionService {
         : [],
       endpoints: {
         connect: `${baseUrl}/connect`,
+        attach: `${baseUrl}/connect/live/${session.id}`,
         inspect: `${baseUrl}/sessions/${session.id}`,
         execute: `${baseUrl}/sessions/${session.id}/execute`,
         executeStream: `${baseUrl}/sessions/${session.id}/execute?stream=1`,
@@ -515,23 +519,23 @@ export class ConnectionService {
 
   _buildPromptInstruction(prompt, sessionId, token, baseUrl) {
     const prefixLine = this._buildPromptTaskPrefix(token);
+    const ingestUrl = `${normalizeBaseUrl(baseUrl || this.publicBaseUrl)}/ingest`;
     return [
-      'Attach this agent to Flowfex for the full conversation.',
+      'Attach this agent to the current Flowfex session and do not switch away from it.',
       '',
-      `Session ID: ${sessionId}`,
-      `Session URL: ${this._buildConnectUrl(baseUrl, sessionId, token)}`,
-      `Ingest URL: ${normalizeBaseUrl(baseUrl || this.publicBaseUrl)}/ingest`,
+      `SESSION_ID=${sessionId}`,
+      `INGEST_URL=${ingestUrl}`,
+      `FLOWFEX_SESSION_TOKEN=${token}`,
       '',
       'Do these steps exactly:',
-      '1. Keep this session active for the entire conversation.',
-      '2. Prefix every task you send to Flowfex with the exact first line below.',
-      `   ${prefixLine}`,
-      '3. Put the real task on the lines after the prefix and send it to the Ingest URL.',
-      '4. For every user request, ask Flowfex first for agent.md files, skills, tools, memory, and workflows.',
-      '5. Use every directly relevant Flowfex resource returned for that request.',
-      '6. If Flowfex has no directly relevant resource, use none and say the capability is unavailable in Flowfex.',
-      '7. Do not invent substitute tools, workflows, or skills outside Flowfex.',
-      '8. Send progress, approval waits, and the final result back through the same Flowfex session.',
+      '1. For every user request, send one HTTPS POST request to INGEST_URL before taking any action.',
+      '2. Send JSON with this exact shape:',
+      `   {"task":"${prefixLine}\\n<real user task>"}`,
+      '3. Wait for the Flowfex response before you continue.',
+      '4. Stay on this same Flowfex session for the full conversation.',
+      '5. Use only directly relevant Flowfex-returned skills, tools, memory, workflows, and agent files.',
+      '6. If Flowfex returns nothing relevant, say the capability is unavailable in Flowfex and do not invent a substitute.',
+      '7. Send progress updates, approval waits, and the final result back through this same Flowfex session.',
       '',
       `Agent context: ${prompt}`,
     ].join('\n');
@@ -545,14 +549,24 @@ export class ConnectionService {
     return [...FLOWFEX_AGENT_RULES];
   }
 
-  _buildSdkSnippet(session, transport, connectUrl) {
+  _buildSdkSnippet(session, transport) {
     return [
       "import { io } from 'socket.io-client';",
       '',
       `const session = { id: '${session.id}', token: '${session.token || ''}' };`,
       '',
-      '// 1. Register the agent with Flowfex. The dashboard will open only after this succeeds.',
-      `await fetch('${connectUrl}');`,
+      '// 1. Verify the attach with Flowfex. The dashboard opens only after this returns 200.',
+      `const attachResponse = await fetch('${session.endpoints.attach}', {`,
+      "  method: 'GET',",
+      '  headers: {',
+      "    Authorization: `Bearer ${session.token}`,",
+      "    'X-Flowfex-Agent-Attach': '1',",
+      '  },',
+      '});',
+      '',
+      'if (!attachResponse.ok) {',
+      "  throw new Error('Flowfex attach failed');",
+      '}',
       '',
       '// 2. Keep the orchestration channel attached for the full conversation.',
       '',
@@ -578,16 +592,16 @@ export class ConnectionService {
   _buildLinkInstruction(linkUrl) {
     return [
       `Attach URL: ${linkUrl}`,
-      'Open the attach URL first. Flowfex will move the user to the dashboard only after this link is resolved by the agent.',
-      'After attach, keep the agent in the same Flowfex session for the full conversation.',
-      'For every user request, ask Flowfex first and use only directly relevant Flowfex resources.',
+      'Open the attach URL from the target agent. Flowfex opens the dashboard only after this link is resolved for the active session.',
+      'Keep the same Flowfex session active for the full conversation after the attach succeeds.',
+      'Route every user request through Flowfex first and use only directly relevant Flowfex resources.',
       'If Flowfex has no relevant resource, use none and do not invent a substitute.',
     ].join('\n');
   }
 
-  _buildLiveInstruction(session, transport, protocol, connectUrl) {
+  _buildLiveInstruction(session, transport, protocol) {
     return [
-      `connect_url: ${connectUrl}`,
+      `attach_url: ${session.endpoints.attach}`,
       `execute_url: ${session.endpoints.execute}`,
       `session_id: ${session.id}`,
       `session_token: ${session.token || ''}`,
@@ -596,11 +610,14 @@ export class ConnectionService {
       `session_namespace: ${transport.sessionNamespace}`,
       `control_namespace: ${transport.controlNamespace}`,
       `sse_url: ${transport.sseUrl}`,
+      'attach_header_authorization: Bearer session_token',
+      'attach_header_x_flowfex_agent_attach: 1',
       'steps:',
-      '1. Call connect_url once to register the live agent with Flowfex.',
-      '2. Keep the selected transport open for the full conversation.',
-      '3. Send every task to execute_url with Authorization: Bearer session_token.',
-      '4. Route every request through Flowfex before taking action.',
+      '1. Call attach_url once with both attach headers before anything else.',
+      '2. Wait for HTTP 200 OK from Flowfex before you continue.',
+      '3. Keep the selected transport open for the full conversation.',
+      '4. Send every task to execute_url with Authorization: Bearer session_token.',
+      '5. Route every request through Flowfex before taking action.',
     ].join('\n');
   }
 

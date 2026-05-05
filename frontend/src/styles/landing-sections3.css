@@ -203,6 +203,16 @@
   margin: 0;
 }
 
+.cam-attach-banner {
+  margin: 12px 0 0;
+  max-width: 42ch;
+  font-family: Inter, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.55;
+  color: rgba(232, 237, 242, 0.92);
+}
+
 .cam-close {
   background: none;
   border: none;
@@ -364,6 +374,11 @@
   font-size: 12px;
   color: var(--color-bistre);
   margin: 12px 0 0;
+}
+
+.cam-security-note strong {
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .cam-pill {

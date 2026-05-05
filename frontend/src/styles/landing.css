@@ -1148,8 +1148,6 @@
 }
 
 .hero-orchestration-scene {
-  --hero-parallax-x: 0px;
-  --hero-parallax-y: 0px;
   position: absolute;
   inset: 0;
   min-height: 100%;
@@ -1167,10 +1165,25 @@
 }
 
 .hero-orchestration-mesh,
+.hero-orchestration-beams,
 .hero-orchestration-grid,
 .hero-orchestration-vignette {
   position: absolute;
   inset: 0;
+}
+
+.hero-orchestration-beams {
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.94;
+  mix-blend-mode: screen;
+  transform: translateZ(0);
+}
+
+.hero-orchestration-beams .pulse-beams-root,
+.hero-orchestration-beams svg {
+  width: 100%;
+  height: 100%;
 }
 
 .hero-orchestration-mesh {
@@ -1217,12 +1230,13 @@
   width: 100%;
   height: 100%;
   min-height: 100%;
-  transform: translate3d(calc(var(--hero-parallax-x) * 0.72), calc(var(--hero-parallax-y) * 0.72), 0);
+  transform: translateZ(0);
+  backface-visibility: hidden;
   pointer-events: none;
 }
 
 .hero-orchestration-parallax-near {
-  transform: translate3d(calc(var(--hero-parallax-x) * 0.9), calc(var(--hero-parallax-y) * 0.9), 0);
+  transform: none;
 }
 
 .hero-orchestration-center-aura {
@@ -1480,13 +1494,16 @@
 .hero-orchestration-link {
   fill: none;
   stroke: color-mix(in srgb, var(--line-accent) 65%, rgba(255, 255, 255, 0.14));
-  stroke-width: 1.8;
+  stroke-width: 2;
   stroke-linecap: round;
   opacity: 0.9;
+  vector-effect: non-scaling-stroke;
+  shape-rendering: geometricPrecision;
   filter: drop-shadow(0 0 10px color-mix(in srgb, var(--line-accent) 50%, transparent));
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  animation: heroBranchDraw 2.2s cubic-bezier(0.25, 0.1, 0.25, 1) var(--branch-delay, 0s) forwards;
+  will-change: stroke-dashoffset, opacity;
+  animation: heroBranchDraw 2s cubic-bezier(0.22, 1, 0.36, 1) var(--branch-delay, 0s) forwards;
 }
 
 .hero-orchestration-core {
@@ -1498,9 +1515,7 @@
   display: grid;
   place-items: center;
   z-index: 2;
-  transform:
-    translate(-50%, -50%)
-    translate3d(calc(var(--hero-parallax-x) * -0.45), calc(var(--hero-parallax-y) * -0.45), 0);
+  transform: translate(-50%, -50%);
 }
 
 .hero-orchestration-core-border,
@@ -1712,6 +1727,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hero-orchestration-beams {
+    display: none;
+  }
+
   .statement-word-current,
   .three-d-logo-mark-aura,
   .three-d-logo-mark-sheen,

@@ -68,7 +68,7 @@ function section(title) {
 
 // ─── Test Helpers ──────────────────────────────────────────────────────────────
 
-function makeRequest(port, method, path, body = null) {
+function makeRequest(port, method, path, body = null, headers = {}) {
   return new Promise((resolve, reject) => {
     const options = {
       hostname: '127.0.0.1',
@@ -77,6 +77,7 @@ function makeRequest(port, method, path, body = null) {
       method,
       headers: {
         'content-type': 'application/json',
+        ...headers,
       },
     };
 
@@ -294,6 +295,66 @@ await test('Socket.io client receives session:resumed event via control API', as
 
   assert(resumeData.sessionId === 'resume-test', 'Should receive resume event');
   assert(resumeData.state.paused === false, 'State should show not paused');
+
+  sessionClient.disconnect();
+});
+
+await test('SDK/live attach emits agent:connected only after the verified attach header is present', async () => {
+  const payload = await testServer.connectionService.connect({
+    mode: 'sdk',
+    agent: {
+      id: 'attach-verifier',
+      name: 'Attach Verifier',
+      type: 'sdk',
+    },
+  }, {
+    authUserId: 'verified-attach-user',
+    baseUrl: `http://127.0.0.1:${testPort}`,
+  });
+
+  const sessionId = payload.connection.session.id;
+  const sessionToken = payload.connection.session.token;
+  const sessionClient = ioClient(`http://127.0.0.1:${testPort}/session`, {
+    query: { sessionId },
+    transports: ['websocket'],
+    reconnection: false,
+  });
+
+  await new Promise((resolve) => sessionClient.on('connect', resolve));
+
+  let connectedEventCount = 0;
+  sessionClient.on(SESSION_EVENTS.AGENT_CONNECTED, () => {
+    connectedEventCount += 1;
+  });
+
+  const unverifiedAttach = await makeRequest(
+    testPort,
+    'GET',
+    `/connect/live/${sessionId}`,
+    null,
+    { Authorization: `Bearer ${sessionToken}` }
+  );
+  assert(unverifiedAttach.status === 200, 'Direct attach request without verification header still resolves');
+
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  assert(connectedEventCount === 0, 'No agent:connected event is emitted without the attach verification header');
+
+  const verifiedEventPromise = waitForEvent(sessionClient, SESSION_EVENTS.AGENT_CONNECTED);
+  const verifiedAttach = await makeRequest(
+    testPort,
+    'GET',
+    `/connect/live/${sessionId}`,
+    null,
+    {
+      Authorization: `Bearer ${sessionToken}`,
+      'X-Flowfex-Agent-Attach': '1',
+    }
+  );
+
+  assert(verifiedAttach.status === 200, 'Verified attach request resolves');
+  const verifiedEvent = await verifiedEventPromise;
+  assert(verifiedEvent.sessionId === sessionId, 'Verified attach emits agent:connected for the correct session');
+  assert(connectedEventCount === 1, 'Exactly one agent:connected event is emitted after verification');
 
   sessionClient.disconnect();
 });

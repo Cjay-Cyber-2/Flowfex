@@ -136,10 +136,10 @@ function PromptTab({ connection, loading, onRefresh, error, limitState, isAuthen
   const promptText = rewriteConnectPrompt(connection?.connection?.instructions?.prompt || CONNECT_PROMPT, sessionUrl);
   return (
     <div>
-      <p className="cam-tab-desc">Copy this prompt into the target agent. The prompt keeps the agent attached to Flowfex and forces Flowfex-first routing for the full conversation.</p>
+      <p className="cam-tab-desc">Use Prompt mode only with agents that can send HTTPS requests. Paste this exactly as the operating contract for the target agent.</p>
       <ActivationNotice
-        title="Dashboard opens only after a real agent attach"
-        description="For Prompt mode, Flowfex waits for the first valid session-bound message from that agent before it shows the success animation and opens the dashboard."
+        title="Dashboard opens only after Flowfex receives the first valid prompt-mode request"
+        description="For Prompt mode, Flowfex stays on onboarding until the agent sends the first session-bound message to the Flowfex ingest endpoint."
       />
       <ConcealedPayload text={promptText} title="Prompt contract hidden until copied" />
       <p className="cam-security-note">Session URL: {sessionUrl}</p>
@@ -178,13 +178,15 @@ function LinkTab({ connection, loading, onRefresh, error, limitState, isAuthenti
   }
 
   const url = normalizeSessionConnectUrl(connection?.connection?.link?.url || CONNECT_LINK);
-  const summary = connection?.connection?.instructions?.summary || 'This link resolves into the same Flowfex-first operating contract in the background.';
+  const summary = connection?.connection?.instructions?.attachBrief
+    || connection?.connection?.instructions?.summary
+    || 'This link resolves into the same Flowfex-first operating contract in the background.';
   return (
     <div>
-      <p className="cam-tab-desc">Share this link when you want a fast attach flow without editing code. Once the agent resolves it, the same Flowfex-first rules apply for the rest of the conversation.</p>
+      <p className="cam-tab-desc">Use Link mode when the target agent or operator can open one URL directly. No code changes are required.</p>
       <ActivationNotice
-        title="Redirect happens after the link is really resolved"
-        description="Flowfex keeps the user on onboarding until the target agent opens this attach link and the backend confirms the session handshake."
+        title="Dashboard opens only after the attach link is resolved for this session"
+        description="Flowfex keeps the user on onboarding until the selected attach link is opened and the backend confirms the active session handshake."
       />
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         <input readOnly value={url} className="cam-readonly-input" />
@@ -228,10 +230,10 @@ function SDKTab({ connection, loading, onRefresh, error, limitState, isAuthentic
   const snippet = connection?.connection?.instructions?.sdkSnippet || CONNECT_SDK_SNIPPET;
   return (
     <div>
-      <p className="cam-tab-desc">Use the SDK when the agent can stay attached programmatically. The snippet is hidden until copied so the operating contract is preserved cleanly.</p>
+      <p className="cam-tab-desc">Use SDK mode when you can edit the agent code directly. The snippet performs the verified attach call first and keeps the session bound programmatically.</p>
       <ActivationNotice
-        title="Flowfex waits for the SDK attach handshake"
-        description="The dashboard opens only after the snippet performs the real Flowfex registration call and the backend confirms the agent is attached."
+        title="Dashboard opens only after the SDK snippet completes the verified attach call"
+        description="Flowfex waits for the SDK snippet to call the attach endpoint with the session token and attach header before it shows success and opens the dashboard."
       />
       <ConcealedPayload text={snippet} title="SDK attach payload hidden until copied" />
       <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
@@ -244,8 +246,6 @@ function SDKTab({ connection, loading, onRefresh, error, limitState, isAuthentic
 }
 
 function LiveChannelTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose }) {
-  const [copied, copy] = useCopy();
-
   if (limitState) {
     return (
       <ConnectionLimitPanel
@@ -272,17 +272,12 @@ function LiveChannelTab({ connection, loading, onRefresh, error, limitState, isA
   const endpoint = connection?.connection?.instructions?.endpointPayload || CONNECT_LIVE_SNIPPET;
   return (
     <div>
-      <p className="cam-tab-desc">Use the live channel when the agent already supports persistent streaming. The transport stays attached to the same Flowfex routing contract for the full session.</p>
+      <p className="cam-tab-desc">Use Live Channel mode when the agent already supports persistent streaming, Socket.IO, or SSE. The attach call must succeed before the transport starts work.</p>
       <ActivationNotice
-        title="Flowfex waits for the live attach call"
-        description="The user is moved to the dashboard only after the agent calls the attach URL and Flowfex confirms the live session is real."
+        title="Dashboard opens only after the live attach call is verified"
+        description="Flowfex keeps the user on onboarding until the agent sends the verified attach request and the backend confirms the live session is real."
       />
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <input readOnly value={endpoint} className="cam-readonly-input" />
-        <button className="cam-copy-btn" onClick={() => copy(endpoint)}>
-          {copied ? <CheckCheck size={14} /> : <Copy size={14} />}
-        </button>
-      </div>
+      <ConcealedPayload text={endpoint} title="Live attach payload hidden until copied" />
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <span className="cam-pulse-dot" />
         <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--color-bistre)' }}>Ready for connection</span>
@@ -304,7 +299,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
   const setActiveSession = useStore((state) => state.setActiveSession);
   const activeSession = useStore((state) => state.activeSession);
   const backendUrl = useStore((state) => state.backendUrl);
-  const { accessToken, isAuthenticated, refreshUsage } = useSessionContext();
+  const { accessToken, isAuthenticated, refreshUsage, session } = useSessionContext();
   const [activeTab, setActiveTab] = useState('Prompt');
   const [connections, setConnections] = useState({});
   const [errors, setErrors] = useState({});
@@ -365,6 +360,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
         headers: {
           'Content-Type': 'application/json',
           ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          ...(!accessToken && session?.anonymousToken ? { 'X-Flowfex-Anonymous-Token': session.anonymousToken } : {}),
         },
         body: JSON.stringify(request),
       });
@@ -412,7 +408,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     } finally {
       setLoadingTab(null);
     }
-  }, [accessToken, backendUrl, requestForTab]);
+  }, [accessToken, backendUrl, requestForTab, session?.anonymousToken]);
 
   const finalizeConnection = useCallback(async (tab, eventData = null) => {
     const connection = connections[tab];
@@ -536,6 +532,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
               <div>
                 <h2 className="cam-title">Connect Your Agent</h2>
                 <p className="cam-subtitle">Choose how this agent connects to Flowfex.</p>
+                <p className="cam-attach-banner">Flowfex opens the dashboard only after it verifies a real agent attach for this session.</p>
               </div>
               <button className="cam-close" onClick={onClose}><X size={18} /></button>
             </div>
@@ -580,8 +577,8 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
                   {limitMessages[activeTab]
                     ? 'This session is blocked until the account limit state changes.'
                     : syncState === 'connected'
-                    ? 'Agent synced with Flowfex. Opening the session.'
-                    : 'Waiting for a real agent attach. Flowfex will only continue after actual sync.'}
+                    ? 'Agent synced with Flowfex. Opening the dashboard.'
+                    : 'Waiting for a verified agent attach. Flowfex will not continue before real sync.'}
                 </span>
               </div>
               <button className="cam-done-btn" onClick={onClose}>Done</button>

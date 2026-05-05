@@ -17,6 +17,7 @@ import {
 } from '../../../lib/session/initialize';
 import { upgradeAnonymousSession } from '../../../lib/session/upgrade';
 import { fetchFlowfexUsageStatus } from '../../../lib/limits/service';
+import { getBackendOrigin } from '../utils/runtimeConfig';
 import {
   getCurrentAuthSession,
   isAuthClientConfigured,
@@ -77,6 +78,7 @@ export function SessionProvider({ children }) {
   const hydratePersistedSession = useStore((store) => store.hydratePersistedSession);
   const resetWorkspace = useStore((store) => store.resetWorkspace);
   const connectedAgents = useStore((store) => store.connectedAgents);
+  const backendOrigin = getBackendOrigin();
   const [state, setState] = useState({
     session: null,
     user: null,
@@ -114,7 +116,10 @@ export function SessionProvider({ children }) {
     }
 
     try {
-      const usage = await fetchFlowfexUsageStatus(sessionId, accessToken);
+      const usage = await fetchFlowfexUsageStatus(sessionId, accessToken, {
+        apiBaseUrl: backendOrigin,
+        anonymousToken: state.session?.anonymousToken || readAnonymousToken(),
+      });
       startTransition(() => {
         setState((current) => ({
           ...current,
@@ -132,7 +137,7 @@ export function SessionProvider({ children }) {
       });
       return null;
     }
-  }, [state.accessToken, state.session?.id]);
+  }, [backendOrigin, state.accessToken, state.session?.anonymousToken, state.session?.id]);
 
   const initialize = useCallback(async (options = {}) => {
     const requestId = initializeRequestIdRef.current + 1;
@@ -145,7 +150,9 @@ export function SessionProvider({ children }) {
 
       if (auth.user && auth.accessToken && storedAnonymousToken) {
         try {
-          const upgraded = await upgradeAnonymousSession(auth.accessToken, storedAnonymousToken);
+          const upgraded = await upgradeAnonymousSession(auth.accessToken, storedAnonymousToken, {
+            apiBaseUrl: backendOrigin,
+          });
           backendSession = upgraded.session || null;
           writeAnonymousToken(null);
         } catch {
@@ -155,7 +162,9 @@ export function SessionProvider({ children }) {
 
       if (auth.user && auth.accessToken && !backendSession) {
         try {
-          const recent = await fetchRecentAuthenticatedSession(auth.accessToken);
+          const recent = await fetchRecentAuthenticatedSession(auth.accessToken, {
+            apiBaseUrl: backendOrigin,
+          });
           backendSession = recent.session || null;
         } catch {
           backendSession = null;
@@ -163,9 +172,13 @@ export function SessionProvider({ children }) {
       }
 
       if (auth.user && auth.accessToken && !backendSession) {
-        const created = await createAnonymousSession();
+        const created = await createAnonymousSession({
+          apiBaseUrl: backendOrigin,
+        });
         if (created?.anonymousToken) {
-          const upgraded = await upgradeAnonymousSession(auth.accessToken, created.anonymousToken);
+          const upgraded = await upgradeAnonymousSession(auth.accessToken, created.anonymousToken, {
+            apiBaseUrl: backendOrigin,
+          });
           backendSession = upgraded.session || created.session || null;
         } else {
           backendSession = created.session || null;
@@ -173,7 +186,9 @@ export function SessionProvider({ children }) {
       }
 
       if (!backendSession) {
-        const initialized = await initializeFlowfexSession();
+        const initialized = await initializeFlowfexSession({
+          apiBaseUrl: backendOrigin,
+        });
         backendSession = initialized.session || null;
       }
 
@@ -214,7 +229,7 @@ export function SessionProvider({ children }) {
       });
       return null;
     }
-  }, [refreshUsage, syncStore]);
+  }, [backendOrigin, refreshUsage, syncStore]);
 
   useEffect(() => {
     initialize().catch(() => {

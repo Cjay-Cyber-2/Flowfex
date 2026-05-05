@@ -8,9 +8,11 @@ export interface ConnectOptions {
     baseUrl?: string;
     mode?: 'prompt' | 'sdk' | 'link' | 'live';
     prompt?: string;
+    sessionId?: string;
     capabilities?: string[];
     requestedTools?: string[];
     apiKey?: string;
+    anonymousToken?: string;
     ttlSeconds?: number;
 }
 export interface Session {
@@ -21,6 +23,7 @@ export interface Session {
     expiresAt: string;
     endpoints: {
         execute: string;
+        attach: string;
         ingest: string;
         state: string;
         stream: string;
@@ -114,6 +117,7 @@ export declare class FlowfexClient {
     private _requireSession;
     private _control;
     private _connectSocket;
+    private _attachSession;
 }
 export declare class FlowfexError extends Error {
     statusCode: number;

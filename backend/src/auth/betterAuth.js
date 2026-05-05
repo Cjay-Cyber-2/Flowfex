@@ -60,6 +60,28 @@ function resolveAuthBaseUrl() {
   ) || DEFAULT_AUTH_BASE_URL;
 }
 
+function resolveFrontendAppOrigin() {
+  return normalizeUrl(
+    process.env.FLOWFEX_APP_URL
+      || process.env.FRONTEND_URL
+      || process.env.FRONTEND_ORIGIN
+      || process.env.APP_URL
+      || process.env.VITE_APP_URL,
+    { originOnly: true }
+  );
+}
+
+function requiresCrossSiteCookies() {
+  const backendOrigin = normalizeUrl(resolveAuthBaseUrl(), { originOnly: true });
+  const appOrigin = resolveFrontendAppOrigin();
+
+  return Boolean(
+    backendOrigin
+      && appOrigin
+      && backendOrigin !== appOrigin
+  );
+}
+
 function addTrustedOrigin(target, value) {
   const normalized = normalizeUrl(value, { originOnly: true });
   if (normalized) {
@@ -198,6 +220,7 @@ pool.on('error', (err) => {
 });
 
 export const db = drizzle(pool, { schema });
+const useCrossSiteCookies = requiresCrossSiteCookies();
 
 // Initialize Better Auth
 export const auth = betterAuth({
@@ -231,8 +254,8 @@ export const auth = betterAuth({
   ],
   advanced: {
     defaultCookieAttributes: {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production" || useCrossSiteCookies,
+      sameSite: useCrossSiteCookies ? "none" : "lax",
     },
   },
 });

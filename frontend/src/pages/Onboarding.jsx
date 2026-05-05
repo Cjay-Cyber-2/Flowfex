@@ -342,7 +342,6 @@ export default function Onboarding() {
             <AnimatedLayerButton onClick={() => setIsModalOpen(true)}>
               Connect Agent
             </AnimatedLayerButton>
-            <p className="ob-copy-subline">Flowfex opens the dashboard only after it verifies a real agent attach for this session.</p>
           </>
         )}
 

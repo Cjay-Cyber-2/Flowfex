@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, Copy, CheckCheck, RefreshCw } from 'lucide-react';
 import { io } from 'socket.io-client';
+import { useNavigate } from 'react-router-dom';
 import { CONNECT_LINK, CONNECT_LIVE_SNIPPET, CONNECT_PROMPT, CONNECT_SDK_SNIPPET } from '../store/demoData';
 import useStore from '../store/useStore';
 import { useSessionContext } from '../context/SessionContext';
@@ -74,7 +75,52 @@ function ConcealedPayload({ text, title }) {
   );
 }
 
-function PromptTab({ connection, loading, onRefresh, error }) {
+function ActivationNotice({ title, description }) {
+  return (
+    <div className="cam-security-note" style={{ marginBottom: 14, padding: '12px 14px', borderRadius: 14, border: '1px solid rgba(0, 212, 170, 0.14)', background: 'rgba(8, 12, 16, 0.62)' }}>
+      <strong style={{ display: 'block', marginBottom: 4, color: 'var(--color-velin)' }}>{title}</strong>
+      <span>{description}</span>
+    </div>
+  );
+}
+
+function ConnectionLimitPanel({ isAuthenticated, message, onSignUp, onSignIn, onClose }) {
+  return (
+    <div style={{ display: 'grid', gap: 12 }}>
+      <div className="cam-security-note" style={{ padding: '14px 16px', borderRadius: 16, border: '1px solid rgba(255, 164, 98, 0.24)', background: 'rgba(67, 38, 22, 0.32)' }}>
+        <strong style={{ display: 'block', marginBottom: 6, color: 'var(--color-velin)' }}>
+          {isAuthenticated ? 'Free connection limit reached' : 'Anonymous token finished'}
+        </strong>
+        <span>{message}</span>
+      </div>
+
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        {isAuthenticated ? (
+          <button className="cam-done-btn" onClick={onClose}>Close</button>
+        ) : (
+          <>
+            <button className="cam-done-btn" onClick={onSignUp}>Sign Up</button>
+            <button className="cam-copy-btn" onClick={onSignIn}>Sign In</button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PromptTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose }) {
+  if (limitState) {
+    return (
+      <ConnectionLimitPanel
+        isAuthenticated={isAuthenticated}
+        message={limitState}
+        onSignUp={onSignUp}
+        onSignIn={onSignIn}
+        onClose={onClose}
+      />
+    );
+  }
+
   if (loading || !connection?.connection?.instructions?.prompt) {
     return (
       <div>
@@ -91,6 +137,10 @@ function PromptTab({ connection, loading, onRefresh, error }) {
   return (
     <div>
       <p className="cam-tab-desc">Copy this prompt into the target agent. The prompt keeps the agent attached to Flowfex and forces Flowfex-first routing for the full conversation.</p>
+      <ActivationNotice
+        title="Dashboard opens only after a real agent attach"
+        description="For Prompt mode, Flowfex waits for the first valid session-bound message from that agent before it shows the success animation and opens the dashboard."
+      />
       <ConcealedPayload text={promptText} title="Prompt contract hidden until copied" />
       <p className="cam-security-note">Session URL: {sessionUrl}</p>
       <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
@@ -101,7 +151,21 @@ function PromptTab({ connection, loading, onRefresh, error }) {
   );
 }
 
-function LinkTab({ connection, loading, onRefresh, error }) {
+function LinkTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose }) {
+  const [copied, copy] = useCopy();
+
+  if (limitState) {
+    return (
+      <ConnectionLimitPanel
+        isAuthenticated={isAuthenticated}
+        message={limitState}
+        onSignUp={onSignUp}
+        onSignIn={onSignIn}
+        onClose={onClose}
+      />
+    );
+  }
+
   if (loading || !connection?.connection?.link?.url) {
     return (
       <div>
@@ -113,12 +177,15 @@ function LinkTab({ connection, loading, onRefresh, error }) {
     );
   }
 
-  const [copied, copy] = useCopy();
   const url = normalizeSessionConnectUrl(connection?.connection?.link?.url || CONNECT_LINK);
   const summary = connection?.connection?.instructions?.summary || 'This link resolves into the same Flowfex-first operating contract in the background.';
   return (
     <div>
       <p className="cam-tab-desc">Share this link when you want a fast attach flow without editing code. Once the agent resolves it, the same Flowfex-first rules apply for the rest of the conversation.</p>
+      <ActivationNotice
+        title="Redirect happens after the link is really resolved"
+        description="Flowfex keeps the user on onboarding until the target agent opens this attach link and the backend confirms the session handshake."
+      />
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         <input readOnly value={url} className="cam-readonly-input" />
         <button className="cam-copy-btn" onClick={() => copy(url)}>
@@ -134,7 +201,19 @@ function LinkTab({ connection, loading, onRefresh, error }) {
   );
 }
 
-function SDKTab({ connection, loading, onRefresh, error }) {
+function SDKTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose }) {
+  if (limitState) {
+    return (
+      <ConnectionLimitPanel
+        isAuthenticated={isAuthenticated}
+        message={limitState}
+        onSignUp={onSignUp}
+        onSignIn={onSignIn}
+        onClose={onClose}
+      />
+    );
+  }
+
   if (loading || !connection?.connection?.instructions?.sdkSnippet) {
     return (
       <div>
@@ -150,6 +229,10 @@ function SDKTab({ connection, loading, onRefresh, error }) {
   return (
     <div>
       <p className="cam-tab-desc">Use the SDK when the agent can stay attached programmatically. The snippet is hidden until copied so the operating contract is preserved cleanly.</p>
+      <ActivationNotice
+        title="Flowfex waits for the SDK attach handshake"
+        description="The dashboard opens only after the snippet performs the real Flowfex registration call and the backend confirms the agent is attached."
+      />
       <ConcealedPayload text={snippet} title="SDK attach payload hidden until copied" />
       <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
         <RefreshCw size={13} /> {loading ? 'Generating SDK Session...' : 'Refresh Session'}
@@ -160,7 +243,21 @@ function SDKTab({ connection, loading, onRefresh, error }) {
   );
 }
 
-function LiveChannelTab({ connection, loading, onRefresh, error }) {
+function LiveChannelTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose }) {
+  const [copied, copy] = useCopy();
+
+  if (limitState) {
+    return (
+      <ConnectionLimitPanel
+        isAuthenticated={isAuthenticated}
+        message={limitState}
+        onSignUp={onSignUp}
+        onSignIn={onSignIn}
+        onClose={onClose}
+      />
+    );
+  }
+
   if (loading || !connection?.connection?.instructions?.endpointPayload) {
     return (
       <div>
@@ -172,11 +269,14 @@ function LiveChannelTab({ connection, loading, onRefresh, error }) {
     );
   }
 
-  const [copied, copy] = useCopy();
   const endpoint = connection?.connection?.instructions?.endpointPayload || CONNECT_LIVE_SNIPPET;
   return (
     <div>
       <p className="cam-tab-desc">Use the live channel when the agent already supports persistent streaming. The transport stays attached to the same Flowfex routing contract for the full session.</p>
+      <ActivationNotice
+        title="Flowfex waits for the live attach call"
+        description="The user is moved to the dashboard only after the agent calls the attach URL and Flowfex confirms the live session is real."
+      />
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <input readOnly value={endpoint} className="cam-readonly-input" />
         <button className="cam-copy-btn" onClick={() => copy(endpoint)}>
@@ -198,19 +298,21 @@ function LiveChannelTab({ connection, loading, onRefresh, error }) {
 const TAB_CONTENT = { Prompt: PromptTab, Link: LinkTab, SDK: SDKTab, 'Live Channel': LiveChannelTab };
 
 function ConnectAgentModal({ isOpen, onClose, onConnected }) {
+  const navigate = useNavigate();
   const addAgent = useStore((state) => state.addAgent);
   const addSession = useStore((state) => state.addSession);
   const setActiveSession = useStore((state) => state.setActiveSession);
   const activeSession = useStore((state) => state.activeSession);
   const backendUrl = useStore((state) => state.backendUrl);
-  const { accessToken } = useSessionContext();
+  const { accessToken, isAuthenticated, refreshUsage } = useSessionContext();
   const [activeTab, setActiveTab] = useState('Prompt');
   const [connections, setConnections] = useState({});
   const [errors, setErrors] = useState({});
+  const [limitMessages, setLimitMessages] = useState({});
   const [loadingTab, setLoadingTab] = useState(null);
   const [syncState, setSyncState] = useState('idle');
   const fetchAttemptedRef = useRef(new Set());
-  const finalizedSessionIdsRef = useRef(new Set());
+  const finalizedConnectionKeysRef = useRef(new Set());
   const TabContent = TAB_CONTENT[activeTab];
 
   const requestForTab = useCallback((tab) => {
@@ -255,6 +357,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
 
     setLoadingTab(tab);
     setErrors((current) => ({ ...current, [tab]: null }));
+    setLimitMessages((current) => ({ ...current, [tab]: null }));
 
     try {
       const response = await fetch(`${backendUrl}/connect`, {
@@ -268,7 +371,10 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
       const { hasBody, payload } = await readConnectResponse(response);
 
       if (!response.ok) {
-        throw new Error(payload?.error?.message || 'Connection bootstrap failed');
+        const nextError = new Error(payload?.error?.message || 'Connection bootstrap failed');
+        nextError.statusCode = response.status;
+        nextError.payload = payload;
+        throw nextError;
       }
 
       if (!hasBody) {
@@ -288,6 +394,17 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
         [tab]: payload,
       }));
     } catch (error) {
+      const limitMessage = error?.payload?.error?.details?.connectionBlockedLimit?.reason
+        || error?.payload?.error?.details?.blockedLimit?.reason
+        || null;
+
+      if (limitMessage) {
+        setLimitMessages((current) => ({
+          ...current,
+          [tab]: limitMessage,
+        }));
+      }
+
       setErrors((current) => ({
         ...current,
         [tab]: error instanceof Error ? error.message : 'Connection bootstrap failed',
@@ -297,14 +414,15 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     }
   }, [accessToken, backendUrl, requestForTab]);
 
-  const finalizeConnection = useCallback((tab, eventData = null) => {
+  const finalizeConnection = useCallback(async (tab, eventData = null) => {
     const connection = connections[tab];
     const session = connection?.connection?.session;
-    if (!session || finalizedSessionIdsRef.current.has(session.id)) {
+    const connectionKey = session ? `${session.id}:${session.token || session.connectionId || tab}` : null;
+    if (!session || !connectionKey || finalizedConnectionKeysRef.current.has(connectionKey)) {
       return;
     }
 
-    finalizedSessionIdsRef.current.add(session.id);
+    finalizedConnectionKeysRef.current.add(connectionKey);
 
     addAgent({
       id: eventData?.agentId || session.agent?.id || `agent-${session.id}`,
@@ -325,6 +443,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     };
     addSession(sessionRecord);
     setActiveSession(sessionRecord);
+    await refreshUsage(session.id).catch(() => null);
 
     if (onConnected) {
       onConnected();
@@ -332,7 +451,17 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     }
 
     onClose();
-  }, [addAgent, addSession, connections, onClose, onConnected, setActiveSession]);
+  }, [addAgent, addSession, connections, onClose, onConnected, refreshUsage, setActiveSession]);
+
+  const handleSignUp = useCallback(() => {
+    onClose();
+    navigate('/signup');
+  }, [navigate, onClose]);
+
+  const handleSignIn = useCallback(() => {
+    onClose();
+    navigate('/signin');
+  }, [navigate, onClose]);
 
   useEffect(() => {
     if (!isOpen || connections[activeTab] || loadingTab === activeTab || fetchAttemptedRef.current.has(activeTab)) {
@@ -345,7 +474,14 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
 
   useEffect(() => {
     if (!isOpen) {
+      setActiveTab('Prompt');
+      setConnections({});
       setSyncState('idle');
+      setErrors({});
+      setLimitMessages({});
+      setLoadingTab(null);
+      fetchAttemptedRef.current = new Set();
+      finalizedConnectionKeysRef.current = new Set();
       return undefined;
     }
 
@@ -428,6 +564,11 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
                   loading={loadingTab === activeTab}
                   onRefresh={() => fetchConnection(activeTab)}
                   error={errors[activeTab]}
+                  limitState={limitMessages[activeTab]}
+                  isAuthenticated={isAuthenticated}
+                  onSignUp={handleSignUp}
+                  onSignIn={handleSignIn}
+                  onClose={onClose}
                 />
               </motion.div>
             </AnimatePresence>
@@ -436,7 +577,9 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
               <div className="cam-sync-status">
                 <span className={`cam-sync-dot cam-sync-dot-${syncState === 'connected' ? 'live' : 'waiting'}`} />
                 <span>
-                  {syncState === 'connected'
+                  {limitMessages[activeTab]
+                    ? 'This session is blocked until the account limit state changes.'
+                    : syncState === 'connected'
                     ? 'Agent synced with Flowfex. Opening the session.'
                     : 'Waiting for a real agent attach. Flowfex will only continue after actual sync.'}
                 </span>

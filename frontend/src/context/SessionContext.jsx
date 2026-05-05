@@ -286,7 +286,7 @@ export function SessionProvider({ children }) {
     ...state,
     hasConnectedAgent,
     refreshSession: () => initialize(),
-    refreshUsage: () => refreshUsage(),
+    refreshUsage: (sessionId = null) => refreshUsage(sessionId, state.accessToken),
     signOut,
   }), [hasConnectedAgent, initialize, refreshUsage, signOut, state]);
 

@@ -20,6 +20,7 @@ const agentSchema = z.object({
 });
 
 const baseConnectRequestSchema = z.object({
+  sessionId: z.string().trim().min(1).optional(),
   mode: z.enum([
     CONNECTION_MODES.PROMPT,
     CONNECTION_MODES.SDK,

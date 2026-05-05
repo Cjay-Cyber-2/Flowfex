@@ -13,7 +13,7 @@ import {
 
 function SignIn() {
   const navigate = useNavigate();
-  const { configured, isAuthenticated, sessionReady } = useSessionContext();
+  const { configured, isAuthenticated, refreshSession, sessionReady } = useSessionContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
@@ -33,6 +33,7 @@ function SignIn() {
 
     try {
       await signInWithEmail(email, password);
+      await refreshSession();
       navigate('/dashboard');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to sign in.');
@@ -46,11 +47,11 @@ function SignIn() {
 
     try {
       if (provider === 'google') {
-        await signInWithGoogle();
+        await signInWithGoogle('/dashboard');
         return;
       }
 
-      await signInWithGitHub();
+      await signInWithGitHub('/dashboard');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to start social sign-in.');
     }
@@ -126,7 +127,7 @@ function SignIn() {
           </div>
 
           <div style={{ textAlign: 'right', marginBottom: 24 }}>
-            <a href="#forgot" style={styles.forgotLink}>Forgot password?</a>
+            <span style={styles.forgotLink} onClick={() => navigate('/reset-password')}>Forgot password?</span>
           </div>
 
           <button type="submit" style={{ ...styles.submitBtn, opacity: isSubmitting ? 0.7 : 1 }} disabled={isSubmitting}>
@@ -179,7 +180,7 @@ const styles = {
   input: { width: '100%', height: 48, background: 'rgba(8,12,16,0.88)', border: '1px solid rgba(0,212,170,0.1)', borderRadius: 14, fontFamily: 'Inter, sans-serif', fontSize: 15, color: 'var(--color-velin)', padding: '0 16px', boxSizing: 'border-box', outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s' },
   inputFocus: { borderColor: 'var(--color-sinoper)', boxShadow: '0 0 0 3px rgba(0,212,170,0.12)' },
   eyeBtn: { position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--color-bistre)', cursor: 'pointer', padding: 0, display: 'flex' },
-  forgotLink: { fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--color-sinoper)', textDecoration: 'none' },
+  forgotLink: { fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--color-sinoper)', textDecoration: 'none', cursor: 'pointer' },
   submitBtn: { width: '100%', height: 50, background: 'var(--color-sinoper)', border: 'none', borderRadius: 14, fontFamily: 'var(--font-inter)', fontSize: 15, fontWeight: 700, color: '#031014', cursor: 'pointer', marginBottom: 20, boxShadow: '0 18px 38px rgba(0,212,170,0.22)' },
   noticeText: { fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--color-bistre)', textAlign: 'center', margin: '0 0 12px' },
   errorText: { fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#ff8d8d', textAlign: 'center', margin: '0 0 16px' },

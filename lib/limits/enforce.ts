@@ -3,6 +3,7 @@ import { FLOWFEX_LIMITS } from './config';
 export type FlowfexUsageTier = keyof typeof FLOWFEX_LIMITS;
 
 export type FlowfexLimitKey =
+  | 'maxConnectionsPerDay'
   | 'maxExecutionsPerSession'
   | 'maxNodesPerSession'
   | 'maxExecutionsPerDay'
@@ -11,6 +12,7 @@ export type FlowfexLimitKey =
   | 'maxConcurrentAgents';
 
 export interface FlowfexUsageSnapshot {
+  readonly connectionsCount: number;
   readonly executionsCount: number;
   readonly nodesProcessed: number;
   readonly sessionDurationSeconds: number;
@@ -59,6 +61,18 @@ export function enforceUsageLimits(
   usage: FlowfexUsageSnapshot
 ): FlowfexLimitResult {
   const limits = FLOWFEX_LIMITS[tier];
+
+  if (usage.connectionsCount >= limits.maxConnectionsPerDay) {
+    return block(
+      tier,
+      'maxConnectionsPerDay',
+      usage.connectionsCount,
+      limits.maxConnectionsPerDay,
+      tier === 'anonymous'
+        ? 'Anonymous sessions are limited to five verified agent connections per day.'
+        : 'Authenticated sessions are limited to five free verified agent connections per day.'
+    );
+  }
 
   if ('maxExecutionsPerSession' in limits && usage.executionsCount >= limits.maxExecutionsPerSession) {
     return block(

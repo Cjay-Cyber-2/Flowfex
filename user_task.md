@@ -1,40 +1,28 @@
-# Flowfex Operator Checklist
+# Flowfex Remaining Human Tasks
 
-Follow these steps manually in your provider dashboards to deploy Flowfex to production. Do not add code tasks here.
+Only keep provider, billing, and production-account work here. Code tasks have been handled separately.
 
-## Hosting (Vercel & Render)
-- **Frontend (Vercel):** Create the project, connect your repository, and select the frontend root directory.
-- **Backend (Render):** Create a Web Service, connect your repository, and allow HTTPS & WebSockets.
-- **Health Check:** Set the Render health check path to `/health`.
-- **Plans:** Approve production pricing plans for both providers.
+## Billing
+- **Payment Integration:** Connect the real billing provider and webhook flow. The authenticated dashboard now shows the payment gate, but actual checkout and entitlement activation are still manual.
 
-## Environment Secrets
-- **Generate:** Create secure strings for `FLOWFEX_LINK_SECRET` and `BETTER_AUTH_SECRET`.
-- **Vercel Env:** Set `VITE_APP_URL` and `VITE_BACKEND_URL`.
-- **Render Env:** Set `FLOWFEX_PUBLIC_ORIGIN`, `ALLOWED_ORIGINS`, `FLOWFEX_LINK_SECRET`, `BETTER_AUTH_SECRET`, and `BETTER_AUTH_URL`.
-- **LLM Keys:** Set `GROQ_API_KEY`, `OPENAI_API_KEY`, or `ANTHROPIC_API_KEY` in Render.
+## Production Secrets & Environment
+- **Frontend Env (Vercel):** Set `VITE_APP_URL` and `VITE_BACKEND_URL` to the live frontend and backend URLs.
+- **Backend Env (Render):** Set `DATABASE_URL`, `FLOWFEX_PUBLIC_ORIGIN`, `ALLOWED_ORIGINS`, `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `JWT_SECRET`, and `FLOWFEX_LINK_SECRET`.
+- **Resend Env (Render):** Set `RESEND_API_KEY`, `EMAIL_FROM`, and optionally `EMAIL_REPLY_TO` so forgot-password emails send for real users.
+- **Model Keys (Render):** Set the LLM provider keys you want Flowfex to use in production (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and/or `GROQ_API_KEY`).
 
-## Database
-- **Create:** Provision a Postgres database in your dashboard (e.g., Neon or Supabase).
-- **Connect:** Copy the `DATABASE_URL` and set it in your Render environment variables.
-- **Backups:** Enable automated backups in the database dashboard.
+## OAuth Provider Dashboards
+- **Google OAuth:** Add the live frontend origin and Better Auth callback URLs, then set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in Render.
+- **GitHub OAuth:** Add the live frontend origin and Better Auth callback URLs, then set `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` in Render.
 
-## Domains & DNS
-- **Add Domains:** Add your frontend and backend domains to Vercel and Render, respectively.
-- **Configure DNS:** Copy the provided A/CNAME records into your DNS provider (e.g., Cloudflare, Namecheap).
-- **Verify:** Wait for DNS to propagate and confirm HTTPS is active for both domains.
+## Email Domain
+- **Resend Domain Verification:** Verify the sender domain in Resend and publish the SPF, DKIM, and DMARC DNS records required for `EMAIL_FROM`.
 
-## Email (SMTP)
-- **Account:** Create an account with Resend or your preferred SMTP provider.
-- **Verify Domain:** Add the required SPF, DKIM, and DMARC records to your DNS settings.
-- **Render Env:** Set `EMAIL_FROM`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, and `SMTP_PASS`.
+## Infrastructure
+- **Database Backups:** Enable managed backups on the production Postgres instance.
+- **Hosting Plans:** Move Render off the free tier before production so agent connections and onboarding do not stall on cold starts.
 
-## Authentication & OAuth
-- **URLs:** Whitelist your frontend domain and callback URLs in your OAuth provider dashboards (Google, GitHub, etc.).
-- **Client Keys:** Copy the provided Client IDs and Secrets into your Render environment variables (e.g., `GOOGLE_CLIENT_ID`, `GITHUB_CLIENT_SECRET`).
-
-## Final Verification
-- **Load Check:** Open the frontend URL and verify it loads without errors.
-- **Backend Check:** Open `[backend-url]/health` and verify it returns HTTP 200.
-- **Flow Test:** Connect an agent and verify it reaches the backend successfully.
-- **Logs:** Review Render logs to ensure no secrets or API keys are exposed.
+## Final Production Checks
+- **Database-Backed Verification:** Re-run the auth/session and limits integration tests in an environment where `DATABASE_URL` is available.
+- **Live Smoke Test:** In production, verify all four auth paths end to end: email sign-up, email sign-in, Google sign-in, GitHub sign-in, and forgot-password.
+- **Connection Smoke Test:** Verify a real agent attach in each connection mode you plan to expose, confirm the onboarding animation waits for the verified attach, and confirm the dashboard opens only after backend confirmation.

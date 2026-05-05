@@ -9,6 +9,185 @@ import * as schema from "../db/schema.js";
 // Enable WebSocket support for local Node.js (Render has this natively)
 neonConfig.webSocketConstructor = ws;
 
+const DEFAULT_AUTH_BASE_URL = "http://localhost:4000";
+const DEFAULT_TRUSTED_ORIGINS = [
+  "https://flowfex.vercel.app",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+];
+
+function trimTrailingSlash(value) {
+  return value.replace(/\/+$/, "");
+}
+
+function normalizeUrl(value, { originOnly = false } = {}) {
+  if (!value || typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const candidates = trimmed.includes("://")
+    ? [trimmed]
+    : trimmed.startsWith("localhost") || trimmed.startsWith("127.0.0.1")
+      ? [`http://${trimmed}`]
+      : [`https://${trimmed}`];
+
+  for (const candidate of candidates) {
+    try {
+      const parsed = new URL(candidate);
+      const normalized = originOnly ? parsed.origin : parsed.toString();
+      return trimTrailingSlash(normalized);
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
+}
+
+function resolveAuthBaseUrl() {
+  return normalizeUrl(
+    process.env.BETTER_AUTH_URL
+      || process.env.FLOWFEX_PUBLIC_ORIGIN
+      || process.env.RENDER_EXTERNAL_URL
+      || DEFAULT_AUTH_BASE_URL
+  ) || DEFAULT_AUTH_BASE_URL;
+}
+
+function addTrustedOrigin(target, value) {
+  const normalized = normalizeUrl(value, { originOnly: true });
+  if (normalized) {
+    target.add(normalized);
+  }
+}
+
+function collectTrustedOrigins() {
+  const trusted = new Set(DEFAULT_TRUSTED_ORIGINS);
+  const baseUrl = resolveAuthBaseUrl();
+  const envCandidates = [
+    process.env.FLOWFEX_APP_URL,
+    process.env.FRONTEND_URL,
+    process.env.FRONTEND_ORIGIN,
+    process.env.APP_URL,
+    process.env.VITE_APP_URL,
+    process.env.BETTER_AUTH_URL,
+    process.env.FLOWFEX_PUBLIC_ORIGIN,
+    process.env.RENDER_EXTERNAL_URL,
+    process.env.VERCEL_URL,
+    baseUrl,
+  ];
+
+  for (const candidate of envCandidates) {
+    addTrustedOrigin(trusted, candidate);
+  }
+
+  const allowedOrigins = String(process.env.ALLOWED_ORIGINS || "")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+  for (const allowedOrigin of allowedOrigins) {
+    addTrustedOrigin(trusted, allowedOrigin);
+  }
+
+  return Array.from(trusted);
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+async function sendResendEmail({ to, subject, html, text }) {
+  const apiKey = process.env.RESEND_API_KEY || "";
+  const from = process.env.EMAIL_FROM || process.env.RESEND_FROM || "";
+  const replyTo = process.env.EMAIL_REPLY_TO || null;
+
+  if (!apiKey || !from) {
+    const message = "Password reset email is not configured. Set RESEND_API_KEY and EMAIL_FROM.";
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(message);
+    }
+
+    console.warn(`[Flowfex Auth] ${message}`);
+    console.info(`[Flowfex Auth] Reset email preview for ${to}: ${text}`);
+    return { skipped: true };
+  }
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from,
+      to: [to],
+      subject,
+      html,
+      text,
+      ...(replyTo ? { reply_to: replyTo } : {}),
+    }),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Resend returned ${response.status} while sending password reset email.`);
+  }
+
+  return response.json();
+}
+
+async function sendPasswordResetEmail({ user, url }) {
+  const email = user?.email || "";
+  if (!email) {
+    throw new Error("Password reset email could not be sent because the account email is missing.");
+  }
+
+  const displayName = user?.name || user?.email || "there";
+  const safeName = escapeHtml(displayName);
+  const safeUrl = escapeHtml(url);
+  const subject = "Reset your Flowfex password";
+  const text = [
+    `Hi ${displayName},`,
+    "",
+    "Use the link below to reset your Flowfex password:",
+    url,
+    "",
+    "If you did not request this, you can ignore this email.",
+  ].join("\n");
+  const html = `
+    <div style="background:#081019;padding:32px;font-family:Inter,Arial,sans-serif;color:#e8edf2;">
+      <div style="max-width:560px;margin:0 auto;background:#0d131b;border:1px solid rgba(0,212,170,0.16);border-radius:20px;padding:32px;">
+        <p style="margin:0 0 12px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#00d4aa;">Flowfex Security</p>
+        <h1 style="margin:0 0 12px;font-size:28px;line-height:1.1;color:#f8fafc;">Reset your password</h1>
+        <p style="margin:0 0 24px;color:rgba(232,237,242,0.78);line-height:1.6;">Hi ${safeName}, use the secure link below to set a new password for your Flowfex account.</p>
+        <a href="${safeUrl}" style="display:inline-block;padding:14px 20px;border-radius:14px;background:#00d4aa;color:#031014;text-decoration:none;font-weight:700;">Reset Password</a>
+        <p style="margin:24px 0 8px;color:rgba(232,237,242,0.64);line-height:1.6;">If the button does not open, copy this link directly:</p>
+        <p style="margin:0;word-break:break-word;"><a href="${safeUrl}" style="color:#7ffff0;">${safeUrl}</a></p>
+        <p style="margin:24px 0 0;color:rgba(232,237,242,0.56);line-height:1.6;">If you did not request this reset, you can ignore this email.</p>
+      </div>
+    </div>
+  `;
+
+  return sendResendEmail({
+    to: email,
+    subject,
+    html,
+    text,
+  });
+}
+
 // Initialize Drizzle ORM with Neon Serverless WebSocket Pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || "postgres://dummy:dummy@localhost/dummy",
@@ -22,14 +201,16 @@ export const db = drizzle(pool, { schema });
 
 // Initialize Better Auth
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL || process.env.RENDER_EXTERNAL_URL || "http://localhost:4000",
-  trustedOrigins: ["https://flowfex.vercel.app", "http://localhost:3000"],
+  baseURL: resolveAuthBaseUrl(),
+  trustedOrigins: collectTrustedOrigins(),
   database: drizzleAdapter(db, {
     provider: "pg", // PostgreSQL
     schema,
   }),
   emailAndPassword: {
     enabled: true,
+    revokeSessionsOnPasswordReset: true,
+    sendResetPassword: async ({ user, url }) => sendPasswordResetEmail({ user, url }),
   },
   socialProviders: {
     github: {

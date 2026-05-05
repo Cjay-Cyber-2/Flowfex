@@ -158,6 +158,16 @@
   letter-spacing: -0.04em;
 }
 
+.ob-copy-subline {
+  max-width: 460px;
+  margin: -6px 0 0;
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(232, 237, 242, 0.66);
+  text-align: center;
+}
+
 /* CTA button — fallback */
 .ob-cta-btn {
   font-family: var(--font-inter, Inter, sans-serif);
@@ -276,4 +286,3 @@
     font-size: 13px;
   }
 }
-

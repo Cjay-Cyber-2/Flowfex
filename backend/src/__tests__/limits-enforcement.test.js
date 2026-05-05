@@ -119,6 +119,54 @@ async function testAuthenticatedLimits() {
   return session.sessionId;
 }
 
+async function testConnectionQuota() {
+  console.log('\n── 2b. Connection Quota ──');
+
+  const session = await createTestSession();
+  for (let index = 0; index < FLOWFEX_LIMITS.anonymous.maxConnectionsPerDay; index += 1) {
+    await anonymousSessionService.markConnectedAgent(session.sessionId, {
+      connectionId: `anon-connection-${index}`,
+      agentId: `anon-agent-${index}`,
+      agentName: `Anon Agent ${index + 1}`,
+      connectionType: 'prompt',
+      syncedAt: new Date(Date.now() + index * 1000).toISOString(),
+    });
+  }
+
+  const anonymousStatus = await usageService.getUsageStatus({ sessionId: session.sessionId });
+  assertEq(anonymousStatus.usage.connectionsCount, FLOWFEX_LIMITS.anonymous.maxConnectionsPerDay, 'Anonymous connection count reaches the daily quota');
+  assertTruthy(anonymousStatus.connectionBlockedLimit, 'Anonymous connection quota is blocked');
+  assertEq(anonymousStatus.connectionBlockedLimit.limit, 'maxConnectionsPerDay', 'Anonymous quota blocks on connection count');
+
+  let anonymousError = null;
+  try {
+    await usageService.assertAgentConnectionAllowed({ sessionId: session.sessionId });
+  } catch (error) {
+    anonymousError = error;
+  }
+  assertTruthy(anonymousError, 'Anonymous connection attempt is rejected at quota');
+  assertTruthy(anonymousError?.details?.connectionBlockedLimit, 'Anonymous connection error includes connectionBlockedLimit');
+
+  const authId = 'test-connection-quota-' + Date.now();
+  const authenticatedSession = await createTestSession(authId);
+  for (let index = 0; index < FLOWFEX_LIMITS.authenticated.maxConnectionsPerDay; index += 1) {
+    await anonymousSessionService.markConnectedAgent(authenticatedSession.sessionId, {
+      connectionId: `auth-connection-${index}`,
+      agentId: `auth-agent-${index}`,
+      agentName: `Auth Agent ${index + 1}`,
+      connectionType: 'sdk',
+      syncedAt: new Date(Date.now() + index * 1000).toISOString(),
+    });
+  }
+
+  const authenticatedStatus = await usageService.getUsageStatus({ sessionId: authenticatedSession.sessionId });
+  assertEq(authenticatedStatus.usage.connectionsCount, FLOWFEX_LIMITS.authenticated.maxConnectionsPerDay, 'Authenticated connection count reaches the daily quota');
+  assertTruthy(authenticatedStatus.connectionBlockedLimit, 'Authenticated connection quota is blocked');
+  assertEq(authenticatedStatus.connectionBlockedLimit.limit, 'maxConnectionsPerDay', 'Authenticated quota blocks on connection count');
+
+  return [session.sessionId, authenticatedSession.sessionId];
+}
+
 // ─── 3. API-Key Limits ────────────────────────────────────────────────────────
 
 async function testApiKeyLimits() {
@@ -384,6 +432,7 @@ function testPolicyStructure() {
 
   // Verify billing-ready structure
   for (const tier of ['anonymous', 'authenticated', 'api_key']) {
+    assertTruthy(FLOWFEX_LIMITS[tier].maxConnectionsPerDay, `${tier} has maxConnectionsPerDay`);
     assertTruthy(FLOWFEX_LIMITS[tier].warningThreshold, `${tier} has warningThreshold`);
     assertTruthy(FLOWFEX_LIMITS[tier].maxSessionDurationMinutes, `${tier} has maxSessionDurationMinutes`);
     assertTruthy(FLOWFEX_LIMITS[tier].maxConcurrentAgents, `${tier} has maxConcurrentAgents`);
@@ -436,6 +485,9 @@ async function run() {
 
     const s2 = await testAuthenticatedLimits();
     sessionIds.push(s2);
+
+    const s2b = await testConnectionQuota();
+    sessionIds.push(...s2b);
 
     const s3 = await testApiKeyLimits();
     sessionIds.push(s3);

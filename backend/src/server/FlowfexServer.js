@@ -13,13 +13,13 @@ import { ApiKeyService } from '../session/ApiKeyService.js';
 import { UsageService } from '../session/UsageService.js';
 import { auth } from '../auth/betterAuth.js';
 import { toNodeHandler } from 'better-auth/node';
-import jwt from 'jsonwebtoken';
 import { 
-  executeSchema, connectSchema, ingestSchema, createApiKeySchema, 
+  executeSchema, ingestSchema, createApiKeySchema, 
   approveSchema, rejectSchema, rerouteSchema, constrainSchema,
   anonymousValidateSchema, sessionUpgradeSchema, skillsSearchSchema, emptySchema,
   formatZodError 
 } from './ValidationSchemas.js';
+import { connectRequestSchema } from '../../../shared/connection-contracts.js';
 
 const authHandler = toNodeHandler(auth);
 
@@ -149,11 +149,24 @@ export class FlowfexServer {
   async _handleRequest(request, response) {
     const url = new URL(request.url, 'http://flowfex.local');
     const ip = request.headers['x-forwarded-for'] || request.socket?.remoteAddress || 'unknown';
+    const accessToken = this._extractBearerToken(request);
+    const authUser = accessToken && this.sessionDataEnabled
+      ? await resolveAuthenticatedUser(accessToken).catch(() => null)
+      : null;
+    const anonymousToken = this._readCookie(request, 'fx_session');
+    const rateLimitIdentity = authUser?.id
+      ? `auth:${authUser.id}`
+      : anonymousToken
+        ? `anon:${anonymousToken}`
+        : String(ip);
 
     console.log("[FLOWFEX ROUTER HIT]", url.pathname);
 
     // ─── Identity-Aware Rate Limiting ──────────────────────────────────
-    const tier = request.user?.tier || 'anonymous';
+    if (authUser) {
+      request.user = authUser;
+    }
+    const tier = authUser?.id ? 'authenticated' : 'anonymous';
 
     const isExecutionEndpoint = (request.method === 'POST' && (
       url.pathname === '/connect' || 
@@ -166,7 +179,7 @@ export class FlowfexServer {
     ));
     const isConnectEndpoint = (request.method === 'POST' && url.pathname === '/connect');
 
-    if (isExecutionEndpoint && !executionRateLimiter.check(ip, tier)) {
+    if (isExecutionEndpoint && !executionRateLimiter.check(rateLimitIdentity, tier)) {
       if (this.socketServer) {
         const sessionId = url.pathname.match(/^\/sessions\/([^/]+)\/execute$/)?.[1] || null;
         if (sessionId) {
@@ -178,10 +191,10 @@ export class FlowfexServer {
       }
       return this._writeJson(response, 429, { error: { message: 'Too many execution requests. Please wait.' } });
     }
-    if (isControlEndpoint && !controlRateLimiter.check(ip, tier)) {
+    if (isControlEndpoint && !controlRateLimiter.check(rateLimitIdentity, tier)) {
       return this._writeJson(response, 429, { error: { message: 'Too many control requests. Please wait.' } });
     }
-    if (isConnectEndpoint && !connectRateLimiter.check(ip, tier)) {
+    if (isConnectEndpoint && !connectRateLimiter.check(rateLimitIdentity, tier)) {
       return this._writeJson(response, 429, { error: { message: 'Too many connection requests. Please wait.' } });
     }
 
@@ -233,21 +246,10 @@ export class FlowfexServer {
       url.pathname === '/api/session/recent' || 
       url.pathname.startsWith('/api/api-keys');
 
-    let decodedUser = null;
-    const authHeader = request.headers['authorization'];
-    const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
-    
-    if (token) {
-      try {
-        const secret = process.env.JWT_SECRET || process.env.BETTER_AUTH_SECRET;
-        decodedUser = jwt.verify(token, secret);
-        request.user = decodedUser;
-      } catch (err) {
-        if (isJwtEnforced) {
-          return this._writeJson(response, 401, { error: { message: 'Unauthorized: Invalid or expired JWT token.' } });
-        }
-      }
-    } else if (isJwtEnforced) {
+    if (isJwtEnforced && !authUser) {
+      return this._writeJson(response, 401, { error: { message: 'Unauthorized: Invalid or expired JWT token.' } });
+    }
+    if (!accessToken && isJwtEnforced) {
       return this._writeJson(response, 401, { error: { message: 'Unauthorized: Missing JWT token.' } });
     }
     // -----------------------
@@ -418,13 +420,9 @@ export class FlowfexServer {
     }
 
     if (request.method === 'POST' && url.pathname === '/connect') {
-      const body = await this._readAndValidateJsonBody(request, connectSchema);
+      const body = await this._readAndValidateJsonBody(request, connectRequestSchema);
       const validatedApiKey = this.apiKeyService
         ? await this.apiKeyService.validateApiKey(this._extractApiKey(request))
-        : null;
-      const accessToken = this._extractBearerToken(request);
-      const authUser = accessToken && this.sessionDataEnabled
-        ? await resolveAuthenticatedUser(accessToken).catch(() => null)
         : null;
 
       if (this.apiKeyService && (body.mode === 'sdk' || body.mode === 'live') && !validatedApiKey && !authUser) {
@@ -1019,16 +1017,24 @@ export class FlowfexServer {
       return;
     }
 
+    const markResult = this.connectionService?.sessionManager?.markConnected?.(session.id);
+    if (markResult?.alreadyConnected) {
+      return;
+    }
+
+    const liveSession = markResult?.session || session;
+
     const agentPayload = {
-      agentId: session.agent?.id || `agent-${session.id}`,
-      agentName: session.agent?.name || 'Connected Agent',
-      connectionType: connectionType || session.mode || 'prompt',
+      connectionId: liveSession.connectionId || null,
+      agentId: liveSession.agent?.id || `agent-${liveSession.id}`,
+      agentName: liveSession.agent?.name || 'Connected Agent',
+      connectionType: connectionType || liveSession.mode || 'prompt',
       status: 'connected',
       syncedAt: new Date().toISOString(),
     };
 
-    this.socketServer.emitAgentConnected(session.id, agentPayload);
-    this.anonymousSessionService?.markConnectedAgent?.(session.id, agentPayload).catch(() => {
+    this.socketServer.emitAgentConnected(liveSession.id, agentPayload);
+    this.anonymousSessionService?.markConnectedAgent?.(liveSession.id, agentPayload).catch(() => {
       return;
     });
   }
@@ -1039,6 +1045,7 @@ export class FlowfexServer {
         sessionId: error.details.sessionId,
         tier: error.details.tier || null,
         blockedLimit: error.details.blockedLimit || null,
+        connectionBlockedLimit: error.details.connectionBlockedLimit || null,
         message: error.message,
       });
     }

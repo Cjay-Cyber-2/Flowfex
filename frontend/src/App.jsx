@@ -4,6 +4,7 @@ import LandingPage from './pages/LandingPage';
 import LiveDemoPage from './pages/LiveDemoPage';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
+import ForgotPassword from './pages/ForgotPassword';
 import Onboarding from './pages/Onboarding';
 import OrchestrationCanvas from './pages/OrchestrationCanvas';
 import SessionDetail from './pages/SessionDetail';
@@ -33,6 +34,7 @@ function App() {
         <Route path="/dashboard" element={<OrchestrationCanvas />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/reset-password" element={<ForgotPassword />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/canvas" element={<Navigate to="/dashboard" replace />} />
         <Route path="/session/:id" element={<SessionDetail />} />

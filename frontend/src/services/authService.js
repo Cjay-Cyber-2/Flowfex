@@ -1,6 +1,7 @@
 // Consolidated auth service — single Better Auth client for the entire frontend
 import { createAuthClient } from 'better-auth/client';
 import { jwtClient } from 'better-auth/client/plugins';
+import { getAppOrigin } from '../utils/runtimeConfig';
 
 function getBackendUrl() {
   if (typeof import.meta !== 'undefined' && import.meta.env) {
@@ -14,6 +15,10 @@ const authClient = createAuthClient({
   baseURL: getBackendUrl(),
   plugins: [jwtClient()],
 });
+
+function buildCallbackUrl(pathname = '/dashboard') {
+  return new URL(pathname, `${getAppOrigin()}/`).toString();
+}
 
 // ─── Used by SessionContext ──────────────────────────────────────────
 
@@ -56,7 +61,12 @@ export async function signInWithEmail(email, password) {
 }
 
 export async function signUpWithEmail(email, password, name = '') {
-  const { data, error } = await authClient.signUp.email({ email, password, name });
+  const { data, error } = await authClient.signUp.email({
+    email,
+    password,
+    name,
+    callbackURL: buildCallbackUrl('/dashboard'),
+  });
   if (error || !data) {
     throw new Error(error?.message || 'Unable to create account. Please try again.');
   }
@@ -66,14 +76,42 @@ export async function signUpWithEmail(email, password, name = '') {
   };
 }
 
-export async function signInWithGitHub() {
-  const { error } = await authClient.signIn.social({ provider: 'github' });
+export async function signInWithGitHub(callbackPath = '/dashboard') {
+  const { error } = await authClient.signIn.social({
+    provider: 'github',
+    callbackURL: buildCallbackUrl(callbackPath),
+  });
   if (error) throw new Error(error.message);
 }
 
-export async function signInWithGoogle() {
-  const { error } = await authClient.signIn.social({ provider: 'google' });
+export async function signInWithGoogle(callbackPath = '/dashboard') {
+  const { error } = await authClient.signIn.social({
+    provider: 'google',
+    callbackURL: buildCallbackUrl(callbackPath),
+  });
   if (error) throw new Error(error.message);
+}
+
+export async function requestPasswordReset(email, redirectPath = '/reset-password') {
+  const { data, error } = await authClient.requestPasswordReset({
+    email,
+    redirectTo: buildCallbackUrl(redirectPath),
+  });
+  if (error) {
+    throw new Error(error.message || 'Unable to send the password reset email.');
+  }
+  return data || { status: true };
+}
+
+export async function resetPassword(token, newPassword) {
+  const { data, error } = await authClient.resetPassword({
+    token,
+    newPassword,
+  });
+  if (error) {
+    throw new Error(error.message || 'Unable to reset the password.');
+  }
+  return data || { status: true };
 }
 
 // Alias for backward compat

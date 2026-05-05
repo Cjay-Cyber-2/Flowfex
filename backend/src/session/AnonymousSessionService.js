@@ -24,12 +24,55 @@ function normalizeConnectedAgent(agent) {
   }
 
   return {
+    connectionId: agent.connectionId || null,
     id: agent.agentId || agent.id || 'agent',
     name: agent.agentName || agent.name || 'Connected Agent',
     type: agent.connectionType || agent.type || 'unknown',
     status: agent.status || 'connected',
     lastSeen: agent.syncedAt || new Date().toISOString(),
   };
+}
+
+function appendConnectionHistory(graphState, agent) {
+  const timestamp = agent.lastSeen || new Date().toISOString();
+  const nextGraphState = graphState && typeof graphState === 'object' ? { ...graphState } : {};
+  const metadata = nextGraphState.metadata && typeof nextGraphState.metadata === 'object'
+    ? { ...nextGraphState.metadata }
+    : {};
+  const history = Array.isArray(metadata.connectionHistory)
+    ? [...metadata.connectionHistory]
+    : [];
+  const latest = history[history.length - 1] || null;
+
+  if (
+    latest
+    && agent.connectionId
+    && latest.connectionId === agent.connectionId
+  ) {
+    return nextGraphState;
+  }
+
+  if (
+    latest
+    && !agent.connectionId
+    && latest.agentId === agent.id
+    && latest.connectionType === agent.type
+    && Date.parse(timestamp) - Date.parse(latest.connectedAt || '') < 15000
+  ) {
+    return nextGraphState;
+  }
+
+  history.push({
+    connectionId: agent.connectionId,
+    agentId: agent.id,
+    agentName: agent.name,
+    connectionType: agent.type,
+    connectedAt: timestamp,
+  });
+
+  metadata.connectionHistory = history;
+  nextGraphState.metadata = metadata;
+  return nextGraphState;
 }
 
 export class AnonymousSessionService {
@@ -85,9 +128,35 @@ export class AnonymousSessionService {
 
   async upgradeAnonymousSession({ anonymousToken, authId, displayName = null, avatarUrl = null }) {
     try {
+      const existingRows = await this.client
+        .select()
+        .from(flowfexSessions)
+        .where(eq(flowfexSessions.anonymous_token, anonymousToken))
+        .limit(1);
+
+      const existing = firstResult(existingRows);
+      if (!existing) {
+        return null;
+      }
+
+      if (existing.auth_id && existing.auth_id !== authId) {
+        const error = new Error('This anonymous Flowfex session is already assigned to another account.');
+        error.code = 'session_ownership_conflict';
+        error.statusCode = 409;
+        throw error;
+      }
+
+      if (existing.auth_id === authId) {
+        return toDashboardSessionRecord(existing);
+      }
+
       const data = await this.client
         .update(flowfexSessions)
-        .set({ auth_id: authId })
+        .set({
+          auth_id: authId,
+          last_active_at: new Date(),
+          updated_at: new Date(),
+        })
         .where(eq(flowfexSessions.anonymous_token, anonymousToken))
         .returning();
 
@@ -132,7 +201,10 @@ export class AnonymousSessionService {
 
     try {
       const existingRows = await this.client
-        .select({ connected_agents: flowfexSessions.connected_agents })
+        .select({
+          connected_agents: flowfexSessions.connected_agents,
+          graph_state: flowfexSessions.graph_state,
+        })
         .from(flowfexSessions)
         .where(eq(flowfexSessions.id, sessionId))
         .limit(1);
@@ -141,7 +213,7 @@ export class AnonymousSessionService {
       const existingAgents = Array.isArray(existingRow?.connected_agents)
         ? existingRow.connected_agents
         : [];
-        
+      const graphState = appendConnectionHistory(existingRow?.graph_state, normalizedAgent);
       const nextAgents = [
         ...existingAgents.filter((entry) => entry?.id !== normalizedAgent.id),
         normalizedAgent,
@@ -151,7 +223,9 @@ export class AnonymousSessionService {
         .update(flowfexSessions)
         .set({
           connected_agents: nextAgents,
+          graph_state: graphState,
           last_active_at: new Date(),
+          updated_at: new Date(),
         })
         .where(eq(flowfexSessions.id, sessionId))
         .returning();

@@ -6,7 +6,6 @@ import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import ConnectAgentModal from '../components/ConnectAgentModal';
 import PulseBeams from '../components/animations/PulseBeams';
 import '../styles/onboarding.css';
-import useStore from '../store/useStore';
 
 // ─── PulseBeams config ────────────────────────────────────────────────────────
 const ONBOARDING_BEAMS = [
@@ -197,7 +196,6 @@ export default function Onboarding() {
   // Modal starts CLOSED — user sees the onboarding page first
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [connectionStage, setConnectionStage] = useState('idle'); // idle | connecting | connected | navigating
-  const connectedAgents = useStore((state) => state.connectedAgents);
 
   const handleConnected = useCallback(() => {
     setIsModalOpen(false);
@@ -209,12 +207,6 @@ export default function Onboarding() {
     // Navigate to dashboard
     setTimeout(() => navigate('/dashboard'), 4200);
   }, [navigate]);
-
-  useEffect(() => {
-    if (connectedAgents && connectedAgents.length > 0 && connectionStage === 'idle') {
-      handleConnected();
-    }
-  }, [connectedAgents, connectionStage, handleConnected]);
 
   return (
     <div className="ob-root">
@@ -342,6 +334,7 @@ export default function Onboarding() {
             <AnimatedLayerButton onClick={() => setIsModalOpen(true)}>
               Connect Agent
             </AnimatedLayerButton>
+            <p className="ob-copy-subline">Flowfex opens the dashboard only after it verifies a real agent attach for this session.</p>
           </>
         )}
 

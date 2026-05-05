@@ -1,6 +1,7 @@
 export type FlowfexUsageTier = 'anonymous' | 'authenticated';
 
 export type FlowfexLimitKey =
+  | 'maxConnectionsPerDay'
   | 'maxExecutionsPerSession'
   | 'maxNodesPerSession'
   | 'maxExecutionsPerDay'
@@ -9,6 +10,7 @@ export type FlowfexLimitKey =
   | 'maxConcurrentAgents';
 
 export interface FlowfexUsageSnapshot {
+  readonly connectionsCount: number;
   readonly executionsCount: number;
   readonly nodesProcessed: number;
   readonly sessionDurationSeconds: number;
@@ -25,6 +27,7 @@ export interface FlowfexBlockedLimitState {
 }
 
 export interface FlowfexUsageLimits {
+  readonly maxConnectionsPerDay: number;
   readonly maxExecutionsPerSession?: number;
   readonly maxNodesPerSession?: number;
   readonly maxExecutionsPerDay?: number;
@@ -42,6 +45,16 @@ export interface FlowfexUsageStatusResponse {
   readonly usage: FlowfexUsageSnapshot;
   readonly limits: FlowfexUsageLimits;
   readonly blockedLimit: FlowfexBlockedLimitState | null;
+  readonly connectionBlockedLimit: FlowfexBlockedLimitState | null;
+  readonly warningLimit?: {
+    readonly status: 'approaching';
+    readonly tier: FlowfexUsageTier;
+    readonly limit: FlowfexLimitKey;
+    readonly reason: string;
+    readonly currentValue: number;
+    readonly limitValue: number;
+    readonly percentUsed: number;
+  } | null;
   readonly resetAt: string | null;
 }
 
@@ -101,12 +114,8 @@ export function getUsageProgressValue(status: FlowfexUsageStatusResponse): {
   readonly limit: number;
   readonly ratio: number;
 } {
-  const current = status.tier === 'authenticated'
-    ? status.usage.executionsCount
-    : status.usage.executionsCount;
-  const limit = status.tier === 'authenticated'
-    ? status.limits.maxExecutionsPerDay ?? 0
-    : status.limits.maxExecutionsPerSession ?? 0;
+  const current = status.usage.connectionsCount;
+  const limit = status.limits.maxConnectionsPerDay ?? 0;
   const safeLimit = Math.max(limit, 1);
 
   return {

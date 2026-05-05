@@ -30,6 +30,7 @@ export class SessionManager {
     const token = `ffx_${randomBytes(24).toString('hex')}`;
     const session = {
       id,
+      connectionId: `conn_${randomBytes(8).toString('hex')}`,
       mode: config.mode || 'api',
       agent: normalizeAgent(config.agent),
       metadata: config.metadata || {},
@@ -38,6 +39,7 @@ export class SessionManager {
       allowedToolIds: normalizeToolIds(config.allowedToolIds),
       recommendedToolIds: normalizeToolIds(config.recommendedToolIds),
       createdAt: new Date(now).toISOString(),
+      connectedAt: null,
       expiresAt: new Date(now + ttlSeconds * 1000).toISOString(),
       lastSeenAt: new Date(now).toISOString(),
       requestCount: 0,
@@ -104,6 +106,28 @@ export class SessionManager {
     return session ? cloneSession(session) : null;
   }
 
+  markConnected(sessionId) {
+    this.cleanupExpiredSessions();
+    const session = this.sessions.get(sessionId);
+    if (!session || session.revokedAt) {
+      return null;
+    }
+
+    if (session.connectedAt) {
+      return {
+        session: cloneSession(session),
+        alreadyConnected: true,
+      };
+    }
+
+    session.connectedAt = new Date().toISOString();
+    session.lastSeenAt = session.connectedAt;
+    return {
+      session: cloneSession(session),
+      alreadyConnected: false,
+    };
+  }
+
   revokeSession(sessionId) {
     const session = this.sessions.get(sessionId);
     if (!session) {
@@ -130,6 +154,7 @@ export const defaultSessionManager = new SessionManager();
 export function publicSessionView(session) {
   return {
     id: session.id,
+    connectionId: session.connectionId,
     mode: session.mode,
     agent: session.agent,
     metadata: session.metadata,
@@ -139,6 +164,7 @@ export function publicSessionView(session) {
     recommendedToolIds: session.recommendedToolIds,
     createdAt: session.createdAt,
     expiresAt: session.expiresAt,
+    connectedAt: session.connectedAt,
     lastSeenAt: session.lastSeenAt,
     requestCount: session.requestCount,
     revokedAt: session.revokedAt

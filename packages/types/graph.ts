@@ -85,6 +85,7 @@ export interface FlowfexGraphEdge {
 }
 
 export interface FlowfexConnectedAgent {
+  readonly connectionId?: string | null;
   readonly id: string;
   readonly name: string;
   readonly type: string;

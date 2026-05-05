@@ -128,6 +128,7 @@ export class ConnectionService {
     });
     const sessionResponse = this._buildSessionResponse(session, token, { baseUrl: authContext.baseUrl });
     const transport = this._buildTransport(authContext.baseUrl, session.id, LIVE_CHANNEL_PROTOCOLS.SOCKET_IO);
+    const connectUrl = this._buildConnectUrl(authContext.baseUrl, session.id, token);
 
     return {
       success: true,
@@ -136,9 +137,9 @@ export class ConnectionService {
         session: sessionResponse,
         transport,
         instructions: {
-          summary: 'Keep the SDK client attached to Flowfex and send every user request through Flowfex before acting.',
+          summary: 'Register the agent with Flowfex first, keep the SDK client attached, and send every user request through Flowfex before acting.',
           rules: this._buildConnectionRules(),
-          sdkSnippet: this._buildSdkSnippet(sessionResponse, transport),
+          sdkSnippet: this._buildSdkSnippet(sessionResponse, transport, connectUrl),
         },
       }
     };
@@ -232,6 +233,7 @@ export class ConnectionService {
     });
     const sessionResponse = this._buildSessionResponse(session, token, { baseUrl: authContext.baseUrl });
     const transport = this._buildTransport(authContext.baseUrl, session.id, protocol);
+    const connectUrl = this._buildConnectUrl(authContext.baseUrl, session.id, token);
 
     return {
       success: true,
@@ -240,13 +242,13 @@ export class ConnectionService {
         session: sessionResponse,
         transport,
         live: {
-          connectUrl: this._buildConnectUrl(authContext.baseUrl, session.id, token),
+          connectUrl,
           protocol,
         },
         instructions: {
-          summary: 'The live channel keeps the agent bound to Flowfex for the full conversation and requires Flowfex-first resource selection on every request.',
+          summary: 'Call the live attach URL first, then keep the channel bound to Flowfex for the full conversation.',
           rules: this._buildConnectionRules(),
-          endpointPayload: this._buildLiveInstruction(transport, protocol),
+          endpointPayload: this._buildLiveInstruction(sessionResponse, transport, protocol, connectUrl),
         },
       },
     };
@@ -520,15 +522,16 @@ export class ConnectionService {
       `Session URL: ${this._buildConnectUrl(baseUrl, sessionId, token)}`,
       `Ingest URL: ${normalizeBaseUrl(baseUrl || this.publicBaseUrl)}/ingest`,
       '',
-      'Contract:',
-      '1. Prefix every task you send to Flowfex with the exact first line below.',
+      'Do these steps exactly:',
+      '1. Keep this session active for the entire conversation.',
+      '2. Prefix every task you send to Flowfex with the exact first line below.',
       `   ${prefixLine}`,
-      '2. Put the actual task content on the following lines after the prefix.',
-      '3. For every user request, ask Flowfex first for agent.md files, skills, tools, memory, and workflows.',
-      '4. Use all directly relevant Flowfex resources returned for that request.',
-      '5. If Flowfex has no directly relevant resource for the request, use none and say the capability is unavailable in Flowfex.',
-      '6. Do not invent substitute tools, workflows, or skills outside Flowfex.',
-      '7. Emit step updates, approval waits, and the final result back through the same Flowfex session.',
+      '3. Put the real task on the lines after the prefix and send it to the Ingest URL.',
+      '4. For every user request, ask Flowfex first for agent.md files, skills, tools, memory, and workflows.',
+      '5. Use every directly relevant Flowfex resource returned for that request.',
+      '6. If Flowfex has no directly relevant resource, use none and say the capability is unavailable in Flowfex.',
+      '7. Do not invent substitute tools, workflows, or skills outside Flowfex.',
+      '8. Send progress, approval waits, and the final result back through the same Flowfex session.',
       '',
       `Agent context: ${prompt}`,
     ].join('\n');
@@ -542,23 +545,23 @@ export class ConnectionService {
     return [...FLOWFEX_AGENT_RULES];
   }
 
-  _buildSdkSnippet(session, transport) {
+  _buildSdkSnippet(session, transport, connectUrl) {
     return [
       "import { io } from 'socket.io-client';",
       '',
       `const session = { id: '${session.id}', token: '${session.token || ''}' };`,
       '',
-      '// Flowfex contract:',
-      '// - Stay attached to this session for the full conversation.',
-      '// - Send every user request to Flowfex first.',
-      '// - Use all directly relevant Flowfex resources for that request.',
-      '// - If Flowfex has no relevant resource, do not invent one.',
+      '// 1. Register the agent with Flowfex. The dashboard will open only after this succeeds.',
+      `await fetch('${connectUrl}');`,
+      '',
+      '// 2. Keep the orchestration channel attached for the full conversation.',
       '',
       `const orchestrationSocket = io('${transport.orchestrationNamespace}', {`,
       "  query: { sessionId: session.id },",
       "  transports: ['websocket'],",
       '});',
       '',
+      '// 3. Send every user request to Flowfex before taking action.',
       `const response = await fetch('${session.endpoints.execute}', {`,
       "  method: 'POST',",
       '  headers: {',
@@ -575,22 +578,29 @@ export class ConnectionService {
   _buildLinkInstruction(linkUrl) {
     return [
       `Attach URL: ${linkUrl}`,
+      'Open the attach URL first. Flowfex will move the user to the dashboard only after this link is resolved by the agent.',
       'After attach, keep the agent in the same Flowfex session for the full conversation.',
       'For every user request, ask Flowfex first and use only directly relevant Flowfex resources.',
       'If Flowfex has no relevant resource, use none and do not invent a substitute.',
     ].join('\n');
   }
 
-  _buildLiveInstruction(transport, protocol) {
+  _buildLiveInstruction(session, transport, protocol, connectUrl) {
     return [
-      transport.orchestrationNamespace,
-      `channel: ${protocol}`,
-      `sse: ${transport.sseUrl}`,
-      `control: ${transport.controlNamespace}`,
-      'session_scope: full_conversation',
-      'routing_mode: flowfex_first',
-      'resource_policy: use_all_directly_relevant',
-      'no_match_policy: use_none',
+      `connect_url: ${connectUrl}`,
+      `execute_url: ${session.endpoints.execute}`,
+      `session_id: ${session.id}`,
+      `session_token: ${session.token || ''}`,
+      `protocol: ${protocol}`,
+      `orchestration_namespace: ${transport.orchestrationNamespace}`,
+      `session_namespace: ${transport.sessionNamespace}`,
+      `control_namespace: ${transport.controlNamespace}`,
+      `sse_url: ${transport.sseUrl}`,
+      'steps:',
+      '1. Call connect_url once to register the live agent with Flowfex.',
+      '2. Keep the selected transport open for the full conversation.',
+      '3. Send every task to execute_url with Authorization: Bearer session_token.',
+      '4. Route every request through Flowfex before taking action.',
     ].join('\n');
   }
 

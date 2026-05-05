@@ -8,6 +8,7 @@ import { randomUUID } from 'node:crypto';
 
 export const FLOWFEX_LIMITS = {
   anonymous: {
+    maxConnectionsPerDay: 5,
     maxExecutionsPerSession: 3,
     maxNodesPerSession: 15,
     maxSessionDurationMinutes: 30,
@@ -16,6 +17,7 @@ export const FLOWFEX_LIMITS = {
     warningThreshold: 0.8,
   },
   authenticated: {
+    maxConnectionsPerDay: 5,
     maxExecutionsPerDay: 50,
     maxNodesPerDay: 500,
     maxSessionDurationMinutes: 480,
@@ -24,6 +26,7 @@ export const FLOWFEX_LIMITS = {
     warningThreshold: 0.8,
   },
   api_key: {
+    maxConnectionsPerDay: 5,
     maxExecutionsPerDay: 100,
     maxNodesPerDay: 1000,
     maxSessionDurationMinutes: 480,
@@ -51,6 +54,35 @@ function sumUsageRows(rows) {
     nodesProcessed: 0,
     sessionDurationSeconds: 0,
   });
+}
+
+function normalizeConnectionEvents(sessionRow) {
+  const history = sessionRow?.graph_state?.metadata?.connectionHistory;
+  if (Array.isArray(history) && history.length > 0) {
+    return history
+      .map((entry) => ({
+        connectedAt: entry?.connectedAt || null,
+      }))
+      .filter((entry) => entry.connectedAt);
+  }
+
+  if (Array.isArray(sessionRow?.connected_agents) && sessionRow.connected_agents.length > 0) {
+    return [{
+      connectedAt: sessionRow.last_active_at || sessionRow.created_at || null,
+    }].filter((entry) => entry.connectedAt);
+  }
+
+  return [];
+}
+
+function countRecentConnections(sessionRows, rollingWindowStart) {
+  return sessionRows.reduce((count, row) => {
+    const events = normalizeConnectionEvents(row);
+    return count + events.filter((event) => {
+      const connectedAtMs = Date.parse(event.connectedAt || '');
+      return !Number.isNaN(connectedAtMs) && connectedAtMs >= rollingWindowStart.getTime();
+    }).length;
+  }, 0);
 }
 
 /**
@@ -115,7 +147,23 @@ function buildBlockedLimit(tier, usage, limits) {
     };
   }
 
-  // Concurrent agents
+  return null;
+}
+
+function buildConnectionBlockedLimit(tier, usage, limits) {
+  if (usage.connectionsCount >= (limits.maxConnectionsPerDay || Infinity)) {
+    return {
+      status: 'blocked',
+      tier,
+      limit: 'maxConnectionsPerDay',
+      reason: tier === 'anonymous'
+        ? 'Your anonymous Flowfex token has used all 5 connection attempts for today. Sign up to continue.'
+        : 'You have used all 5 free Flowfex connections for today. Complete payment to unlock more or wait for the next reset.',
+      currentValue: usage.connectionsCount,
+      limitValue: limits.maxConnectionsPerDay,
+    };
+  }
+
   if (usage.concurrentAgents >= limits.maxConcurrentAgents) {
     return {
       status: 'blocked',
@@ -137,6 +185,8 @@ function buildBlockedLimit(tier, usage, limits) {
 function buildWarningLimit(tier, usage, limits) {
   const threshold = limits.warningThreshold || 0.8;
   const checks = [];
+
+  checks.push({ key: 'maxConnectionsPerDay', current: usage.connectionsCount, max: limits.maxConnectionsPerDay });
 
   if (tier === 'anonymous') {
     checks.push({ key: 'maxExecutionsPerSession', current: usage.executionsCount, max: limits.maxExecutionsPerSession });
@@ -174,6 +224,20 @@ function createLimitError(status, sessionId) {
     sessionId,
     tier: status.tier,
     blockedLimit: status.blockedLimit,
+    warningLimit: status.warningLimit || null,
+  };
+  return error;
+}
+
+function createConnectionLimitError(status, sessionId) {
+  const error = new Error(status.connectionBlockedLimit?.reason || 'Connection limit reached.');
+  error.code = 'limit_reached';
+  error.statusCode = 403;
+  error.details = {
+    sessionId,
+    tier: status.tier,
+    blockedLimit: status.blockedLimit || null,
+    connectionBlockedLimit: status.connectionBlockedLimit || null,
     warningLimit: status.warningLimit || null,
   };
   return error;
@@ -230,6 +294,7 @@ export class UsageService {
       const limits = FLOWFEX_LIMITS[tier];
       const nowMs = Date.now();
       const rollingWindowStart = new Date(nowMs - ONE_DAY_MS);
+      let connectionSessionRows;
 
       let usageRows;
       if (tier === 'anonymous') {
@@ -237,6 +302,18 @@ export class UsageService {
           .select()
           .from(usageTracking)
           .where(eq(usageTracking.session_id, sessionId));
+        connectionSessionRows = session.anonymous_token
+          ? await this.client
+              .select({
+                id: flowfexSessions.id,
+                graph_state: flowfexSessions.graph_state,
+                connected_agents: flowfexSessions.connected_agents,
+                created_at: flowfexSessions.created_at,
+                last_active_at: flowfexSessions.last_active_at,
+              })
+              .from(flowfexSessions)
+              .where(eq(flowfexSessions.anonymous_token, session.anonymous_token))
+          : [];
       } else {
         usageRows = await this.client
           .select()
@@ -244,17 +321,32 @@ export class UsageService {
           .where(
             sql`${usageTracking.auth_id} = ${session.auth_id} AND ${usageTracking.period_start} >= ${rollingWindowStart}`
           );
+        connectionSessionRows = session.auth_id
+          ? await this.client
+              .select({
+                id: flowfexSessions.id,
+                graph_state: flowfexSessions.graph_state,
+                connected_agents: flowfexSessions.connected_agents,
+                created_at: flowfexSessions.created_at,
+                last_active_at: flowfexSessions.last_active_at,
+              })
+              .from(flowfexSessions)
+              .where(eq(flowfexSessions.auth_id, session.auth_id))
+          : [];
       }
 
       const normalizedRows = Array.isArray(usageRows) ? usageRows : [];
+      const normalizedConnectionRows = Array.isArray(connectionSessionRows) ? connectionSessionRows : [];
       const summedUsage = sumUsageRows(normalizedRows);
       const createdAtMs = Date.parse(session.created_at || '');
       const computedDurationSeconds = Number.isNaN(createdAtMs)
         ? summedUsage.sessionDurationSeconds
         : Math.max(summedUsage.sessionDurationSeconds, Math.floor((nowMs - createdAtMs) / 1000));
       const concurrentAgents = Array.isArray(session.connected_agents) ? session.connected_agents.length : 0;
+      const connectionsCount = countRecentConnections(normalizedConnectionRows, rollingWindowStart);
 
       const usage = {
+        connectionsCount,
         executionsCount: summedUsage.executionsCount,
         nodesProcessed: summedUsage.nodesProcessed,
         sessionDurationSeconds: computedDurationSeconds,
@@ -269,11 +361,16 @@ export class UsageService {
       }, null) ?? createdAtMs;
 
       const resetWindowMs = tier === 'anonymous'
-        ? limits.maxSessionDurationMinutes * 60 * 1000
+        ? ONE_DAY_MS
         : ONE_DAY_MS;
 
       const blockedLimit = buildBlockedLimit(tier, usage, limits);
-      const warningLimit = blockedLimit ? null : buildWarningLimit(tier, usage, limits);
+      const connectionBlockedLimit = buildConnectionBlockedLimit(tier, usage, limits);
+      const warningLimit = blockedLimit || connectionBlockedLimit ? null : buildWarningLimit(tier, usage, limits);
+
+      const safeResetBaseMs = typeof resetBaseMs === 'number' && !Number.isNaN(resetBaseMs)
+        ? resetBaseMs
+        : null;
 
       return {
         ok: true,
@@ -284,8 +381,9 @@ export class UsageService {
         usage,
         limits,
         blockedLimit,
+        connectionBlockedLimit,
         warningLimit,
-        resetAt: Number.isNaN(resetBaseMs) ? null : new Date(resetBaseMs + resetWindowMs).toISOString(),
+        resetAt: safeResetBaseMs === null ? null : new Date(safeResetBaseMs + resetWindowMs).toISOString(),
       };
     } catch (error) {
       logSessionError({ operation: 'usage.get_status', sessionId, error });
@@ -368,24 +466,14 @@ export class UsageService {
     const status = await this.getUsageStatus({ sessionId, apiKeyId });
     if (!status) return true;
 
-    const limits = FLOWFEX_LIMITS[status.tier];
-    if (status.usage.concurrentAgents >= limits.maxConcurrentAgents) {
+    if (status.connectionBlockedLimit) {
       this._emitLimitEvent(sessionId, 'limit:agent_blocked', {
         tier: status.tier,
-        currentAgents: status.usage.concurrentAgents,
-        maxAgents: limits.maxConcurrentAgents,
+        blockedLimit: status.connectionBlockedLimit,
+        usage: status.usage,
       });
 
-      const error = new Error('Maximum concurrent agent connections reached.');
-      error.code = 'agent_concurrency_limit';
-      error.statusCode = 403;
-      error.details = {
-        sessionId,
-        tier: status.tier,
-        currentValue: status.usage.concurrentAgents,
-        limitValue: limits.maxConcurrentAgents,
-      };
-      throw error;
+      throw createConnectionLimitError(status, sessionId);
     }
 
     return true;

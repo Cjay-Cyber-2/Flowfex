@@ -8,9 +8,37 @@ services:
     startCommand: npm start
     healthCheckPath: /health
     envVars:
+      - key: DATABASE_URL
+        sync: false
       - key: FLOWFEX_PUBLIC_ORIGIN
         sync: false
       - key: ALLOWED_ORIGINS
         sync: false
+      - key: BETTER_AUTH_URL
+        sync: false
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      - key: JWT_SECRET
+        generateValue: true
       - key: FLOWFEX_LINK_SECRET
         generateValue: true
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: EMAIL_REPLY_TO
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false

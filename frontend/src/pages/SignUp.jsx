@@ -20,7 +20,7 @@ const getStrength = (pw) => {
 
 function SignUp() {
   const navigate = useNavigate();
-  const { configured, isAuthenticated, sessionReady } = useSessionContext();
+  const { configured, isAuthenticated, refreshSession, sessionReady } = useSessionContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -55,7 +55,8 @@ function SignUp() {
       if (result.needsEmailConfirmation) {
         setNoticeMessage('Check your inbox to confirm your email, then come back to sign in.');
       } else {
-        navigate('/onboarding');
+        await refreshSession();
+        navigate('/dashboard');
       }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to create your account.');
@@ -70,11 +71,11 @@ function SignUp() {
 
     try {
       if (provider === 'google') {
-        await signInWithGoogle();
+        await signInWithGoogle('/dashboard');
         return;
       }
 
-      await signInWithGitHub();
+      await signInWithGitHub('/dashboard');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to start social sign-in.');
     }

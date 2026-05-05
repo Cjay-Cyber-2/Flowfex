@@ -215,12 +215,22 @@ async function testOwnershipPrevention() {
 
   // Try to upgrade again with a different user
   const authId2 = 'owner-2-' + Date.now();
-  const reupgraded = await anonymousSessionService.upgradeAnonymousSession({
-    anonymousToken: result.anonymousToken,
-    authId: authId2,
-  });
-  // Note: current implementation allows re-upgrade (no guard) - this is a design choice
-  assertEq(reupgraded.authId, authId2, 'Re-upgrade changes authId (no guard implemented)');
+  let conflict = null;
+  try {
+    await anonymousSessionService.upgradeAnonymousSession({
+      anonymousToken: result.anonymousToken,
+      authId: authId2,
+    });
+  } catch (error) {
+    conflict = error;
+  }
+
+  assertTruthy(conflict, 'Re-upgrade throws ownership conflict');
+  assertEq(conflict?.code, 'session_ownership_conflict', 'Ownership conflict error code is returned');
+  assertEq(conflict?.statusCode, 409, 'Ownership conflict returns HTTP 409');
+
+  const preserved = await anonymousSessionService.validateAnonymousSession(result.anonymousToken);
+  assertEq(preserved.authId, authId1, 'Original authId is preserved after rejected re-upgrade');
 }
 
 async function testRecentSession(fakeAuthId) {

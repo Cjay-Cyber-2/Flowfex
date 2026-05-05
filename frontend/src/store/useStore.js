@@ -676,7 +676,7 @@ const useStore = create((set, get) => ({
       client.subscribe('session', 'session:limit_reached', (data) => {
         get().addNotification({
           title: 'Usage limit reached',
-          message: data?.blockedLimit?.reason || data?.message || 'Flowfex blocked the next execution because the current usage limit has been reached.',
+          message: data?.connectionBlockedLimit?.reason || data?.blockedLimit?.reason || data?.message || 'Flowfex blocked the next execution because the current usage limit has been reached.',
           type: 'warning',
         });
       });

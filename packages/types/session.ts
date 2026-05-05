@@ -14,6 +14,7 @@ export interface FlowfexAuthUser {
 
 export interface FlowfexSessionRecord {
   readonly id: string;
+  readonly connectionId?: string | null;
   readonly authId: string | null;
   readonly anonymousToken: string | null;
   readonly status: FlowfexPersistedSessionStatus;

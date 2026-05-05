@@ -17,7 +17,8 @@ export default function MainDashboard() {
   const [viewMode, setViewMode] = useState('flow'); // map, flow, live
   const [isExecuting, setIsExecuting] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [showConnectModal, setShowConnectModal] = useState(false);  const [isModalOpen, setIsModalOpen] = useState(false);  const [showTaskTooltip, setShowTaskTooltip] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showTaskTooltip, setShowTaskTooltip] = useState(true);
   const [connectedAgents, setConnectedAgents] = useState([
     { id: 1, name: 'Claude Assistant', type: 'chat', status: 'connected', lastSeen: '2 min ago' },
     { id: 2, name: 'VS Code Agent', type: 'ide', status: 'offline', lastSeen: '1 hour ago' }
@@ -564,22 +565,30 @@ This will route all your tool selections through Flowfex for visual orchestratio
               
               <div className="panel-section">
                 <h4>Reasoning</h4>
-                <p>This node analyzes the user's input to determine the appropriate execution path. It uses natural language processing to extract intent and context.</p>
+                <p>{selectedNode.reasoning}</p>
               </div>
               
-              <div className="panel-section">
-                <h4>Actions</h4>
-                <div className="action-buttons">
-                  <button className="action-btn approve">
-                    <Unlock size={16} />
-                    Approve
-                  </button>
-                  <button className="action-btn reject">
-                    <Lock size={16} />
-                    Block
-                  </button>
+              {selectedNode.needsApproval && (
+                <div className="panel-section">
+                  <h4>Actions</h4>
+                  <div className="action-buttons">
+                    <button 
+                      className="action-btn approve"
+                      onClick={() => handleApproveNode(selectedNode.id)}
+                    >
+                      <Unlock size={16} />
+                      Approve
+                    </button>
+                    <button 
+                      className="action-btn reject"
+                      onClick={() => handleRejectNode(selectedNode.id)}
+                    >
+                      <Lock size={16} />
+                      Block
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </aside>
         )}

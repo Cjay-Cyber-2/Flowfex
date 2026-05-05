@@ -1148,6 +1148,8 @@
 }
 
 .hero-orchestration-scene {
+  --hero-parallax-x: 0px;
+  --hero-parallax-y: 0px;
   position: absolute;
   inset: 0;
   min-height: 100%;
@@ -1165,25 +1167,10 @@
 }
 
 .hero-orchestration-mesh,
-.hero-orchestration-beams,
 .hero-orchestration-grid,
 .hero-orchestration-vignette {
   position: absolute;
   inset: 0;
-}
-
-.hero-orchestration-beams {
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.94;
-  mix-blend-mode: screen;
-  transform: translateZ(0);
-}
-
-.hero-orchestration-beams .pulse-beams-root,
-.hero-orchestration-beams svg {
-  width: 100%;
-  height: 100%;
 }
 
 .hero-orchestration-mesh {
@@ -1230,13 +1217,12 @@
   width: 100%;
   height: 100%;
   min-height: 100%;
-  transform: translateZ(0);
-  backface-visibility: hidden;
+  transform: translate3d(calc(var(--hero-parallax-x) * 0.72), calc(var(--hero-parallax-y) * 0.72), 0);
   pointer-events: none;
 }
 
 .hero-orchestration-parallax-near {
-  transform: none;
+  transform: translate3d(calc(var(--hero-parallax-x) * 0.9), calc(var(--hero-parallax-y) * 0.9), 0);
 }
 
 .hero-orchestration-center-aura {
@@ -1267,11 +1253,6 @@
   transform: translate3d(var(--hero-node-enter-x), 0, 0);
   opacity: 0;
   animation: heroNodeSlideIn 0.78s var(--ease-expo-out) var(--hero-node-delay) forwards;
-}
-
-.hero-orchestration-node-right .hero-orchestration-node-button {
-  flex-direction: row-reverse;
-  text-align: right;
 }
 
 .hero-orchestration-node-button::before {
@@ -1384,7 +1365,7 @@
   border-radius: 14px;
   border: 1px solid rgba(127, 255, 240, 0.14);
   background:
-    linear-gradient(180deg, rgba(13, 19, 27, 0.98), rgba(8, 12, 16, 0.96)),
+    linear-gradient(180deg, rgba(13, 19, 27, 0.86), rgba(8, 12, 16, 0.72)),
     radial-gradient(circle at top left, rgba(0, 212, 170, 0.12), transparent 54%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
@@ -1406,33 +1387,6 @@
   transform: translateY(0);
   border-color: rgba(0, 212, 170, 0.28);
   pointer-events: auto;
-}
-
-.hero-orchestration-inspector.inline-inspector {
-  top: calc(100% + 14px);
-  left: 0;
-  right: auto;
-  bottom: auto;
-  width: 320px;
-  margin: 0;
-}
-
-.hero-orchestration-node-right .hero-orchestration-inspector.inline-inspector {
-  left: auto;
-  right: 0;
-}
-
-.hero-orchestration-scene.has-active-node .hero-orchestration-node-button:not(.is-active) {
-  opacity: 0.15;
-  filter: blur(4px);
-  pointer-events: none;
-  transition: opacity 0.3s ease, filter 0.3s ease;
-}
-
-.hero-orchestration-scene.has-active-node .hero-orchestration-link,
-.hero-orchestration-scene.has-active-node .hero-orchestration-link-terminal {
-  opacity: 0.12;
-  transition: opacity 0.3s ease;
 }
 
 .hero-orchestration-inspector-header {
@@ -1494,16 +1448,13 @@
 .hero-orchestration-link {
   fill: none;
   stroke: color-mix(in srgb, var(--line-accent) 65%, rgba(255, 255, 255, 0.14));
-  stroke-width: 2;
+  stroke-width: 1.8;
   stroke-linecap: round;
   opacity: 0.9;
-  vector-effect: non-scaling-stroke;
-  shape-rendering: geometricPrecision;
   filter: drop-shadow(0 0 10px color-mix(in srgb, var(--line-accent) 50%, transparent));
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  will-change: stroke-dashoffset, opacity;
-  animation: heroBranchDraw 2s cubic-bezier(0.22, 1, 0.36, 1) var(--branch-delay, 0s) forwards;
+  animation: heroBranchDraw 2.2s cubic-bezier(0.25, 0.1, 0.25, 1) var(--branch-delay, 0s) forwards;
 }
 
 .hero-orchestration-core {
@@ -1515,7 +1466,9 @@
   display: grid;
   place-items: center;
   z-index: 2;
-  transform: translate(-50%, -50%);
+  transform:
+    translate(-50%, -50%)
+    translate3d(calc(var(--hero-parallax-x) * -0.45), calc(var(--hero-parallax-y) * -0.45), 0);
 }
 
 .hero-orchestration-core-border,
@@ -1727,10 +1680,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-orchestration-beams {
-    display: none;
-  }
-
   .statement-word-current,
   .three-d-logo-mark-aura,
   .three-d-logo-mark-sheen,

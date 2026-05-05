@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ThreeDLogoMark from '../common/ThreeDLogoMark';
-import PulseBeams from './PulseBeams';
 
 const VIEWBOX_WIDTH = 1440;
 const VIEWBOX_HEIGHT = 900;
 const HUB_CENTER = { x: 720, y: 404 };
+const BRANCH_DRAW_DURATION_MS = 2200;
 
 const HERO_NODES = [
   {
@@ -150,6 +150,7 @@ function getNodePositionStyle(node, index) {
 }
 
 export default function HeroOrchestrationScene() {
+  const sceneRef = useRef(null);
   const [expandedNode, setExpandedNode] = useState(null);
 
   const activeNode = useMemo(
@@ -166,41 +167,74 @@ export default function HeroOrchestrationScene() {
     []
   );
 
-  const beamPaths = useMemo(
-    () =>
-      links.map((node, index) => ({
-        path: node.path,
-        gradientConfig: {
-          initial: { x1: '0%', x2: '0%', y1: '0%', y2: '0%' },
-          animate: { x1: ['0%', '100%'], x2: ['12%', '114%'], y1: ['0%', '0%'], y2: ['0%', '0%'] },
-          transition: {
-            duration: 2.6 + (index % 3) * 0.22,
-            repeat: Infinity,
-            ease: 'linear',
-            delay: 0.24 + index * 0.18,
-            repeatDelay: 0.9,
-          },
-        },
-        connectionPoints: [
-          {
-            cx: node.side === 'left' ? HUB_CENTER.x - 142 : HUB_CENTER.x + 142,
-            cy: node.laneY,
-            r: 3,
-          },
-          {
-            cx: node.branchX,
-            cy: node.branchY,
-            r: 4,
-          },
-        ],
-      })),
-    [links]
-  );
-
 
   const handleNodeToggle = (nodeId) => {
     setExpandedNode((current) => (current === nodeId ? null : nodeId));
   };
+
+  useEffect(() => {
+    const scene = sceneRef.current;
+    if (!scene) return undefined;
+
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (mediaQuery.matches) {
+      scene.style.setProperty('--hero-parallax-x', '0px');
+      scene.style.setProperty('--hero-parallax-y', '0px');
+      return undefined;
+    }
+
+    let rafId = 0;
+    let pointerX = 0;
+    let pointerY = 0;
+
+    const flushPointer = () => {
+      scene.style.setProperty('--hero-parallax-x', `${pointerX.toFixed(1)}px`);
+      scene.style.setProperty('--hero-parallax-y', `${pointerY.toFixed(1)}px`);
+      rafId = 0;
+    };
+
+    const queuePointer = (clientX, clientY) => {
+      const rect = scene.getBoundingClientRect();
+      const normalizedX = ((clientX - rect.left) / rect.width - 0.5) * 2;
+      const normalizedY = ((clientY - rect.top) / rect.height - 0.5) * 2;
+      pointerX = normalizedX * 14;
+      pointerY = normalizedY * 10;
+
+      if (!rafId) {
+        rafId = window.requestAnimationFrame(flushPointer);
+      }
+    };
+
+    const resetPointer = () => {
+      pointerX *= 0.42;
+      pointerY *= 0.42;
+
+      if (Math.abs(pointerX) < 0.2 && Math.abs(pointerY) < 0.2) {
+        pointerX = 0;
+        pointerY = 0;
+      }
+
+      if (!rafId) {
+        rafId = window.requestAnimationFrame(flushPointer);
+      }
+    };
+
+    const handlePointerMove = (event) => {
+      queuePointer(event.clientX, event.clientY);
+    };
+
+    scene.addEventListener('pointermove', handlePointerMove);
+    scene.addEventListener('pointerleave', resetPointer);
+
+    return () => {
+      scene.removeEventListener('pointermove', handlePointerMove);
+      scene.removeEventListener('pointerleave', resetPointer);
+      if (rafId) {
+        window.cancelAnimationFrame(rafId);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
@@ -213,25 +247,15 @@ export default function HeroOrchestrationScene() {
   }, []);
 
   return (
-    <div className={`hero-orchestration-scene ${expandedNode ? 'has-active-node' : ''}`} aria-label="Flowfex orchestration overview">
+    <div ref={sceneRef} className={`hero-orchestration-scene ${expandedNode ? 'has-active-node' : ''}`} aria-label="Flowfex orchestration overview">
       <div className="hero-orchestration-mesh hero-orchestration-mesh-primary" />
       <div className="hero-orchestration-mesh hero-orchestration-mesh-secondary" />
       <div className="hero-orchestration-grid" />
       <div className="hero-orchestration-vignette" />
-      <div className="hero-orchestration-beams" aria-hidden="true">
-        <PulseBeams
-          beams={beamPaths}
-          width={VIEWBOX_WIDTH}
-          height={VIEWBOX_HEIGHT}
-          baseColor="rgba(255,255,255,0.05)"
-          accentColor="rgba(0,212,170,0.26)"
-          gradientColors={{ start: '#00d4aa', middle: '#7ffff0', end: '#46bda9' }}
-        />
-      </div>
 
       <svg
         className="hero-orchestration-svg"
-        viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
+        viewBox="0 0 1440 900"
         preserveAspectRatio="xMidYMin slice"
       >
         <g className="hero-orchestration-parallax hero-orchestration-parallax-near">

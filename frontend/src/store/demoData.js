@@ -78,17 +78,13 @@ const FLOWFEX_AGENT_RULE_LINES = [
 
 export function buildConnectPrompt(sessionId = DEMO_SESSION_ID) {
   const rules = FLOWFEX_AGENT_RULE_LINES.map((rule, index) => `${index + 1}. ${rule}`).join('\n');
-  return `You are now operating under a Flowfex session contract.
+  return `Attach this agent to Flowfex for the full conversation.
 
-Verification Code: FX-DEMO
+Session ID: ${sessionId}
+Session URL: ${getSessionConnectUrl(sessionId)}
 
-When you receive this prompt, begin your very next response with:
-"Flowfex session active. Verification: FX-DEMO"
-
-Operating Rules:
-${rules}
-
-Session context: Attach this agent to Flowfex for the full conversation and route every request through Flowfex before acting.`;
+Contract:
+${rules}`;
 }
 
 export function buildConnectLink(sessionId = DEMO_SESSION_ID) {

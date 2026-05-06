@@ -1,7 +1,7 @@
 import { DEMO_SESSION_ID, buildConnectPrompt, buildConnectSdkSnippet } from '../../store/demoData';
 
 export const codeSnippets = {
-  prompt: buildConnectPrompt(DEMO_SESSION_ID),
+  prompt: buildConnectPrompt(DEMO_SESSION_ID).replace('Attach this agent to Flowfex for the full conversation.', 'Attach this session to Flowfex for the full conversation.'),
   
   javascript: buildConnectSdkSnippet(DEMO_SESSION_ID).replace(
     'Summarize a deployment issue for the operator',

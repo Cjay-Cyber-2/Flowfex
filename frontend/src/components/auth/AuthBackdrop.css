@@ -1,0 +1,148 @@
+.auth-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.auth-backdrop__glow,
+.auth-backdrop__orb,
+.auth-backdrop__grid,
+.auth-backdrop__beam,
+.auth-backdrop__vignette {
+  position: absolute;
+  inset: 0;
+}
+
+.auth-backdrop__glow--left {
+  background:
+    radial-gradient(circle at 16% 22%, rgba(0, 212, 170, 0.26), transparent 30%),
+    radial-gradient(circle at 28% 68%, rgba(127, 255, 240, 0.14), transparent 26%);
+  filter: blur(14px);
+  animation: authBackdropDrift 18s ease-in-out infinite alternate;
+}
+
+.auth-backdrop__glow--right {
+  background:
+    radial-gradient(circle at 82% 18%, rgba(70, 189, 169, 0.22), transparent 28%),
+    radial-gradient(circle at 70% 72%, rgba(0, 229, 195, 0.16), transparent 24%);
+  filter: blur(12px);
+  animation: authBackdropDrift 22s ease-in-out infinite alternate-reverse;
+}
+
+.auth-backdrop__orb {
+  inset: auto;
+  border-radius: 999px;
+  border: 1px solid rgba(127, 255, 240, 0.12);
+  background: radial-gradient(circle, rgba(7, 15, 18, 0.82), rgba(7, 15, 18, 0.06) 68%, transparent 78%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 0 36px rgba(0, 212, 170, 0.12);
+}
+
+.auth-backdrop__orb--primary {
+  top: 14%;
+  left: 12%;
+  width: min(32vw, 360px);
+  height: min(32vw, 360px);
+  animation: authBackdropPulse 11s ease-in-out infinite;
+}
+
+.auth-backdrop__orb--secondary {
+  right: 10%;
+  bottom: 12%;
+  width: min(26vw, 300px);
+  height: min(26vw, 300px);
+  animation: authBackdropPulse 14s ease-in-out infinite reverse;
+}
+
+.auth-backdrop__grid {
+  background-image:
+    linear-gradient(rgba(127, 255, 240, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(127, 255, 240, 0.04) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(circle at center, black 28%, transparent 90%);
+  opacity: 0.34;
+}
+
+.auth-backdrop__beam {
+  top: -20%;
+  bottom: -20%;
+  width: 38%;
+  left: 50%;
+  transform-origin: center;
+  background: linear-gradient(180deg, transparent, rgba(0, 212, 170, 0.1), transparent);
+  filter: blur(20px);
+  opacity: 0.48;
+}
+
+.auth-backdrop__beam--one {
+  transform: translateX(-50%) rotate(16deg);
+  animation: authBackdropSweep 16s ease-in-out infinite;
+}
+
+.auth-backdrop__beam--two {
+  transform: translateX(-50%) rotate(-18deg);
+  animation: authBackdropSweep 20s ease-in-out infinite reverse;
+}
+
+.auth-backdrop__vignette {
+  background:
+    radial-gradient(circle at center, rgba(7, 11, 15, 0.02) 0%, rgba(7, 11, 15, 0.38) 58%, rgba(7, 11, 15, 0.92) 100%),
+    linear-gradient(180deg, rgba(7, 11, 15, 0.1) 0%, rgba(7, 11, 15, 0.52) 100%);
+}
+
+@keyframes authBackdropDrift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  100% {
+    transform: translate3d(2%, -2%, 0) scale(1.06);
+  }
+}
+
+@keyframes authBackdropPulse {
+  0%,
+  100% {
+    transform: scale(0.96);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+}
+
+@keyframes authBackdropSweep {
+  0%,
+  100% {
+    opacity: 0.18;
+  }
+
+  50% {
+    opacity: 0.58;
+  }
+}
+
+@media (max-width: 640px) {
+  .auth-backdrop__grid {
+    background-size: 52px 52px;
+    opacity: 0.24;
+  }
+
+  .auth-backdrop__orb--primary {
+    top: 8%;
+    left: -8%;
+    width: 240px;
+    height: 240px;
+  }
+
+  .auth-backdrop__orb--secondary {
+    right: -10%;
+    bottom: 10%;
+    width: 200px;
+    height: 200px;
+  }
+}

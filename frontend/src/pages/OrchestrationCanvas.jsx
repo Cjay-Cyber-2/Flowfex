@@ -37,7 +37,7 @@ function UsageGateBanner({ isAuthenticated, message, onSignIn, onSignUp }) {
     }}>
       <div style={{ minWidth: 240 }}>
         <strong style={{ display: 'block', marginBottom: 4, color: 'var(--color-velin)' }}>
-          {isAuthenticated ? 'Free connection limit reached' : 'Anonymous token finished'}
+          {isAuthenticated ? 'Account connection limit reached' : 'Anonymous connection limit reached'}
         </strong>
         <span style={{ color: 'rgba(232, 237, 242, 0.76)', fontSize: 14 }}>{message}</span>
       </div>

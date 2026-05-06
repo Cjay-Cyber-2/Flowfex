@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import ThreeDLogoMark from '../common/ThreeDLogoMark';
 
 const VIEWBOX_WIDTH = 1440;
@@ -150,7 +150,6 @@ function getNodePositionStyle(node, index) {
 }
 
 export default function HeroOrchestrationScene() {
-  const sceneRef = useRef(null);
   const [expandedNode, setExpandedNode] = useState(null);
 
   const activeNode = useMemo(
@@ -171,70 +170,6 @@ export default function HeroOrchestrationScene() {
   const handleNodeToggle = (nodeId) => {
     setExpandedNode((current) => (current === nodeId ? null : nodeId));
   };
-
-  useEffect(() => {
-    const scene = sceneRef.current;
-    if (!scene) return undefined;
-
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    if (mediaQuery.matches) {
-      scene.style.setProperty('--hero-parallax-x', '0px');
-      scene.style.setProperty('--hero-parallax-y', '0px');
-      return undefined;
-    }
-
-    let rafId = 0;
-    let pointerX = 0;
-    let pointerY = 0;
-
-    const flushPointer = () => {
-      scene.style.setProperty('--hero-parallax-x', `${pointerX.toFixed(1)}px`);
-      scene.style.setProperty('--hero-parallax-y', `${pointerY.toFixed(1)}px`);
-      rafId = 0;
-    };
-
-    const queuePointer = (clientX, clientY) => {
-      const rect = scene.getBoundingClientRect();
-      const normalizedX = ((clientX - rect.left) / rect.width - 0.5) * 2;
-      const normalizedY = ((clientY - rect.top) / rect.height - 0.5) * 2;
-      pointerX = normalizedX * 14;
-      pointerY = normalizedY * 10;
-
-      if (!rafId) {
-        rafId = window.requestAnimationFrame(flushPointer);
-      }
-    };
-
-    const resetPointer = () => {
-      pointerX *= 0.42;
-      pointerY *= 0.42;
-
-      if (Math.abs(pointerX) < 0.2 && Math.abs(pointerY) < 0.2) {
-        pointerX = 0;
-        pointerY = 0;
-      }
-
-      if (!rafId) {
-        rafId = window.requestAnimationFrame(flushPointer);
-      }
-    };
-
-    const handlePointerMove = (event) => {
-      queuePointer(event.clientX, event.clientY);
-    };
-
-    scene.addEventListener('pointermove', handlePointerMove);
-    scene.addEventListener('pointerleave', resetPointer);
-
-    return () => {
-      scene.removeEventListener('pointermove', handlePointerMove);
-      scene.removeEventListener('pointerleave', resetPointer);
-      if (rafId) {
-        window.cancelAnimationFrame(rafId);
-      }
-    };
-  }, []);
-
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
@@ -247,7 +182,7 @@ export default function HeroOrchestrationScene() {
   }, []);
 
   return (
-    <div ref={sceneRef} className={`hero-orchestration-scene ${expandedNode ? 'has-active-node' : ''}`} aria-label="Flowfex orchestration overview">
+    <div className={`hero-orchestration-scene ${expandedNode ? 'has-active-node' : ''}`} aria-label="Flowfex orchestration overview">
       <div className="hero-orchestration-mesh hero-orchestration-mesh-primary" />
       <div className="hero-orchestration-mesh hero-orchestration-mesh-secondary" />
       <div className="hero-orchestration-grid" />

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Globe, Github } from 'lucide-react';
-import LiveCanvasBackground from '../components/canvas/LiveCanvasBackground';
+import AuthBackdrop from '../components/auth/AuthBackdrop';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import { useSessionContext } from '../context/SessionContext';
 import {
@@ -10,21 +10,32 @@ import {
   signInWithGitHub,
   signInWithGoogle,
 } from '../services/authService';
+import { getAuthErrorMessage } from '../utils/authErrorMessages';
 
 function SignIn() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { configured, isAuthenticated, refreshSession, sessionReady } = useSessionContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const socialErrorCode = searchParams.get('error');
 
   useEffect(() => {
     if (sessionReady && isAuthenticated) {
       navigate('/dashboard');
     }
   }, [isAuthenticated, navigate, sessionReady]);
+
+  useEffect(() => {
+    if (!socialErrorCode) {
+      return;
+    }
+
+    setErrorMessage(getAuthErrorMessage(socialErrorCode, 'Unable to complete social sign-in right now.'));
+  }, [socialErrorCode]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,11 +58,11 @@ function SignIn() {
 
     try {
       if (provider === 'google') {
-        await signInWithGoogle('/dashboard');
+        await signInWithGoogle('/dashboard', '/signin');
         return;
       }
 
-      await signInWithGitHub('/dashboard');
+      await signInWithGitHub('/dashboard', '/signin');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to start social sign-in.');
     }
@@ -60,7 +71,7 @@ function SignIn() {
   return (
     <div style={styles.page}>
       <div style={styles.bgWrap}>
-        <LiveCanvasBackground />
+        <AuthBackdrop />
         <div style={styles.bgBlur} />
       </div>
 
@@ -153,19 +164,19 @@ function SignIn() {
 }
 
 const styles = {
-  page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-eigengrau)', position: 'relative' },
-  bgWrap: { position: 'fixed', inset: 0, zIndex: 0, opacity: 0.2 },
-  bgBlur: { position: 'absolute', inset: 0, backdropFilter: 'blur(2px)' },
+  page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-eigengrau)', position: 'relative', padding: '24px 16px' },
+  bgWrap: { position: 'fixed', inset: 0, zIndex: 0, opacity: 1 },
+  bgBlur: { position: 'absolute', inset: 0, backdropFilter: 'blur(4px)' },
   card: {
     position: 'relative',
     zIndex: 1,
-    width: 440,
+    width: 'min(440px, calc(100vw - 32px))',
     background: 'rgba(13, 19, 27, 0.86)',
     border: '1px solid rgba(0, 212, 170, 0.14)',
     boxShadow: '0 28px 90px rgba(0,0,0,0.38), 0 0 0 1px rgba(0,212,170,0.04)',
     backdropFilter: 'blur(32px) saturate(180%)',
     borderRadius: 24,
-    padding: 48,
+    padding: 'clamp(28px, 4vw, 48px)',
   },
   logoRow: { display: 'flex', justifyContent: 'center', marginBottom: 24 },
   title: { fontFamily: 'var(--font-geist)', fontSize: 32, fontWeight: 700, color: 'var(--color-velin)', margin: '0 0 8px', textAlign: 'center', letterSpacing: '-0.03em' },

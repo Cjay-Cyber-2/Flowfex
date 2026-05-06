@@ -230,6 +230,13 @@ export const auth = betterAuth({
     provider: "pg", // PostgreSQL
     schema,
   }),
+  account: {
+    // Split frontend/backend deployments can drop the extra state cookie even when
+    // Better Auth already persists OAuth state in the database. Keep the stronger
+    // server-side state store and skip the redundant cookie check.
+    storeStateStrategy: "database",
+    skipStateCookieCheck: true,
+  },
   emailAndPassword: {
     enabled: true,
     revokeSessionsOnPasswordReset: true,

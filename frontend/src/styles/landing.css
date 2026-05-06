@@ -729,11 +729,15 @@
 .statement-animation-wrap {
   width: 100%;
   max-width: 1200px;
-  min-height: 150px;
-  padding: 0 1.5rem;
+  min-height: 176px;
+  padding: 1rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at center, rgba(0, 212, 170, 0.08), transparent 62%),
+    linear-gradient(180deg, rgba(10, 16, 22, 0.52), rgba(7, 11, 15, 0.18));
 }
 
 .statement-metrics {
@@ -1217,12 +1221,14 @@
   width: 100%;
   height: 100%;
   min-height: 100%;
-  transform: translate3d(calc(var(--hero-parallax-x) * 0.72), calc(var(--hero-parallax-y) * 0.72), 0);
+  transform: translate3d(0, 0, 0);
   pointer-events: none;
 }
 
 .hero-orchestration-parallax-near {
-  transform: translate3d(calc(var(--hero-parallax-x) * 0.9), calc(var(--hero-parallax-y) * 0.9), 0);
+  transform: translate3d(0, 0, 0);
+  transform-origin: center;
+  animation: heroBranchFieldFloat 14s ease-in-out infinite alternate;
 }
 
 .hero-orchestration-center-aura {
@@ -1487,7 +1493,7 @@
   filter: drop-shadow(0 0 10px color-mix(in srgb, var(--line-accent) 50%, transparent));
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  animation: heroBranchDraw 2.6s cubic-bezier(0.22, 0.61, 0.36, 1) var(--branch-delay, 0s) forwards;
+  animation: heroBranchDraw 2.25s cubic-bezier(0.17, 0.78, 0.16, 1) var(--branch-delay, 0s) forwards;
 }
 
 .hero-orchestration-core {
@@ -1499,9 +1505,7 @@
   display: grid;
   place-items: center;
   z-index: 2;
-  transform:
-    translate(-50%, -50%)
-    translate3d(calc(var(--hero-parallax-x) * -0.45), calc(var(--hero-parallax-y) * -0.45), 0);
+  transform: translate(-50%, -50%);
 }
 
 .hero-orchestration-core-border,
@@ -1625,22 +1629,32 @@
   }
 }
 
+@keyframes heroBranchFieldFloat {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(0, -10px, 0);
+  }
+}
+
 @keyframes heroBranchDraw {
   0% {
     opacity: 0;
     stroke-dashoffset: 1;
   }
-  5% {
-    opacity: 0.3;
+  14% {
+    opacity: 0.18;
   }
-  15% {
-    opacity: 0.7;
+  38% {
+    opacity: 0.58;
   }
-  30% {
-    opacity: 0.85;
+  72% {
+    opacity: 0.82;
   }
   100% {
-    opacity: 0.9;
+    opacity: 0.92;
     stroke-dashoffset: 0;
   }
 }
@@ -2461,6 +2475,11 @@
     min-height: 48vh;
     gap: 1.25rem;
     padding: 3.25rem 16px;
+  }
+
+  .statement-animation-wrap {
+    min-height: 138px;
+    padding: 0.5rem 0.75rem;
   }
 
   .statement-metrics {

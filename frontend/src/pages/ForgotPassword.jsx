@@ -2,10 +2,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
-import LiveCanvasBackground from '../components/canvas/LiveCanvasBackground';
+import AuthBackdrop from '../components/auth/AuthBackdrop';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import { useSessionContext } from '../context/SessionContext';
 import { requestPasswordReset, resetPassword } from '../services/authService';
+import { getAuthErrorMessage } from '../utils/authErrorMessages';
 
 function ForgotPassword() {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ function ForgotPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [notice, setNotice] = useState(resetError ? 'That reset link is invalid or expired. Request a new one.' : '');
+  const [notice, setNotice] = useState(resetError ? getAuthErrorMessage(resetError, 'That reset link is invalid or expired. Request a new one.') : '');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -72,7 +73,7 @@ function ForgotPassword() {
   return (
     <div style={styles.page}>
       <div style={styles.bgWrap}>
-        <LiveCanvasBackground />
+        <AuthBackdrop />
         <div style={styles.bgBlur} />
       </div>
 
@@ -164,19 +165,19 @@ function ForgotPassword() {
 }
 
 const styles = {
-  page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-eigengrau)', position: 'relative' },
-  bgWrap: { position: 'fixed', inset: 0, zIndex: 0, opacity: 0.2 },
-  bgBlur: { position: 'absolute', inset: 0, backdropFilter: 'blur(2px)' },
+  page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-eigengrau)', position: 'relative', padding: '24px 16px' },
+  bgWrap: { position: 'fixed', inset: 0, zIndex: 0, opacity: 1 },
+  bgBlur: { position: 'absolute', inset: 0, backdropFilter: 'blur(4px)' },
   card: {
     position: 'relative',
     zIndex: 1,
-    width: 440,
+    width: 'min(440px, calc(100vw - 32px))',
     background: 'rgba(13, 19, 27, 0.86)',
     border: '1px solid rgba(0, 212, 170, 0.14)',
     boxShadow: '0 28px 90px rgba(0,0,0,0.38), 0 0 0 1px rgba(0,212,170,0.04)',
     backdropFilter: 'blur(32px) saturate(180%)',
     borderRadius: 24,
-    padding: 48,
+    padding: 'clamp(28px, 4vw, 48px)',
   },
   logoRow: { display: 'flex', justifyContent: 'center', marginBottom: 24 },
   title: { fontFamily: 'var(--font-geist)', fontSize: 32, fontWeight: 700, color: 'var(--color-velin)', margin: '0 0 8px', textAlign: 'center' },

@@ -56,33 +56,80 @@ function sumUsageRows(rows) {
   });
 }
 
-function normalizeConnectionEvents(sessionRow) {
+function parseTimestamp(value) {
+  const timestampMs = Date.parse(value || '');
+  return Number.isNaN(timestampMs) ? null : timestampMs;
+}
+
+function getAuthUpgradeBoundary(sessionRow) {
+  return parseTimestamp(sessionRow?.graph_state?.metadata?.authUpgradeAt);
+}
+
+function normalizeConnectionEvents(sessionRow, minimumTimestampMs = null) {
   const history = sessionRow?.graph_state?.metadata?.connectionHistory;
   if (Array.isArray(history) && history.length > 0) {
     return history
       .map((entry) => ({
         connectedAt: entry?.connectedAt || null,
       }))
-      .filter((entry) => entry.connectedAt);
+      .filter((entry) => {
+        const connectedAtMs = parseTimestamp(entry.connectedAt);
+        if (connectedAtMs === null) {
+          return false;
+        }
+
+        return minimumTimestampMs === null || connectedAtMs >= minimumTimestampMs;
+      });
   }
 
   if (Array.isArray(sessionRow?.connected_agents) && sessionRow.connected_agents.length > 0) {
+    const fallbackTimestamp = sessionRow.last_active_at || sessionRow.created_at || null;
+    const fallbackTimestampMs = parseTimestamp(fallbackTimestamp);
+    if (minimumTimestampMs !== null && (fallbackTimestampMs === null || fallbackTimestampMs < minimumTimestampMs)) {
+      return [];
+    }
+
     return [{
-      connectedAt: sessionRow.last_active_at || sessionRow.created_at || null,
+      connectedAt: fallbackTimestamp,
     }].filter((entry) => entry.connectedAt);
   }
 
   return [];
 }
 
-function countRecentConnections(sessionRows, rollingWindowStart) {
+function countRecentConnections(sessionRows, rollingWindowStart, tier) {
   return sessionRows.reduce((count, row) => {
-    const events = normalizeConnectionEvents(row);
+    const authUpgradeBoundary = tier === 'anonymous' ? null : getAuthUpgradeBoundary(row);
+    const minimumTimestampMs = authUpgradeBoundary === null
+      ? rollingWindowStart.getTime()
+      : Math.max(rollingWindowStart.getTime(), authUpgradeBoundary);
+    const events = normalizeConnectionEvents(row, minimumTimestampMs);
     return count + events.filter((event) => {
-      const connectedAtMs = Date.parse(event.connectedAt || '');
-      return !Number.isNaN(connectedAtMs) && connectedAtMs >= rollingWindowStart.getTime();
+      const connectedAtMs = parseTimestamp(event.connectedAt);
+      return connectedAtMs !== null && connectedAtMs >= minimumTimestampMs;
     }).length;
   }, 0);
+}
+
+function countConcurrentAgents(sessionRow, tier) {
+  const agents = Array.isArray(sessionRow?.connected_agents) ? sessionRow.connected_agents : [];
+  if (agents.length === 0) {
+    return 0;
+  }
+
+  if (tier === 'anonymous') {
+    return agents.length;
+  }
+
+  const authUpgradeBoundary = getAuthUpgradeBoundary(sessionRow);
+  if (authUpgradeBoundary === null) {
+    return agents.length;
+  }
+
+  return agents.filter((agent) => {
+    const lastSeenMs = parseTimestamp(agent?.lastSeen);
+    return lastSeenMs !== null && lastSeenMs >= authUpgradeBoundary;
+  }).length;
 }
 
 /**
@@ -342,8 +389,8 @@ export class UsageService {
       const computedDurationSeconds = Number.isNaN(createdAtMs)
         ? summedUsage.sessionDurationSeconds
         : Math.max(summedUsage.sessionDurationSeconds, Math.floor((nowMs - createdAtMs) / 1000));
-      const concurrentAgents = Array.isArray(session.connected_agents) ? session.connected_agents.length : 0;
-      const connectionsCount = countRecentConnections(normalizedConnectionRows, rollingWindowStart);
+      const concurrentAgents = countConcurrentAgents(session, tier);
+      const connectionsCount = countRecentConnections(normalizedConnectionRows, rollingWindowStart, tier);
 
       const usage = {
         connectionsCount,

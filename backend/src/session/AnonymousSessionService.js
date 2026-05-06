@@ -75,6 +75,17 @@ function appendConnectionHistory(graphState, agent) {
   return nextGraphState;
 }
 
+function markAuthUpgrade(graphState, upgradedAt) {
+  const nextGraphState = graphState && typeof graphState === 'object' ? { ...graphState } : {};
+  const metadata = nextGraphState.metadata && typeof nextGraphState.metadata === 'object'
+    ? { ...nextGraphState.metadata }
+    : {};
+
+  metadata.authUpgradeAt = upgradedAt;
+  nextGraphState.metadata = metadata;
+  return nextGraphState;
+}
+
 export class AnonymousSessionService {
   constructor(config = {}) {
     this.client = config.client || createSessionDataClient();
@@ -150,10 +161,14 @@ export class AnonymousSessionService {
         return toDashboardSessionRecord(existing);
       }
 
+      const upgradedAt = new Date().toISOString();
+      const graphState = markAuthUpgrade(existing.graph_state, upgradedAt);
+
       const data = await this.client
         .update(flowfexSessions)
         .set({
           auth_id: authId,
+          graph_state: graphState,
           last_active_at: new Date(),
           updated_at: new Date(),
         })

@@ -1,22 +1,14 @@
 // Consolidated auth service — single Better Auth client for the entire frontend
 import { createAuthClient } from 'better-auth/client';
 import { jwtClient } from 'better-auth/client/plugins';
-import { getAppOrigin } from '../utils/runtimeConfig';
-
-function getBackendUrl() {
-  if (typeof import.meta !== 'undefined' && import.meta.env) {
-    const env = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL;
-    if (env) return env;
-  }
-  return 'https://flowfex.onrender.com';
-}
+import { getAppOrigin, getBackendOrigin } from '../utils/runtimeConfig';
 
 const authClient = createAuthClient({
-  baseURL: getBackendUrl(),
+  baseURL: getBackendOrigin(),
   plugins: [jwtClient()],
 });
 
-function buildCallbackUrl(pathname = '/dashboard') {
+function buildAppUrl(pathname = '/dashboard') {
   return new URL(pathname, `${getAppOrigin()}/`).toString();
 }
 
@@ -65,7 +57,7 @@ export async function signUpWithEmail(email, password, name = '') {
     email,
     password,
     name,
-    callbackURL: buildCallbackUrl('/dashboard'),
+    callbackURL: buildAppUrl('/dashboard'),
   });
   if (error || !data) {
     throw new Error(error?.message || 'Unable to create account. Please try again.');
@@ -76,18 +68,20 @@ export async function signUpWithEmail(email, password, name = '') {
   };
 }
 
-export async function signInWithGitHub(callbackPath = '/dashboard') {
+export async function signInWithGitHub(callbackPath = '/dashboard', errorPath = '/signin') {
   const { error } = await authClient.signIn.social({
     provider: 'github',
-    callbackURL: buildCallbackUrl(callbackPath),
+    callbackURL: buildAppUrl(callbackPath),
+    errorCallbackURL: buildAppUrl(errorPath),
   });
   if (error) throw new Error(error.message);
 }
 
-export async function signInWithGoogle(callbackPath = '/dashboard') {
+export async function signInWithGoogle(callbackPath = '/dashboard', errorPath = '/signin') {
   const { error } = await authClient.signIn.social({
     provider: 'google',
-    callbackURL: buildCallbackUrl(callbackPath),
+    callbackURL: buildAppUrl(callbackPath),
+    errorCallbackURL: buildAppUrl(errorPath),
   });
   if (error) throw new Error(error.message);
 }
@@ -95,7 +89,7 @@ export async function signInWithGoogle(callbackPath = '/dashboard') {
 export async function requestPasswordReset(email, redirectPath = '/reset-password') {
   const { data, error } = await authClient.requestPasswordReset({
     email,
-    redirectTo: buildCallbackUrl(redirectPath),
+    redirectTo: buildAppUrl(redirectPath),
   });
   if (error) {
     throw new Error(error.message || 'Unable to send the password reset email.');

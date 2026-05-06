@@ -167,6 +167,41 @@ async function testConnectionQuota() {
   return [session.sessionId, authenticatedSession.sessionId];
 }
 
+async function testAnonymousQuotaResetsOnUpgrade() {
+  console.log('\n── 2c. Anonymous Quota Resets On Upgrade ──');
+
+  const authId = 'test-upgrade-quota-' + Date.now();
+  const session = await createTestSession();
+
+  for (let index = 0; index < FLOWFEX_LIMITS.anonymous.maxConnectionsPerDay; index += 1) {
+    await anonymousSessionService.markConnectedAgent(session.sessionId, {
+      connectionId: `upgrade-connection-${index}`,
+      agentId: `upgrade-agent-${index}`,
+      agentName: `Upgrade Agent ${index + 1}`,
+      connectionType: 'link',
+      syncedAt: new Date(Date.now() + index * 1000).toISOString(),
+    });
+  }
+
+  const anonymousStatus = await usageService.getUsageStatus({ sessionId: session.sessionId });
+  assertTruthy(anonymousStatus.connectionBlockedLimit, 'Anonymous quota is exhausted before upgrade');
+
+  await anonymousSessionService.upgradeAnonymousSession({
+    anonymousToken: session.anonymousToken,
+    authId,
+  });
+
+  const authenticatedStatus = await usageService.getUsageStatus({ sessionId: session.sessionId });
+  assertEq(authenticatedStatus.tier, 'authenticated', 'Session becomes authenticated after upgrade');
+  assertEq(authenticatedStatus.usage.connectionsCount, 0, 'Authenticated connection quota starts fresh after anonymous upgrade');
+  assertNull(authenticatedStatus.connectionBlockedLimit, 'Authenticated session is no longer blocked by the anonymous connection quota');
+
+  await usageService.assertAgentConnectionAllowed({ sessionId: session.sessionId });
+  assert(true, 'Authenticated session can connect again immediately after sign-up upgrade');
+
+  return session.sessionId;
+}
+
 // ─── 3. API-Key Limits ────────────────────────────────────────────────────────
 
 async function testApiKeyLimits() {
@@ -488,6 +523,9 @@ async function run() {
 
     const s2b = await testConnectionQuota();
     sessionIds.push(...s2b);
+
+    const s2c = await testAnonymousQuotaResetsOnUpgrade();
+    sessionIds.push(s2c);
 
     const s3 = await testApiKeyLimits();
     sessionIds.push(s3);

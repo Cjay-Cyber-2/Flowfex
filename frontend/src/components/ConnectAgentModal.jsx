@@ -89,7 +89,7 @@ function ConnectionLimitPanel({ isAuthenticated, message, onSignUp, onSignIn, on
     <div style={{ display: 'grid', gap: 12 }}>
       <div className="cam-security-note" style={{ padding: '14px 16px', borderRadius: 16, border: '1px solid rgba(255, 164, 98, 0.24)', background: 'rgba(67, 38, 22, 0.32)' }}>
         <strong style={{ display: 'block', marginBottom: 6, color: 'var(--color-velin)' }}>
-          {isAuthenticated ? 'Free connection limit reached' : 'Anonymous token finished'}
+          {isAuthenticated ? 'Account connection limit reached' : 'Anonymous connection limit reached'}
         </strong>
         <span>{message}</span>
       </div>

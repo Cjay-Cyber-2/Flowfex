@@ -5,6 +5,7 @@ import { CheckCircle, ArrowLeft } from 'lucide-react';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import ConnectAgentModal from '../components/ConnectAgentModal';
 import PulseBeams from '../components/animations/PulseBeams';
+import useStore from '../store/useStore';
 import '../styles/onboarding.css';
 
 // ─── PulseBeams config ────────────────────────────────────────────────────────
@@ -70,86 +71,7 @@ const ONBOARDING_BEAMS = [
 
 // ─── Explosion Particles (for connection success) ─────────────────────────────
 function ExplosionCanvas({ active }) {
-  const canvasRef = useRef(null);
-  const animRef = useRef(null);
-  const particlesRef = useRef([]);
-
-  useEffect(() => {
-    if (!active) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const colors = ['#00D4AA', '#7FFFF0', '#46BDA9', '#6344F5', '#AE48FF', '#fff'];
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
-
-    // Generate 120 particles exploding from center
-    particlesRef.current = Array.from({ length: 120 }, () => {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 4 + Math.random() * 12;
-      return {
-        x: cx,
-        y: cy,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        radius: 2 + Math.random() * 5,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        alpha: 1,
-        decay: 0.008 + Math.random() * 0.012,
-      };
-    });
-
-    const ctx = canvas.getContext('2d');
-    let running = true;
-
-    function draw() {
-      if (!running) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const ps = particlesRef.current;
-      let alive = 0;
-
-      for (const p of ps) {
-        if (p.alpha <= 0) continue;
-        alive++;
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.08; // gravity
-        p.vx *= 0.99;
-        p.alpha -= p.decay;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = Math.max(0, p.alpha);
-        ctx.shadowBlur = 12;
-        ctx.shadowColor = p.color;
-        ctx.fill();
-        ctx.globalAlpha = 1;
-        ctx.shadowBlur = 0;
-      }
-
-      if (alive > 0) {
-        animRef.current = requestAnimationFrame(draw);
-      }
-    }
-
-    draw();
-    return () => {
-      running = false;
-      if (animRef.current) cancelAnimationFrame(animRef.current);
-    };
-  }, [active]);
-
-  if (!active) return null;
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{ position: 'fixed', inset: 0, zIndex: 200, pointerEvents: 'none' }}
-    />
-  );
+  return null;
 }
 
 // ─── Animated Layer Button (Flowfex-branded spinning SVG CTA) ─────────────────
@@ -193,9 +115,20 @@ function AnimatedLayerButton({ children, onClick, className = '' }) {
 
 export default function Onboarding() {
   const navigate = useNavigate();
+  const activeSession = useStore((state) => state.activeSession);
+  const agents = useStore((state) => state.agents);
+
+  // Route guard: if agent is already connected, redirect to dashboard
+  useEffect(() => {
+    const hasConnectedAgent = agents && agents.length > 0 && agents.some((a) => a.status === 'connected');
+    if (activeSession?.id && hasConnectedAgent) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [activeSession, agents, navigate]);
+
   // Modal starts CLOSED — user sees the onboarding page first
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [connectionStage, setConnectionStage] = useState('idle'); // idle | connecting | connected | navigating
+  const [connectionStage, setConnectionStage] = useState('idle'); // idle | zooming | navigating
   const transitionTimersRef = useRef([]);
 
   const clearTransitionTimers = useCallback(() => {
@@ -206,11 +139,10 @@ export default function Onboarding() {
   const handleConnected = useCallback(() => {
     clearTransitionTimers();
     setIsModalOpen(false);
-    setConnectionStage('connecting');
+    setConnectionStage('zooming');
     transitionTimersRef.current = [
-      window.setTimeout(() => setConnectionStage('connected'), 180),
-      window.setTimeout(() => setConnectionStage('navigating'), 820),
-      window.setTimeout(() => navigate('/dashboard'), 1380),
+      window.setTimeout(() => setConnectionStage('navigating'), 900),
+      window.setTimeout(() => navigate('/dashboard'), 1600),
     ];
   }, [clearTransitionTimers, navigate]);
 
@@ -220,8 +152,7 @@ export default function Onboarding() {
     <div className="ob-root">
       <div className="ob-dotgrid" />
 
-      {/* Explosion on successful connection */}
-      <ExplosionCanvas active={connectionStage === 'connected' || connectionStage === 'navigating'} />
+      {/* Explosion canvas removed — using circle zoom instead */}
 
       <header className="ob-topbar" style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
         <button 
@@ -251,89 +182,85 @@ export default function Onboarding() {
           />
         </div>
 
-        {/* Expanding ring on connection */}
+        {/* Full-screen zoom overlay when agent connects */}
         <AnimatePresence>
-          {(connectionStage === 'connecting' || connectionStage === 'connected') && (
-            <>
-              <motion.div
-                className="ob-ring"
-                initial={{ scale: 0.5, opacity: 0.8 }}
-                animate={{ scale: 4, opacity: 0 }}
-                transition={{ duration: 1.2, ease: 'easeOut' }}
-              />
-              <motion.div
-                className="ob-ring"
-                initial={{ scale: 0.3, opacity: 0.6 }}
-                animate={{ scale: 5, opacity: 0 }}
-                transition={{ duration: 1.8, ease: 'easeOut', delay: 0.2 }}
-              />
-              <motion.div
-                className="ob-ring"
-                initial={{ scale: 0.8, opacity: 0.4 }}
-                animate={{ scale: 6, opacity: 0 }}
-                transition={{ duration: 2.2, ease: 'easeOut', delay: 0.4 }}
-              />
-            </>
-          )}
-        </AnimatePresence>
-
-        {/* Connected label */}
-        <AnimatePresence>
-          {connectionStage === 'connected' && (
+          {(connectionStage === 'zooming' || connectionStage === 'navigating') && (
             <motion.div
-              className="ob-connected-label"
-              initial={{ opacity: 0, y: 12, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.4 }}
-            >
-              <CheckCircle size={20} />
-              Verified agent attach confirmed
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Navigating fade with logo burst */}
-        <AnimatePresence>
-          {connectionStage === 'navigating' && (
-            <motion.div
-              className="ob-fade-overlay"
-              initial={{ opacity: 0 }}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 100,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                pointerEvents: 'none',
+              }}
+              initial={{ opacity: 1 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.8 }}
+              exit={{ opacity: 0 }}
             >
+              {/* The circle that zooms in */}
               <motion.div
-                style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 2.5, opacity: [0, 1, 0.8] }}
-                transition={{ duration: 1 }}
+                style={{
+                  width: 120,
+                  height: 120,
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle, #00D4AA 0%, rgba(0,212,170,0.6) 40%, rgba(0,212,170,0.0) 70%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 0 80px rgba(0,212,170,0.5), 0 0 160px rgba(0,212,170,0.25)',
+                }}
+                initial={{ scale: 1, opacity: 1 }}
+                animate={{
+                  scale: connectionStage === 'navigating' ? 25 : 1.6,
+                  opacity: connectionStage === 'navigating' ? 0.95 : 1,
+                }}
+                transition={connectionStage === 'navigating'
+                  ? { duration: 0.7, ease: [0.22, 0.61, 0.36, 1] }
+                  : { duration: 0.5, ease: 'easeOut' }
+                }
               >
-                <FlowfexLogoNew size={80} animated={false} />
+                <motion.div
+                  initial={{ scale: 1, opacity: 1 }}
+                  animate={{
+                    scale: connectionStage === 'navigating' ? 0 : 1,
+                    opacity: connectionStage === 'navigating' ? 0 : 1,
+                  }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <FlowfexLogoNew size={48} animated={false} />
+                </motion.div>
               </motion.div>
+
+              {/* "Connected" label */}
+              {connectionStage === 'zooming' && (
+                <motion.div
+                  className="ob-connected-label"
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.35, delay: 0.15 }}
+                  style={{ position: 'absolute', top: 'calc(50% + 90px)' }}
+                >
+                  <CheckCircle size={18} />
+                  Agent connected
+                </motion.div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Centre pulsing circle with logo */}
-        <motion.div
-          className="ob-circle"
-          animate={
-            connectionStage === 'connecting'
-              ? { scale: [0.5, 1.6, 1.0], boxShadow: ['0 0 40px rgba(0,212,170,0.26)', '0 0 140px rgba(0,212,170,0.9)', '0 0 60px rgba(0,212,170,0.4)'] }
-              : connectionStage === 'connected'
-                ? { scale: [1, 1.3, 1.1], boxShadow: '0 0 100px rgba(0,212,170,0.8)' }
-                : { scale: [1, 1.08, 1], opacity: [0.8, 1, 0.8] }
-          }
-          transition={
-            connectionStage === 'connecting'
-              ? { duration: 0.8, ease: 'easeOut' }
-              : connectionStage === 'connected'
-                ? { duration: 0.5, ease: 'easeOut' }
-                : { duration: 2, repeat: Infinity }
-          }
-        >
-          <FlowfexLogoNew size={32} animated={false} />
-        </motion.div>
+        {/* Centre pulsing circle with logo — idle state */}
+        {connectionStage === 'idle' && (
+          <motion.div
+            className="ob-circle"
+            animate={{ scale: [1, 1.08, 1], opacity: [0.8, 1, 0.8] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <FlowfexLogoNew size={32} animated={false} />
+          </motion.div>
+        )}
 
         {/* Idle state — headline + AnimatedLayerButton CTA */}
         {connectionStage === 'idle' && (
@@ -343,18 +270,6 @@ export default function Onboarding() {
               Connect Agent
             </AnimatedLayerButton>
           </>
-        )}
-
-        {/* Connected state — preparing dashboard */}
-        {connectionStage === 'connected' && (
-          <motion.p
-            className="ob-headline"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            Preparing your dashboard...
-          </motion.p>
         )}
       </main>
 

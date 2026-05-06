@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomInt } from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import { defaultRegistry } from '../registry/ToolRegistry.js';
 import { defaultOrchestrator } from '../orchestrator/Orchestrator.js';
@@ -44,6 +44,8 @@ export class ConnectionService {
     );
     this.linkSessions = config.linkSessions || new Map();
     this.linkSecret = config.linkSecret || process.env.FLOWFEX_LINK_SECRET || randomToken(32);
+    this.verificationCodes = new Map();
+    this.verificationCodeTtlMs = (config.verificationCodeTtlSeconds || 600) * 1000;
   }
 
   async connect(payload, authContext = {}) {
@@ -95,7 +97,7 @@ export class ConnectionService {
       ttlSeconds: payload.ttlSeconds || this.promptSessionTtlSeconds
     });
 
-    const taskPrefix = this._buildPromptTaskPrefix(token);
+    const verificationCode = this._generateVerificationCode(session.id, token);
     const sessionResponse = this._buildSessionResponse(session, token, { baseUrl: context.baseUrl });
     return {
       success: true,
@@ -103,10 +105,10 @@ export class ConnectionService {
       connection: {
         session: sessionResponse,
         retrieval: this._serializeRetrieval(retrieval),
+        verificationCode,
         instructions: {
           sessionUrl: this._buildConnectUrl(context.baseUrl, session.id, token),
-          taskPrefix,
-          prompt: this._buildPromptInstruction(payload.prompt, session.id, token, context.baseUrl),
+          prompt: this._buildPromptInstruction(payload.prompt, verificationCode),
           summary: 'Flowfex remains the orchestration layer for the entire conversation and only directly relevant Flowfex resources may be used.',
           rules: this._buildConnectionRules(),
         },
@@ -517,32 +519,25 @@ export class ConnectionService {
     return `${normalizedBaseUrl}/connect/live/${identifier}${query}`;
   }
 
-  _buildPromptInstruction(prompt, sessionId, token, baseUrl) {
-    const prefixLine = this._buildPromptTaskPrefix(token);
-    const ingestUrl = `${normalizeBaseUrl(baseUrl || this.publicBaseUrl)}/ingest`;
+  _buildPromptInstruction(prompt, verificationCode) {
     return [
-      'Attach this agent to the current Flowfex session and do not switch away from it.',
+      'You are now operating under a Flowfex session contract.',
       '',
-      `SESSION_ID=${sessionId}`,
-      `INGEST_URL=${ingestUrl}`,
-      `FLOWFEX_SESSION_TOKEN=${token}`,
+      `Verification Code: ${verificationCode}`,
       '',
-      'Do these steps exactly:',
-      '1. For every user request, send one HTTPS POST request to INGEST_URL before taking any action.',
-      '2. Send JSON with this exact shape:',
-      `   {"task":"${prefixLine}\\n<real user task>"}`,
-      '3. Wait for the Flowfex response before you continue.',
-      '4. Stay on this same Flowfex session for the full conversation.',
-      '5. Use only directly relevant Flowfex-returned skills, tools, memory, workflows, and agent files.',
-      '6. If Flowfex returns nothing relevant, say the capability is unavailable in Flowfex and do not invent a substitute.',
-      '7. Send progress updates, approval waits, and the final result back through this same Flowfex session.',
+      'When you receive this prompt, begin your very next response with:',
+      `"Flowfex session active. Verification: ${verificationCode}"`,
       '',
-      `Agent context: ${prompt}`,
+      'Operating Rules:',
+      '1. Stay attached to this Flowfex session for the entire conversation.',
+      '2. Follow the Flowfex behavioral contract for every request.',
+      '3. Use Flowfex-provided resources when available.',
+      '4. If no Flowfex resource is relevant to a request, state that the capability is unavailable in Flowfex.',
+      '5. Do not invent tools, skills, workflows, or resources outside what Flowfex provides.',
+      '6. Send progress updates and the final result back through this conversation.',
+      '',
+      `Session context: ${prompt}`,
     ].join('\n');
-  }
-
-  _buildPromptTaskPrefix(token) {
-    return `FLOWFEX_SESSION_TOKEN: ${token}`;
   }
 
   _buildConnectionRules() {
@@ -635,6 +630,63 @@ export class ConnectionService {
     for (const [linkId, link] of this.linkSessions.entries()) {
       if (Date.parse(link.expiresAt) <= now) {
         this.linkSessions.delete(linkId);
+      }
+    }
+  }
+
+  _generateVerificationCode(sessionId, token) {
+    this._cleanupVerificationCodes();
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let suffix = '';
+    for (let i = 0; i < 4; i++) {
+      suffix += chars[randomInt(chars.length)];
+    }
+    const code = `FX-${suffix}`;
+    this.verificationCodes.set(code, {
+      sessionId,
+      token,
+      createdAt: Date.now(),
+      used: false,
+    });
+    return code;
+  }
+
+  verifyPromptConnection(code) {
+    this._cleanupVerificationCodes();
+    if (!code || typeof code !== 'string') {
+      throw createConnectionError('Verification code is required', 400);
+    }
+
+    const normalized = code.trim().toUpperCase();
+    const entry = this.verificationCodes.get(normalized);
+    if (!entry) {
+      throw createConnectionError('Invalid or expired verification code', 404);
+    }
+
+    if (entry.used) {
+      throw createConnectionError('Verification code has already been used', 410);
+    }
+
+    const session = this.sessionManager.getSession(entry.sessionId);
+    if (!session) {
+      this.verificationCodes.delete(normalized);
+      throw createConnectionError('The session for this verification code is no longer active', 404);
+    }
+
+    entry.used = true;
+    return {
+      success: true,
+      session: this._buildSessionResponse(session, entry.token),
+      sessionId: entry.sessionId,
+      token: entry.token,
+    };
+  }
+
+  _cleanupVerificationCodes() {
+    const now = Date.now();
+    for (const [code, entry] of this.verificationCodes.entries()) {
+      if (now - entry.createdAt > this.verificationCodeTtlMs) {
+        this.verificationCodes.delete(code);
       }
     }
   }

@@ -212,6 +212,7 @@ export class FlowfexServer {
     const skillsSearchMatch = url.pathname === '/skills/search';
     const skillsCategoriesMatch = url.pathname === '/skills/categories';
     const ingestMatch = url.pathname === '/ingest';
+    const connectVerifyMatch = request.method === 'POST' && url.pathname === '/connect/verify';
     const sseStreamMatch = url.pathname.match(/^\/session\/([^/]+)\/stream$/);
     const anonymousSessionCreateMatch = request.method === 'POST' && url.pathname === '/api/session/create-anonymous';
     const anonymousSessionValidateMatch = request.method === 'POST' && url.pathname === '/api/session/validate-anonymous';
@@ -467,6 +468,18 @@ export class FlowfexServer {
       }
 
       return this._writeJson(response, 200, payload);
+    }
+
+    if (connectVerifyMatch) {
+      const body = await this._readJsonBody(request);
+      const code = body?.code;
+      const result = this.connectionService.verifyPromptConnection(code);
+
+      if (result.success && result.sessionId && this.socketServer) {
+        this._emitAgentConnectedForSessionId(result.sessionId, 'prompt');
+      }
+
+      return this._writeJson(response, 200, result);
     }
 
     if (request.method === 'GET' && sessionStateMatch) {

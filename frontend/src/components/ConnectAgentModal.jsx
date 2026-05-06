@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { X, Copy, CheckCheck, RefreshCw } from 'lucide-react';
+import { X, Copy, CheckCheck, RefreshCw, ShieldCheck } from 'lucide-react';
 import { io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 import { CONNECT_LINK, CONNECT_LIVE_SNIPPET, CONNECT_PROMPT, CONNECT_SDK_SNIPPET } from '../store/demoData';
@@ -108,7 +108,7 @@ function ConnectionLimitPanel({ isAuthenticated, message, onSignUp, onSignIn, on
   );
 }
 
-function PromptTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose }) {
+function PromptTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose, onVerify, verifying }) {
   if (limitState) {
     return (
       <ConnectionLimitPanel
@@ -126,27 +126,47 @@ function PromptTab({ connection, loading, onRefresh, error, limitState, isAuthen
       <div>
         <p className="cam-tab-desc">Preparing a secure connection prompt for your agent...</p>
         <div className="cam-code-block cam-code-block-concealed" style={{ opacity: 0.6 }}>
-          <pre aria-hidden="true">Generating unique session credentials...</pre>
+          <pre aria-hidden="true">Generating session...</pre>
         </div>
       </div>
     );
   }
 
-  const sessionUrl = normalizeSessionConnectUrl(connection?.connection?.instructions?.sessionUrl || CONNECT_LINK);
-  const promptText = rewriteConnectPrompt(connection?.connection?.instructions?.prompt || CONNECT_PROMPT, sessionUrl);
+  const verificationCode = connection?.connection?.verificationCode || '';
+  const promptText = connection?.connection?.instructions?.prompt || CONNECT_PROMPT;
   return (
     <div>
-      <p className="cam-tab-desc">Use Prompt mode only with agents that can send HTTPS requests. Paste this exactly as the operating contract for the target agent.</p>
+      <p className="cam-tab-desc">Paste this behavioral contract into any agent. No HTTP capability required — works with every agent.</p>
       <ActivationNotice
-        title="Dashboard opens only after Flowfex receives the first valid prompt-mode request"
-        description="For Prompt mode, Flowfex stays on onboarding until the agent sends the first session-bound message to the Flowfex ingest endpoint."
+        title="No secrets in this prompt"
+        description="This contract contains no tokens or credentials. The agent only needs to read and respond with the verification code."
       />
-      <ConcealedPayload text={promptText} title="Prompt contract hidden until copied" />
-      <p className="cam-security-note">Session URL: {sessionUrl}</p>
-      <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
-        <RefreshCw size={13} /> {loading ? 'Generating...' : 'Refresh Session'}
-      </button>
-      {error ? <p className="cam-security-note">Backend error: {error}</p> : null}
+      {verificationCode && (
+        <div className="cam-security-note" style={{ marginBottom: 14, padding: '14px 18px', borderRadius: 14, border: '1px solid rgba(0, 212, 170, 0.22)', background: 'rgba(0, 212, 170, 0.06)', textAlign: 'center' }}>
+          <span style={{ display: 'block', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-bistre)', marginBottom: 6 }}>Verification Code</span>
+          <span style={{ display: 'block', fontSize: 28, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace', color: 'var(--color-velin)', letterSpacing: '0.14em' }}>{verificationCode}</span>
+        </div>
+      )}
+      <div className="cam-code-block" style={{ marginBottom: 12 }}>
+        <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 12.5 }}>{promptText}</pre>
+        <CopyBtn text={promptText} style={{ position: 'absolute', top: 8, right: 8 }} />
+      </div>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
+        {verificationCode && (
+          <button
+            className="cam-done-btn"
+            onClick={() => onVerify?.(verificationCode)}
+            disabled={verifying}
+            style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+          >
+            <ShieldCheck size={15} /> {verifying ? 'Verifying...' : 'Verify Connection'}
+          </button>
+        )}
+        <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
+          <RefreshCw size={13} /> {loading ? 'Generating...' : 'Refresh Session'}
+        </button>
+      </div>
+      {error ? <p className="cam-security-note" style={{ color: '#ff6b6b' }}>Error: {error}</p> : null}
     </div>
   );
 }
@@ -306,6 +326,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
   const [limitMessages, setLimitMessages] = useState({});
   const [loadingTab, setLoadingTab] = useState(null);
   const [syncState, setSyncState] = useState('idle');
+  const [verifying, setVerifying] = useState(false);
   const fetchAttemptedRef = useRef(new Set());
   const finalizedConnectionKeysRef = useRef(new Set());
   const TabContent = TAB_CONTENT[activeTab];
@@ -449,6 +470,32 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     onClose();
   }, [addAgent, addSession, connections, onClose, onConnected, refreshUsage, setActiveSession]);
 
+  const verifyConnection = useCallback(async (code) => {
+    if (!code || verifying) return;
+    setVerifying(true);
+    setErrors((current) => ({ ...current, [activeTab]: null }));
+    try {
+      const response = await fetch(`${backendUrl}/connect/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result?.error?.message || 'Verification failed');
+      }
+      setSyncState('connected');
+      window.setTimeout(() => finalizeConnection(activeTab), 320);
+    } catch (err) {
+      setErrors((current) => ({
+        ...current,
+        [activeTab]: err instanceof Error ? err.message : 'Verification failed',
+      }));
+    } finally {
+      setVerifying(false);
+    }
+  }, [activeTab, backendUrl, finalizeConnection, verifying]);
+
   const handleSignUp = useCallback(() => {
     onClose();
     navigate('/signup');
@@ -566,6 +613,8 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
                   onSignUp={handleSignUp}
                   onSignIn={handleSignIn}
                   onClose={onClose}
+                  onVerify={verifyConnection}
+                  verifying={verifying}
                 />
               </motion.div>
             </AnimatePresence>

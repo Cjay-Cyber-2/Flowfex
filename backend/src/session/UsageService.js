@@ -66,6 +66,54 @@ function parseTimestamp(value) {
   return Number.isNaN(timestampMs) ? null : timestampMs;
 }
 
+/**
+ * Anonymous duration must NOT use wall-clock age of the session row (stale
+ * tokens, shared prompts). Only count time after a verified attach anchor
+ * exists; otherwise use usage-tracked seconds only.
+ */
+function computeSessionDurationSeconds({ tier, session, summedUsage, nowMs }) {
+  if (tier !== 'anonymous') {
+    const createdAtMs = parseTimestamp(session?.created_at);
+    if (createdAtMs === null) {
+      return summedUsage.sessionDurationSeconds;
+    }
+    return Math.max(
+      summedUsage.sessionDurationSeconds,
+      Math.floor((nowMs - createdAtMs) / 1000)
+    );
+  }
+
+  let anchorMs = null;
+  const history = session?.graph_state?.metadata?.connectionHistory;
+  if (Array.isArray(history)) {
+    for (const entry of history) {
+      const t = parseTimestamp(entry?.connectedAt);
+      if (t !== null && (anchorMs === null || t < anchorMs)) {
+        anchorMs = t;
+      }
+    }
+  }
+
+  const agents = Array.isArray(session?.connected_agents) ? session.connected_agents : [];
+  if (anchorMs === null && agents.length > 0) {
+    for (const agent of agents) {
+      const t = parseTimestamp(agent?.connectedAt || agent?.lastSeen || agent?.syncedAt);
+      if (t !== null && (anchorMs === null || t < anchorMs)) {
+        anchorMs = t;
+      }
+    }
+  }
+
+  if (anchorMs === null) {
+    return summedUsage.sessionDurationSeconds;
+  }
+
+  return Math.max(
+    summedUsage.sessionDurationSeconds,
+    Math.floor((nowMs - anchorMs) / 1000)
+  );
+}
+
 function getAuthUpgradeBoundary(sessionRow) {
   return parseTimestamp(sessionRow?.graph_state?.metadata?.authUpgradeAt);
 }
@@ -332,6 +380,7 @@ export class UsageService {
           anonymous_token: flowfexSessions.anonymous_token,
           connected_agents: flowfexSessions.connected_agents,
           created_at: flowfexSessions.created_at,
+          graph_state: flowfexSessions.graph_state,
         })
         .from(flowfexSessions)
         .where(eq(flowfexSessions.id, sessionId))
@@ -390,10 +439,12 @@ export class UsageService {
       const normalizedRows = Array.isArray(usageRows) ? usageRows : [];
       const normalizedConnectionRows = Array.isArray(connectionSessionRows) ? connectionSessionRows : [];
       const summedUsage = sumUsageRows(normalizedRows);
-      const createdAtMs = Date.parse(session.created_at || '');
-      const computedDurationSeconds = Number.isNaN(createdAtMs)
-        ? summedUsage.sessionDurationSeconds
-        : Math.max(summedUsage.sessionDurationSeconds, Math.floor((nowMs - createdAtMs) / 1000));
+      const computedDurationSeconds = computeSessionDurationSeconds({
+        tier,
+        session,
+        summedUsage,
+        nowMs,
+      });
       const concurrentAgents = countConcurrentAgents(session, tier);
       const connectionsCount = countRecentConnections(normalizedConnectionRows, rollingWindowStart, tier);
 
@@ -405,12 +456,13 @@ export class UsageService {
         concurrentAgents,
       };
 
+      const sessionCreatedAtMs = parseTimestamp(session.created_at);
       const resetBaseMs = normalizedRows.reduce((lowest, row) => {
         const rowMs = Date.parse(row.period_start || row.created_at || '');
         if (Number.isNaN(rowMs)) return lowest;
         if (lowest === null || rowMs < lowest) return rowMs;
         return lowest;
-      }, null) ?? createdAtMs;
+      }, null) ?? sessionCreatedAtMs;
 
       const resetWindowMs = tier === 'anonymous'
         ? ONE_DAY_MS

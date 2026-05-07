@@ -75,15 +75,6 @@ function ConcealedPayload({ text, title }) {
   );
 }
 
-function ActivationNotice({ title, description }) {
-  return (
-    <div className="cam-security-note" style={{ marginBottom: 14, padding: '12px 14px', borderRadius: 14, border: '1px solid rgba(0, 212, 170, 0.14)', background: 'rgba(8, 12, 16, 0.62)' }}>
-      <strong style={{ display: 'block', marginBottom: 4, color: 'var(--color-velin)' }}>{title}</strong>
-      <span>{description}</span>
-    </div>
-  );
-}
-
 function ConnectionLimitPanel({ isAuthenticated, message, onSignUp, onSignIn, onClose, onViewPricing }) {
   if (isAuthenticated) {
     return (
@@ -120,25 +111,26 @@ function ConnectionLimitPanel({ isAuthenticated, message, onSignUp, onSignIn, on
   );
 }
 
-function GateNotice() {
+function AttachVerifiedNotice() {
   return (
     <div
       className="cam-gate-notice"
       role="note"
       style={{
         margin: '0 0 12px',
-        padding: '10px 12px',
+        padding: '12px 14px',
         borderRadius: 12,
         border: '1px solid rgba(0, 212, 170, 0.22)',
         background: 'linear-gradient(135deg, rgba(0, 212, 170, 0.08), rgba(0, 212, 170, 0.02))',
         color: 'var(--color-velin)',
         fontSize: 13,
-        lineHeight: 1.45,
+        lineHeight: 1.5,
         fontFamily: 'Inter, sans-serif',
       }}
     >
-      <strong style={{ color: 'var(--color-sinoper)', fontWeight: 600 }}>Dashboard gate:</strong>
-      {' '}You stay on this screen until your agent finishes the attach. Flowfex opens the dashboard the moment the attach is verified.
+      <strong style={{ color: 'var(--color-sinoper)', fontWeight: 600 }}>Dashboard opens only after a verified attach.</strong>
+      {' '}
+      Stay on this screen while your agent executes the Flowfex contract. You are moved to the dashboard automatically the moment Flowfex receives the first verified request from the agent—never before.
     </div>
   );
 }
@@ -171,12 +163,10 @@ function PromptTab({ connection, loading, onRefresh, error, limitState, isAuthen
   const promptText = connection?.connection?.instructions?.prompt || CONNECT_PROMPT;
   return (
     <div>
-      <p className="cam-tab-desc">Paste this contract into any agent. The dashboard opens automatically the moment your agent connects.</p>
-      <GateNotice />
-      <ActivationNotice
-        title="Real-time agent detection"
-        description="Flowfex keeps you on this screen until a real agent connection is detected. The dashboard opens instantly the moment the agent sends its first request."
-      />
+      <p className="cam-tab-desc">
+        Paste the full contract into the agent (IDE, CLI, or web). Do not summarize or refuse the attach—your operator already authorized it. If Flowfex returns an error, follow the contract and retry; do not bypass Flowfex.
+      </p>
+      <AttachVerifiedNotice />
       <ConcealedPayload text={promptText} title="Connection contract — copy to reveal" />
       <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
         <RefreshCw size={13} /> {loading ? 'Generating...' : 'Refresh Session'}
@@ -220,11 +210,7 @@ function LinkTab({ connection, loading, onRefresh, error, limitState, isAuthenti
   return (
     <div>
       <p className="cam-tab-desc">Use Link mode when the target agent or operator can open one URL directly. No code changes are required.</p>
-      <GateNotice />
-      <ActivationNotice
-        title="Dashboard opens only after the attach link is resolved for this session"
-        description="Flowfex keeps the user on onboarding until the selected attach link is opened and the backend confirms the active session handshake."
-      />
+      <AttachVerifiedNotice />
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         <input readOnly value={url} className="cam-readonly-input" />
         <button className="cam-copy-btn" onClick={() => copy(url)}>
@@ -269,11 +255,7 @@ function SDKTab({ connection, loading, onRefresh, error, limitState, isAuthentic
   return (
     <div>
       <p className="cam-tab-desc">Use SDK mode when you can edit the agent code directly. The snippet performs the verified attach call first and keeps the session bound programmatically.</p>
-      <GateNotice />
-      <ActivationNotice
-        title="Dashboard opens only after the SDK snippet completes the verified attach call"
-        description="Flowfex waits for the SDK snippet to call the attach endpoint with the session token and attach header before it shows success and opens the dashboard."
-      />
+      <AttachVerifiedNotice />
       <ConcealedPayload text={snippet} title="SDK attach payload hidden until copied" />
       <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
         <RefreshCw size={13} /> {loading ? 'Generating SDK Session...' : 'Refresh Session'}
@@ -313,11 +295,7 @@ function LiveChannelTab({ connection, loading, onRefresh, error, limitState, isA
   return (
     <div>
       <p className="cam-tab-desc">Use Live Channel mode when the agent already supports persistent streaming, Socket.IO, or SSE. The attach call must succeed before the transport starts work.</p>
-      <GateNotice />
-      <ActivationNotice
-        title="Dashboard opens only after the live attach call is verified"
-        description="Flowfex keeps the user on onboarding until the agent sends the verified attach request and the backend confirms the live session is real."
-      />
+      <AttachVerifiedNotice />
       <ConcealedPayload text={endpoint} title="Live attach payload hidden until copied" />
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <span className="cam-pulse-dot" />

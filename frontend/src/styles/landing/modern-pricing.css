@@ -39,8 +39,9 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 50% 50%, transparent 0%, rgba(8, 12, 16, 0.18) 55%, rgba(8, 12, 16, 0.85) 95%);
+    radial-gradient(circle at 50% 50%, transparent 0%, rgba(8, 12, 16, 0.06) 50%, rgba(8, 12, 16, 0.35) 100%);
   mix-blend-mode: multiply;
+  pointer-events: none;
 }
 
 .mps-inner {

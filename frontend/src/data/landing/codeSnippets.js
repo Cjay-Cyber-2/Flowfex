@@ -1,4 +1,7 @@
 import { DEMO_SESSION_ID, buildConnectPrompt, buildConnectSdkSnippet } from '../../store/demoData';
+import { getBackendOrigin } from '../../utils/runtimeConfig';
+
+const apiOrigin = getBackendOrigin();
 
 export const codeSnippets = {
   prompt: buildConnectPrompt(DEMO_SESSION_ID).replace('Attach this agent to Flowfex for the full conversation.', 'Attach this session to Flowfex for the full conversation.'),
@@ -10,7 +13,7 @@ export const codeSnippets = {
   
   python: `from flowfex import FlowfexClient
 
-client = FlowfexClient('http://127.0.0.1:4000')
+client = FlowfexClient('${apiOrigin}')
 
 # Stay attached for the full conversation.
 # Send every request to Flowfex first.

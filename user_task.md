@@ -35,7 +35,7 @@ Set the following on the right hosts. Never commit these values.
 - [ ] `BETTER_AUTH_URL` — `https://flowfex.onrender.com` (backend origin).
 - [ ] `FLOWFEX_PUBLIC_ORIGIN` — `https://flowfex.onrender.com` (backend origin, not the frontend).
 - [ ] `FLOWFEX_APP_URL` — `https://flowfex.vercel.app` (frontend origin used for cross-site auth cookies and trusted origins).
-- [ ] `ALLOWED_ORIGINS` — `https://flowfex.vercel.app` (comma-separated list if you have more).
+- [ ] `ALLOWED_ORIGINS` — include both the production frontend and backend origins that serve browser traffic, e.g. `https://flowfex.vercel.app,https://flowfex.onrender.com` (comma-separated; add any staging origins you use).
 - [ ] `RESEND_API_KEY` — the Resend production API key.
 - [ ] `EMAIL_FROM` — the verified Resend sender address (e.g. `Flowfex <noreply@flowfex.app>`).
 - [ ] `EMAIL_REPLY_TO` — (optional) a support reply-to address.
@@ -109,6 +109,7 @@ Run each of these manually against the live site after every secret/dashboard ch
 - [ ] **Google sign-in:** complete the Google OAuth round-trip and land on the dashboard.
 - [ ] **GitHub sign-in:** complete the GitHub OAuth round-trip and land on the dashboard.
 - [ ] **Cross-laptop attach test:** open the site on a colleague's laptop with no previous Flowfex history; confirm `/dashboard` redirects to `/onboarding` until a real agent attaches.
+- [ ] **Stale session / shared prompt:** paste a connection prompt that references an older session id into a fresh agent; confirm the first attach is not rejected solely because the session row is old (anonymous duration is measured from verified attach, not session creation time).
 - [ ] **Authenticated request quota:** sign in, exhaust the daily request allowance, and confirm the upgrade card appears (no signup buttons).
 - [ ] **API key issuance:** in Settings → API Keys, generate a key while signed in, run an SDK attach with it, and revoke the key.
 

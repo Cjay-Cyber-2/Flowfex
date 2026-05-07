@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useSessionContext } from '../../context/SessionContext';
 import useStore from '../../store/useStore';
 import FlowfexLogoNew from '../FlowfexLogoNew';
+import { isLiveConnectedAgent } from '../../utils/agentPresence';
 
 /**
  * Guard that protects /dashboard so it only renders when there is a real
@@ -38,7 +39,7 @@ export default function RequireAttachedAgent({ children }) {
   const location = useLocation();
   const { sessionReady, isAuthenticated, hasConnectedAgent } = useSessionContext();
   const connectedAgents = useStore((state) => state.connectedAgents);
-  const localHasConnectedAgent = connectedAgents.length > 0;
+  const localHasConnectedAgent = connectedAgents.some(isLiveConnectedAgent);
   const [graceExpired, setGraceExpired] = useState(false);
 
   useEffect(() => {
@@ -46,7 +47,9 @@ export default function RequireAttachedAgent({ children }) {
       return undefined;
     }
 
-    const timer = window.setTimeout(() => setGraceExpired(true), 350);
+    // Give Better Auth and session hydration time after OAuth redirect so we
+    // do not send freshly signed-in users back to onboarding.
+    const timer = window.setTimeout(() => setGraceExpired(true), 2800);
     return () => window.clearTimeout(timer);
   }, [sessionReady]);
 

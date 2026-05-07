@@ -9,7 +9,8 @@ const FLOWFEX_COLORS = [
 ];
 
 const DEVICE_PIXEL_RATIO_CAP = 1.5;
-const WORD_CYCLE_MS = 2200;
+/** Minimum time each word stays on screen so particles can settle into readable text. */
+const WORD_CYCLE_MS = 5200;
 
 class Particle {
   constructor(width, height) {

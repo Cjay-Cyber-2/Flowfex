@@ -6,6 +6,7 @@ import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import ConnectAgentModal from '../components/ConnectAgentModal';
 import PulseBeams from '../components/animations/PulseBeams';
 import useStore from '../store/useStore';
+import { isLiveConnectedAgent } from '../utils/agentPresence';
 import '../styles/onboarding.css';
 
 const ONBOARDING_BEAMS = [
@@ -68,8 +69,6 @@ const ONBOARDING_BEAMS = [
   },
 ];
 
-const CONNECTION_MODES = ['Prompt', 'Link', 'SDK', 'Live Channel'];
-
 export default function Onboarding() {
   const navigate = useNavigate();
   const activeSession = useStore((state) => state.activeSession);
@@ -80,7 +79,7 @@ export default function Onboarding() {
 
   useEffect(() => {
     const hasLiveAgent = Array.isArray(connectedAgents)
-      && connectedAgents.some((agent) => agent && agent.status === 'connected');
+      && connectedAgents.some((agent) => agent && agent.status === 'connected' && isLiveConnectedAgent(agent));
     if (activeSession?.id && hasLiveAgent && connectionStage === 'idle') {
       navigate('/dashboard', { replace: true });
     }
@@ -216,13 +215,8 @@ export default function Onboarding() {
             </motion.div>
             <p className="ob-headline">Connect your first agent to begin.</p>
             <p className="ob-copy-subline">
-              Choose prompt, link, SDK, or live channel. Flowfex opens the dashboard only after it verifies a real attach.
+              Open Connect Agent and run the Flowfex contract in your agent. You only go to the dashboard after Flowfex verifies a real attach.
             </p>
-            <div className="ob-mode-strip" aria-label="Available connection modes">
-              {CONNECTION_MODES.map((mode) => (
-                <span key={mode} className="ob-mode-pill">{mode}</span>
-              ))}
-            </div>
             <button type="button" className="ob-cta-btn" onClick={() => setIsModalOpen(true)}>
               Connect Agent
             </button>

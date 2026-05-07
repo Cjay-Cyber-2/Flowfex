@@ -3,6 +3,7 @@ import { buildApprovalQueue } from './demoData';
 import { CONTROL_EVENTS } from '../../../shared/control-contracts.js';
 import { getBackendOrigin } from '../utils/runtimeConfig';
 import { resolveRehydratedGraphState } from '../../../lib/session/rehydrate';
+import { filterLiveConnectedAgents } from '../utils/agentPresence';
 
 function syncSelectedNode(selectedNode, nodes) {
   if (!selectedNode) return null;
@@ -434,11 +435,12 @@ const useStore = create((set, get) => ({
       const graphState = resolveRehydratedGraphState(session.graphState || {}, []);
       const nodes = Array.isArray(graphState.nodes) ? graphState.nodes : [];
       const edges = Array.isArray(graphState.edges) ? graphState.edges : [];
-      const connectedAgents = graphState.connectedAgents.length > 0
+      const rawAgents = graphState.connectedAgents.length > 0
         ? graphState.connectedAgents
         : Array.isArray(session.connectedAgents)
           ? session.connectedAgents
           : [];
+      const connectedAgents = filterLiveConnectedAgents(rawAgents);
       const activeSession = toPersistedActiveSession(session, graphState, state.activeSession);
       const selectedNode = syncSelectedNode(state.selectedNode, nodes)
         || nodes.find((node) => node.state === 'approval')

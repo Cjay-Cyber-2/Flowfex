@@ -25,6 +25,7 @@ import {
   signOut as signOutFromAuth,
 } from '../services/authService';
 import useStore from '../store/useStore';
+import { filterLiveConnectedAgents, isLiveConnectedAgent } from '../utils/agentPresence';
 
 const SessionContext = createContext(undefined);
 
@@ -285,17 +286,16 @@ export function SessionProvider({ children }) {
   }, [initialize]);
 
   const hasConnectedAgent = useMemo(() => {
-    if (connectedAgents.length > 0) {
+    if (connectedAgents.some(isLiveConnectedAgent)) {
       return true;
     }
 
-    if (Array.isArray(state.session?.connectedAgents) && state.session.connectedAgents.length > 0) {
-      return true;
-    }
-
-    return Array.isArray(state.session?.graphState?.connectedAgents)
-      && state.session.graphState.connectedAgents.length > 0;
-  }, [connectedAgents.length, state.session]);
+    const fromSession = [
+      ...(state.session?.connectedAgents || []),
+      ...(state.session?.graphState?.connectedAgents || []),
+    ];
+    return filterLiveConnectedAgents(fromSession).length > 0;
+  }, [connectedAgents, state.session]);
 
   const value = useMemo(() => ({
     ...state,

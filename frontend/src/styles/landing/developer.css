@@ -124,21 +124,6 @@
   align-self: start;
 }
 
-/* Minimal landing strip: code block only */
-.developer-section--minimal .developer-container--minimal {
-  grid-template-columns: 1fr;
-  justify-items: center;
-  align-items: center;
-}
-
-.developer-section--minimal .animated-code-block {
-  margin-left: 0;
-  margin-right: 0;
-  max-width: 560px;
-  width: 100%;
-}
-
-
 .animated-code-block {
   background: #080C10;
   border: 1px solid rgba(232, 237, 242, 0.15);

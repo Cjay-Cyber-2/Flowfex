@@ -204,9 +204,8 @@ function LinkTab({ connection, loading, onRefresh, error, limitState, isAuthenti
   }
 
   const url = normalizeSessionConnectUrl(connection?.connection?.link?.url || CONNECT_LINK);
-  const summary = connection?.connection?.instructions?.attachBrief
-    || connection?.connection?.instructions?.summary
-    || 'This link resolves into the same Flowfex-first operating contract in the background.';
+  const hint = connection?.connection?.instructions?.summary
+    || 'Open this link once in the agent to attach.';
   return (
     <div>
       <p className="cam-tab-desc">Use Link mode when the target agent or operator can open one URL directly. No code changes are required.</p>
@@ -220,7 +219,7 @@ function LinkTab({ connection, loading, onRefresh, error, limitState, isAuthenti
       <button className="cam-text-link" style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={onRefresh} disabled={loading}>
         <RefreshCw size={13} /> {loading ? 'Generating Link...' : 'Regenerate Link'}
       </button>
-      <p className="cam-security-note">{summary}</p>
+      <p className="cam-security-note">{hint}</p>
       {error ? <p className="cam-security-note">Backend error: {error}</p> : null}
     </div>
   );

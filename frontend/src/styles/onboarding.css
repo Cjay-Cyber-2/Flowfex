@@ -76,6 +76,10 @@
   text-align: center;
 }
 
+.ob-stack--minimal {
+  gap: 28px;
+}
+
 /* PulseBeams SVG layer — sits behind the centre circle */
 .ob-beams-layer {
   position: absolute;

@@ -193,7 +193,7 @@ export default function Onboarding() {
         </AnimatePresence>
 
         {connectionStage === 'idle' ? (
-          <div className="ob-stack">
+          <div className="ob-stack ob-stack--minimal">
             <motion.div
               className="ob-circle"
               animate={{ scale: [1, 1.08, 1], opacity: [0.84, 1, 0.84] }}
@@ -201,10 +201,6 @@ export default function Onboarding() {
             >
               <FlowfexLogoNew size={34} animated={false} />
             </motion.div>
-            <p className="ob-headline">Connect your first agent to begin.</p>
-            <p className="ob-copy-subline">
-              Open Connect Agent and run the Flowfex contract in your agent. You only go to the dashboard after Flowfex verifies a real attach.
-            </p>
             <button type="button" className="ob-cta-btn" onClick={() => setIsModalOpen(true)}>
               Connect Agent
             </button>

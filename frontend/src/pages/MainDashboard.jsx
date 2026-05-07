@@ -19,6 +19,7 @@ export default function MainDashboard() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTaskTooltip, setShowTaskTooltip] = useState(true);
+  const [newAgentAlert, setNewAgentAlert] = useState(null);
   const [connectedAgents, setConnectedAgents] = useState([
     { id: 1, name: 'Claude Assistant', type: 'chat', status: 'connected', lastSeen: '2 min ago' },
     { id: 2, name: 'VS Code Agent', type: 'ide', status: 'offline', lastSeen: '1 hour ago' }
@@ -218,8 +219,17 @@ This will route all your tool selections through Flowfex for visual orchestratio
     setShowConnectModal(false);
   };
 
+  const triggerAgentConnection = () => {
+    setNewAgentAlert({ name: 'Godmode Agent', type: 'system' });
+    setTimeout(() => {
+      setConnectedAgents(prev => [...prev, { id: Date.now(), name: 'Godmode Agent', type: 'system', status: 'connected', lastSeen: 'just now' }]);
+      setNewAgentAlert(null);
+    }, 3000);
+  };
+
   return (
-    <div className="main-dashboard">
+    <div className="dashboard-wrapper">
+      <div className="main-dashboard">
       {/* Top Navigation Bar */}
       <nav className="dashboard-nav">
         <div className="nav-left">
@@ -625,6 +635,62 @@ This will route all your tool selections through Flowfex for visual orchestratio
       </AnimatePresence>
 
       <ConnectAgentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      
+      {/* Simulate Connection Button (for testing) */}
+      <button 
+        onClick={triggerAgentConnection}
+        style={{
+          position: 'fixed', bottom: 20, right: 20, zIndex: 1000,
+          background: 'rgba(0, 212, 170, 0.2)', border: '1px solid var(--color-verdigris-pale)',
+          color: 'var(--color-verdigris-pale)', padding: '8px 16px', borderRadius: 8,
+          cursor: 'pointer', fontFamily: 'var(--font-inter)', fontSize: 12, backdropFilter: 'blur(10px)'
+        }}
+      >
+        Simulate Agent Connection
+      </button>
+
+      {/* Agent Connection Animation */}
+      <AnimatePresence>
+        {newAgentAlert && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: 50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
+            transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+            style={{
+              position: 'fixed', bottom: 40, left: '50%', transform: 'translateX(-50%)',
+              background: 'rgba(28, 24, 18, 0.85)', backdropFilter: 'blur(24px)',
+              border: '1px solid rgba(0, 212, 170, 0.4)', borderRadius: 100,
+              padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 16,
+              zIndex: 9999, boxShadow: '0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,212,170,0.2) inset'
+            }}
+          >
+            <div style={{ position: 'relative' }}>
+              <motion.div 
+                animate={{ rotate: 360 }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                style={{
+                  position: 'absolute', top: -4, left: -4, right: -4, bottom: -4,
+                  border: '2px dashed var(--color-verdigris-pale)', borderRadius: '50%',
+                  opacity: 0.5
+                }}
+              />
+              <div style={{
+                width: 40, height: 40, borderRadius: '50%', background: 'var(--color-verdigris-pale)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000'
+              }}>
+                <Cpu size={20} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ color: 'var(--color-verdigris-pale)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>Agent Connected</span>
+              <span style={{ color: 'var(--color-velin)', fontSize: 14, fontWeight: 500 }}>{newAgentAlert.name} is now orchestrating</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      </div>
     </div>
   );
 }

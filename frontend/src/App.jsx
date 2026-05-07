@@ -11,6 +11,7 @@ import SessionDetail from './pages/SessionDetail';
 import History from './pages/History';
 import Settings from './pages/Settings';
 import Toast from './components/common/Toast';
+import RequireAttachedAgent from './components/auth/RequireAttachedAgent';
 import useStore from './store/useStore';
 import { useSessionContext } from './context/SessionContext';
 
@@ -31,7 +32,14 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/demo" element={<LiveDemoPage />} />
-        <Route path="/dashboard" element={<OrchestrationCanvas />} />
+        <Route
+          path="/dashboard"
+          element={
+            <RequireAttachedAgent>
+              <OrchestrationCanvas />
+            </RequireAttachedAgent>
+          }
+        />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/reset-password" element={<ForgotPassword />} />

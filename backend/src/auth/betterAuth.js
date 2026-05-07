@@ -211,8 +211,30 @@ async function sendPasswordResetEmail({ user, url }) {
 }
 
 // Initialize Drizzle ORM with Neon Serverless WebSocket Pool
+function resolveDatabaseConnectionString() {
+  const configured = process.env.DATABASE_URL;
+  if (configured && configured.trim().length > 0) {
+    return configured;
+  }
+
+  // In production we refuse to silently fall back to a non-existent local
+  // dummy database. Failing loudly here surfaces the missing secret in the
+  // Render dashboard before any auth call can produce a confusing 500.
+  const env = (process.env.NODE_ENV || '').toLowerCase();
+  if (env === 'production') {
+    throw new Error(
+      'DATABASE_URL is required in production for Flowfex auth. Set it in the backend host environment.'
+    );
+  }
+
+  // Local/dev/tests: keep a deterministic placeholder so the module still
+  // loads when devs work without a database. Auth calls will fail until a
+  // real URL is provided, which is the desired behavior for local work.
+  return 'postgres://flowfex_dev:flowfex_dev@localhost:5432/flowfex_dev';
+}
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || "postgres://dummy:dummy@localhost/dummy",
+  connectionString: resolveDatabaseConnectionString(),
 });
 
 pool.on('error', (err) => {

@@ -97,12 +97,38 @@ class FlowfexClient:
         
         data = response.json()
         self.session = Session(data['connection']['session'])
-        
-        # Auto-connect WebSocket for live/sdk mode
+
+        # SDK / live modes must perform the verified attach before the
+        # Flowfex dashboard will open for the user. This mirrors the JS SDK.
         if mode in ('live', 'sdk'):
+            self._attach_session(api_key=api_key)
             self._connect_ws()
-        
+
         return self.session
+
+    def _attach_session(self, api_key: Optional[str] = None) -> None:
+        """Call the attach endpoint with the verification headers."""
+        if not self.session:
+            return
+
+        attach_url = self.session.endpoints.get('attach') if isinstance(self.session.endpoints, dict) else None
+        if not attach_url:
+            return
+
+        headers = {
+            'Authorization': f'Bearer {self.session.token}',
+            'X-Flowfex-Agent-Attach': '1',
+        }
+        if api_key:
+            headers['X-Flowfex-Api-Key'] = api_key
+
+        response = requests.get(attach_url, headers=headers)
+        if not response.ok:
+            try:
+                error = response.json().get('error', {}).get('message', 'Session attach failed')
+            except ValueError:
+                error = 'Session attach failed'
+            raise FlowfexError(error, response.status_code)
     
     def send(self, task: str) -> Dict[str, Any]:
         """

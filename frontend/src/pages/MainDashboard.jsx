@@ -191,8 +191,15 @@ export default function MainDashboard() {
   };
 
   const handleRejectNode = (nodeId) => {
-    // Simulate rejection - show rerouting
-    console.log('Rejecting node:', nodeId);
+    // Reject — keep the executing flag so the live mode shows the reroute,
+    // and clear the inline tooltip so the user can confirm the next branch.
+    setIsExecuting(true);
+    setShowTaskTooltip(false);
+    if (typeof window !== 'undefined' && typeof CustomEvent === 'function') {
+      window.dispatchEvent(new CustomEvent('flowfex:node:reject', {
+        detail: { nodeId },
+      }));
+    }
   };
 
   const handleConnectAgent = (method) => {

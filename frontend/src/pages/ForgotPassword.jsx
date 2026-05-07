@@ -167,7 +167,7 @@ function ForgotPassword() {
 const styles = {
   page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-eigengrau)', position: 'relative', padding: '24px 16px' },
   bgWrap: { position: 'fixed', inset: 0, zIndex: 0, opacity: 1 },
-  bgBlur: { position: 'absolute', inset: 0, backdropFilter: 'blur(4px)' },
+  bgBlur: { position: 'absolute', inset: 0, backdropFilter: 'blur(1.5px)' },
   card: {
     position: 'relative',
     zIndex: 1,

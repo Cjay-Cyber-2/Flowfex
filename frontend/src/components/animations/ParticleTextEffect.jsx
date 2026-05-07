@@ -77,7 +77,7 @@ class Particle {
     };
 
     ctx.fillStyle = `rgb(${color.r},${color.g},${color.b})`;
-    ctx.fillRect(this.pos.x, this.pos.y, 2, 2);
+    ctx.fillRect(this.pos.x, this.pos.y, 2.5, 2.5);
   }
 
   retarget(nextTarget, nextColor) {
@@ -132,7 +132,7 @@ function createWordTargets(word, width, height) {
   const offscreenContext = offscreen.getContext('2d');
   offscreenContext.clearRect(0, 0, offscreen.width, offscreen.height);
   offscreenContext.fillStyle = 'white';
-  const fontSize = Math.min(118, offscreen.width * 0.108);
+  const fontSize = Math.min(132, offscreen.width * 0.118);
   offscreenContext.font = `700 ${fontSize}px "Space Grotesk", Inter, Arial, sans-serif`;
   offscreenContext.textAlign = 'center';
   offscreenContext.textBaseline = 'middle';
@@ -140,7 +140,10 @@ function createWordTargets(word, width, height) {
 
   const pixels = offscreenContext.getImageData(0, 0, offscreen.width, offscreen.height).data;
   const targets = [];
-  const sampleStep = Math.max(13, Math.floor(offscreen.width / 72));
+  // Smaller sample step gives denser, more legible text — matches the
+  // original Flowfex animation density (every ~6 px) instead of the sparse
+  // step the section had drifted to.
+  const sampleStep = Math.max(5, Math.floor(offscreen.width / 200));
 
   for (let y = 0; y < offscreen.height; y += sampleStep) {
     for (let x = 0; x < offscreen.width; x += sampleStep) {
@@ -149,6 +152,14 @@ function createWordTargets(word, width, height) {
         targets.push({ x, y });
       }
     }
+  }
+
+  // Shuffle so the morph fills the word organically instead of row by row.
+  for (let i = targets.length - 1; i > 0; i -= 1) {
+    const swap = Math.floor(Math.random() * (i + 1));
+    const tmp = targets[i];
+    targets[i] = targets[swap];
+    targets[swap] = tmp;
   }
 
   return targets;

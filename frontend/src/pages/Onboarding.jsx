@@ -73,17 +73,18 @@ const CONNECTION_MODES = ['Prompt', 'Link', 'SDK', 'Live Channel'];
 export default function Onboarding() {
   const navigate = useNavigate();
   const activeSession = useStore((state) => state.activeSession);
-  const agents = useStore((state) => state.agents);
+  const connectedAgents = useStore((state) => state.connectedAgents);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [connectionStage, setConnectionStage] = useState('idle');
   const transitionTimersRef = useRef([]);
 
   useEffect(() => {
-    const hasConnectedAgent = agents && agents.length > 0 && agents.some((agent) => agent.status === 'connected');
-    if (activeSession?.id && hasConnectedAgent) {
+    const hasLiveAgent = Array.isArray(connectedAgents)
+      && connectedAgents.some((agent) => agent && agent.status === 'connected');
+    if (activeSession?.id && hasLiveAgent && connectionStage === 'idle') {
       navigate('/dashboard', { replace: true });
     }
-  }, [activeSession, agents, navigate]);
+  }, [activeSession, connectedAgents, connectionStage, navigate]);
 
   const clearTransitionTimers = useCallback(() => {
     transitionTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));

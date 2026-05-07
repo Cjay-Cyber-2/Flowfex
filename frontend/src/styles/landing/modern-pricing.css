@@ -7,11 +7,45 @@
   align-items: center;
   justify-content: center;
   padding: 6rem 1.5rem;
+  background:
+    radial-gradient(circle at 50% 110%, rgba(0, 212, 170, 0.18), transparent 55%),
+    linear-gradient(180deg, #06090d 0%, #080c10 60%, #06090d 100%);
+}
+
+/* Animated WebGL background — locked to a fixed square so it never grows or
+   shrinks between renders, and tinted with the Flowfex palette. */
+.mps-shader-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(320px, 60vmin, 720px);
+  height: clamp(320px, 60vmin, 720px);
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(0.4px);
+}
+
+.mps-shader-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.mps-shader-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0%, rgba(8, 12, 16, 0.18) 55%, rgba(8, 12, 16, 0.85) 95%);
+  mix-blend-mode: multiply;
 }
 
 .mps-inner {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;

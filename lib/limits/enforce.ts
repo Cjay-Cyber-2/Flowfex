@@ -69,8 +69,8 @@ export function enforceUsageLimits(
       usage.connectionsCount,
       limits.maxConnectionsPerDay,
       tier === 'anonymous'
-        ? 'Anonymous sessions are limited to five verified agent connections per day.'
-        : 'Authenticated sessions are limited to five free verified agent connections per day.'
+        ? 'Anonymous sessions are limited to twenty verified agent attaches per day.'
+        : 'Authenticated sessions are limited to twenty verified agent attaches per day.'
     );
   }
 
@@ -80,7 +80,7 @@ export function enforceUsageLimits(
       'maxExecutionsPerSession',
       usage.executionsCount,
       limits.maxExecutionsPerSession,
-      'Anonymous sessions are limited to three executions.'
+      `Your anonymous Flowfex session has used all ${limits.maxExecutionsPerSession} free requests for today. Sign up to continue.`
     );
   }
 
@@ -90,7 +90,7 @@ export function enforceUsageLimits(
       'maxExecutionsPerDay',
       usage.executionsCount,
       limits.maxExecutionsPerDay,
-      'Authenticated users are limited to fifty executions per day.'
+      'You have reached the 24-hour Flowfex request allowance for this account.'
     );
   }
 

@@ -1,9 +1,10 @@
 .orchestration-canvas-page {
   width: 100%;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   background: var(--color-eigengrau);
 }
 
@@ -12,45 +13,50 @@
   display: grid;
   grid-template-columns: var(--left-rail-width) minmax(0, 1fr) var(--right-drawer-width);
   min-height: 0;
+  overflow: hidden;
 }
 
 .canvas-main-shell {
   min-width: 0;
   min-height: 0;
   display: grid;
+  /* Operating-panel layout: pills row, big canvas, status footer — no
+     additional scroll. Internal panels scroll inside their own cells. */
   grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: var(--space-4);
-  padding: var(--space-5);
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  overflow: hidden;
 }
 
 .canvas-surface-header {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .canvas-surface-pill {
-  min-width: 180px;
-  padding: var(--space-4);
+  min-width: 0;
+  flex: 1 1 160px;
+  padding: 10px 14px;
   background: rgba(13, 19, 27, 0.82);
   border: 1px solid rgba(0, 212, 170, 0.08);
-  border-radius: 18px;
+  border-radius: 14px;
   backdrop-filter: blur(18px) saturate(150%);
 }
 
 .canvas-surface-pill-label {
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   font-family: var(--font-space-grotesk);
-  font-size: 0.625rem;
-  letter-spacing: 0.16em;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-bistre);
 }
 
 .canvas-surface-pill strong {
   font-family: var(--font-geist);
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   font-weight: 600;
 }
 
@@ -69,9 +75,12 @@
   display: flex;
   justify-content: space-between;
   gap: var(--space-4);
-  padding: 0 var(--space-2);
+  padding: 6px var(--space-3);
+  border-top: 1px solid rgba(0, 212, 170, 0.06);
+  border-radius: 12px;
+  background: rgba(13, 19, 27, 0.62);
   color: var(--color-bistre);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
 }
 
 .flowfex-connect-modal {

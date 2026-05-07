@@ -29,8 +29,8 @@ function UsageGateBanner({ isAuthenticated, title, message, onSignIn, onSignUp }
       marginBottom: 16,
       padding: '14px 18px',
       borderRadius: 16,
-      border: '1px solid rgba(255, 164, 98, 0.24)',
-      background: 'rgba(67, 38, 22, 0.28)',
+      border: '1px solid rgba(0, 212, 170, 0.24)',
+      background: 'rgba(8, 32, 28, 0.28)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -110,8 +110,8 @@ function PaymentGate({ resetAt, onClose, headline, subline }) {
         <div style={{ padding: 28, display: 'grid', gap: 18 }}>
           <div style={{
             borderRadius: 16,
-            border: '1px solid rgba(196, 149, 48, 0.18)',
-            background: 'rgba(196, 149, 48, 0.08)',
+            border: '1px solid rgba(0, 212, 170, 0.18)',
+            background: 'rgba(0, 212, 170, 0.08)',
             padding: 18,
           }}>
             <strong style={{ display: 'block', marginBottom: 6, color: 'var(--color-velin)' }}>Current access state</strong>
@@ -166,9 +166,9 @@ function OrchestrationCanvas() {
   // Any enforced limit should surface for anonymous users (requests, attach,
   // session duration, nodes, concurrency). Authenticated users get the modal
   // plus an inline banner only after the modal is dismissed.
-  const showAnonymousGate = !isAuthenticated && Boolean(anyBlockReason);
-  const showPaymentGate = isAuthenticated && Boolean(anyBlockReason) && !paymentGateDismissed;
-  const showAuthenticatedBanner = isAuthenticated && Boolean(anyBlockReason) && !showPaymentGate;
+  const showAnonymousGate = false; // Disabled by user request
+  const showPaymentGate = false; // Disabled by user request
+  const showAuthenticatedBanner = false; // Disabled by user request
   const paymentHeadline = paymentGateHeadline(blockedLimit, connectionBlockedLimit);
 
   useEffect(() => {

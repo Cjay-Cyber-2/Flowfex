@@ -50,7 +50,7 @@ function UsageBar({ label, current, limit }) {
           style={{
             width: `${Math.round(ratio * 100)}%`,
             height: '100%',
-            background: ratio >= 1 ? 'var(--color-caput-mortuum, #c23028)' : 'var(--color-sinoper)',
+            background: ratio >= 1 ? 'var(--color-caput-mortuum, #ff4444)' : 'var(--color-sinoper)',
             transition: 'width var(--duration-slow) var(--ease-expo-out)',
           }}
         />
@@ -431,3 +431,4 @@ function Settings() {
 }
 
 export default Settings;
+

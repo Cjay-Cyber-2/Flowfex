@@ -100,7 +100,7 @@ function ConnectionLines({ count = 300, positions }) {
   return (
     <lineSegments ref={lines} geometry={lineGeometry}>
       <lineBasicMaterial
-        color="#9E3028"
+        color="#ff4444"
         transparent
         opacity={0.15}
         blending={THREE.AdditiveBlending}
@@ -139,3 +139,4 @@ export default function ParticleField() {
     </div>
   );
 }
+

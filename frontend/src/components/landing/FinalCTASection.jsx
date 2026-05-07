@@ -23,11 +23,11 @@ function FinalCTASection() {
             <line key={i}
               x1={SVG_NODES[a].cx} y1={SVG_NODES[a].cy}
               x2={SVG_NODES[b].cx} y2={SVG_NODES[b].cy}
-              stroke="#9E3028" strokeWidth="1"
+              stroke="#ff4444" strokeWidth="1"
             />
           ))}
           {SVG_NODES.map((n, i) => (
-            <circle key={i} cx={n.cx} cy={n.cy} r="5" fill="#9E3028" />
+            <circle key={i} cx={n.cx} cy={n.cy} r="5" fill="#ff4444" />
           ))}
         </svg>
 
@@ -68,3 +68,4 @@ function FinalCTASection() {
 }
 
 export default FinalCTASection;
+

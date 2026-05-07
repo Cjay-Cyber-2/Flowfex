@@ -6,7 +6,7 @@
   max-height: 480px;
   background: rgba(28, 24, 18, 0.95);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(122, 106, 92, 0.2);
+  border: 1px solid rgba(138, 150, 163, 0.2);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
@@ -75,7 +75,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(122, 106, 92, 0.15);
+  border-bottom: 1px solid rgba(138, 150, 163, 0.15);
 }
 
 .queue-header h3 {
@@ -93,8 +93,8 @@
   min-width: 24px;
   height: 24px;
   padding: 0 8px;
-  background: rgba(196, 149, 48, 0.2);
-  border: 1px solid rgba(196, 149, 48, 0.4);
+  background: rgba(0, 229, 195, 0.2);
+  border: 1px solid rgba(0, 229, 195, 0.4);
   border-radius: 12px;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
@@ -113,21 +113,21 @@
 }
 
 .queue-list::-webkit-scrollbar-track {
-  background: rgba(122, 106, 92, 0.05);
+  background: rgba(138, 150, 163, 0.05);
 }
 
 .queue-list::-webkit-scrollbar-thumb {
-  background: rgba(122, 106, 92, 0.3);
+  background: rgba(138, 150, 163, 0.3);
   border-radius: 3px;
 }
 
 .queue-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(122, 106, 92, 0.5);
+  background: rgba(138, 150, 163, 0.5);
 }
 
 .approval-card {
   background: rgba(22, 22, 29, 0.6);
-  border: 1px solid rgba(122, 106, 92, 0.2);
+  border: 1px solid rgba(138, 150, 163, 0.2);
   border-radius: 8px;
   margin-bottom: 8px;
   overflow: hidden;
@@ -149,12 +149,12 @@
 }
 
 .approval-card:hover {
-  border-color: rgba(196, 149, 48, 0.4);
+  border-color: rgba(0, 229, 195, 0.4);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .approval-card.expanded {
-  border-color: rgba(196, 149, 48, 0.5);
+  border-color: rgba(0, 229, 195, 0.5);
 }
 
 .approval-header {
@@ -172,7 +172,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(122, 106, 92, 0.15);
+  background: rgba(138, 150, 163, 0.15);
   border-radius: 6px;
   font-size: 16px;
   color: var(--color-text-primary);
@@ -285,7 +285,7 @@
   display: flex;
   gap: 8px;
   padding: 12px;
-  border-top: 1px solid rgba(122, 106, 92, 0.1);
+  border-top: 1px solid rgba(138, 150, 163, 0.1);
 }
 
 .btn-approve,
@@ -341,10 +341,10 @@
 /* Pulse animation for new approvals */
 @keyframes approvalPulse {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(196, 149, 48, 0.4);
+    box-shadow: 0 0 0 0 rgba(0, 229, 195, 0.4);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(196, 149, 48, 0);
+    box-shadow: 0 0 0 8px rgba(0, 229, 195, 0);
   }
 }
 
@@ -359,3 +359,4 @@
     width: 320px;
   }
 }
+

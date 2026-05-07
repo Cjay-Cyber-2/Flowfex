@@ -176,12 +176,12 @@ export default function MainDashboard() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed': return '#3D7A6A';
-      case 'active': return '#C49530';
-      case 'pending': return '#C78B2A';
-      case 'waiting': return '#7A6A5C';
-      case 'error': return '#C23028';
-      default: return '#7A6A5C';
+      case 'completed': return '#00d4aa';
+      case 'active': return '#00e5c3';
+      case 'pending': return '#46bda9';
+      case 'waiting': return '#8a96a3';
+      case 'error': return '#ff4444';
+      default: return '#8a96a3';
     }
   };
 
@@ -445,14 +445,14 @@ This will route all your tool selections through Flowfex for visual orchestratio
                 </filter>
                 
                 <linearGradient id="connectionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#9E3028" />
-                  <stop offset="100%" stopColor="#C49530" />
+                  <stop offset="0%" stopColor="#ff4444" />
+                  <stop offset="100%" stopColor="#00e5c3" />
                 </linearGradient>
               </defs>
               
               {/* Grid Background */}
               <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(122, 106, 92, 0.1)" strokeWidth="1"/>
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(138, 150, 163, 0.1)" strokeWidth="1"/>
               </pattern>
               <rect width="100%" height="100%" fill="url(#grid)" />
               
@@ -469,7 +469,7 @@ This will route all your tool selections through Flowfex for visual orchestratio
                   <g key={index}>
                     <path
                       d={`M ${fromNode.x + 60} ${fromNode.y + 30} Q ${(fromNode.x + toNode.x) / 2} ${fromNode.y - 50} ${toNode.x} ${toNode.y + 30}`}
-                      stroke={isCompleted ? "#3D7A6A" : isActive ? "url(#connectionGradient)" : "rgba(122, 106, 92, 0.4)"}
+                      stroke={isCompleted ? "#3D7A6A" : isActive ? "url(#connectionGradient)" : "rgba(138, 150, 163, 0.4)"}
                       strokeWidth={isActive ? "3" : "2"}
                       fill="none"
                       className={isActive ? "active-connection" : isCompleted ? "completed-connection" : ""}
@@ -477,7 +477,7 @@ This will route all your tool selections through Flowfex for visual orchestratio
                     
                     {/* Flow particles */}
                     {isActive && (
-                      <circle r="4" fill="#C49530" className="flow-particle">
+                      <circle r="4" fill="#00e5c3" className="flow-particle">
                         <animateMotion dur="2s" repeatCount="indefinite">
                           <mpath href={`#path-${index}`}/>
                         </animateMotion>
@@ -509,7 +509,7 @@ This will route all your tool selections through Flowfex for visual orchestratio
                       cx={node.x + 100}
                       cy={node.y + 20}
                       r="8"
-                      fill="#C78B2A"
+                      fill="#46bda9"
                       className="approval-indicator pulsing"
                     />
                   )}
@@ -694,3 +694,4 @@ This will route all your tool selections through Flowfex for visual orchestratio
     </div>
   );
 }
+

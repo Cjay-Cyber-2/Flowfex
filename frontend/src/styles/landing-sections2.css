@@ -6,7 +6,7 @@
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #9E3028;
+  color: #ff4444;
   margin-bottom: 16px;
 }
 
@@ -70,7 +70,7 @@
 }
 
 .pricing-card--popular {
-  border-color: #9E3028;
+  border-color: #ff4444;
   box-shadow: 0 0 40px rgba(158,48,40,0.12);
   padding-top: 44px;
   padding-bottom: 44px;
@@ -83,7 +83,7 @@
   font-family: var(--font-inter);
   font-size: 11px;
   font-weight: 600;
-  color: #9E3028;
+  color: #ff4444;
   background: rgba(22,22,29,0.9);
   border-radius: 20px;
   padding: 4px 10px;
@@ -151,7 +151,7 @@
 }
 
 .feature-check {
-  color: #9E3028;
+  color: #ff4444;
   flex-shrink: 0;
 }
 
@@ -176,7 +176,7 @@
 }
 
 .btn-sinoper {
-  background: #9E3028;
+  background: #ff4444;
   border: none;
   color: #EDE8DF;
 }
@@ -240,7 +240,7 @@
 }
 
 .feature-minus {
-  color: #7A6A5C;
+  color: #8a96a3;
 }
 
 /* ─── FAQ Section ────────────────────────────────────────────────────────── */
@@ -279,7 +279,7 @@
 }
 
 .faq-link {
-  color: #9E3028;
+  color: #ff4444;
   cursor: pointer;
 }
 
@@ -315,7 +315,7 @@
 }
 
 .faq-icon {
-  color: #9E3028;
+  color: #ff4444;
   flex-shrink: 0;
   transition: transform 0.25s ease;
 }
@@ -331,7 +331,7 @@
 .faq-answer p {
   font-family: var(--font-inter);
   font-size: 15px;
-  color: #7A6A5C;
+  color: #8a96a3;
   line-height: 1.7;
   margin: 0 0 20px;
 }
@@ -410,3 +410,4 @@
     font-size: 18px;
   }
 }
+

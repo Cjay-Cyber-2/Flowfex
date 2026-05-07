@@ -24,7 +24,7 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #9E3028;
+  color: #ff4444;
   margin-bottom: 20px;
 }
 
@@ -137,7 +137,7 @@
 }
 
 .sp-key {
-  color: #9E3028;
+  color: #ff4444;
 }
 
 .sp-author {
@@ -156,7 +156,7 @@
 .sp-role {
   font-family: var(--font-inter);
   font-size: 13px;
-  color: #7A6A5C;
+  color: #8a96a3;
 }
 
 /* ===== SECTION 7: DEVELOPER ===== */
@@ -183,7 +183,7 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #9E3028;
+  color: #ff4444;
   margin-bottom: 20px;
 }
 
@@ -200,7 +200,7 @@
 .dev-body {
   font-family: var(--font-inter);
   font-size: 16px;
-  color: #7A6A5C;
+  color: #8a96a3;
   line-height: 1.7;
   margin-bottom: 36px;
 }
@@ -249,7 +249,7 @@
 .dev-btn-filled {
   height: 44px;
   width: 160px;
-  background: #9E3028;
+  background: #ff4444;
   border: none;
   border-radius: 22px;
   color: #EDE8DF;
@@ -292,15 +292,15 @@
   font-family: var(--font-inter);
   font-size: 13px;
   font-weight: 500;
-  color: #7A6A5C;
+  color: #8a96a3;
   cursor: pointer;
   transition: color 0.2s, border-color 0.2s;
   margin-bottom: -1px;
 }
 
 .dev-tab--active {
-  color: #9E3028;
-  border-bottom-color: #9E3028;
+  color: #ff4444;
+  border-bottom-color: #ff4444;
 }
 
 .dev-copy-btn {
@@ -314,7 +314,7 @@
   padding: 4px 10px;
   font-family: var(--font-inter);
   font-size: 12px;
-  color: #9E3028;
+  color: #ff4444;
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -425,3 +425,4 @@
     padding: 8px;
   }
 }
+

@@ -96,7 +96,7 @@ function ConnectionLimitPanel({ isAuthenticated, message, onSignUp, onSignIn, on
 
   return (
     <div style={{ display: 'grid', gap: 12 }}>
-      <div className="cam-security-note" style={{ padding: '14px 16px', borderRadius: 16, border: '1px solid rgba(255, 164, 98, 0.24)', background: 'rgba(67, 38, 22, 0.32)' }}>
+      <div className="cam-security-note" style={{ padding: '14px 16px', borderRadius: 16, border: '1px solid rgba(0, 212, 170, 0.24)', background: 'rgba(8, 32, 28, 0.55)' }}>
         <strong style={{ display: 'block', marginBottom: 6, color: 'var(--color-velin)' }}>
           Anonymous connection limit reached
         </strong>
@@ -432,28 +432,8 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
   // user sees the same sign-up wall whether they hit the cap from the
   // dashboard or from this connect dialog.
   useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    const sessionExhaustionMessage = sessionUsage?.blockedLimit?.reason
-      || sessionUsage?.connectionBlockedLimit?.reason
-      || null;
-    if (!sessionExhaustionMessage) {
-      return;
-    }
-
-    setLimitMessages((current) => {
-      const next = { ...current };
-      let changed = false;
-      for (const tab of TABS) {
-        if (!next[tab]) {
-          next[tab] = sessionExhaustionMessage;
-          changed = true;
-        }
-      }
-      return changed ? next : current;
-    });
+    // Disabled limit panel popup
+    return;
   }, [isOpen, sessionUsage?.blockedLimit?.reason, sessionUsage?.connectionBlockedLimit?.reason]);
 
   const finalizeConnection = useCallback(async (tab, eventData = null) => {
@@ -632,9 +612,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
               <div className="cam-sync-status">
                 <span className={`cam-sync-dot cam-sync-dot-${syncState === 'connected' ? 'live' : 'waiting'}`} />
                 <span>
-                  {limitMessages[activeTab]
-                    ? 'This session is blocked until the account limit state changes.'
-                    : syncState === 'connected'
+                  {syncState === 'connected'
                     ? 'Agent synced with Flowfex. Opening the dashboard.'
                     : 'Waiting for a verified agent attach. Flowfex will not continue before real sync.'}
                 </span>

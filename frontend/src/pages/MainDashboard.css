@@ -249,8 +249,8 @@
 }
 
 .agent-item.active {
-  background: rgba(196, 149, 48, 0.1);
-  border: 1px solid rgba(196, 149, 48, 0.3);
+  background: rgba(0, 229, 195, 0.1);
+  border: 1px solid rgba(0, 229, 195, 0.3);
 }
 
 .agent-status {
@@ -347,7 +347,7 @@
 .progress-bar {
   width: 200px;
   height: 4px;
-  background: rgba(122, 106, 92, 0.3);
+  background: rgba(138, 150, 163, 0.3);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -379,13 +379,13 @@
 
 .node-group:hover .node {
   stroke-width: 3;
-  filter: drop-shadow(0 0 10px rgba(196, 149, 48, 0.5));
+  filter: drop-shadow(0 0 10px rgba(0, 229, 195, 0.5));
 }
 
 .node.selected {
   stroke: var(--color-massicot) !important;
   stroke-width: 3;
-  filter: drop-shadow(0 0 15px rgba(196, 149, 48, 0.7));
+  filter: drop-shadow(0 0 15px rgba(0, 229, 195, 0.7));
 }
 
 .node.active {
@@ -393,8 +393,8 @@
 }
 
 @keyframes nodeGlow {
-  0%, 100% { filter: drop-shadow(0 0 10px rgba(196, 149, 48, 0.5)); }
-  50% { filter: drop-shadow(0 0 20px rgba(196, 149, 48, 0.8)); }
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(0, 229, 195, 0.5)); }
+  50% { filter: drop-shadow(0 0 20px rgba(0, 229, 195, 0.8)); }
 }
 
 .node-content {
@@ -426,7 +426,7 @@
 .confidence-bar {
   width: 100%;
   height: 2px;
-  background: rgba(122, 106, 92, 0.3);
+  background: rgba(138, 150, 163, 0.3);
   border-radius: 1px;
   overflow: hidden;
 }
@@ -455,7 +455,7 @@
 
 .flow-particle {
   opacity: 0.8;
-  filter: drop-shadow(0 0 4px rgba(196, 149, 48, 0.8));
+  filter: drop-shadow(0 0 4px rgba(0, 229, 195, 0.8));
 }
 
 /* Right Panel */
@@ -555,7 +555,7 @@
 .confidence-bar-large {
   flex: 1;
   height: 8px;
-  background: rgba(122, 106, 92, 0.3);
+  background: rgba(138, 150, 163, 0.3);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -682,7 +682,7 @@
   padding: 8px 12px;
   background: rgba(22, 22, 29, 0.5);
   border-radius: 12px;
-  border: 1px solid rgba(122, 106, 92, 0.2);
+  border: 1px solid rgba(138, 150, 163, 0.2);
 }
 
 .skill-info {
@@ -710,7 +710,7 @@
 
 .view-all-skills {
   padding: 8px 12px;
-  border: 1px solid rgba(196, 149, 48, 0.3);
+  border: 1px solid rgba(0, 229, 195, 0.3);
   background: transparent;
   color: var(--color-massicot);
   border-radius: 12px;
@@ -722,7 +722,7 @@
 }
 
 .view-all-skills:hover {
-  background: rgba(196, 149, 48, 0.1);
+  background: rgba(0, 229, 195, 0.1);
 }
 
 .session-status {
@@ -770,7 +770,7 @@
 }
 
 .approval-icon {
-  color: var(--color-indian-yellow);
+  color: var(--color-sinoper);
 }
 
 .completed-connection {
@@ -786,7 +786,7 @@
 .skill-badge {
   font-size: 10px;
   color: var(--color-massicot);
-  background: rgba(196, 149, 48, 0.1);
+  background: rgba(0, 229, 195, 0.1);
   padding: 2px 8px;
   border-radius: 8px;
   text-transform: uppercase;
@@ -817,7 +817,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  background: rgba(122, 106, 92, 0.1);
+  background: rgba(138, 150, 163, 0.1);
   border-radius: 8px;
 }
 
@@ -833,10 +833,10 @@
 }
 
 .approval-message {
-  background: rgba(199, 139, 42, 0.1);
+  background: rgba(0, 229, 195, 0.1);
   padding: 12px;
   border-radius: 12px;
-  border-left: 3px solid var(--color-indian-yellow);
+  border-left: 3px solid var(--color-sinoper);
   font-size: 14px;
   line-height: 1.5;
   margin-bottom: 16px;
@@ -854,7 +854,7 @@
   justify-content: center;
   gap: 6px;
   padding: 8px 12px;
-  border: 1px solid rgba(122, 106, 92, 0.3);
+  border: 1px solid rgba(138, 150, 163, 0.3);
   background: transparent;
   color: var(--color-bistre);
   border-radius: 16px;
@@ -865,7 +865,7 @@
 }
 
 .control-btn-small:hover {
-  background: rgba(122, 106, 92, 0.1);
+  background: rgba(138, 150, 163, 0.1);
   color: var(--color-velin);
 }
 
@@ -965,7 +965,7 @@
   gap: 16px;
   padding: 20px;
   background: rgba(22, 22, 29, 0.6);
-  border: 1px solid rgba(122, 106, 92, 0.2);
+  border: 1px solid rgba(138, 150, 163, 0.2);
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -979,8 +979,8 @@
 }
 
 .connection-method.recommended {
-  border-color: rgba(196, 149, 48, 0.5);
-  background: rgba(196, 149, 48, 0.05);
+  border-color: rgba(0, 229, 195, 0.5);
+  background: rgba(0, 229, 195, 0.05);
 }
 
 .connection-method.recommended::before {
@@ -1034,7 +1034,7 @@
 .modal-footer {
   text-align: center;
   padding-top: 24px;
-  border-top: 1px solid rgba(122, 106, 92, 0.2);
+  border-top: 1px solid rgba(138, 150, 163, 0.2);
 }
 
 .modal-footer p {
@@ -1054,7 +1054,7 @@
 }
 
 .node.live {
-  filter: drop-shadow(0 0 8px rgba(196, 149, 48, 0.3));
+  filter: drop-shadow(0 0 8px rgba(0, 229, 195, 0.3));
 }
 
 .node.live.active {
@@ -1063,9 +1063,10 @@
 
 @keyframes liveNodePulse {
   0%, 100% { 
-    filter: drop-shadow(0 0 8px rgba(196, 149, 48, 0.3));
+    filter: drop-shadow(0 0 8px rgba(0, 229, 195, 0.3));
   }
   50% { 
-    filter: drop-shadow(0 0 16px rgba(196, 149, 48, 0.6));
+    filter: drop-shadow(0 0 16px rgba(0, 229, 195, 0.6));
   }
 }
+

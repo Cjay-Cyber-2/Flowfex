@@ -9,10 +9,119 @@ import {
   revokeApiKey,
 } from '../services/sessionApi';
 
+function formatResetCountdown(resetAt) {
+  if (!resetAt) {
+    return 'Resets at the next daily window';
+  }
+  const target = Date.parse(resetAt);
+  if (Number.isNaN(target)) {
+    return 'Resets at the next daily window';
+  }
+  const deltaMs = target - Date.now();
+  if (deltaMs <= 0) {
+    return 'Renewing now';
+  }
+  const minutes = Math.floor(deltaMs / 60000);
+  if (minutes < 60) {
+    return `Resets in ${Math.max(1, minutes)} minute${minutes === 1 ? '' : 's'}`;
+  }
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    const remMin = minutes % 60;
+    return `Resets in ${hours} hour${hours === 1 ? '' : 's'}${remMin ? ` ${remMin} min` : ''}`;
+  }
+  const days = Math.floor(hours / 24);
+  return `Resets in ${days} day${days === 1 ? '' : 's'}`;
+}
+
+function UsageBar({ label, current, limit }) {
+  const safeLimit = Math.max(limit || 0, 1);
+  const ratio = Math.min(1, (current || 0) / safeLimit);
+  return (
+    <div style={{ marginBottom: 'var(--space-4)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
+        <span style={{ fontFamily: 'var(--font-inter)', fontSize: 'var(--text-sm)', color: 'var(--color-bistre)' }}>{label}</span>
+        <span style={{ fontFamily: 'var(--font-jetbrains)', fontSize: 'var(--text-sm)', color: 'var(--color-velin)' }}>
+          {current || 0} / {limit || 0}
+        </span>
+      </div>
+      <div style={{ height: '8px', background: 'var(--color-eigengrau)', borderRadius: '4px', overflow: 'hidden' }}>
+        <div
+          style={{
+            width: `${Math.round(ratio * 100)}%`,
+            height: '100%',
+            background: ratio >= 1 ? 'var(--color-caput-mortuum, #c23028)' : 'var(--color-sinoper)',
+            transition: 'width var(--duration-slow) var(--ease-expo-out)',
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function UsageSection({ usage, isAuthenticated, onUpgrade }) {
+  const tier = usage?.tier || (isAuthenticated ? 'authenticated' : 'anonymous');
+  const requestLimit = usage?.limits?.maxExecutionsPerSession || usage?.limits?.maxExecutionsPerDay || null;
+  const requestsCount = usage?.usage?.executionsCount || 0;
+  const attachLimit = usage?.limits?.maxConnectionsPerDay || null;
+  const attachesCount = usage?.usage?.connectionsCount || 0;
+  const concurrentLimit = usage?.limits?.maxConcurrentAgents || null;
+  const concurrentCount = usage?.usage?.concurrentAgents || 0;
+
+  return (
+    <div>
+      <div style={{
+        background: 'var(--color-wenge-ash)',
+        borderRadius: 'var(--radius-lg)',
+        padding: 'var(--space-6)',
+        marginBottom: 'var(--space-6)',
+      }}>
+        <h3 style={{
+          fontFamily: 'var(--font-satoshi)',
+          fontSize: 'var(--text-lg)',
+          fontWeight: 700,
+          color: 'var(--color-velin)',
+          marginBottom: 'var(--space-2)',
+        }}>
+          Current usage
+        </h3>
+        <p style={{
+          fontFamily: 'var(--font-inter)',
+          fontSize: 'var(--text-sm)',
+          color: 'var(--color-bistre)',
+          marginBottom: 'var(--space-4)',
+        }}>
+          Tier: <strong style={{ color: 'var(--color-velin)' }}>{tier}</strong>
+        </p>
+
+        {requestLimit ? (
+          <UsageBar label="Requests today" current={requestsCount} limit={requestLimit} />
+        ) : null}
+        {attachLimit ? (
+          <UsageBar label="Verified attaches today" current={attachesCount} limit={attachLimit} />
+        ) : null}
+        {concurrentLimit ? (
+          <UsageBar label="Concurrent connected agents" current={concurrentCount} limit={concurrentLimit} />
+        ) : null}
+
+        <p style={{
+          fontFamily: 'var(--font-inter)',
+          fontSize: 'var(--text-sm)',
+          color: 'var(--color-bistre)',
+          marginTop: 'var(--space-3)',
+        }}>
+          {formatResetCountdown(usage?.resetAt)}
+        </p>
+      </div>
+      <button className="btn-primary" onClick={onUpgrade}>Upgrade Plan</button>
+    </div>
+  );
+}
+
 function Settings() {
   const navigate = useNavigate();
   const storeUser = useStore((state) => state.user);
-  const { accessToken, configured, isAuthenticated, signOut, user } = useSessionContext();
+  const { accessToken, configured, isAuthenticated, signOut, user, usage } = useSessionContext();
   const [activeSection, setActiveSection] = useState('account');
   const [apiKeys, setApiKeys] = useState([]);
   const [apiKeyLabel, setApiKeyLabel] = useState('');
@@ -313,67 +422,7 @@ function Settings() {
           )}
 
           {activeSection === 'usage' && (
-            <div>
-              <div style={{
-                background: 'var(--color-wenge-ash)',
-                borderRadius: 'var(--radius-lg)',
-                padding: 'var(--space-6)',
-                marginBottom: 'var(--space-6)'
-              }}>
-                <h3 style={{
-                  fontFamily: 'var(--font-satoshi)',
-                  fontSize: 'var(--text-lg)',
-                  fontWeight: 700,
-                  color: 'var(--color-velin)',
-                  marginBottom: 'var(--space-4)'
-                }}>
-                  Current Usage
-                </h3>
-                <div style={{ marginBottom: 'var(--space-4)' }}>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    marginBottom: 'var(--space-2)'
-                  }}>
-                    <span style={{
-                      fontFamily: 'var(--font-inter)',
-                      fontSize: 'var(--text-sm)',
-                      color: 'var(--color-bistre)'
-                    }}>
-                      Execution Steps
-                    </span>
-                    <span style={{
-                      fontFamily: 'var(--font-jetbrains)',
-                      fontSize: 'var(--text-sm)',
-                      color: 'var(--color-velin)'
-                    }}>
-                      45 / 100
-                    </span>
-                  </div>
-                  <div style={{
-                    height: '8px',
-                    background: 'var(--color-eigengrau)',
-                    borderRadius: '4px',
-                    overflow: 'hidden'
-                  }}>
-                    <div style={{
-                      width: '45%',
-                      height: '100%',
-                      background: 'var(--color-sinoper)',
-                      transition: 'width var(--duration-slow) var(--ease-expo-out)'
-                    }} />
-                  </div>
-                </div>
-                <p style={{
-                  fontFamily: 'var(--font-inter)',
-                  fontSize: 'var(--text-sm)',
-                  color: 'var(--color-bistre)'
-                }}>
-                  Resets in 15 days
-                </p>
-              </div>
-              <button className="btn-primary">Upgrade Plan</button>
-            </div>
+            <UsageSection usage={usage} isAuthenticated={isAuthenticated} onUpgrade={() => navigate('/#pricing')} />
           )}
         </div>
       </div>

@@ -55,11 +55,15 @@ function Edge({ edge, nodes, zoom }) {
   const handleMouseEnter = () => setIsHovered(true);
   const handleMouseLeave = () => setIsHovered(false);
 
-  // Handle click
+  // Handle click — bubbles a custom event so the parent canvas can open its
+  // edge control popover when this Edge is mounted into the live graph.
   const handleClick = (e) => {
     e.stopPropagation();
-    // Open edge control popover
-    console.log('Edge clicked:', id);
+    if (typeof window !== 'undefined' && typeof CustomEvent === 'function') {
+      window.dispatchEvent(new CustomEvent('flowfex:edge:click', {
+        detail: { edgeId: id, from, to, state },
+      }));
+    }
   };
 
   return (

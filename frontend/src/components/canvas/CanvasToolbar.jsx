@@ -38,8 +38,9 @@ function CanvasToolbar({ onFitToView }) {
       icon: Plus,
       label: 'Add Node',
       action: () => {
-        // Open node creation modal
-        console.log('Add node');
+        // Hook for the node-creation modal. Wired by the parent canvas via
+        // setActiveTool so creation can be initiated from the toolbar.
+        setActiveTool('add-node');
       },
     },
     {
@@ -47,8 +48,7 @@ function CanvasToolbar({ onFitToView }) {
       icon: MessageSquare,
       label: 'Add Annotation',
       action: () => {
-        // Create text annotation
-        console.log('Add annotation');
+        setActiveTool('add-annotation');
       },
     },
     {

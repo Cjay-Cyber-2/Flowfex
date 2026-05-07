@@ -10,11 +10,13 @@ import { useNavigate } from 'react-router-dom';
 
 function ShaderCanvas() {
   const canvasRef = useRef(null);
+  const wrapRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    const gl = canvas.getContext('webgl');
+    const wrap = wrapRef.current;
+    if (!canvas || !wrap) return;
+    const gl = canvas.getContext('webgl', { premultipliedAlpha: false, alpha: true });
     if (!gl) return;
 
     const vert = `attribute vec2 aPosition; void main() { gl_Position = vec4(aPosition, 0.0, 1.0); }`;
@@ -23,30 +25,44 @@ function ShaderCanvas() {
       uniform float iTime;
       uniform vec2 iResolution;
       mat2 rotate2d(float angle){ float c=cos(angle),s=sin(angle); return mat2(c,-s,s,c); }
-      float variation(vec2 v1,vec2 v2,float strength,float speed){ return sin(dot(normalize(v1),normalize(v2))*strength+iTime*speed)/100.0; }
-      vec3 paintCircle(vec2 uv,vec2 center,float rad,float width){
+      float variation(vec2 v1,vec2 v2,float strength,float speed){
+        return sin(dot(normalize(v1),normalize(v2))*strength+iTime*speed)/120.0;
+      }
+      float paintCircle(vec2 uv,vec2 center,float rad,float width){
         vec2 diff=center-uv;
         float len=length(diff);
-        len+=variation(diff,vec2(0.,1.),5.,2.);
-        len-=variation(diff,vec2(1.,0.),5.,2.);
-        float circle=smoothstep(rad-width,rad,len)-smoothstep(rad,rad+width,len);
-        return vec3(circle);
+        len+=variation(diff,vec2(0.,1.),5.,1.6);
+        len-=variation(diff,vec2(1.,0.),5.,1.6);
+        return smoothstep(rad-width,rad,len)-smoothstep(rad,rad+width,len);
       }
       void main(){
-        vec2 uv=gl_FragCoord.xy/iResolution.xy;
-        uv.x*=1.5; uv.x-=0.25;
-        float mask=0.0;
-        float radius=.35;
-        vec2 center=vec2(.5);
-        mask+=paintCircle(uv,center,radius,.035).r;
-        mask+=paintCircle(uv,center,radius-.018,.01).r;
-        mask+=paintCircle(uv,center,radius+.018,.005).r;
-        vec2 v=rotate2d(iTime)*uv;
-        vec3 fg=vec3(0.0, 0.83, 0.66) * (v.y * 0.6 + 0.4);
-        vec3 bg=vec3(0.04,0.05,0.08);
-        vec3 color=mix(bg,fg,mask);
-        color=mix(color,vec3(1.),paintCircle(uv,center,radius,.003).r);
-        gl_FragColor=vec4(color,1.);
+        // Square aspect: keep the circle perfectly round even when the
+        // canvas size flexes with the viewport.
+        float minDim = min(iResolution.x, iResolution.y);
+        vec2 uv = (gl_FragCoord.xy - 0.5*iResolution.xy) / minDim + vec2(0.5);
+        float mask = 0.0;
+        float radius = .34;
+        vec2 center = vec2(.5);
+        mask += paintCircle(uv,center,radius,.03);
+        mask += paintCircle(uv,center,radius-.018,.008);
+        mask += paintCircle(uv,center,radius+.018,.004);
+
+        vec2 v = rotate2d(iTime*0.6)*(uv-center);
+        // Flowfex teal/cyan/aqua palette so the canvas relates to the rest of
+        // the webapp instead of pure black + white.
+        vec3 cTeal   = vec3(0.0,  0.83, 0.66);
+        vec3 cAqua   = vec3(0.50, 1.00, 0.94);
+        vec3 cCyan   = vec3(0.0,  0.71, 0.81);
+        vec3 fg = mix(cTeal, cAqua, smoothstep(-0.4, 0.4, v.y));
+        fg     = mix(fg,    cCyan, smoothstep(-0.4, 0.4, v.x));
+
+        // Match the dark eigengrau body color so the canvas never reads as a
+        // pure black square that obstructs surrounding text.
+        vec3 bg = vec3(0.031, 0.047, 0.062);
+        float ringInner = paintCircle(uv,center,radius,.0025);
+        vec3 color = mix(bg, fg, mask);
+        color = mix(color, vec3(0.85, 1.0, 0.96), ringInner);
+        gl_FragColor = vec4(color, 1.0);
       }`;
 
     const compile = (type, src) => {
@@ -72,34 +88,58 @@ function ShaderCanvas() {
     const iTimeLoc = gl.getUniformLocation(prog, 'iTime');
     const iResLoc = gl.getUniformLocation(prog, 'iResolution');
 
+    // Lock the WebGL drawing buffer to a stable size derived from the wrapper
+    // ONCE per resize event, so the canvas no longer fluctuates between paints.
     let raf;
+    let lastWidth = 0;
+    let lastHeight = 0;
+    const resize = () => {
+      const rect = wrap.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const width = Math.max(1, Math.round(rect.width * dpr));
+      const height = Math.max(1, Math.round(rect.height * dpr));
+      if (width === lastWidth && height === lastHeight) return;
+      lastWidth = width;
+      lastHeight = height;
+      canvas.width = width;
+      canvas.height = height;
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+      gl.viewport(0, 0, width, height);
+    };
+
     const render = (t) => {
       gl.uniform1f(iTimeLoc, t * 0.001);
-      gl.uniform2f(iResLoc, canvas.width, canvas.height);
+      gl.uniform2f(iResLoc, lastWidth || canvas.width, lastHeight || canvas.height);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       raf = requestAnimationFrame(render);
     };
 
-    const resize = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-    };
     resize();
-    window.addEventListener('resize', resize);
+    let resizeObserver;
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(resize);
+      resizeObserver.observe(wrap);
+    } else {
+      window.addEventListener('resize', resize);
+    }
     raf = requestAnimationFrame(render);
 
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener('resize', resize);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      } else {
+        window.removeEventListener('resize', resize);
+      }
     };
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', zIndex: 0 }}
-    />
+    <div ref={wrapRef} className="mps-shader-wrap" aria-hidden="true">
+      <canvas ref={canvasRef} className="mps-shader-canvas" />
+      <div className="mps-shader-overlay" />
+    </div>
   );
 }
 

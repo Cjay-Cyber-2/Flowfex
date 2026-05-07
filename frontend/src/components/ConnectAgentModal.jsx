@@ -84,31 +84,66 @@ function ActivationNotice({ title, description }) {
   );
 }
 
-function ConnectionLimitPanel({ isAuthenticated, message, onSignUp, onSignIn, onClose }) {
+function ConnectionLimitPanel({ isAuthenticated, message, onSignUp, onSignIn, onClose, onViewPricing }) {
+  if (isAuthenticated) {
+    return (
+      <div style={{ display: 'grid', gap: 12 }}>
+        <div className="cam-security-note" style={{ padding: '14px 16px', borderRadius: 16, border: '1px solid rgba(0, 212, 170, 0.18)', background: 'rgba(8, 32, 28, 0.55)' }}>
+          <strong style={{ display: 'block', marginBottom: 6, color: 'var(--color-velin)' }}>
+            You have used today's free connections
+          </strong>
+          <span>{message || 'Your authenticated dashboard stays open. Wait for the daily reset, or upgrade for more connections.'}</span>
+        </div>
+
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button className="cam-done-btn" onClick={onViewPricing}>Upgrade Plan</button>
+          <button className="cam-copy-btn" onClick={onClose}>Wait For Reset</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: 'grid', gap: 12 }}>
       <div className="cam-security-note" style={{ padding: '14px 16px', borderRadius: 16, border: '1px solid rgba(255, 164, 98, 0.24)', background: 'rgba(67, 38, 22, 0.32)' }}>
         <strong style={{ display: 'block', marginBottom: 6, color: 'var(--color-velin)' }}>
-          {isAuthenticated ? 'Account connection limit reached' : 'Anonymous connection limit reached'}
+          Anonymous connection limit reached
         </strong>
         <span>{message}</span>
       </div>
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        {isAuthenticated ? (
-          <button className="cam-done-btn" onClick={onClose}>Close</button>
-        ) : (
-          <>
-            <button className="cam-done-btn" onClick={onSignUp}>Sign Up</button>
-            <button className="cam-copy-btn" onClick={onSignIn}>Sign In</button>
-          </>
-        )}
+        <button className="cam-done-btn" onClick={onSignUp}>Sign Up</button>
+        <button className="cam-copy-btn" onClick={onSignIn}>Sign In</button>
       </div>
     </div>
   );
 }
 
-function PromptTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose }) {
+function GateNotice() {
+  return (
+    <div
+      className="cam-gate-notice"
+      role="note"
+      style={{
+        margin: '0 0 12px',
+        padding: '10px 12px',
+        borderRadius: 12,
+        border: '1px solid rgba(0, 212, 170, 0.22)',
+        background: 'linear-gradient(135deg, rgba(0, 212, 170, 0.08), rgba(0, 212, 170, 0.02))',
+        color: 'var(--color-velin)',
+        fontSize: 13,
+        lineHeight: 1.45,
+        fontFamily: 'Inter, sans-serif',
+      }}
+    >
+      <strong style={{ color: 'var(--color-sinoper)', fontWeight: 600 }}>Dashboard gate:</strong>
+      {' '}You stay on this screen until your agent finishes the attach. Flowfex opens the dashboard the moment the attach is verified.
+    </div>
+  );
+}
+
+function PromptTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose, onViewPricing }) {
   if (limitState) {
     return (
       <ConnectionLimitPanel
@@ -117,6 +152,7 @@ function PromptTab({ connection, loading, onRefresh, error, limitState, isAuthen
         onSignUp={onSignUp}
         onSignIn={onSignIn}
         onClose={onClose}
+        onViewPricing={onViewPricing}
       />
     );
   }
@@ -136,6 +172,7 @@ function PromptTab({ connection, loading, onRefresh, error, limitState, isAuthen
   return (
     <div>
       <p className="cam-tab-desc">Paste this contract into any agent. The dashboard opens automatically the moment your agent connects.</p>
+      <GateNotice />
       <ActivationNotice
         title="Real-time agent detection"
         description="Flowfex keeps you on this screen until a real agent connection is detected. The dashboard opens instantly the moment the agent sends its first request."
@@ -149,7 +186,7 @@ function PromptTab({ connection, loading, onRefresh, error, limitState, isAuthen
   );
 }
 
-function LinkTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose }) {
+function LinkTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose, onViewPricing }) {
   const [copied, copy] = useCopy();
 
   if (limitState) {
@@ -160,6 +197,7 @@ function LinkTab({ connection, loading, onRefresh, error, limitState, isAuthenti
         onSignUp={onSignUp}
         onSignIn={onSignIn}
         onClose={onClose}
+        onViewPricing={onViewPricing}
       />
     );
   }
@@ -182,6 +220,7 @@ function LinkTab({ connection, loading, onRefresh, error, limitState, isAuthenti
   return (
     <div>
       <p className="cam-tab-desc">Use Link mode when the target agent or operator can open one URL directly. No code changes are required.</p>
+      <GateNotice />
       <ActivationNotice
         title="Dashboard opens only after the attach link is resolved for this session"
         description="Flowfex keeps the user on onboarding until the selected attach link is opened and the backend confirms the active session handshake."
@@ -201,7 +240,7 @@ function LinkTab({ connection, loading, onRefresh, error, limitState, isAuthenti
   );
 }
 
-function SDKTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose }) {
+function SDKTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose, onViewPricing }) {
   if (limitState) {
     return (
       <ConnectionLimitPanel
@@ -210,6 +249,7 @@ function SDKTab({ connection, loading, onRefresh, error, limitState, isAuthentic
         onSignUp={onSignUp}
         onSignIn={onSignIn}
         onClose={onClose}
+        onViewPricing={onViewPricing}
       />
     );
   }
@@ -229,6 +269,7 @@ function SDKTab({ connection, loading, onRefresh, error, limitState, isAuthentic
   return (
     <div>
       <p className="cam-tab-desc">Use SDK mode when you can edit the agent code directly. The snippet performs the verified attach call first and keeps the session bound programmatically.</p>
+      <GateNotice />
       <ActivationNotice
         title="Dashboard opens only after the SDK snippet completes the verified attach call"
         description="Flowfex waits for the SDK snippet to call the attach endpoint with the session token and attach header before it shows success and opens the dashboard."
@@ -243,7 +284,7 @@ function SDKTab({ connection, loading, onRefresh, error, limitState, isAuthentic
   );
 }
 
-function LiveChannelTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose }) {
+function LiveChannelTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose, onViewPricing }) {
   if (limitState) {
     return (
       <ConnectionLimitPanel
@@ -252,6 +293,7 @@ function LiveChannelTab({ connection, loading, onRefresh, error, limitState, isA
         onSignUp={onSignUp}
         onSignIn={onSignIn}
         onClose={onClose}
+        onViewPricing={onViewPricing}
       />
     );
   }
@@ -271,6 +313,7 @@ function LiveChannelTab({ connection, loading, onRefresh, error, limitState, isA
   return (
     <div>
       <p className="cam-tab-desc">Use Live Channel mode when the agent already supports persistent streaming, Socket.IO, or SSE. The attach call must succeed before the transport starts work.</p>
+      <GateNotice />
       <ActivationNotice
         title="Dashboard opens only after the live attach call is verified"
         description="Flowfex keeps the user on onboarding until the agent sends the verified attach request and the backend confirms the live session is real."
@@ -457,6 +500,14 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     navigate('/signin');
   }, [navigate, onClose]);
 
+  const handleViewPricing = useCallback(() => {
+    onClose();
+    navigate('/#pricing');
+    if (typeof window !== 'undefined') {
+      window.location.hash = '#pricing';
+    }
+  }, [navigate, onClose]);
+
   useEffect(() => {
     if (!isOpen || connections[activeTab] || loadingTab === activeTab || fetchAttemptedRef.current.has(activeTab)) {
       return;
@@ -564,6 +615,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
                   onSignUp={handleSignUp}
                   onSignIn={handleSignIn}
                   onClose={onClose}
+                  onViewPricing={handleViewPricing}
                 />
               </motion.div>
             </AnimatePresence>

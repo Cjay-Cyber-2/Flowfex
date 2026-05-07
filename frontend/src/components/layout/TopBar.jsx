@@ -1,12 +1,14 @@
 import React from 'react';
-import { ChevronDown, Pause, Play } from 'lucide-react';
+import { ChevronDown, Pause, Play, ShieldCheck, UserRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import FlowfexLogoNew from '../FlowfexLogoNew';
 import useStore from '../../store/useStore';
+import { useSessionContext } from '../../context/SessionContext';
 import './TopBar.css';
 
 function TopBar() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useSessionContext();
   const {
     activeSession,
     canvasMode,
@@ -89,6 +91,14 @@ function TopBar() {
         <button className="top-bar-connect" onClick={() => setConnectModalOpen(true)}>
           Connect Agent
         </button>
+
+        <span
+          className={`top-bar-account-badge ${isAuthenticated ? 'is-auth' : 'is-anon'}`}
+          title={isAuthenticated ? 'Authenticated account' : 'Anonymous session'}
+        >
+          {isAuthenticated ? <ShieldCheck size={12} /> : <UserRound size={12} />}
+          {isAuthenticated ? 'Authenticated' : 'Anonymous'}
+        </span>
 
         <button className="top-bar-account" onClick={() => navigate('/settings')}>
           <span className="top-bar-account-avatar">{user?.initials || 'FX'}</span>

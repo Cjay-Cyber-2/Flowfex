@@ -340,7 +340,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
   const setActiveSession = useStore((state) => state.setActiveSession);
   const activeSession = useStore((state) => state.activeSession);
   const backendUrl = useStore((state) => state.backendUrl);
-  const { accessToken, isAuthenticated, refreshUsage, session } = useSessionContext();
+  const { accessToken, isAuthenticated, refreshUsage, session, usage: sessionUsage } = useSessionContext();
   const [activeTab, setActiveTab] = useState('Prompt');
   const [connections, setConnections] = useState({});
   const [errors, setErrors] = useState({});
@@ -450,6 +450,34 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
       setLoadingTab(null);
     }
   }, [accessToken, backendUrl, requestForTab, session?.anonymousToken]);
+
+  // Surface session-level request/attach exhaustion in the modal too so the
+  // user sees the same sign-up wall whether they hit the cap from the
+  // dashboard or from this connect dialog.
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const sessionExhaustionMessage = sessionUsage?.blockedLimit?.reason
+      || sessionUsage?.connectionBlockedLimit?.reason
+      || null;
+    if (!sessionExhaustionMessage) {
+      return;
+    }
+
+    setLimitMessages((current) => {
+      const next = { ...current };
+      let changed = false;
+      for (const tab of TABS) {
+        if (!next[tab]) {
+          next[tab] = sessionExhaustionMessage;
+          changed = true;
+        }
+      }
+      return changed ? next : current;
+    });
+  }, [isOpen, sessionUsage?.blockedLimit?.reason, sessionUsage?.connectionBlockedLimit?.reason]);
 
   const finalizeConnection = useCallback(async (tab, eventData = null) => {
     const connection = connections[tab];

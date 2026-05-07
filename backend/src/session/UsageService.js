@@ -8,9 +8,14 @@ import { randomUUID } from 'node:crypto';
 
 export const FLOWFEX_LIMITS = {
   anonymous: {
-    maxConnectionsPerDay: 5,
-    maxExecutionsPerSession: 3,
-    maxNodesPerSession: 15,
+    // The user-visible quota for an anonymous session is "5 requests after a
+    // verified attach", not "5 connection attempts". We keep
+    // maxConnectionsPerDay loose so a real agent can re-attach across the
+    // day while the request quota is the actual cap that drives the
+    // sign-up wall.
+    maxConnectionsPerDay: 20,
+    maxExecutionsPerSession: 5,
+    maxNodesPerSession: 25,
     maxSessionDurationMinutes: 30,
     maxConcurrentAgents: 1,
     maxConcurrentSessions: 1,
@@ -143,7 +148,7 @@ function buildBlockedLimit(tier, usage, limits) {
       status: 'blocked',
       tier,
       limit: 'maxExecutionsPerSession',
-      reason: 'Anonymous sessions are limited to three executions. Sign up to continue.',
+      reason: `Your anonymous Flowfex session has used all ${limits.maxExecutionsPerSession} free requests for today. Sign up to continue.`,
       currentValue: usage.executionsCount,
       limitValue: limits.maxExecutionsPerSession,
     };
@@ -153,7 +158,7 @@ function buildBlockedLimit(tier, usage, limits) {
       status: 'blocked',
       tier,
       limit: 'maxExecutionsPerDay',
-      reason: 'You have reached the 24-hour execution allowance.',
+      reason: 'You have reached the 24-hour Flowfex request allowance for this account.',
       currentValue: usage.executionsCount,
       limitValue: limits.maxExecutionsPerDay,
     };
@@ -204,8 +209,8 @@ function buildConnectionBlockedLimit(tier, usage, limits) {
       tier,
       limit: 'maxConnectionsPerDay',
       reason: tier === 'anonymous'
-        ? 'Your anonymous Flowfex token has used all 5 connection attempts for today. Sign up to continue.'
-        : 'You have used all 5 free Flowfex connections for today. Complete payment to unlock more or wait for the next reset.',
+        ? `This anonymous Flowfex session has hit the daily attach cap (${limits.maxConnectionsPerDay} verified attaches). Sign up to continue.`
+        : `This account has hit the daily attach cap (${limits.maxConnectionsPerDay} verified attaches). Wait for the next reset or upgrade your plan.`,
       currentValue: usage.connectionsCount,
       limitValue: limits.maxConnectionsPerDay,
     };

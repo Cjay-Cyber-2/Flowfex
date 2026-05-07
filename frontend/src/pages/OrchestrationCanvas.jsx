@@ -52,7 +52,7 @@ function UsageGateBanner({ isAuthenticated, message, onSignIn, onSignUp }) {
   );
 }
 
-function PaymentGate({ resetAt, onClose }) {
+function PaymentGate({ resetAt, onClose, headline, subline }) {
   return (
     <div style={{
       position: 'fixed',
@@ -75,11 +75,13 @@ function PaymentGate({ resetAt, onClose }) {
       }}>
         <div style={{ padding: 28, borderBottom: '1px solid rgba(0, 212, 170, 0.08)' }}>
           <span style={{ display: 'inline-flex', padding: '6px 10px', borderRadius: 999, fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', background: 'rgba(0, 212, 170, 0.12)', color: 'var(--color-sinoper)' }}>
-            Payment Required
+            Upgrade Required
           </span>
-          <h2 style={{ margin: '16px 0 8px', fontSize: 28, lineHeight: 1.1, color: 'var(--color-velin)' }}>You used all 5 free Flowfex connections for today.</h2>
+          <h2 style={{ margin: '16px 0 8px', fontSize: 28, lineHeight: 1.1, color: 'var(--color-velin)' }}>
+            {headline || 'You used all of today\u2019s free Flowfex requests.'}
+          </h2>
           <p style={{ margin: 0, color: 'rgba(232, 237, 242, 0.72)', lineHeight: 1.6 }}>
-            Continue with a paid plan when billing is enabled for this account, or wait until {formatResetLabel(resetAt)} for the next daily renewal.
+            {subline || `Continue with a paid plan once billing is enabled for this account, or wait until ${formatResetLabel(resetAt)} for the next daily renewal.`}
           </p>
         </div>
 
@@ -92,7 +94,7 @@ function PaymentGate({ resetAt, onClose }) {
           }}>
             <strong style={{ display: 'block', marginBottom: 6, color: 'var(--color-velin)' }}>Current access state</strong>
             <span style={{ color: 'rgba(232, 237, 242, 0.76)', lineHeight: 1.6 }}>
-              Your authenticated dashboard is live, but new free connections are paused until billing is turned on or the daily quota resets.
+              Your authenticated dashboard is live, but new Flowfex requests are paused until billing is turned on or the daily quota resets.
             </span>
           </div>
 
@@ -132,15 +134,33 @@ function OrchestrationCanvas() {
     () => nodes.find((node) => node.state === 'approval') || nodes.find((node) => node.state === 'active'),
     [nodes]
   );
-  const connectionLimit = usage?.limits?.maxConnectionsPerDay || null;
-  const connectionsToday = usage?.usage?.connectionsCount || 0;
+  const requestLimit = usage?.limits?.maxExecutionsPerSession
+    || usage?.limits?.maxExecutionsPerDay
+    || null;
+  const requestsToday = usage?.usage?.executionsCount || 0;
+  const blockedLimit = usage?.blockedLimit || null;
   const connectionBlockedLimit = usage?.connectionBlockedLimit || null;
-  const showAnonymousGate = !isAuthenticated && connectionBlockedLimit?.limit === 'maxConnectionsPerDay';
-  const showPaymentGate = isAuthenticated && connectionBlockedLimit?.limit === 'maxConnectionsPerDay' && !paymentGateDismissed;
+  const isRequestExhausted = blockedLimit
+    && (blockedLimit.limit === 'maxExecutionsPerSession' || blockedLimit.limit === 'maxExecutionsPerDay');
+  const isAttachExhausted = connectionBlockedLimit?.limit === 'maxConnectionsPerDay';
+  const exhaustedMessage = (isRequestExhausted ? blockedLimit?.reason : null)
+    || (isAttachExhausted ? connectionBlockedLimit?.reason : null)
+    || null;
+  // Anonymous users hitting either request OR attach exhaustion get the
+  // "your token has finished — sign up" wall. Authenticated users get the
+  // payment gate.
+  const showAnonymousGate = !isAuthenticated && Boolean(exhaustedMessage);
+  const showPaymentGate = isAuthenticated && Boolean(exhaustedMessage) && !paymentGateDismissed;
 
   useEffect(() => {
     setPaymentGateDismissed(false);
-  }, [connectionBlockedLimit?.currentValue, connectionBlockedLimit?.limit, activeSession?.id]);
+  }, [
+    blockedLimit?.currentValue,
+    blockedLimit?.limit,
+    connectionBlockedLimit?.currentValue,
+    connectionBlockedLimit?.limit,
+    activeSession?.id,
+  ]);
 
   return (
     <div className="orchestration-canvas-page">
@@ -153,16 +173,16 @@ function OrchestrationCanvas() {
           {showAnonymousGate ? (
             <UsageGateBanner
               isAuthenticated={false}
-              message={connectionBlockedLimit.reason}
+              message={exhaustedMessage}
               onSignIn={() => navigate('/signin')}
               onSignUp={() => navigate('/signup')}
             />
           ) : null}
 
-          {isAuthenticated && connectionBlockedLimit?.limit === 'maxConnectionsPerDay' ? (
+          {isAuthenticated && exhaustedMessage ? (
             <UsageGateBanner
               isAuthenticated
-              message={connectionBlockedLimit.reason}
+              message={exhaustedMessage}
               onSignIn={() => {}}
               onSignUp={() => {}}
             />
@@ -181,10 +201,10 @@ function OrchestrationCanvas() {
               <span className="canvas-surface-pill-label">Connected agents</span>
               <strong>{connectedAgents.length}</strong>
             </div>
-            {connectionLimit ? (
+            {requestLimit ? (
               <div className="canvas-surface-pill">
-                <span className="canvas-surface-pill-label">Connections today</span>
-                <strong>{connectionsToday} / {connectionLimit}</strong>
+                <span className="canvas-surface-pill-label">Requests today</span>
+                <strong>{requestsToday} / {requestLimit}</strong>
               </div>
             ) : null}
           </div>
@@ -203,7 +223,15 @@ function OrchestrationCanvas() {
       </div>
 
       <ConnectAgentModal isOpen={connectModalOpen} onClose={() => setConnectModalOpen(false)} />
-      {showPaymentGate ? <PaymentGate resetAt={usage?.resetAt} onClose={() => setPaymentGateDismissed(true)} /> : null}
+      {showPaymentGate ? (
+        <PaymentGate
+          resetAt={usage?.resetAt}
+          onClose={() => setPaymentGateDismissed(true)}
+          headline={isRequestExhausted
+            ? 'You used all of today\u2019s free Flowfex requests.'
+            : 'You hit today\u2019s Flowfex attach cap.'}
+        />
+      ) : null}
     </div>
   );
 }

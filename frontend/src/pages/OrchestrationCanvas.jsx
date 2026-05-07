@@ -21,7 +21,9 @@ function formatResetLabel(resetAt) {
   }
 }
 
-function UsageGateBanner({ isAuthenticated, message, onSignIn, onSignUp }) {
+function UsageGateBanner({ isAuthenticated, title, message, onSignIn, onSignUp }) {
+  const headline = title
+    || (isAuthenticated ? 'Account limit reached' : 'Anonymous session limit reached');
   return (
     <div style={{
       marginBottom: 16,
@@ -37,7 +39,7 @@ function UsageGateBanner({ isAuthenticated, message, onSignIn, onSignUp }) {
     }}>
       <div style={{ minWidth: 240 }}>
         <strong style={{ display: 'block', marginBottom: 4, color: 'var(--color-velin)' }}>
-          {isAuthenticated ? 'Account connection limit reached' : 'Anonymous connection limit reached'}
+          {headline}
         </strong>
         <span style={{ color: 'rgba(232, 237, 242, 0.76)', fontSize: 14 }}>{message}</span>
       </div>
@@ -50,6 +52,26 @@ function UsageGateBanner({ isAuthenticated, message, onSignIn, onSignUp }) {
       ) : null}
     </div>
   );
+}
+
+function paymentGateHeadline(blockedLimit, connectionBlockedLimit) {
+  const key = blockedLimit?.limit || connectionBlockedLimit?.limit;
+  if (key === 'maxExecutionsPerSession' || key === 'maxExecutionsPerDay') {
+    return 'You used all of today\u2019s free Flowfex requests.';
+  }
+  if (key === 'maxConnectionsPerDay') {
+    return 'You hit today\u2019s Flowfex attach cap.';
+  }
+  if (key === 'maxSessionDurationMinutes') {
+    return 'This session reached its allowed duration.';
+  }
+  if (key === 'maxNodesPerSession' || key === 'maxNodesPerDay') {
+    return 'You reached the node processing limit for this tier.';
+  }
+  if (key === 'maxConcurrentAgents') {
+    return 'Too many agents are connected for this tier.';
+  }
+  return 'Flowfex limits are blocking new work.';
 }
 
 function PaymentGate({ resetAt, onClose, headline, subline }) {
@@ -140,17 +162,14 @@ function OrchestrationCanvas() {
   const requestsToday = usage?.usage?.executionsCount || 0;
   const blockedLimit = usage?.blockedLimit || null;
   const connectionBlockedLimit = usage?.connectionBlockedLimit || null;
-  const isRequestExhausted = blockedLimit
-    && (blockedLimit.limit === 'maxExecutionsPerSession' || blockedLimit.limit === 'maxExecutionsPerDay');
-  const isAttachExhausted = connectionBlockedLimit?.limit === 'maxConnectionsPerDay';
-  const exhaustedMessage = (isRequestExhausted ? blockedLimit?.reason : null)
-    || (isAttachExhausted ? connectionBlockedLimit?.reason : null)
-    || null;
-  // Anonymous users hitting either request OR attach exhaustion get the
-  // "your token has finished — sign up" wall. Authenticated users get the
-  // payment gate.
-  const showAnonymousGate = !isAuthenticated && Boolean(exhaustedMessage);
-  const showPaymentGate = isAuthenticated && Boolean(exhaustedMessage) && !paymentGateDismissed;
+  const anyBlockReason = blockedLimit?.reason || connectionBlockedLimit?.reason || null;
+  // Any enforced limit should surface for anonymous users (requests, attach,
+  // session duration, nodes, concurrency). Authenticated users get the modal
+  // plus an inline banner only after the modal is dismissed.
+  const showAnonymousGate = !isAuthenticated && Boolean(anyBlockReason);
+  const showPaymentGate = isAuthenticated && Boolean(anyBlockReason) && !paymentGateDismissed;
+  const showAuthenticatedBanner = isAuthenticated && Boolean(anyBlockReason) && !showPaymentGate;
+  const paymentHeadline = paymentGateHeadline(blockedLimit, connectionBlockedLimit);
 
   useEffect(() => {
     setPaymentGateDismissed(false);
@@ -173,16 +192,16 @@ function OrchestrationCanvas() {
           {showAnonymousGate ? (
             <UsageGateBanner
               isAuthenticated={false}
-              message={exhaustedMessage}
+              message={anyBlockReason}
               onSignIn={() => navigate('/signin')}
               onSignUp={() => navigate('/signup')}
             />
           ) : null}
 
-          {isAuthenticated && exhaustedMessage ? (
+          {showAuthenticatedBanner ? (
             <UsageGateBanner
               isAuthenticated
-              message={exhaustedMessage}
+              message={anyBlockReason}
               onSignIn={() => {}}
               onSignUp={() => {}}
             />
@@ -227,9 +246,7 @@ function OrchestrationCanvas() {
         <PaymentGate
           resetAt={usage?.resetAt}
           onClose={() => setPaymentGateDismissed(true)}
-          headline={isRequestExhausted
-            ? 'You used all of today\u2019s free Flowfex requests.'
-            : 'You hit today\u2019s Flowfex attach cap.'}
+          headline={paymentHeadline}
         />
       ) : null}
     </div>

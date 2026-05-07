@@ -670,7 +670,7 @@ const useStore = create((set, get) => ({
           name: data.agentName || 'Connected Agent',
           type: (data.connectionType || 'prompt').toUpperCase(),
           status: 'connected',
-          lastSeen: 'Live now',
+          lastSeen: new Date().toISOString(),
         };
         get().addAgent(agentData);
       });

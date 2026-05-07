@@ -472,7 +472,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
       name: eventData?.agentName || session.agent?.name || `${tab} Agent`,
       type: eventData?.connectionType || tab,
       status: 'connected',
-      lastSeen: 'Live now',
+      lastSeen: new Date().toISOString(),
     });
     const sessionRecord = {
       id: session.id,
@@ -486,14 +486,17 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     };
     addSession(sessionRecord);
     setActiveSession(sessionRecord);
-    await refreshUsage(session.id).catch(() => null);
 
+    // Run the onboarding transition immediately so it is not skipped by a
+    // re-render between zustand updates and refreshUsage (global agent:connected
+    // can populate the store before this async call resolves).
     if (onConnected) {
       onConnected();
-      return;
+    } else {
+      onClose();
     }
 
-    onClose();
+    await refreshUsage(session.id).catch(() => null);
   }, [addAgent, addSession, connections, onClose, onConnected, refreshUsage, setActiveSession]);
 
   const handleSignUp = useCallback(() => {

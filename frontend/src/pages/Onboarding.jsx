@@ -5,8 +5,6 @@ import { ArrowLeft, CheckCircle } from 'lucide-react';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import ConnectAgentModal from '../components/ConnectAgentModal';
 import PulseBeams from '../components/animations/PulseBeams';
-import useStore from '../store/useStore';
-import { isLiveConnectedAgent } from '../utils/agentPresence';
 import '../styles/onboarding.css';
 
 const ONBOARDING_BEAMS = [
@@ -71,19 +69,9 @@ const ONBOARDING_BEAMS = [
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const activeSession = useStore((state) => state.activeSession);
-  const connectedAgents = useStore((state) => state.connectedAgents);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [connectionStage, setConnectionStage] = useState('idle');
   const transitionTimersRef = useRef([]);
-
-  useEffect(() => {
-    const hasLiveAgent = Array.isArray(connectedAgents)
-      && connectedAgents.some((agent) => agent && agent.status === 'connected' && isLiveConnectedAgent(agent));
-    if (activeSession?.id && hasLiveAgent && connectionStage === 'idle') {
-      navigate('/dashboard', { replace: true });
-    }
-  }, [activeSession, connectedAgents, connectionStage, navigate]);
 
   const clearTransitionTimers = useCallback(() => {
     transitionTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));

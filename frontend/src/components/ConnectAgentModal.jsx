@@ -465,6 +465,8 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
 
     finalizedConnectionKeysRef.current.add(connectionKey);
 
+    setSyncState('connected');
+
     addAgent({
       id: eventData?.agentId || session.agent?.id || `agent-${session.id}`,
       name: eventData?.agentName || session.agent?.name || `${tab} Agent`,

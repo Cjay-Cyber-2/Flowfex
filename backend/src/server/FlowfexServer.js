@@ -637,7 +637,10 @@ export class FlowfexServer {
             nodesProcessed: Array.isArray(payload?.graph?.nodes) ? payload.graph.nodes.length : 0,
           });
         }
-        return this._writeJson(response, 200, payload);
+        return this._writeJson(response, 200, {
+          ...payload,
+          sessionId: executionPayload.sessionId,
+        });
       } finally {
         this.sessionLockManager.release(executionPayload.sessionId);
       }
@@ -1085,10 +1088,6 @@ export class FlowfexServer {
     }
 
     const markResult = this.connectionService?.sessionManager?.markConnected?.(session.id);
-    if (markResult?.alreadyConnected) {
-      return;
-    }
-
     const liveSession = markResult?.session || session;
 
     const agentPayload = {
@@ -1100,10 +1099,15 @@ export class FlowfexServer {
       syncedAt: new Date().toISOString(),
     };
 
+    // Always broadcast so clients that join the Socket.IO room late still receive
+    // agent:connected (prompt ingest may run before the browser finishes subscribing).
     this.socketServer.emitAgentConnected(liveSession.id, agentPayload);
-    this.anonymousSessionService?.markConnectedAgent?.(liveSession.id, agentPayload).catch(() => {
-      return;
-    });
+
+    if (!markResult?.alreadyConnected) {
+      this.anonymousSessionService?.markConnectedAgent?.(liveSession.id, agentPayload).catch(() => {
+        return;
+      });
+    }
   }
 
   _writeError(response, error) {

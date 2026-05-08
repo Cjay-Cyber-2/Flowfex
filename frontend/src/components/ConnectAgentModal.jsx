@@ -432,8 +432,27 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
   // user sees the same sign-up wall whether they hit the cap from the
   // dashboard or from this connect dialog.
   useEffect(() => {
-    // Disabled limit panel popup
-    return;
+    if (!isOpen) {
+      return undefined;
+    }
+
+    const reqReason =
+      sessionUsage?.blockedLimit?.reason
+      || sessionUsage?.connectionBlockedLimit?.reason
+      || null;
+
+    if (!reqReason) {
+      return undefined;
+    }
+
+    setLimitMessages((current) => ({
+      ...current,
+      Prompt: current.Prompt || reqReason,
+      Link: current.Link || reqReason,
+      SDK: current.SDK || reqReason,
+      'Live Channel': current['Live Channel'] || reqReason,
+    }));
+    return undefined;
   }, [isOpen, sessionUsage?.blockedLimit?.reason, sessionUsage?.connectionBlockedLimit?.reason]);
 
   const finalizeConnection = useCallback(async (tab, eventData = null) => {
@@ -531,7 +550,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     });
 
     socket.on('agent:connected', (eventData) => {
-      if (eventData?.sessionId !== session.id) {
+      if (!eventData || eventData.sessionId !== session.id) {
         return;
       }
 
@@ -547,6 +566,80 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
       socket.disconnect();
     };
   }, [activeTab, backendUrl, connections, finalizeConnection, isOpen]);
+
+  /** HTTP fallback: if agent:connected is missed (WS timing, proxies), poll session after an 8s grace window. */
+  useEffect(() => {
+    if (!isOpen || syncState !== 'waiting') {
+      return undefined;
+    }
+
+    const sess = connections[activeTab]?.connection?.session;
+    const token = sess?.token;
+    if (!sess?.id || !token || !backendUrl) {
+      return undefined;
+    }
+
+    let cancelled = false;
+    let intervalId = null;
+    const baseUrl = backendUrl.replace(/\/+$/, '');
+    const maxAttempts = 80;
+
+    const tick = async () => {
+      if (cancelled) {
+        return;
+      }
+      try {
+        const response = await fetch(`${baseUrl}/sessions/${sess.id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json',
+          },
+        });
+        if (!response.ok || cancelled) {
+          return;
+        }
+        const payload = await response.json();
+        if (payload?.session?.connectedAt && !cancelled) {
+          finalizeConnection(activeTab, {
+            sessionId: sess.id,
+            agentId: payload.session.agent?.id,
+            agentName: payload.session.agent?.name,
+            connectionType: activeTab,
+          });
+        }
+      } catch {
+        /* ignore */
+      }
+    };
+
+    const delayId = window.setTimeout(() => {
+      if (cancelled) {
+        return;
+      }
+      let attempts = 0;
+      const run = async () => {
+        if (cancelled || attempts >= maxAttempts) {
+          if (intervalId) {
+            window.clearInterval(intervalId);
+            intervalId = null;
+          }
+          return;
+        }
+        attempts += 1;
+        await tick();
+      };
+      run();
+      intervalId = window.setInterval(run, 2500);
+    }, 8000);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(delayId);
+      if (intervalId) {
+        window.clearInterval(intervalId);
+      }
+    };
+  }, [activeTab, backendUrl, connections, finalizeConnection, isOpen, syncState]);
 
   return (
     <AnimatePresence initial={false}>

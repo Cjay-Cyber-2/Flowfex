@@ -665,6 +665,10 @@ const useStore = create((set, get) => ({
       });
 
       client.subscribe('session', 'agent:connected', (data) => {
+        const activeId = get().activeSession?.id;
+        if (!activeId || data?.sessionId !== activeId) {
+          return;
+        }
         const agentData = {
           id: data.agentId || `agent-${Date.now()}`,
           name: data.agentName || 'Connected Agent',

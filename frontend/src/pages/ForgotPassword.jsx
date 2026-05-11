@@ -5,7 +5,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import AuthBackdrop from '../components/auth/AuthBackdrop';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import { useSessionContext } from '../context/SessionContext';
-import { requestPasswordReset, resetPassword } from '../services/authService';
+import { requestPasswordReset, resetPassword, signOut } from '../services/authService';
 import { getAuthErrorMessage } from '../utils/authErrorMessages';
 
 function ForgotPassword() {
@@ -56,7 +56,11 @@ function ForgotPassword() {
     try {
       if (isResetMode) {
         await resetPassword(token, password);
-        await refreshSession();
+        try {
+          await signOut();
+        } catch {
+          // Session may already be cleared; still send the user to sign-in.
+        }
         setNotice('Password updated. Sign in with the new password.');
         navigate('/signin');
       } else {

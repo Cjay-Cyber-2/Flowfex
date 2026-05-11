@@ -82,7 +82,7 @@ export class FlowfexServer {
 
     // Attach Socket.io directly to this server (avoid stale singletons)
     this.socketServer = new FlowfexSocketServer(this.server, {
-      corsOrigin: process.env.ALLOWED_ORIGINS || '*',
+      corsOrigin: Array.from(this._collectBrowserOriginsForCors()),
     });
     if (this.connectionService?.orchestrator?.setSocketServer) {
       this.connectionService.orchestrator.setSocketServer(this.socketServer);
@@ -1147,6 +1147,91 @@ export class FlowfexServer {
     });
   }
 
+  /**
+   * Normalizes env or config URL strings to a browser Origin (scheme + host + port).
+   * @param {string|undefined|null} value
+   * @returns {string|null}
+   */
+  _normalizeToOrigin(value) {
+    if (!value || typeof value !== 'string') {
+      return null;
+    }
+
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const candidate = trimmed.includes('://')
+      ? trimmed
+      : trimmed.startsWith('localhost') || trimmed.startsWith('127.0.0.1')
+        ? `http://${trimmed}`
+        : `https://${trimmed}`;
+
+    try {
+      return new URL(candidate).origin;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Origins allowed for credentialed browser traffic (REST + Better Auth cookies).
+   * Matches backend betterAuth trustedOrigins defaults and env-driven deploy URLs.
+   */
+  _collectBrowserOriginsForCors() {
+    const origins = new Set();
+
+    const defaults = [
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+      'https://flowfex.vercel.app',
+      'https://flowfex.onrender.com',
+    ];
+
+    for (const entry of defaults) {
+      const o = this._normalizeToOrigin(entry);
+      if (o) {
+        origins.add(o);
+      }
+    }
+
+    for (const entry of String(process.env.ALLOWED_ORIGINS || '').split(',')) {
+      const o = this._normalizeToOrigin(entry);
+      if (o) {
+        origins.add(o);
+      }
+    }
+
+    for (const key of [
+      'FLOWFEX_APP_URL',
+      'FRONTEND_URL',
+      'FRONTEND_ORIGIN',
+      'APP_URL',
+      'VITE_APP_URL',
+      'BETTER_AUTH_URL',
+      'FLOWFEX_PUBLIC_ORIGIN',
+      'RENDER_EXTERNAL_URL',
+    ]) {
+      const o = this._normalizeToOrigin(process.env[key]);
+      if (o) {
+        origins.add(o);
+      }
+    }
+
+    return origins;
+  }
+
+  _normalizeRequestOriginHeader(originHeader) {
+    if (!originHeader || typeof originHeader !== 'string') {
+      return '';
+    }
+
+    return this._normalizeToOrigin(originHeader) || '';
+  }
+
   _setCorsHeaders(response, request) {
     // Basic Security Headers
     response.setHeader('X-Content-Type-Options', 'nosniff');
@@ -1154,21 +1239,19 @@ export class FlowfexServer {
     response.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     response.setHeader('X-XSS-Protection', '1; mode=block');
 
-    // CORS Hardening
-    const origin = request?.headers?.origin || '';
-    const allowed = process.env.ALLOWED_ORIGINS
-      ? process.env.ALLOWED_ORIGINS.split(',')
-      : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173'];
-    
-    if (allowed.includes('*') || allowed.includes(origin)) {
-      response.setHeader('Access-Control-Allow-Origin', origin || '*');
-    } else {
-      response.setHeader('Access-Control-Allow-Origin', allowed[0]);
+    // CORS: with Access-Control-Allow-Credentials: true, the Allow-Origin value must
+    // exactly match the request Origin — never reflect an unrelated allowlist entry.
+    const requestOrigin = this._normalizeRequestOriginHeader(request?.headers?.origin);
+    const allowed = this._collectBrowserOriginsForCors();
+
+    if (requestOrigin && allowed.has(requestOrigin)) {
+      response.setHeader('Access-Control-Allow-Origin', requestOrigin);
+      response.setHeader('Access-Control-Allow-Credentials', 'true');
+      response.setHeader('Vary', 'Origin');
     }
 
     response.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
     response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Flowfex-Api-Key, X-Flowfex-Anonymous-Token, X-Flowfex-Agent-Attach');
-    response.setHeader('Access-Control-Allow-Credentials', 'true');
   }
 
   _wantsEventStream(request, url, body = {}) {

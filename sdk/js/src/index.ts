@@ -308,7 +308,13 @@ export class FlowfexClient {
 
     this.socket = io(`${this.baseUrl}/orchestration`, {
       query: { sessionId: this.session.id },
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 30000,
+      reconnectionAttempts: Infinity,
+      randomizationFactor: 0.5,
+      timeout: 20000,
     });
 
     // Rebind existing listeners

@@ -36,7 +36,10 @@ export function onAuthStateChange(callback) {
 }
 
 export async function signOut() {
-  await authClient.signOut();
+  const { error } = await authClient.signOut();
+  if (error) {
+    throw new Error(error.message || 'Sign out failed.');
+  }
 }
 
 // ─── Used by SignIn / SignUp pages ───────────────────────────────────

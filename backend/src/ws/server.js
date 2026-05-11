@@ -19,15 +19,20 @@ export class FlowfexSocketServer {
    * @param {Object} [options]
    */
   constructor(httpServer, options = {}) {
+    const corsOriginOption = Array.isArray(options.corsOrigin)
+      ? (options.corsOrigin.length > 0 ? options.corsOrigin : '*')
+      : (options.corsOrigin || '*');
+
     this.io = new Server(httpServer, {
       cors: {
-        origin: options.corsOrigin || '*',
+        origin: corsOriginOption,
         methods: ['GET', 'POST'],
         credentials: true,
       },
-      pingTimeout: 10000,
+      pingTimeout: 20000,
       pingInterval: 15000,
       maxHttpBufferSize: 5e5,
+      connectTimeout: 20000,
     });
 
     this.orchestration = this.io.of('/orchestration');

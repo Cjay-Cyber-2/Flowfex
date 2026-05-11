@@ -41,7 +41,10 @@ export interface FlowfexAuthListenerPayload {
 
 function getBaseUrl() {
   if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_BACKEND_URL) {
-    return import.meta.env.VITE_BACKEND_URL;
+    return import.meta.env.VITE_BACKEND_URL.replace(/\/+$/, '');
+  }
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL.replace(/\/+$/, '');
   }
   // Hard fallback for production — works even without env vars set on frontend
   return 'https://flowfex.onrender.com';

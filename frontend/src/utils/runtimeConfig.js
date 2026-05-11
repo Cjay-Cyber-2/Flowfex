@@ -1,6 +1,9 @@
 const DEFAULT_APP_ORIGIN = 'http://localhost:3000';
 const DEFAULT_BACKEND_ORIGIN = 'http://localhost:4000';
 const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1']);
+/** Production split: Vercel app → Render API (when VITE_BACKEND_URL is not baked in). */
+const PRODUCTION_APP_HOST = 'flowfex.vercel.app';
+const PRODUCTION_BACKEND_ORIGIN = 'https://flowfex.onrender.com';
 
 function trimTrailingSlash(value) {
   return value.endsWith('/') ? value.slice(0, -1) : value;
@@ -49,6 +52,10 @@ export function getBackendOrigin() {
 
   if (LOCAL_HOSTNAMES.has(location.hostname) && location.port === '3000') {
     return `${location.protocol}//${location.hostname}:4000`;
+  }
+
+  if (location.hostname === PRODUCTION_APP_HOST) {
+    return PRODUCTION_BACKEND_ORIGIN;
   }
 
   return location.origin;

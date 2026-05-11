@@ -1,5 +1,7 @@
 const DEFAULT_APP_ORIGIN = 'http://localhost:3000';
 const DEFAULT_BACKEND_ORIGIN = 'http://localhost:4000';
+/** Render-hosted API used when the SPA is served from Vercel or another static origin without VITE_BACKEND_URL. */
+const DEFAULT_PRODUCTION_BACKEND_ORIGIN = 'https://flowfex.onrender.com';
 const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1']);
 
 function trimTrailingSlash(value) {
@@ -44,11 +46,19 @@ export function getBackendOrigin() {
 
   const location = getBrowserLocation();
   if (!location) {
-    return DEFAULT_BACKEND_ORIGIN;
+    return import.meta.env.PROD ? DEFAULT_PRODUCTION_BACKEND_ORIGIN : DEFAULT_BACKEND_ORIGIN;
   }
 
-  if (LOCAL_HOSTNAMES.has(location.hostname) && location.port === '3000') {
+  const isLocal = LOCAL_HOSTNAMES.has(location.hostname);
+
+  // Local dev / vite preview: API is always on port 4000 (matches vite proxy target).
+  if (isLocal) {
     return `${location.protocol}//${location.hostname}:4000`;
+  }
+
+  // Production bundle on a public host: never use the static file origin as the API base.
+  if (import.meta.env.PROD) {
+    return DEFAULT_PRODUCTION_BACKEND_ORIGIN;
   }
 
   return location.origin;

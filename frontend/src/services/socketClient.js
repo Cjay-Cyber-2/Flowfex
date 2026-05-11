@@ -17,6 +17,7 @@ const RECONNECT_CONFIG = {
   reconnectionDelayMax: 30000,
   reconnectionAttempts: Infinity,
   timeout: 10000,
+  withCredentials: true,
 };
 
 class FlowfexSocketClient {

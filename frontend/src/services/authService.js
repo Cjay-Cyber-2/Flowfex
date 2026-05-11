@@ -30,9 +30,75 @@ export async function getCurrentAuthSession() {
 }
 
 export function onAuthStateChange(callback) {
-  // Better Auth doesn't have a real-time listener like Firebase.
-  // The frontend uses polling via SessionContext instead.
-  return { unsubscribe() {} };
+  if (typeof window === 'undefined') {
+    return { unsubscribe() {} };
+  }
+
+  let primed = false;
+  let lastUserId;
+  let lastToken;
+
+  const dispatch = (event, snapshot) => {
+    callback({
+      event,
+      user: snapshot.user,
+      session: snapshot,
+    });
+  };
+
+  const check = async () => {
+    try {
+      const snapshot = await getCurrentAuthSession();
+      const uid = snapshot.user?.id ?? null;
+      const tok = snapshot.accessToken ?? null;
+
+      if (!primed) {
+        primed = true;
+        lastUserId = uid;
+        lastToken = tok;
+        return;
+      }
+
+      if (uid === lastUserId && tok === lastToken) {
+        return;
+      }
+
+      const wasIn = lastUserId != null;
+      const nowIn = uid != null;
+      lastUserId = uid;
+      lastToken = tok;
+
+      if (!wasIn && nowIn) {
+        dispatch('SIGNED_IN', snapshot);
+      } else if (wasIn && !nowIn) {
+        dispatch('SIGNED_OUT', snapshot);
+      } else {
+        dispatch('TOKEN_REFRESHED', snapshot);
+      }
+    } catch {
+      // Ignore transient network errors; the next poll or focus refresh will retry.
+    }
+  };
+
+  const intervalId = window.setInterval(check, 12000);
+
+  const onVisibleOrFocus = () => {
+    if (document.visibilityState === 'visible') {
+      check();
+    }
+  };
+
+  document.addEventListener('visibilitychange', onVisibleOrFocus);
+  window.addEventListener('focus', onVisibleOrFocus);
+  check();
+
+  return {
+    unsubscribe() {
+      window.clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', onVisibleOrFocus);
+      window.removeEventListener('focus', onVisibleOrFocus);
+    },
+  };
 }
 
 export async function signOut() {

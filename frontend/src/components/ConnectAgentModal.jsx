@@ -17,6 +17,7 @@ const SOCKET_OPTIONS = {
   reconnectionAttempts: Infinity,
   timeout: 10000,
   transports: ['websocket', 'polling'],
+  withCredentials: true,
 };
 
 function useCopy() {

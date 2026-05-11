@@ -13,9 +13,10 @@ const TABS = ['Prompt', 'Link', 'SDK', 'Live Channel'];
 const SOCKET_OPTIONS = {
   reconnection: true,
   reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
+  reconnectionDelayMax: 30000,
   reconnectionAttempts: Infinity,
-  timeout: 10000,
+  timeout: 20000,
+  withCredentials: true,
   transports: ['websocket', 'polling'],
 };
 

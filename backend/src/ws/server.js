@@ -19,14 +19,21 @@ export class FlowfexSocketServer {
    * @param {Object} [options]
    */
   constructor(httpServer, options = {}) {
+    const allowedOrigins = Array.isArray(options.corsOrigins) && options.corsOrigins.length > 0
+      ? options.corsOrigins
+      : (typeof options.corsOrigin === 'string' ? options.corsOrigin.split(',').map((s) => s.trim()).filter(Boolean) : []);
+
+    const corsOriginOption = allowedOrigins.length > 0 ? allowedOrigins : true;
+
     this.io = new Server(httpServer, {
       cors: {
-        origin: options.corsOrigin || '*',
+        origin: corsOriginOption,
         methods: ['GET', 'POST'],
         credentials: true,
       },
-      pingTimeout: 10000,
-      pingInterval: 15000,
+      // Longer windows reduce spurious disconnects on slow links and background tabs.
+      pingTimeout: 60000,
+      pingInterval: 25000,
       maxHttpBufferSize: 5e5,
     });
 

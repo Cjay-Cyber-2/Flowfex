@@ -16,7 +16,9 @@ const RECONNECT_CONFIG = {
   reconnectionDelay: 1000,
   reconnectionDelayMax: 30000,
   reconnectionAttempts: Infinity,
-  timeout: 10000,
+  timeout: 20000,
+  withCredentials: true,
+  transports: ['websocket', 'polling'],
 };
 
 class FlowfexSocketClient {
@@ -43,7 +45,6 @@ class FlowfexSocketClient {
       const socket = io(`${BACKEND_URL}/${ns}`, {
         ...RECONNECT_CONFIG,
         query,
-        transports: ['websocket', 'polling'],
       });
 
       socket.on('connect', () => {

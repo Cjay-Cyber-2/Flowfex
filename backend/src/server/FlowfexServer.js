@@ -20,6 +20,7 @@ import {
   formatZodError 
 } from './ValidationSchemas.js';
 import { connectRequestSchema } from '../../../shared/connection-contracts.js';
+import { getAllowedBrowserOrigins, resolveAllowedCorsOrigin } from '../config/corsOrigins.js';
 
 const authHandler = toNodeHandler(auth);
 
@@ -82,7 +83,7 @@ export class FlowfexServer {
 
     // Attach Socket.io directly to this server (avoid stale singletons)
     this.socketServer = new FlowfexSocketServer(this.server, {
-      corsOrigin: process.env.ALLOWED_ORIGINS || '*',
+      corsOrigins: getAllowedBrowserOrigins(),
     });
     if (this.connectionService?.orchestrator?.setSocketServer) {
       this.connectionService.orchestrator.setSocketServer(this.socketServer);
@@ -1154,21 +1155,18 @@ export class FlowfexServer {
     response.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     response.setHeader('X-XSS-Protection', '1; mode=block');
 
-    // CORS Hardening
-    const origin = request?.headers?.origin || '';
-    const allowed = process.env.ALLOWED_ORIGINS
-      ? process.env.ALLOWED_ORIGINS.split(',')
-      : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173'];
-    
-    if (allowed.includes('*') || allowed.includes(origin)) {
-      response.setHeader('Access-Control-Allow-Origin', origin || '*');
-    } else {
-      response.setHeader('Access-Control-Allow-Origin', allowed[0]);
+    // CORS: echo a single whitelisted Origin (required for credentialed cross-site requests).
+    const requestOrigin = request?.headers?.origin;
+    const allowOrigin = resolveAllowedCorsOrigin(
+      typeof requestOrigin === 'string' ? requestOrigin : undefined
+    );
+    if (allowOrigin) {
+      response.setHeader('Access-Control-Allow-Origin', allowOrigin);
+      response.setHeader('Access-Control-Allow-Credentials', 'true');
     }
 
     response.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
     response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Flowfex-Api-Key, X-Flowfex-Anonymous-Token, X-Flowfex-Agent-Attach');
-    response.setHeader('Access-Control-Allow-Credentials', 'true');
   }
 
   _wantsEventStream(request, url, body = {}) {

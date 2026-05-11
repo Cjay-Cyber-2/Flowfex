@@ -21,7 +21,6 @@ import { getBackendOrigin } from '../utils/runtimeConfig';
 import {
   getCurrentAuthSession,
   isAuthClientConfigured,
-  onAuthStateChange,
   signOut as signOutFromAuth,
 } from '../services/authService';
 import useStore from '../store/useStore';
@@ -238,25 +237,23 @@ export function SessionProvider({ children }) {
     });
   }, [initialize]);
 
+  // Better Auth has no browser push channel; re-check session when the user returns
+  // so sign-in state and Flowfex session stay aligned with server cookies.
   useEffect(() => {
-    if (!isAuthClientConfigured()) {
-      return undefined;
-    }
-
-    const subscription = onAuthStateChange((payload) => {
-      if (!['SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED'].includes(payload.event)) {
+    const refreshOnReturn = () => {
+      if (document.visibilityState !== 'visible') {
         return;
       }
-
-      initialize({
-        forceAnonymous: payload.event === 'SIGNED_OUT',
-      }).catch(() => {
+      initialize().catch(() => {
         return;
       });
-    });
+    };
 
+    document.addEventListener('visibilitychange', refreshOnReturn);
+    window.addEventListener('focus', refreshOnReturn);
     return () => {
-      subscription.unsubscribe();
+      document.removeEventListener('visibilitychange', refreshOnReturn);
+      window.removeEventListener('focus', refreshOnReturn);
     };
   }, [initialize]);
 

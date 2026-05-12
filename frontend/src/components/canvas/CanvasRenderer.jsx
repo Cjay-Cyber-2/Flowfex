@@ -3,7 +3,6 @@ import {
   Hand,
   Maximize,
   MessageSquarePlus,
-  Minimize,
   Move,
   Scan,
   Target,
@@ -132,7 +131,6 @@ function CanvasRenderer() {
   const [dragState, setDragState] = useState(null);
   const [viewportSize, setViewportSize] = useState({ width: 1200, height: 760 });
   const [toolMode, setToolMode] = useState('select');
-  const [showMinimap, setShowMinimap] = useState(true);
   const [hoveredEdge, setHoveredEdge] = useState(null);
   const [spacePressed, setSpacePressed] = useState(false);
 
@@ -300,11 +298,6 @@ function CanvasRenderer() {
 
     await containerRef.current.requestFullscreen();
   };
-
-  const visibleWidth = viewportSize.width / transform.scale;
-  const visibleHeight = viewportSize.height / transform.scale;
-  const visibleX = -transform.x / transform.scale;
-  const visibleY = -transform.y / transform.scale;
 
   return (
     <div
@@ -492,54 +485,7 @@ function CanvasRenderer() {
         <button className="canvas-toolbar-button" onClick={handleFullscreen}>
           <Maximize size={16} />
         </button>
-        <button
-          className={`canvas-toolbar-button ${showMinimap ? 'is-active' : ''}`}
-          onClick={() => setShowMinimap((current) => !current)}
-        >
-          <Minimize size={16} />
-        </button>
       </div>
-
-      {showMinimap ? (
-        <div className="canvas-minimap">
-          <svg viewBox={`0 0 ${GRAPH_WIDTH} ${GRAPH_HEIGHT}`}>
-            {edges.map((edge) => {
-              const fromNode = nodeMap[edge.from];
-              const toNode = nodeMap[edge.to];
-              if (!fromNode || !toNode) return null;
-              return <path key={edge.id} d={getEdgePath(fromNode, toNode)} className={`minimap-edge minimap-edge-${edge.state}`} />;
-            })}
-            {nodes.map((node) => {
-              const { width, height } = getNodeDimensions(node);
-              return node.shape === 'diamond' ? (
-                <polygon
-                  key={node.id}
-                  points={`${node.x + width / 2},${node.y} ${node.x + width},${node.y + height / 2} ${node.x + width / 2},${node.y + height} ${node.x},${node.y + height / 2}`}
-                  className={`minimap-node minimap-node-${node.state}`}
-                />
-              ) : (
-                <rect
-                  key={node.id}
-                  x={node.x}
-                  y={node.y}
-                  width={width}
-                  height={height}
-                  rx="18"
-                  className={`minimap-node minimap-node-${node.state}`}
-                />
-              );
-            })}
-            <rect
-              className="minimap-viewport"
-              x={visibleX}
-              y={visibleY}
-              width={visibleWidth}
-              height={visibleHeight}
-              rx="18"
-            />
-          </svg>
-        </div>
-      ) : null}
 
       {hoveredEdge ? (
         <div className="canvas-edge-tooltip" style={{ left: hoveredEdge.left, top: hoveredEdge.top }}>

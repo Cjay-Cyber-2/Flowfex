@@ -25,6 +25,7 @@ function SignUp() {
   const [searchParams] = useSearchParams();
   const { configured, isAuthenticated, refreshSession, sessionReady } = useSessionContext();
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [showPw, setShowPw] = useState(false);
@@ -60,9 +61,18 @@ function SignUp() {
       return;
     }
 
+    if (!username.trim() || username.trim().length < 2) {
+      setErrorMessage('Username must be at least 2 characters.');
+      return;
+    }
+    if (!/^[\p{L}\p{N}._-]+$/u.test(username.trim())) {
+      setErrorMessage('Username can use letters, numbers, dot, underscore, or hyphen.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const result = await signUpWithEmail(email, password);
+      const result = await signUpWithEmail(email, password, username.trim());
 
       if (result.needsEmailConfirmation) {
         setNoticeMessage('Check your inbox to confirm your email, then come back to sign in.');
@@ -139,6 +149,21 @@ function SignUp() {
               type="email" required value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="you@example.com"
+              style={styles.input}
+              onFocus={e => Object.assign(e.target.style, styles.inputFocus)}
+              onBlur={e => Object.assign(e.target.style, { borderColor: 'rgba(0,212,170,0.1)', boxShadow: 'none' })}
+            />
+          </div>
+
+          <div style={styles.fieldGroup}>
+            <label style={styles.label}>USERNAME</label>
+            <input
+              type="text"
+              required
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="your_handle"
+              autoComplete="username"
               style={styles.input}
               onFocus={e => Object.assign(e.target.style, styles.inputFocus)}
               onBlur={e => Object.assign(e.target.style, { borderColor: 'rgba(0,212,170,0.1)', boxShadow: 'none' })}

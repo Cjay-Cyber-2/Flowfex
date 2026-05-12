@@ -49,7 +49,7 @@ export default function RequireAttachedAgent({ children }) {
       return undefined;
     }
 
-    const timer = window.setTimeout(() => setGraceExpired(true), 1000);
+    const timer = window.setTimeout(() => setGraceExpired(true), 3200);
     return () => window.clearTimeout(timer);
   }, [sessionReady]);
 

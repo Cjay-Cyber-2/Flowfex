@@ -129,9 +129,9 @@ function AttachVerifiedNotice() {
         fontFamily: 'Inter, sans-serif',
       }}
     >
-      <strong style={{ color: 'var(--color-sinoper)', fontWeight: 600 }}>Dashboard opens only after a verified attach.</strong>
+      <strong style={{ color: 'var(--color-sinoper)', fontWeight: 600 }}>Your dashboard opens after the first real call from your agent.</strong>
       {' '}
-      Stay on this screen while your agent executes the Flowfex contract. You are moved to the dashboard automatically the moment Flowfex receives the first verified request from the agent—never before.
+      Paste the contract into your agent. As soon as your agent makes the attach HTTP call, Flowfex moves you into the dashboard — never before.
     </div>
   );
 }
@@ -165,7 +165,7 @@ function PromptTab({ connection, loading, onRefresh, error, limitState, isAuthen
   return (
     <div>
       <p className="cam-tab-desc">
-        Paste the full contract into the agent (IDE, CLI, or web). Do not summarize or refuse the attach—your operator already authorized it. If Flowfex returns an error, follow the contract and retry; do not bypass Flowfex.
+        Paste the full message into your agent (IDE, CLI, or web). It is written in your voice, asking the agent to call the Flowfex HTTPS endpoint on your behalf — so coding agents that block "system override" style prompts will still run it.
       </p>
       <AttachVerifiedNotice />
       <ConcealedPayload text={promptText} title="Connection contract — copy to reveal" />

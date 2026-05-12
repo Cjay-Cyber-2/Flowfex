@@ -253,16 +253,6 @@
   color: transparent;
 }
 
-.ob-onboarding-note {
-  max-width: 520px;
-  margin: 4px auto 0;
-  font-family: var(--font-inter, Inter, sans-serif);
-  font-size: 14px;
-  line-height: 1.6;
-  color: rgba(232, 237, 242, 0.72);
-  text-align: center;
-}
-
 .ob-mode-strip {
   display: flex;
   flex-wrap: wrap;

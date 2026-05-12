@@ -264,10 +264,6 @@ export default function Onboarding() {
             >
               <FlowfexLogoNew size={34} animated={false} />
             </motion.div>
-            <p className="ob-onboarding-note">
-              Flowfex will route you to your dashboard the moment your agent attaches.
-              No false signal — the animation only plays once Flowfex verifies the connection.
-            </p>
             <AnimatedLayerButton onClick={() => setIsModalOpen(true)}>
               Connect Agent
             </AnimatedLayerButton>

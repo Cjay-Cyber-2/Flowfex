@@ -33,19 +33,42 @@ function deriveDisplayName(user) {
     return null;
   }
 
-  return user.displayName || user.name || user.email?.split('@')[0] || 'Flowfex User';
+  const fromName = String(user.name || '').trim();
+  if (fromName) {
+    return fromName;
+  }
+
+  const fromDisplay = String(user.displayName || '').trim();
+  if (fromDisplay) {
+    return fromDisplay;
+  }
+
+  return user.email?.split('@')[0] || '';
 }
 
-function deriveInitials(name) {
-  const compact = String(name || '')
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0] || '')
-    .join('')
-    .toUpperCase();
+/** First two letters of the username string (signup / OAuth name), then email local part. */
+function deriveAccountMonogram(user) {
+  if (!user) {
+    return '';
+  }
 
-  return compact || 'FX';
+  const fromUsername = String(user.name || '').trim().replace(/\s+/g, '');
+  if (fromUsername.length >= 2) {
+    return fromUsername.slice(0, 2).toUpperCase();
+  }
+  if (fromUsername.length === 1) {
+    return (fromUsername + fromUsername).toUpperCase();
+  }
+
+  const local = String(user.email || '').split('@')[0] || '';
+  if (local.length >= 2) {
+    return local.slice(0, 2).toUpperCase();
+  }
+  if (local.length === 1) {
+    return (local + local).toUpperCase();
+  }
+
+  return '';
 }
 
 function toStoreUser(user) {
@@ -58,7 +81,7 @@ function toStoreUser(user) {
     id: user.id,
     email: user.email || '',
     name,
-    initials: deriveInitials(name),
+    initials: deriveAccountMonogram(user),
   };
 }
 
@@ -91,6 +114,7 @@ export function SessionProvider({ children }) {
     usageError: null,
   });
   const initializeRequestIdRef = useRef(0);
+  const wasAuthenticatedRef = useRef(false);
 
   const syncStore = useCallback((session, user) => {
     setUser(toStoreUser(user));
@@ -144,7 +168,15 @@ export function SessionProvider({ children }) {
     initializeRequestIdRef.current = requestId;
 
     try {
-      const auth = await readAuthSession(options.forceAnonymous === true);
+      let auth = await readAuthSession(options.forceAnonymous === true);
+
+      if (!options.forceAnonymous && !auth.user && wasAuthenticatedRef.current) {
+        const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+        for (let attempt = 0; attempt < 6 && !auth.user; attempt += 1) {
+          await pause(80 + attempt * 100);
+          auth = await readAuthSession(false);
+        }
+      }
       const storedAnonymousToken = readAnonymousToken();
       let backendSession = null;
 
@@ -194,6 +226,12 @@ export function SessionProvider({ children }) {
 
       if (requestId !== initializeRequestIdRef.current) {
         return backendSession;
+      }
+
+      if (auth.user && (auth.user.id || auth.user.email)) {
+        wasAuthenticatedRef.current = true;
+      } else if (options.forceAnonymous === true) {
+        wasAuthenticatedRef.current = false;
       }
 
       startTransition(() => {
@@ -274,6 +312,7 @@ export function SessionProvider({ children }) {
   }, [refreshUsage, state.accessToken, state.session?.id]);
 
   const signOut = useCallback(async () => {
+    wasAuthenticatedRef.current = false;
     if (isAuthClientConfigured()) {
       await signOutFromAuth();
     }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Link2, Key, Settings as SettingsIcon, BarChart } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ArrowLeft, User, Key, Settings as SettingsIcon, BarChart } from 'lucide-react';
 import useStore from '../store/useStore';
 import { useSessionContext } from '../context/SessionContext';
 import {
@@ -120,6 +120,7 @@ function UsageSection({ usage, isAuthenticated, onUpgrade }) {
 
 function Settings() {
   const navigate = useNavigate();
+  const location = useLocation();
   const storeUser = useStore((state) => state.user);
   const { accessToken, configured, isAuthenticated, signOut, user, usage } = useSessionContext();
   const [activeSection, setActiveSection] = useState('account');
@@ -131,10 +132,9 @@ function Settings() {
 
   const sections = [
     { id: 'account', label: 'Account', icon: User },
-    { id: 'agents', label: 'Connected Agents', icon: Link2 },
     { id: 'api', label: 'API Keys', icon: Key },
     { id: 'preferences', label: 'Preferences', icon: SettingsIcon },
-    { id: 'usage', label: 'Usage & Limits', icon: BarChart }
+    { id: 'usage', label: 'Usage & Limits', icon: BarChart },
   ];
 
   useEffect(() => {
@@ -157,10 +157,16 @@ function Settings() {
       });
   }, [accessToken, activeSection, configured, isAuthenticated]);
 
-  const displayUser = storeUser || (user ? {
-    email: user.email,
-    name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Flowfex User',
-  } : null);
+  const backTarget = (() => {
+    const from = location.state?.from;
+    if (typeof from !== 'string' || !from.startsWith('/') || from.startsWith('//')) {
+      return '/dashboard';
+    }
+    return from;
+  })();
+
+  const accountEmail = isAuthenticated ? (user?.email || storeUser?.email || '') : '';
+  const accountUsername = isAuthenticated ? String(user?.name || storeUser?.name || '').trim() : '';
 
   const handleGenerateKey = async () => {
     if (!accessToken || !apiKeyLabel.trim()) {
@@ -219,7 +225,8 @@ function Settings() {
         padding: 'var(--space-6)'
       }}>
         <button
-          onClick={() => navigate('/canvas')}
+          type="button"
+          onClick={() => navigate(backTarget)}
           className="btn-ghost"
           style={{ marginBottom: 'var(--space-8)', width: '100%' }}
         >
@@ -281,30 +288,41 @@ function Settings() {
           {activeSection === 'account' && (
             <div>
               <div className="form-group" style={{ marginBottom: 'var(--space-6)' }}>
-                <label className="form-label">Email</label>
-                <input type="email" className="input" defaultValue={displayUser?.email || ''} />
+                <label className="form-label" htmlFor="settings-email">Email</label>
+                <input
+                  id="settings-email"
+                  type="email"
+                  className="input"
+                  readOnly
+                  value={accountEmail}
+                  style={{ opacity: 0.92, cursor: 'default' }}
+                />
               </div>
               <div className="form-group" style={{ marginBottom: 'var(--space-6)' }}>
-                <label className="form-label">Display Name</label>
-                <input type="text" className="input" defaultValue={displayUser?.name || 'Flowfex User'} />
+                <label className="form-label" htmlFor="settings-username">Username</label>
+                <input
+                  id="settings-username"
+                  type="text"
+                  className="input"
+                  readOnly
+                  value={accountUsername}
+                  placeholder={isAuthenticated ? undefined : ''}
+                  style={{ opacity: 0.92, cursor: 'default' }}
+                />
               </div>
-              <button className="btn-primary" onClick={() => signOut()}>Sign Out</button>
-            </div>
-          )}
-
-          {activeSection === 'agents' && (
-            <div>
-              <p style={{
-                fontFamily: 'var(--font-inter)',
-                fontSize: 'var(--text-base)',
-                color: 'var(--color-bistre)',
-                marginBottom: 'var(--space-6)'
-              }}>
-                Manage your connected AI agents.
-              </p>
-              <button className="btn-primary" onClick={() => navigate('/onboarding')}>
-                Connect New Agent
-              </button>
+              {isAuthenticated ? (
+                <button type="button" className="btn-primary" onClick={() => signOut()}>Sign Out</button>
+              ) : (
+                <p style={{
+                  fontFamily: 'var(--font-inter)',
+                  fontSize: 'var(--text-sm)',
+                  color: 'var(--color-bistre)',
+                  marginBottom: 'var(--space-4)',
+                }}
+                >
+                  Sign up or sign in to manage a saved account, username, and API keys.
+                </p>
+              )}
             </div>
           )}
 

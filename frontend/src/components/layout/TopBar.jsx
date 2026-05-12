@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronDown, Pause, Play, ShieldCheck, UserRound } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import FlowfexLogoNew from '../FlowfexLogoNew';
 import useStore from '../../store/useStore';
 import { useSessionContext } from '../../context/SessionContext';
@@ -8,6 +8,7 @@ import './TopBar.css';
 
 function TopBar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, hasConnectedAgent, user: sessionUser } = useSessionContext();
   const {
     activeSession,
@@ -34,12 +35,14 @@ function TopBar() {
   ];
 
   const displayEmail = sessionUser?.email || user?.email || '';
+  const displayUsername = String(sessionUser?.name || user?.name || '').trim();
   const accountLabel = isAuthenticated
-    ? (displayEmail ? displayEmail.split('@')[0] : 'Signed in')
-    : 'Guest';
+    ? (displayUsername || (displayEmail ? displayEmail.split('@')[0] : '') || 'Signed in')
+    : 'Anonymous';
   const accountTitle = isAuthenticated
-    ? (displayEmail ? `Signed in as ${displayEmail}` : 'Signed in to Flowfex')
-    : 'Guest Flowfex session — connect an agent to orchestrate. Sign up after your free requests for a saved account and higher limits.';
+    ? (displayEmail ? `Signed in as ${displayUsername || displayEmail}` : 'Signed in to Flowfex')
+    : 'Anonymous Flowfex session — connect an agent to orchestrate. Sign up after your free requests for a saved account and higher limits.';
+  const avatarLetters = isAuthenticated ? (user?.initials || '').trim() : '';
 
   const connectDisabled = !isAuthenticated && hasConnectedAgent;
 
@@ -128,8 +131,13 @@ function TopBar() {
           {accountLabel}
         </span>
 
-        <button className="top-bar-account" onClick={() => navigate('/settings')}>
-          <span className="top-bar-account-avatar">{user?.initials || 'FX'}</span>
+        <button
+          type="button"
+          className="top-bar-account"
+          onClick={() => navigate('/settings', { state: { from: `${location.pathname}${location.search}` } })}
+          aria-label="Account and settings"
+        >
+          <span className={`top-bar-account-avatar ${!avatarLetters ? 'is-empty' : ''}`}>{avatarLetters}</span>
           <ChevronDown size={14} />
         </button>
       </div>

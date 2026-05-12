@@ -283,6 +283,13 @@
   font-weight: 700;
 }
 
+.top-bar-account-avatar.is-empty {
+  background: rgba(17, 24, 32, 0.55);
+  border: 1px dashed rgba(0, 212, 170, 0.22);
+  color: transparent;
+  font-size: 0;
+}
+
 @keyframes statusPulse {
   0%,
   100% {

@@ -34,7 +34,7 @@ export default function QuotaPricingOverlay({
     <div className="quota-pricing-overlay" role="dialog" aria-modal="true" aria-labelledby="quota-pricing-title">
       <div className="quota-pricing-overlay__scroller">
         <div className="quota-pricing-overlay__intro">
-          <p className="quota-pricing-overlay__eyebrow">{isAnon ? 'Guest session limit' : 'Account quota'}</p>
+          <p className="quota-pricing-overlay__eyebrow">{isAnon ? 'Anonymous session limit' : 'Account quota'}</p>
           <h2 id="quota-pricing-title" className="quota-pricing-overlay__title">
             {headline}
           </h2>

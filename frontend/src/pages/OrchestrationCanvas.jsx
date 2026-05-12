@@ -12,7 +12,7 @@ import '../styles/canvas.css';
 
 function UsageGateBanner({ isAuthenticated, title, message, onSignIn, onSignUp }) {
   const headline = title
-    || (isAuthenticated ? 'Account limit reached' : 'Guest session limit reached');
+    || (isAuthenticated ? 'Account limit reached' : 'Anonymous session limit reached');
   return (
     <div style={{
       marginBottom: 16,
@@ -48,7 +48,7 @@ function paymentGateHeadline(blockedLimit, connectionBlockedLimit, isAuthenticat
   const tier = blockedLimit?.tier || connectionBlockedLimit?.tier;
   if (key === 'maxExecutionsPerSession' || key === 'maxExecutionsPerDay') {
     if (!isAuthenticated || tier === 'anonymous') {
-      return 'You used all 10 free Flowfex guest requests.';
+      return 'You used all 10 free Flowfex anonymous requests.';
     }
     return 'You used all of today’s free Flowfex requests on this account.';
   }

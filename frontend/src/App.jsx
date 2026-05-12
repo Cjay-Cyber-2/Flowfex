@@ -11,7 +11,9 @@ import SessionDetail from './pages/SessionDetail';
 import History from './pages/History';
 import Settings from './pages/Settings';
 import Toast from './components/common/Toast';
+import FlowfexUsernameGate from './components/auth/FlowfexUsernameGate';
 import RequireAttachedAgent from './components/auth/RequireAttachedAgent';
+import ChooseUsername from './pages/ChooseUsername';
 import useStore from './store/useStore';
 import { useSessionContext } from './context/SessionContext';
 
@@ -29,6 +31,7 @@ function App() {
 
   return (
     <>
+      <FlowfexUsernameGate />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/demo" element={<LiveDemoPage />} />
@@ -41,6 +44,7 @@ function App() {
           }
         />
         <Route path="/signin" element={<SignIn />} />
+        <Route path="/choose-username" element={<ChooseUsername />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/reset-password" element={<ForgotPassword />} />
         <Route path="/onboarding" element={<Onboarding />} />

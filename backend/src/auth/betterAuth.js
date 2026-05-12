@@ -252,6 +252,15 @@ export const auth = betterAuth({
     provider: "pg", // PostgreSQL
     schema,
   }),
+  user: {
+    additionalFields: {
+      flowfexHandleChosen: {
+        type: "boolean",
+        required: false,
+        input: true,
+      },
+    },
+  },
   account: {
     // Split frontend/backend deployments can drop the extra state cookie even when
     // Better Auth already persists OAuth state in the database. Keep the stronger

@@ -18,6 +18,10 @@ export function isAuthClientConfigured() {
   return true;
 }
 
+export function userMustChooseFlowfexUsername(user) {
+  return Boolean(user && user.flowfexHandleChosen === false);
+}
+
 export async function getCurrentAuthSession() {
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   const attempts = 4;
@@ -69,15 +73,24 @@ export async function signUpWithEmail(email, password, name = '') {
     email,
     password,
     name,
+    flowfexHandleChosen: true,
     callbackURL: buildAppUrl('/onboarding'),
   });
   if (error || !data) {
     throw new Error(error?.message || 'Unable to create account. Please try again.');
   }
-  return {
-    user: data.user,
-    needsEmailConfirmation: false,
-  };
+  return { user: data.user, needsEmailConfirmation: false };
+}
+
+/** Sets Better Auth `name` (Flowfex username) and marks the handle step complete (OAuth users). */
+export async function setFlowfexProfileUsername(name) {
+  const { error } = await authClient.updateUser({
+    name,
+    flowfexHandleChosen: true,
+  });
+  if (error) {
+    throw new Error(error.message || 'Unable to save your username.');
+  }
 }
 
 export async function signInWithGitHub(callbackPath = '/onboarding', errorPath = '/signin') {

@@ -48,9 +48,9 @@ function paymentGateHeadline(blockedLimit, connectionBlockedLimit, isAuthenticat
   const tier = blockedLimit?.tier || connectionBlockedLimit?.tier;
   if (key === 'maxExecutionsPerSession' || key === 'maxExecutionsPerDay') {
     if (!isAuthenticated || tier === 'anonymous') {
-      return 'You used all 10 free Flowfex anonymous requests.';
+      return 'You used all 10 free Flowfex skill or tool requests for this session.';
     }
-    return 'You used all of today’s free Flowfex requests on this account.';
+    return 'You used all of today’s free Flowfex skill or tool requests on this account.';
   }
   if (key === 'maxConnectionsPerDay') {
     return 'You hit today\u2019s Flowfex attach cap.';
@@ -150,7 +150,7 @@ function OrchestrationCanvas() {
             </div>
             {requestLimit ? (
               <div className="canvas-surface-pill">
-                <span className="canvas-surface-pill-label">Requests today</span>
+                <span className="canvas-surface-pill-label">Skill / tool pulls</span>
                 <strong>{requestsToday} / {requestLimit}</strong>
               </div>
             ) : null}

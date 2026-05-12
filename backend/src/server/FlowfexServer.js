@@ -542,8 +542,17 @@ export class FlowfexServer {
           },
         });
       }
+
+      try {
+        await this._assertSkillToolQuotaIfAgent(request);
+      } catch (error) {
+        this._writeError(response, error);
+        return;
+      }
+
       const registry = this.connectionService?.orchestrator?.registry || this.connectionService?.registry;
       if (!registry) {
+        await this._recordSkillToolQuotaIfAgent(request);
         return this._writeJson(response, 200, { tools: [] });
       }
       const tools = registry.getCanonicalSkillRecords();
@@ -567,7 +576,7 @@ export class FlowfexServer {
         validationStatuses: {}
       });
 
-      return this._writeJson(response, 200, {
+      const payload = {
         tools,
         summary: {
           totalRegistryTools: tools.length,
@@ -578,7 +587,10 @@ export class FlowfexServer {
           validationStatuses: summary.validationStatuses,
           markdownTools: markdownTools.length
         }
-      });
+      };
+
+      await this._recordSkillToolQuotaIfAgent(request);
+      return this._writeJson(response, 200, payload);
     }
 
     if (request.method === 'GET' && skillsCategoriesMatch) {
@@ -590,11 +602,23 @@ export class FlowfexServer {
           },
         });
       }
+
+      try {
+        await this._assertSkillToolQuotaIfAgent(request);
+      } catch (error) {
+        this._writeError(response, error);
+        return;
+      }
+
       const registry = this.connectionService?.orchestrator?.registry || this.connectionService?.registry;
       if (!registry) {
+        await this._recordSkillToolQuotaIfAgent(request);
         return this._writeJson(response, 200, { categories: {} });
       }
-      return this._writeJson(response, 200, { categories: registry.getIndex('category') });
+
+      const categories = registry.getIndex('category');
+      await this._recordSkillToolQuotaIfAgent(request);
+      return this._writeJson(response, 200, { categories });
     }
 
     if (request.method === 'POST' && skillsSearchMatch) {
@@ -606,12 +630,21 @@ export class FlowfexServer {
           },
         });
       }
+
+      try {
+        await this._assertSkillToolQuotaIfAgent(request);
+      } catch (error) {
+        this._writeError(response, error);
+        return;
+      }
+
       const body = await this._readAndValidateJsonBody(request, skillsSearchSchema);
       const query = body.query || '';
       const registry = this.connectionService?.orchestrator?.registry
         || this.connectionService?.registry;
 
       if (!registry) {
+        await this._recordSkillToolQuotaIfAgent(request);
         return this._writeJson(response, 200, { results: [], query });
       }
 
@@ -622,6 +655,7 @@ export class FlowfexServer {
         strategy: match.strategy,
       }));
 
+      await this._recordSkillToolQuotaIfAgent(request);
       return this._writeJson(response, 200, { results, query, strategy: retrieval.strategy });
     }
 
@@ -634,12 +668,6 @@ export class FlowfexServer {
         input: ingestRequest.task,
         token: ingestRequest.token,
       };
-
-      if (this.usageService) {
-        await this.usageService.assertExecutionAllowed({
-          sessionId: executionPayload.sessionId,
-        });
-      }
 
       // Acquire execution lock
       if (!this.sessionLockManager.acquire(executionPayload.sessionId)) {
@@ -656,12 +684,6 @@ export class FlowfexServer {
 
         this._emitAgentConnectedForSessionId(executionPayload.sessionId, 'prompt');
         const payload = await this.connectionService.execute(executionPayload);
-        if (this.usageService) {
-          await this.usageService.recordExecution({
-            sessionId: executionPayload.sessionId,
-            nodesProcessed: Array.isArray(payload?.graph?.nodes) ? payload.graph.nodes.length : 0,
-          });
-        }
         return this._writeJson(response, 200, {
           ...payload,
           sessionId: executionPayload.sessionId,
@@ -685,12 +707,6 @@ export class FlowfexServer {
         token: this._extractBearerToken(request)
       };
 
-      if (this.usageService) {
-        await this.usageService.assertExecutionAllowed({
-          sessionId: executionPayload.sessionId,
-        });
-      }
-
       // Acquire execution lock
       if (!this.sessionLockManager.acquire(executionPayload.sessionId)) {
         return this._writeJson(response, 409, {
@@ -706,12 +722,6 @@ export class FlowfexServer {
 
         this._emitAgentConnectedForSessionId(executionPayload.sessionId, null);
         const payload = await this.connectionService.execute(executionPayload);
-        if (this.usageService) {
-          await this.usageService.recordExecution({
-            sessionId: executionPayload.sessionId,
-            nodesProcessed: Array.isArray(payload?.graph?.nodes) ? payload.graph.nodes.length : 0,
-          });
-        }
         return this._writeJson(response, 200, payload);
       } finally {
         this.sessionLockManager.release(executionPayload.sessionId);
@@ -926,6 +936,44 @@ export class FlowfexServer {
     }
   }
 
+  /**
+   * Anonymous free-tier quota applies only when the agent calls Flowfex using
+   * the live attach token (`ffx_...`). Browser catalog loads use Better Auth
+   * JWT or anonymous cookies and do not increment usage.
+   */
+  _resolveAgentSkillUsageSessionId(request) {
+    const bearer = this._extractBearerToken(request);
+    if (typeof bearer !== 'string' || !bearer.startsWith('ffx_')) {
+      return null;
+    }
+
+    const finder = this.connectionService?.sessionManager?.findSessionByToken;
+    if (!finder) {
+      return null;
+    }
+
+    const tokenSession = finder.call(this.connectionService.sessionManager, bearer);
+    return tokenSession?.id || null;
+  }
+
+  async _assertSkillToolQuotaIfAgent(request) {
+    const sessionId = this._resolveAgentSkillUsageSessionId(request);
+    if (!sessionId || !this.usageService) {
+      return;
+    }
+
+    await this.usageService.assertExecutionAllowed({ sessionId });
+  }
+
+  async _recordSkillToolQuotaIfAgent(request) {
+    const sessionId = this._resolveAgentSkillUsageSessionId(request);
+    if (!sessionId || !this.usageService) {
+      return;
+    }
+
+    await this.usageService.recordExecution({ sessionId, nodesProcessed: 0 });
+  }
+
   async _isSkillCatalogCallerAllowed(request, authUser, anonymousToken) {
     if (authUser?.id) {
       return true;
@@ -1100,15 +1148,9 @@ export class FlowfexServer {
     };
 
     try {
-      const result = await this.connectionService.execute(executionPayload, {
+      await this.connectionService.execute(executionPayload, {
         eventSink: sendEvent
       });
-      if (this.usageService) {
-        await this.usageService.recordExecution({
-          sessionId: executionPayload.sessionId,
-          nodesProcessed: Array.isArray(result?.graph?.nodes) ? result.graph.nodes.length : 0,
-        });
-      }
     } catch (error) {
       sendEvent({
         sequence: 0,

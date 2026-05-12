@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { ArrowRight, ChevronRight, Network, Play, ShieldCheck, Sparkles, Workflow } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
+import { useSessionContext } from '../context/SessionContext';
 import HeroOrchestrationScene from '../components/animations/HeroOrchestrationScene';
 import FlowIcon from '../components/common/FlowIcon';
 import ScrollFrameSection from '../components/landing/ScrollFrameSection';
@@ -175,11 +176,11 @@ function renderFlowGraph(nodes, edges, prefix, showLabels = false, customViewBox
 }
 
 const FALLBACK_CATALOG_STATS = {
-  skillsIndexed: 309,
-  agentTemplates: 64,
-  multiAgentSystems: 45,
-  mcpAgentSkills: 11,
-  categories: 14,
+  skillsIndexed: 853,
+  agentTemplates: 420,
+  multiAgentSystems: 64,
+  mcpAgentSkills: 20,
+  categories: 25,
 };
 
 function formatCatalogCount(value) {
@@ -258,6 +259,9 @@ function isAgentSkill(skill) {
     '/game-agents/',
     '/agent-skills/',
     '/chat-with-x/',
+    '/agent-swarm-agents/',
+    '/agency-agents/',
+    '/agents/',
     ' agent ',
     ' agents ',
     '_agent',
@@ -293,7 +297,13 @@ function deriveCatalogStats(payload) {
   const multiAgentSystems = countUniqueProjects(tools, isMultiAgentSkill);
   const mcpAgentSkills = countUniqueProjects(
     tools,
-    (tool) => getSkillSourcePath(tool).includes('/mcp-ai-agents/')
+    (tool) => {
+      const sourcePath = getSkillSourcePath(tool);
+      return sourcePath.includes('/mcp-ai-agents/')
+        || sourcePath.includes('mcp-builder')
+        || sourcePath.includes('mcp-server')
+        || sourcePath.includes('mcp-memory');
+    }
   );
   const categories = Number(summary.totalCategories) || new Set(tools.map((tool) => tool.category).filter(Boolean)).size;
 
@@ -310,6 +320,7 @@ function deriveCatalogStats(payload) {
 function LandingPage() {
   const navigate = useNavigate();
   const backendUrl = useStore((state) => state.backendUrl);
+  const { accessToken, session, sessionReady } = useSessionContext();
   const scrollProgressRef = useRef(null);
   const [activeSection, setActiveSection] = useState('hero');
   const [catalogStats, setCatalogStats] = useState(FALLBACK_CATALOG_STATS);
@@ -434,7 +445,16 @@ function LandingPage() {
 
     async function loadCatalogStats() {
       try {
-        const response = await fetch(`${backendUrl}/skills`);
+        const headers = {};
+        if (accessToken) {
+          headers.Authorization = `Bearer ${accessToken}`;
+        } else if (session?.anonymousToken) {
+          headers['X-Flowfex-Anonymous-Token'] = session.anonymousToken;
+        }
+        const response = await fetch(`${backendUrl}/skills`, {
+          headers,
+          credentials: 'include',
+        });
         if (!response.ok) return;
         const payload = await response.json();
         if (!cancelled) {
@@ -447,14 +467,17 @@ function LandingPage() {
       }
     }
 
-    if (backendUrl) {
+    // Wait for SessionContext to bootstrap the anonymous token so the
+    // skill catalog endpoint accepts the request (it is gated to live
+    // Flowfex sessions to stop bulk scraping).
+    if (backendUrl && sessionReady) {
       loadCatalogStats();
     }
 
     return () => {
       cancelled = true;
     };
-  }, [backendUrl]);
+  }, [backendUrl, accessToken, session?.anonymousToken, sessionReady]);
 
   return (
     <div className="landing-page">

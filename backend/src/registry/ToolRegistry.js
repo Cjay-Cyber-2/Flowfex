@@ -481,6 +481,12 @@ export class ToolRegistry {
     const includeEmbeddingVector = options.includeEmbeddingVector !== false;
     const metadata = tool.metadata || {};
     const approvalRequired = metadata.approvalRequired === true || metadata.requiresApproval === true;
+    // Strip the absolute path prefix so HTTP responses never leak the
+    // server's filesystem layout. The category portion the frontend uses
+    // for classification (e.g. "skills-md/imported/agent-swarm-skills/...")
+    // is preserved.
+    const safeSourcePath = sanitizeSkillSourcePath(metadata.sourcePath);
+    const safeSourceRoot = sanitizeSkillSourcePath(metadata.sourceRoot || metadata.sourceDirectory);
 
     return {
       id: tool.id,
@@ -495,8 +501,8 @@ export class ToolRegistry {
       metadata: {
         source: metadata.source || 'unknown',
         trustLevel: metadata.trustLevel || metadata.sourceTrustLevel || 'unknown',
-        sourcePath: metadata.sourcePath || null,
-        sourceRoot: metadata.sourceRoot || metadata.sourceDirectory || null,
+        sourcePath: safeSourcePath,
+        sourceRoot: safeSourceRoot,
         sourceType: metadata.sourceType || null,
         sourceClassification: metadata.sourceClassification || null,
         validationStatus: metadata.validationStatus || null,
@@ -738,4 +744,30 @@ function buildDefaultExecutionHandler(tool) {
     sourceType: tool.metadata?.sourceType || 'tool',
     sourceClassification: tool.metadata?.sourceClassification || 'direct'
   };
+}
+
+function sanitizeSkillSourcePath(value) {
+  if (!value || typeof value !== 'string') {
+    return null;
+  }
+
+  // Normalise separators then drop any prefix up to and including a
+  // recognised skill root so we never leak absolute filesystem paths.
+  const normalised = value.replace(/\\/g, '/');
+  const knownRoots = ['/skills-md/', '/awesome-llm-apps/', '/awesome-agent-skills/'];
+  for (const root of knownRoots) {
+    const idx = normalised.indexOf(root);
+    if (idx >= 0) {
+      return normalised.slice(idx + 1);
+    }
+  }
+
+  // No recognised root — fall back to last 3 path segments (still strips
+  // absolute prefixes while keeping enough context for the UI).
+  const segments = normalised.split('/').filter(Boolean);
+  if (segments.length <= 3) {
+    return segments.join('/');
+  }
+
+  return segments.slice(-3).join('/');
 }

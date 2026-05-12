@@ -168,14 +168,14 @@
   position: relative;
   width: 100%;
   max-width: 560px;
-  max-height: calc(100vh - 48px);
-  max-height: calc(100dvh - 48px);
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
   overflow: hidden;
   background: #161E28;
   border: 1px solid rgba(0, 212, 170, 0.14);
   border-radius: 20px;
   box-shadow: 0 0 60px rgba(0, 212, 170, 0.08), 0 20px 60px rgba(0, 0, 0, 0.6);
-  padding: 32px 32px 0;
+  padding: 24px 24px 0;
   pointer-events: auto;
   display: flex;
   flex-direction: column;
@@ -185,7 +185,8 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
+  flex-shrink: 0;
 }
 
 .cam-title {
@@ -203,13 +204,12 @@
   margin: 0;
 }
 
-.cam-attach-banner {
-  margin: 12px 0 0;
-  max-width: 42ch;
+.cam-connect-headline {
+  margin: 0 0 10px;
   font-family: Inter, sans-serif;
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.55;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
   color: rgba(232, 237, 242, 0.92);
 }
 
@@ -228,8 +228,9 @@
 .cam-tabs {
   display: flex;
   gap: 6px;
-  margin-bottom: 24px;
+  margin-bottom: 14px;
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .cam-tab {
@@ -252,10 +253,10 @@
 }
 
 .cam-tab-body {
-  min-height: 120px;
-  flex: 1;
-  overflow-y: auto;
-  padding-bottom: 16px;
+  min-height: 0;
+  flex: 0 1 auto;
+  overflow: visible;
+  padding-bottom: 12px;
 }
 
 .cam-tab-desc {
@@ -269,8 +270,8 @@
   background: #080C10;
   border: 1px solid rgba(237, 232, 223, 0.15);
   border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
   position: relative;
 }
 
@@ -285,8 +286,8 @@
 }
 
 .cam-code-block-concealed {
-  min-height: 180px;
-  max-height: 220px;
+  min-height: 112px;
+  max-height: 148px;
   overflow: hidden;
 }
 
@@ -304,8 +305,8 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  gap: 10px;
-  padding: 20px;
+  gap: 8px;
+  padding: 14px 16px;
   background: linear-gradient(180deg, rgba(8, 12, 16, 0.12), rgba(8, 12, 16, 0.78));
   backdrop-filter: blur(3px);
 }
@@ -322,10 +323,10 @@
 .cam-concealed-overlay p {
   margin: 0;
   font-family: Inter, sans-serif;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 12px;
+  line-height: 1.45;
   color: rgba(237, 232, 223, 0.82);
-  max-width: 36ch;
+  max-width: 38ch;
 }
 
 .cam-copy-btn {
@@ -418,8 +419,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
-  padding: 20px 0 32px;
+  gap: 12px;
+  padding: 14px 0 22px;
   border-top: 1px solid rgba(237, 232, 223, 0.08);
   background: #161E28;
   margin-top: auto;
@@ -466,10 +467,12 @@
 .cam-sync-status {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   font-family: Inter, sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--color-bistre);
+  line-height: 1.35;
+  min-width: 0;
 }
 
 .cam-sync-dot {
@@ -506,12 +509,12 @@
   }
 
   .cam-tab-body {
-    min-height: 100px;
+    min-height: 0;
   }
 
   .cam-code-block-concealed {
-    min-height: 140px;
-    max-height: 180px;
+    min-height: 96px;
+    max-height: 128px;
   }
 
   .cam-footer {

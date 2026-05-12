@@ -194,6 +194,75 @@
   filter: saturate(1.08);
 }
 
+/* Restored historic Flowfex connect button (spinning network SVG) */
+.ob-animated-layer-btn {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  min-width: 220px;
+  padding: 0 32px;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  overflow: hidden;
+  background: var(--color-sinoper, #00D4AA);
+  box-shadow: 6px 6px 0px rgba(0, 212, 170, 0.35);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.ob-animated-layer-btn:hover {
+  transform: translateY(4px);
+  box-shadow: 2px 2px 0px rgba(0, 212, 170, 0.35);
+}
+.ob-animated-layer-btn:active {
+  transform: translateY(6px);
+  box-shadow: 0px 0px 0px rgba(0, 212, 170, 0.35);
+}
+
+.ob-animated-layer-svg {
+  position: absolute;
+  height: auto;
+  width: 64px;
+  left: -30px;
+  transition: left 0.3s ease, width 0.3s ease;
+  animation: ob-spin-slow 5s linear infinite;
+}
+.ob-animated-layer-btn:hover .ob-animated-layer-svg {
+  left: 0;
+  width: 100%;
+}
+
+@keyframes ob-spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.ob-animated-layer-text {
+  position: relative;
+  z-index: 2;
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 15px;
+  font-weight: 700;
+  color: #031014;
+  letter-spacing: 0.01em;
+  transition: color 0.3s;
+}
+.ob-animated-layer-btn:hover .ob-animated-layer-text {
+  color: transparent;
+}
+
+.ob-onboarding-note {
+  max-width: 520px;
+  margin: 4px auto 0;
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(232, 237, 242, 0.72);
+  text-align: center;
+}
+
 .ob-mode-strip {
   display: flex;
   flex-wrap: wrap;
@@ -328,7 +397,8 @@
     letter-spacing: 0.1em;
   }
 
-  .ob-cta-btn {
+  .ob-cta-btn,
+  .ob-animated-layer-btn {
     width: min(100%, 320px);
   }
 

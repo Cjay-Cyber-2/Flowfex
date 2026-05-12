@@ -8,23 +8,25 @@ import { randomUUID } from 'node:crypto';
 
 export const FLOWFEX_LIMITS = {
   anonymous: {
-    // The user-visible quota for an anonymous session is "5 requests after a
-    // verified attach", not "5 connection attempts". We keep
-    // maxConnectionsPerDay loose so a real agent can re-attach across the
-    // day while the request quota is the actual cap that drives the
-    // sign-up wall.
+    // The user-visible quota for an anonymous Flowfex session is "10 requests
+    // per day after a verified attach". We keep maxConnectionsPerDay loose
+    // so a real agent can re-attach across the day while the request quota
+    // is the actual cap that drives the sign-up wall.
     maxConnectionsPerDay: 20,
-    maxExecutionsPerSession: 5,
-    maxNodesPerSession: 25,
-    maxSessionDurationMinutes: 30,
+    maxExecutionsPerSession: 10,
+    maxNodesPerSession: 50,
+    maxSessionDurationMinutes: 60,
     maxConcurrentAgents: 1,
     maxConcurrentSessions: 1,
     warningThreshold: 0.8,
   },
   authenticated: {
-    maxConnectionsPerDay: 5,
-    maxExecutionsPerDay: 50,
-    maxNodesPerDay: 500,
+    // Free authenticated tier gets 10 requests per day. After they finish,
+    // the dashboard pops the pricing card; payment unlocks the paid plan
+    // (handled separately) — otherwise the quota renews the next day.
+    maxConnectionsPerDay: 20,
+    maxExecutionsPerDay: 10,
+    maxNodesPerDay: 100,
     maxSessionDurationMinutes: 480,
     maxConcurrentAgents: 5,
     maxConcurrentSessions: 3,
@@ -196,7 +198,7 @@ function buildBlockedLimit(tier, usage, limits) {
       status: 'blocked',
       tier,
       limit: 'maxExecutionsPerSession',
-      reason: `Your anonymous Flowfex session has used all ${limits.maxExecutionsPerSession} free requests for today. Sign up to continue.`,
+      reason: `Your anonymous Flowfex session has used all ${limits.maxExecutionsPerSession} free requests for today. Sign up to keep going, or wait until the daily reset.`,
       currentValue: usage.executionsCount,
       limitValue: limits.maxExecutionsPerSession,
     };

@@ -318,7 +318,14 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
   const setActiveSession = useStore((state) => state.setActiveSession);
   const activeSession = useStore((state) => state.activeSession);
   const backendUrl = useStore((state) => state.backendUrl);
-  const { accessToken, isAuthenticated, refreshUsage, session, usage: sessionUsage } = useSessionContext();
+  const {
+    accessToken,
+    isAuthenticated,
+    refreshUsage,
+    session,
+    usage: sessionUsage,
+    hasConnectedAgent,
+  } = useSessionContext();
   const [activeTab, setActiveTab] = useState('Prompt');
   const [connections, setConnections] = useState({});
   const [errors, setErrors] = useState({});
@@ -442,19 +449,34 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
       || sessionUsage?.connectionBlockedLimit?.reason
       || null;
 
-    if (!reqReason) {
+    // Anonymous visitors are allowed exactly one verified attach. If one
+    // already exists we surface the sign-in/sign-up wall directly inside
+    // the modal so they cannot try to attach a second agent without
+    // upgrading.
+    const anonymousAlreadyAttached = !isAuthenticated && hasConnectedAgent
+      ? 'You already have one anonymous Flowfex attach today. Sign in to manage multiple agents on a paid plan.'
+      : null;
+
+    const message = reqReason || anonymousAlreadyAttached;
+    if (!message) {
       return undefined;
     }
 
     setLimitMessages((current) => ({
       ...current,
-      Prompt: current.Prompt || reqReason,
-      Link: current.Link || reqReason,
-      SDK: current.SDK || reqReason,
-      'Live Channel': current['Live Channel'] || reqReason,
+      Prompt: current.Prompt || message,
+      Link: current.Link || message,
+      SDK: current.SDK || message,
+      'Live Channel': current['Live Channel'] || message,
     }));
     return undefined;
-  }, [isOpen, sessionUsage?.blockedLimit?.reason, sessionUsage?.connectionBlockedLimit?.reason]);
+  }, [
+    isOpen,
+    isAuthenticated,
+    hasConnectedAgent,
+    sessionUsage?.blockedLimit?.reason,
+    sessionUsage?.connectionBlockedLimit?.reason,
+  ]);
 
   const finalizeConnection = useCallback(async (tab, eventData = null) => {
     const connection = connections[tab];

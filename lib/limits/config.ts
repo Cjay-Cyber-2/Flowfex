@@ -1,15 +1,15 @@
 export interface FlowfexAnonymousLimits {
   readonly maxConnectionsPerDay: 20;
-  readonly maxExecutionsPerSession: 5;
-  readonly maxNodesPerSession: 25;
-  readonly maxSessionDurationMinutes: 30;
+  readonly maxExecutionsPerSession: 10;
+  readonly maxNodesPerSession: 50;
+  readonly maxSessionDurationMinutes: 60;
   readonly maxConcurrentAgents: 1;
 }
 
 export interface FlowfexAuthenticatedLimits {
   readonly maxConnectionsPerDay: 20;
-  readonly maxExecutionsPerDay: 50;
-  readonly maxNodesPerDay: 500;
+  readonly maxExecutionsPerDay: 10;
+  readonly maxNodesPerDay: 100;
   readonly maxSessionDurationMinutes: 480;
   readonly maxConcurrentAgents: 5;
 }
@@ -17,15 +17,15 @@ export interface FlowfexAuthenticatedLimits {
 export const FLOWFEX_LIMITS = {
   anonymous: {
     maxConnectionsPerDay: 20,
-    maxExecutionsPerSession: 5,
-    maxNodesPerSession: 25,
-    maxSessionDurationMinutes: 30,
+    maxExecutionsPerSession: 10,
+    maxNodesPerSession: 50,
+    maxSessionDurationMinutes: 60,
     maxConcurrentAgents: 1,
   },
   authenticated: {
     maxConnectionsPerDay: 20,
-    maxExecutionsPerDay: 50,
-    maxNodesPerDay: 500,
+    maxExecutionsPerDay: 10,
+    maxNodesPerDay: 100,
     maxSessionDurationMinutes: 480,
     maxConcurrentAgents: 5,
   },

@@ -297,6 +297,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     accessToken,
     isAuthenticated,
     refreshUsage,
+    refreshAppState,
     session,
     usage: sessionUsage,
     hasConnectedAgent,
@@ -495,7 +496,8 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     }
 
     await refreshUsage(session.id).catch(() => null);
-  }, [addAgent, addSession, connections, onClose, onConnected, refreshUsage, setActiveSession]);
+    await refreshAppState().catch(() => null);
+  }, [addAgent, addSession, connections, onClose, onConnected, refreshAppState, refreshUsage, setActiveSession]);
 
   const handleSignUp = useCallback(() => {
     onClose();

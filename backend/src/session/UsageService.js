@@ -3,6 +3,7 @@ import { logSessionError } from './sessionLogger.js';
 import { flowfexSessions, usageTracking } from '../db/schema.js';
 import { eq, sql } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
+import { isProAuthId } from './proTier.js';
 
 // ─── Policy Definitions ──────────────────────────────────────────────────────
 
@@ -40,6 +41,15 @@ export const FLOWFEX_LIMITS = {
     maxConcurrentAgents: 10,
     maxConcurrentSessions: 5,
     warningThreshold: 0.8,
+  },
+  pro: {
+    maxConnectionsPerDay: 200,
+    maxExecutionsPerDay: 100000,
+    maxNodesPerDay: 100000,
+    maxSessionDurationMinutes: 1440,
+    maxConcurrentAgents: 50,
+    maxConcurrentSessions: 25,
+    warningThreshold: 0.9,
   },
 };
 
@@ -362,6 +372,7 @@ export class UsageService {
    */
   resolveTier({ authId, apiKeyId }) {
     if (apiKeyId) return 'api_key';
+    if (authId && isProAuthId(authId)) return 'pro';
     if (authId) return 'authenticated';
     return 'anonymous';
   }

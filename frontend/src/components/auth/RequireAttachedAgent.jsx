@@ -36,9 +36,10 @@ function GuardLoading() {
 
 export default function RequireAttachedAgent({ children }) {
   const location = useLocation();
-  const { sessionReady, hasConnectedAgent } = useSessionContext();
+  const { sessionReady, hasConnectedAgent, appState } = useSessionContext();
   const connectedAgents = useStore((state) => state.connectedAgents);
   const localHasConnectedAgent = connectedAgents.some(isLiveConnectedAgent);
+  const serverAgent = appState?.gates?.agentConnectedServer === true;
   // The OAuth callback can land here while Better Auth is still hydrating
   // the cookie/session. We only honour a 1s grace window in that case so a
   // fresh device cannot ever see the dashboard skeleton.
@@ -57,7 +58,7 @@ export default function RequireAttachedAgent({ children }) {
     return <GuardLoading />;
   }
 
-  const verifiedAgent = hasConnectedAgent || localHasConnectedAgent;
+  const verifiedAgent = serverAgent || hasConnectedAgent || localHasConnectedAgent;
   if (verifiedAgent) {
     return children;
   }

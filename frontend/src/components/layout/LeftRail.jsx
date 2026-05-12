@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, ChevronRight, Plus, Search } from 'lucide-react';
 import useStore from '../../store/useStore';
+import { useSessionContext } from '../../context/SessionContext';
 import { DEMO_SKILL_LIBRARY } from '../../store/demoData';
 import FlowIcon from '../common/FlowIcon';
 import './LeftRail.css';
@@ -92,6 +93,16 @@ function LeftRail() {
     setConnectModalOpen,
     backendUrl,
   } = useStore();
+  const { accessToken, session } = useSessionContext();
+  const buildSessionHeaders = useCallback((extra = {}) => {
+    const headers = { ...extra };
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    } else if (session?.anonymousToken) {
+      headers['X-Flowfex-Anonymous-Token'] = session.anonymousToken;
+    }
+    return headers;
+  }, [accessToken, session?.anonymousToken]);
   const [searchValue, setSearchValue] = useState('');
   const [liveResults, setLiveResults] = useState(null);
   const [liveSkills, setLiveSkills] = useState([]);
@@ -119,7 +130,8 @@ function LeftRail() {
     try {
         const res = await fetch(`${backendUrl}/skills/search`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          headers: buildSessionHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ query }),
         });
       if (res.ok) {
@@ -132,7 +144,7 @@ function LeftRail() {
     } finally {
       setIsSearching(false);
     }
-  }, [backendUrl]);
+  }, [backendUrl, buildSessionHeaders]);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -145,7 +157,10 @@ function LeftRail() {
 
     const loadSkills = async () => {
       try {
-        const res = await fetch(`${backendUrl}/skills`);
+        const res = await fetch(`${backendUrl}/skills`, {
+          headers: buildSessionHeaders(),
+          credentials: 'include',
+        });
         if (!res.ok) return;
         const data = await res.json();
         if (!cancelled) {
@@ -162,7 +177,7 @@ function LeftRail() {
     return () => {
       cancelled = true;
     };
-  }, [backendUrl]);
+  }, [backendUrl, buildSessionHeaders]);
 
   const skillLibrary = useMemo(() => {
     const groupedLiveSkills = groupSkillsByCategory(liveSkills);

@@ -2,6 +2,7 @@
   width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
+  height: 100dvh;
   max-height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -10,11 +11,17 @@
 }
 
 .canvas-layout {
-  flex: 1;
+  flex: 1 1 auto;
   display: grid;
   grid-template-columns: var(--left-rail-width) minmax(0, 1fr) var(--right-drawer-width);
   min-height: 0;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: auto;
+  align-items: stretch;
+}
+
+.canvas-layout > * {
+  min-height: 0;
 }
 
 .canvas-main-shell {
@@ -24,7 +31,8 @@
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .canvas-surface-header {

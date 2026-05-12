@@ -121,6 +121,10 @@ export default function Onboarding() {
   }, []);
 
   const handleConnected = useCallback(() => {
+    if (autoTransitionStartedRef.current) {
+      return;
+    }
+    autoTransitionStartedRef.current = true;
     clearTransitionTimers();
     setIsModalOpen(false);
     setConnectionStage('zooming');
@@ -132,9 +136,8 @@ export default function Onboarding() {
 
   useEffect(() => clearTransitionTimers, [clearTransitionTimers]);
 
-  // If this browser already has a verified live agent (e.g. refresh), skip
-  // stranding them on onboarding. Do not route signed-in users without an
-  // agent — they must complete attach on this device first.
+  // Verified agent on this device: play the same transition (modal path or
+  // returning visitor) so we never skip straight to /dashboard without the UX.
   useEffect(() => {
     if (!sessionReady || autoTransitionStartedRef.current) {
       return;
@@ -144,10 +147,9 @@ export default function Onboarding() {
       && connectedAgents.some((agent) => isLiveConnectedAgent(agent));
 
     if (hasLiveAgent) {
-      autoTransitionStartedRef.current = true;
-      navigate('/dashboard', { replace: true });
+      handleConnected();
     }
-  }, [connectedAgents, navigate, sessionReady]);
+  }, [connectedAgents, handleConnected, sessionReady]);
 
   return (
     <div className="ob-root">

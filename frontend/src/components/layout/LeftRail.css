@@ -1,5 +1,7 @@
 .left-rail {
   width: var(--left-rail-width);
+  min-width: var(--left-rail-width);
+  min-height: 0;
   background: rgba(13, 19, 27, 0.88);
   border-right: 1px solid rgba(0, 212, 170, 0.06);
   padding: var(--space-5);

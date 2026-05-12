@@ -253,16 +253,6 @@
   color: transparent;
 }
 
-.ob-onboarding-note {
-  max-width: 520px;
-  margin: 4px auto 0;
-  font-family: var(--font-inter, Inter, sans-serif);
-  font-size: 14px;
-  line-height: 1.6;
-  color: rgba(232, 237, 242, 0.72);
-  text-align: center;
-}
-
 .ob-mode-strip {
   display: flex;
   flex-wrap: wrap;
@@ -292,6 +282,7 @@
   z-index: 100;
   overflow: hidden;
   pointer-events: none;
+  isolation: isolate;
   background: radial-gradient(circle at center, rgba(0, 212, 170, 0.12), #080c10 64%);
 }
 
@@ -321,9 +312,18 @@
   left: calc(50% - 1px);
   top: 10%;
   bottom: 10%;
-  width: 2px;
-  background: linear-gradient(180deg, transparent, rgba(127, 255, 240, 0.88), transparent);
-  filter: blur(0.4px);
+  width: 3px;
+  margin-left: -0.5px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(127, 255, 240, 0.35) 18%,
+    rgba(127, 255, 240, 0.92) 50%,
+    rgba(127, 255, 240, 0.35) 82%,
+    transparent
+  );
+  box-shadow: 0 0 24px rgba(0, 212, 170, 0.35);
+  /* Avoid filter: blur here — it smears when the core scales up */
 }
 
 .ob-transition-core {
@@ -336,6 +336,9 @@
   margin-top: -66px;
   display: grid;
   place-items: center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform;
 }
 
 .ob-transition-shell {
@@ -346,6 +349,9 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
   background:
     radial-gradient(circle, rgba(14, 22, 28, 0.96) 0%, rgba(8, 12, 16, 0.9) 56%, rgba(8, 12, 16, 0.22) 78%, transparent 100%);
   box-shadow:

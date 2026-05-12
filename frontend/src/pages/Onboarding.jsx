@@ -212,6 +212,7 @@ export default function Onboarding() {
               />
               <motion.div
                 className="ob-transition-core"
+                style={{ transformOrigin: '50% 50%' }}
                 animate={connectionStage === 'splitting'
                   ? { scale: 13.5, opacity: 0.96 }
                   : { scale: 1.18, opacity: 1 }

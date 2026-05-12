@@ -1,0 +1,70 @@
+/* Sign-in / sign-up / reset — single viewport, no page scroll, card stays visible */
+
+.auth-shell {
+  box-sizing: border-box;
+  min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding:
+    max(6px, env(safe-area-inset-top))
+    max(12px, env(safe-area-inset-right))
+    max(6px, env(safe-area-inset-bottom))
+    max(12px, env(safe-area-inset-left));
+  background: var(--color-eigengrau);
+}
+
+.auth-shell__bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+.auth-shell__bg-blur {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.auth-card {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  width: min(404px, calc(100vw - 24px));
+  max-height: calc(100dvh - max(12px, env(safe-area-inset-top)) - max(12px, env(safe-area-inset-bottom)));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: rgba(13, 19, 27, 0.92);
+  border: 1px solid rgba(0, 212, 170, 0.14);
+  box-shadow:
+    0 28px 90px rgba(0, 0, 0, 0.38),
+    0 0 0 1px rgba(0, 212, 170, 0.04);
+  /* Lighter than 32px blur — pairs with opacity/y entrance (no scale) to stay sharp */
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border-radius: 22px;
+  padding: clamp(14px, 2.2dvh, 26px) clamp(18px, 3.2vw, 30px);
+  transform: translateZ(0);
+}
+
+.auth-card--signup {
+  width: min(400px, calc(100vw - 24px));
+}
+
+@media (max-height: 720px) {
+  .auth-card {
+    border-radius: 18px;
+    padding: 12px 16px;
+  }
+}
+
+@media (max-height: 640px) {
+  .auth-card {
+    padding: 10px 14px;
+    border-radius: 16px;
+  }
+}

@@ -11,6 +11,7 @@ import {
   signUpWithEmail,
 } from '../services/authService';
 import { getAuthErrorMessage } from '../utils/authErrorMessages';
+import '../styles/authPagesLayout.css';
 
 const getStrength = (pw) => {
   if (!pw) return null;
@@ -93,20 +94,20 @@ function SignUp() {
   };
 
   return (
-    <div style={styles.page}>
-      <div style={styles.bgWrap}>
+    <div className="auth-shell">
+      <div className="auth-shell__bg">
         <AuthBackdrop />
-        <div style={styles.bgBlur} />
+        <div className="auth-shell__bg-blur" />
       </div>
 
       <motion.div
-        style={styles.card}
-        initial={{ scale: 0.94, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5 }}
+        className="auth-card auth-card--signup"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
       >
         <div style={styles.logoRow}>
-          <FlowfexLogoNew size={38} animated={false} />
+          <FlowfexLogoNew size={34} animated={false} />
         </div>
         <h1 style={styles.title}>Start your session.</h1>
         <p style={styles.subtitle}>No credit card. No commitment. Just start.</p>
@@ -215,56 +216,27 @@ function SignUp() {
 }
 
 const styles = {
-  page: {
-    minHeight: '100dvh',
-    display: 'flex',
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    background: 'var(--color-eigengrau)',
-    position: 'relative',
-    padding: 'max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom))',
-    overflowY: 'auto',
-    boxSizing: 'border-box',
-  },
-  bgWrap: { position: 'fixed', inset: 0, zIndex: 0, opacity: 1 },
-  bgBlur: { position: 'absolute', inset: 0, pointerEvents: 'none' },
-  card: {
-    position: 'relative',
-    zIndex: 1,
-    width: 'min(440px, calc(100vw - 32px))',
-    maxHeight: 'min(780px, calc(100dvh - 32px))',
-    overflowY: 'auto',
-    WebkitOverflowScrolling: 'touch',
-    background: 'rgba(13, 19, 27, 0.86)',
-    border: '1px solid rgba(0, 212, 170, 0.14)',
-    boxShadow: '0 28px 90px rgba(0,0,0,0.38), 0 0 0 1px rgba(0,212,170,0.04)',
-    backdropFilter: 'blur(32px) saturate(180%)',
-    borderRadius: 24,
-    padding: 'clamp(22px, 3.5vw, 40px)',
-    marginTop: 'max(0px, env(safe-area-inset-top))',
-    marginBottom: 'auto',
-  },
-  logoRow: { display: 'flex', justifyContent: 'center', marginBottom: 24 },
-  title: { fontFamily: 'var(--font-geist)', fontSize: 32, fontWeight: 700, color: 'var(--color-velin)', margin: '0 0 8px', textAlign: 'center', letterSpacing: '-0.03em' },
-  subtitle: { fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--color-bistre)', margin: '0 0 28px', textAlign: 'center' },
-  socialRow: { display: 'flex', gap: 10, marginBottom: 20 },
-  socialBtn: { flex: 1, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(8,12,16,0.58)', border: '1px solid rgba(0,212,170,0.1)', borderRadius: 14, color: 'rgba(232,237,242,0.78)', fontFamily: 'Inter, sans-serif', fontSize: 13, cursor: 'pointer' },
-  dividerRow: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 },
+  logoRow: { display: 'flex', justifyContent: 'center', marginBottom: 12 },
+  title: { fontFamily: 'var(--font-geist)', fontSize: 'clamp(24px, 4vw, 30px)', fontWeight: 700, color: 'var(--color-velin)', margin: '0 0 6px', textAlign: 'center', letterSpacing: '-0.03em' },
+  subtitle: { fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--color-bistre)', margin: '0 0 14px', textAlign: 'center' },
+  socialRow: { display: 'flex', gap: 8, marginBottom: 10 },
+  socialBtn: { flex: 1, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(8,12,16,0.58)', border: '1px solid rgba(0,212,170,0.1)', borderRadius: 12, color: 'rgba(232,237,242,0.78)', fontFamily: 'Inter, sans-serif', fontSize: 11, cursor: 'pointer' },
+  dividerRow: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 },
   hairline: { flex: 1, height: 1, background: 'rgba(0,212,170,0.1)' },
   orText: { fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--color-bistre)' },
-  fieldGroup: { marginBottom: 16 },
+  fieldGroup: { marginBottom: 8 },
   label: { display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--color-bistre)', marginBottom: 6 },
-  input: { width: '100%', height: 48, background: 'rgba(8,12,16,0.88)', border: '1px solid rgba(0,212,170,0.1)', borderRadius: 14, fontFamily: 'Inter, sans-serif', fontSize: 15, color: 'var(--color-velin)', padding: '0 16px', boxSizing: 'border-box', outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s' },
+  input: { width: '100%', height: 42, background: 'rgba(8,12,16,0.88)', border: '1px solid rgba(0,212,170,0.1)', borderRadius: 12, fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--color-velin)', padding: '0 14px', boxSizing: 'border-box', outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s' },
   inputFocus: { borderColor: 'var(--color-sinoper)', boxShadow: '0 0 0 3px rgba(0,212,170,0.12)' },
   eyeBtn: { position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--color-bistre)', cursor: 'pointer', padding: 0, display: 'flex' },
-  strengthRow: { display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 },
+  strengthRow: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 },
   strengthTrack: { flex: 1, height: 3, background: 'rgba(0,212,170,0.1)', borderRadius: 2, overflow: 'hidden' },
   strengthFill: { height: '100%', borderRadius: 2, transition: 'width 0.3s, background 0.3s' },
   strengthLabel: { fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600 },
-  submitBtn: { width: '100%', height: 50, background: 'var(--color-sinoper)', border: 'none', borderRadius: 14, fontFamily: 'var(--font-inter)', fontSize: 15, fontWeight: 700, color: '#031014', cursor: 'pointer', marginBottom: 16, boxShadow: '0 18px 38px rgba(0,212,170,0.22)' },
-  legalText: { fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--color-bistre)', textAlign: 'center', margin: '0 0 12px' },
-  noticeText: { fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--color-sinoper)', textAlign: 'center', margin: '0 0 12px' },
-  errorText: { fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#ff8d8d', textAlign: 'center', margin: '0 0 12px' },
+  submitBtn: { width: '100%', height: 44, background: 'var(--color-sinoper)', border: 'none', borderRadius: 12, fontFamily: 'var(--font-inter)', fontSize: 14, fontWeight: 700, color: '#031014', cursor: 'pointer', marginBottom: 8, boxShadow: '0 18px 38px rgba(0,212,170,0.22)' },
+  legalText: { fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'var(--color-bistre)', textAlign: 'center', margin: '0 0 6px', lineHeight: 1.45 },
+  noticeText: { fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'var(--color-sinoper)', textAlign: 'center', margin: '0 0 6px' },
+  errorText: { fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#ff8d8d', textAlign: 'center', margin: '0 0 6px' },
   legalLink: { color: 'var(--color-sinoper)', textDecoration: 'none' },
   switchText: { fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--color-bistre)', textAlign: 'center', margin: 0 },
   switchLink: { color: 'var(--color-sinoper)', cursor: 'pointer' },

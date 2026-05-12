@@ -129,9 +129,7 @@ export async function signOut(): Promise<void> {
 export function onAuthStateChange(
   callback: (payload: FlowfexAuthListenerPayload) => void
 ): { unsubscribe(): void } {
-  // Better auth doesn't have an exact equivalent of firebase onAuthStateChange,
-  // we can mock it or use polling, but since the frontend just calls getCurrentAuthSession, it's mostly fine.
-  // Real implementation would use their react hooks like `useSession()`.
+  // Better Auth has no Firebase-style realtime listener; the frontend refreshes session on a timer in SessionContext.
   return {
     unsubscribe() {}
   };

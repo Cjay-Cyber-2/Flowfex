@@ -6,8 +6,12 @@ export default function AuthBackdrop() {
     <div className="auth-backdrop" aria-hidden="true">
       <div className="auth-backdrop__glow auth-backdrop__glow--left" />
       <div className="auth-backdrop__glow auth-backdrop__glow--right" />
-      <div className="auth-backdrop__orb auth-backdrop__orb--primary" />
-      <div className="auth-backdrop__orb auth-backdrop__orb--secondary" />
+      <div className="auth-backdrop__orb-slot auth-backdrop__orb-slot--tl">
+        <div className="auth-backdrop__orb" />
+      </div>
+      <div className="auth-backdrop__orb-slot auth-backdrop__orb-slot--br">
+        <div className="auth-backdrop__orb" />
+      </div>
       <div className="auth-backdrop__grid" />
       <div className="auth-backdrop__beam auth-backdrop__beam--one" />
       <div className="auth-backdrop__beam auth-backdrop__beam--two" />

@@ -6,7 +6,6 @@
 }
 
 .auth-backdrop__glow,
-.auth-backdrop__orb,
 .auth-backdrop__grid,
 .auth-backdrop__beam,
 .auth-backdrop__vignette {
@@ -30,18 +29,36 @@
   animation: authBackdropDrift 22s ease-in-out infinite alternate-reverse;
 }
 
+/* Corner anchors — orb center sits on the corner so ~half the disc reads in-frame */
+.auth-backdrop__orb-slot {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.auth-backdrop__orb-slot--tl {
+  top: 0;
+  left: 0;
+}
+
+.auth-backdrop__orb-slot--br {
+  right: 0;
+  bottom: 0;
+}
+
 .auth-backdrop__orb {
-  inset: auto;
+  position: absolute;
   border-radius: 999px;
-  border: 3px solid rgba(0, 212, 170, 0.75);
+  border: 3px solid rgba(0, 212, 170, 0.72);
   background:
-    radial-gradient(circle at 30% 30%, rgba(127, 255, 240, 0.62), rgba(0, 212, 170, 0.36) 42%, rgba(7, 15, 18, 0.0) 78%);
-  filter: blur(2px);
+    radial-gradient(circle at 30% 30%, rgba(127, 255, 240, 0.62), rgba(0, 212, 170, 0.36) 42%, rgba(7, 15, 18, 0) 78%);
+  /* No filter blur — keeps edges crisp while the slot animation scales */
   box-shadow:
     inset 0 0 38px rgba(127, 255, 240, 0.34),
     inset 0 0 0 1px rgba(255, 255, 255, 0.12),
-    0 0 110px rgba(0, 212, 170, 0.55),
-    0 0 200px rgba(0, 212, 170, 0.32);
+    0 0 90px rgba(0, 212, 170, 0.45),
+    0 0 160px rgba(0, 212, 170, 0.22);
 }
 
 .auth-backdrop__orb::after {
@@ -54,22 +71,24 @@
   pointer-events: none;
 }
 
-.auth-backdrop__orb--primary {
-  top: 2%;
-  left: 1%;
-  width: min(38vw, 440px);
-  height: min(38vw, 440px);
-  opacity: 0.95;
-  animation: authBackdropPulse 11s ease-in-out infinite;
+.auth-backdrop__orb-slot--tl .auth-backdrop__orb {
+  top: 0;
+  left: 0;
+  width: min(46vw, 520px);
+  height: min(46vw, 520px);
+  transform: translate(-50%, -50%);
+  opacity: 0.94;
+  animation: authOrbPulseTl 12s ease-in-out infinite;
 }
 
-.auth-backdrop__orb--secondary {
-  right: 1%;
-  bottom: 2%;
-  width: min(32vw, 380px);
-  height: min(32vw, 380px);
-  opacity: 0.95;
-  animation: authBackdropPulse 14s ease-in-out infinite reverse;
+.auth-backdrop__orb-slot--br .auth-backdrop__orb {
+  right: 0;
+  bottom: 0;
+  width: min(40vw, 460px);
+  height: min(40vw, 460px);
+  transform: translate(50%, 50%);
+  opacity: 0.92;
+  animation: authOrbPulseBr 14s ease-in-out infinite reverse;
 }
 
 .auth-backdrop__grid {
@@ -103,10 +122,9 @@
 }
 
 .auth-backdrop__vignette {
-  /* Subtle vignette so the orbs read clearly without washing them out. */
   background:
-    radial-gradient(circle at center, rgba(7, 11, 15, 0.0) 0%, rgba(7, 11, 15, 0.04) 62%, rgba(7, 11, 15, 0.30) 100%),
-    linear-gradient(180deg, rgba(7, 11, 15, 0.0) 0%, rgba(7, 11, 15, 0.10) 100%);
+    radial-gradient(circle at center, rgba(7, 11, 15, 0) 0%, rgba(7, 11, 15, 0.04) 62%, rgba(7, 11, 15, 0.3) 100%),
+    linear-gradient(180deg, rgba(7, 11, 15, 0) 0%, rgba(7, 11, 15, 0.1) 100%);
 }
 
 @keyframes authBackdropDrift {
@@ -119,15 +137,28 @@
   }
 }
 
-@keyframes authBackdropPulse {
+@keyframes authOrbPulseTl {
   0%,
   100% {
-    transform: scale(0.96);
+    transform: translate(-50%, -50%) scale(0.94);
+    opacity: 0.82;
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.04);
+    opacity: 1;
+  }
+}
+
+@keyframes authOrbPulseBr {
+  0%,
+  100% {
+    transform: translate(50%, 50%) scale(0.95);
     opacity: 0.8;
   }
 
   50% {
-    transform: scale(1.04);
+    transform: translate(50%, 50%) scale(1.05);
     opacity: 1;
   }
 }
@@ -149,17 +180,13 @@
     opacity: 0.24;
   }
 
-  .auth-backdrop__orb--primary {
-    top: 8%;
-    left: -8%;
-    width: 240px;
-    height: 240px;
+  .auth-backdrop__orb-slot--tl .auth-backdrop__orb {
+    width: 260px;
+    height: 260px;
   }
 
-  .auth-backdrop__orb--secondary {
-    right: -10%;
-    bottom: 10%;
-    width: 200px;
-    height: 200px;
+  .auth-backdrop__orb-slot--br .auth-backdrop__orb {
+    width: 220px;
+    height: 220px;
   }
 }

@@ -1,5 +1,6 @@
 const DEFAULT_APP_ORIGIN = 'http://localhost:3000';
 const DEFAULT_BACKEND_ORIGIN = 'http://localhost:4000';
+const DEFAULT_VERCEL_PRODUCTION_BACKEND = 'https://flowfex.onrender.com';
 const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1']);
 
 function trimTrailingSlash(value) {
@@ -18,6 +19,19 @@ function normalizeOrigin(value) {
   }
 }
 
+/** Origin + port only — Better Auth client appends `/api/auth` only when baseURL has no path. */
+function toHttpOrigin(value) {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return new URL(value).origin;
+  } catch {
+    return trimTrailingSlash(value);
+  }
+}
+
 function getBrowserLocation() {
   return typeof window === 'undefined' ? null : window.location;
 }
@@ -30,21 +44,26 @@ export function getAppOrigin() {
 
   const configuredOrigin = normalizeOrigin(import.meta.env.VITE_APP_URL);
   if (configuredOrigin) {
-    return configuredOrigin;
+    return toHttpOrigin(configuredOrigin) || configuredOrigin;
   }
 
   return DEFAULT_APP_ORIGIN;
 }
 
 export function getBackendOrigin() {
-  const configuredOrigin = normalizeOrigin(import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL);
+  const rawEnv = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL;
+  const configuredOrigin = normalizeOrigin(rawEnv);
   if (configuredOrigin) {
-    return configuredOrigin;
+    return toHttpOrigin(configuredOrigin) || configuredOrigin;
   }
 
   const location = getBrowserLocation();
   if (!location) {
     return DEFAULT_BACKEND_ORIGIN;
+  }
+
+  if (location.hostname === 'flowfex.vercel.app') {
+    return DEFAULT_VERCEL_PRODUCTION_BACKEND;
   }
 
   if (LOCAL_HOSTNAMES.has(location.hostname) && location.port === '3000') {

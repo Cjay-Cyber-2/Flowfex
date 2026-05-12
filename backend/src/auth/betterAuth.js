@@ -56,7 +56,8 @@ function resolveAuthBaseUrl() {
     process.env.BETTER_AUTH_URL
       || process.env.FLOWFEX_PUBLIC_ORIGIN
       || process.env.RENDER_EXTERNAL_URL
-      || DEFAULT_AUTH_BASE_URL
+      || DEFAULT_AUTH_BASE_URL,
+    { originOnly: true }
   ) || DEFAULT_AUTH_BASE_URL;
 }
 

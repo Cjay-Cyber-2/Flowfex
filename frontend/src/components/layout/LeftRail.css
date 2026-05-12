@@ -87,7 +87,7 @@
 
 .rail-panel--grow {
   flex: 1 1 auto;
-  min-height: 120px;
+  min-height: 0;
 }
 
 .rail-panel--bottom {
@@ -102,6 +102,7 @@
   gap: var(--space-2);
   padding: 10px 12px;
   border-bottom: 1px solid rgba(0, 212, 170, 0.06);
+  flex-shrink: 0;
 }
 
 .rail-panel-title {
@@ -128,6 +129,11 @@
 }
 
 .rail-panel-body--chips {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   padding-top: 8px;
 }
 

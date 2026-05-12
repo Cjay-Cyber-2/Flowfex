@@ -9,6 +9,7 @@
     "typecheck:orchestration": "node ./node_modules/typescript/bin/tsc -p tsconfig.orchestration.json --noEmit",
     "start": "npm run build:orchestration && node src/server.js",
     "test": "npm run build:orchestration && node src/__tests__/orchestration-engine.test.js",
+    "test:app-state": "node --test src/__tests__/app-state-resolution.test.js",
     "skills:sample": "node src/skills/sampleConversion.js",
     "skills:test-phase1": "node src/skills/testPhase1.js",
     "skills:test-phase2": "node src/skills/testPhase2.js",

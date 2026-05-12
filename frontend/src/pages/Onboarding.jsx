@@ -108,7 +108,7 @@ function AnimatedLayerButton({ children, onClick, className = '' }) {
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { sessionReady } = useSessionContext();
+  const { sessionReady, appState } = useSessionContext();
   const connectedAgents = useStore((state) => state.connectedAgents);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [connectionStage, setConnectionStage] = useState('idle');
@@ -143,13 +143,15 @@ export default function Onboarding() {
       return;
     }
 
-    const hasLiveAgent = Array.isArray(connectedAgents)
-      && connectedAgents.some((agent) => isLiveConnectedAgent(agent));
+    const serverAgent = appState?.gates?.agentConnectedServer === true;
+    const hasLiveAgent = serverAgent
+      || (Array.isArray(connectedAgents)
+        && connectedAgents.some((agent) => isLiveConnectedAgent(agent)));
 
     if (hasLiveAgent) {
       handleConnected();
     }
-  }, [connectedAgents, handleConnected, sessionReady]);
+  }, [appState, connectedAgents, handleConnected, sessionReady]);
 
   return (
     <div className="ob-root">

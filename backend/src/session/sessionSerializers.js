@@ -78,5 +78,6 @@ export function toDashboardSessionRecord(sessionRow) {
     anonymousToken: sessionRow.anonymous_token || null,
     updatedAt: sessionRow.updated_at || null,
     lastActiveAt: sessionRow.last_active_at || null,
+    createdAt: sessionRow.created_at || null,
   };
 }

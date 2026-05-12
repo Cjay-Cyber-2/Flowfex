@@ -11,6 +11,7 @@ import { isSessionDataConfigured, resolveAuthenticatedUser } from '../session/se
 import { AnonymousSessionService } from '../session/AnonymousSessionService.js';
 import { ApiKeyService } from '../session/ApiKeyService.js';
 import { UsageService } from '../session/UsageService.js';
+import { AppStateResolutionService } from '../session/AppStateResolutionService.js';
 import { auth } from '../auth/betterAuth.js';
 import { toNodeHandler } from 'better-auth/node';
 import { 
@@ -49,6 +50,13 @@ export class FlowfexServer {
       || (this.sessionDataEnabled ? new ApiKeyService() : null);
     this.usageService = config.usageService
       || (this.sessionDataEnabled ? new UsageService() : null);
+    this.appStateResolutionService = config.appStateResolutionService
+      || (this.sessionDataEnabled && this.anonymousSessionService && this.usageService
+        ? new AppStateResolutionService({
+          anonymousSessionService: this.anonymousSessionService,
+          usageService: this.usageService,
+        })
+        : null);
     this.sessionLockManager = config.sessionLockManager || sessionLockManager;
     this.server = null;
     this.socketServer = null;
@@ -236,6 +244,7 @@ export class FlowfexServer {
     const sessionUpgradeMatch = request.method === 'POST' && url.pathname === '/api/session/upgrade';
     const recentSessionMatch = request.method === 'GET' && url.pathname === '/api/session/recent';
     const sessionUsageMatch = request.method === 'GET' && url.pathname === '/api/session/usage';
+    const sessionResolveMatch = request.method === 'GET' && url.pathname === '/api/session/resolve-state';
     const apiKeysMatch = url.pathname === '/api/api-keys';
     const apiKeyRevokeMatch = url.pathname.match(/^\/api\/api-keys\/([^/]+)$/);
 
@@ -381,6 +390,42 @@ export class FlowfexServer {
       }
 
       return this._writeJson(response, 200, status);
+    }
+
+    if (sessionResolveMatch) {
+      if (!this.appStateResolutionService) {
+        return this._writeJson(response, 200, {
+          ok: true,
+          version: 1,
+          resolvedAt: new Date().toISOString(),
+          visitor: true,
+          identity: { kind: 'none', authUserId: null },
+          workspace: null,
+          usage: null,
+          productMode: 'visitor',
+          lifecycle: { code: 'none', clearAnonymousTokenSuggested: false },
+          gates: {
+            allowDashboard: false,
+            requireAgentAttach: true,
+            quotaBlocksExecution: false,
+            agentConnectedServer: false,
+          },
+          routingHints: { primaryPath: '/onboarding', reason: 'sessions_unconfigured' },
+        });
+      }
+
+      this._assertSessionDataEnabled();
+      const resolved = await this.appStateResolutionService.resolve({
+        authUser: authUser || null,
+        anonymousToken,
+      });
+
+      if (!resolved.ok) {
+        const statusCode = resolved.error?.code === 'session_identity_mismatch' ? 403 : 401;
+        return this._writeJson(response, statusCode, resolved);
+      }
+
+      return this._writeJson(response, 200, resolved);
     }
 
     if (request.method === 'GET' && apiKeysMatch) {

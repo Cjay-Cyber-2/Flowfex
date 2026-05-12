@@ -17,6 +17,7 @@ import {
 } from '../../../lib/session/initialize';
 import { upgradeAnonymousSession } from '../../../lib/session/upgrade';
 import { fetchFlowfexUsageStatus } from '../../../lib/limits/service';
+import { fetchResolveAppState } from '../../../lib/session/resolveAppState';
 import { getBackendOrigin } from '../utils/runtimeConfig';
 import {
   getCurrentAuthSession,
@@ -112,9 +113,16 @@ export function SessionProvider({ children }) {
     error: null,
     usage: null,
     usageError: null,
+    appState: null,
+    appStateError: null,
   });
   const initializeRequestIdRef = useRef(0);
   const wasAuthenticatedRef = useRef(false);
+  const accessTokenRef = useRef(null);
+
+  useEffect(() => {
+    accessTokenRef.current = state.accessToken;
+  }, [state.accessToken]);
 
   const syncStore = useCallback((session, user) => {
     setUser(toStoreUser(user));
@@ -234,6 +242,21 @@ export function SessionProvider({ children }) {
         wasAuthenticatedRef.current = false;
       }
 
+      let resolvedAppState = null;
+      let resolvedAppStateError = null;
+      let usageFromResolve = null;
+      try {
+        resolvedAppState = await fetchResolveAppState({
+          apiBaseUrl: backendOrigin,
+          accessToken: auth.accessToken,
+        });
+        if (resolvedAppState?.ok && resolvedAppState.usage) {
+          usageFromResolve = resolvedAppState.usage;
+        }
+      } catch (err) {
+        resolvedAppStateError = err instanceof Error ? err.message : 'Unable to resolve app state.';
+      }
+
       startTransition(() => {
         setState({
           session: backendSession,
@@ -243,13 +266,17 @@ export function SessionProvider({ children }) {
           configured: isAuthClientConfigured(),
           accessToken: auth.accessToken,
           error: null,
-          usage: null,
+          usage: usageFromResolve,
           usageError: null,
+          appState: resolvedAppState?.ok ? resolvedAppState : null,
+          appStateError: resolvedAppStateError,
         });
         syncStore(backendSession, auth.user);
       });
 
-      await refreshUsage(backendSession?.id || null, auth.accessToken);
+      if (!usageFromResolve && backendSession?.id) {
+        await refreshUsage(backendSession?.id || null, auth.accessToken);
+      }
       return backendSession;
     } catch (error) {
       if (requestId !== initializeRequestIdRef.current) {
@@ -262,6 +289,8 @@ export function SessionProvider({ children }) {
           sessionReady: true,
           configured: isAuthClientConfigured(),
           error: error instanceof Error ? error.message : 'Unable to initialize the Flowfex session.',
+          appState: null,
+          appStateError: null,
         }));
         syncStore(null, null);
       });
@@ -321,7 +350,34 @@ export function SessionProvider({ children }) {
     await initialize({ forceAnonymous: true });
   }, [initialize]);
 
+  const refreshAppState = useCallback(async () => {
+    try {
+      const resolved = await fetchResolveAppState({
+        apiBaseUrl: backendOrigin,
+        accessToken: accessTokenRef.current,
+      });
+      startTransition(() => {
+        setState((cur) => ({
+          ...cur,
+          appState: resolved?.ok ? resolved : null,
+          appStateError: null,
+          usage: resolved?.ok && resolved.usage ? resolved.usage : cur.usage,
+        }));
+      });
+    } catch (err) {
+      startTransition(() => {
+        setState((cur) => ({
+          ...cur,
+          appStateError: err instanceof Error ? err.message : String(err),
+        }));
+      });
+    }
+  }, [backendOrigin]);
+
   const hasConnectedAgent = useMemo(() => {
+    if (state.appState?.gates?.agentConnectedServer === true) {
+      return true;
+    }
     if (connectedAgents.some(isLiveConnectedAgent)) {
       return true;
     }
@@ -331,15 +387,16 @@ export function SessionProvider({ children }) {
       ...(state.session?.graphState?.connectedAgents || []),
     ];
     return filterLiveConnectedAgents(fromSession).length > 0;
-  }, [connectedAgents, state.session]);
+  }, [connectedAgents, state.appState, state.session]);
 
   const value = useMemo(() => ({
     ...state,
     hasConnectedAgent,
     refreshSession: () => initialize(),
     refreshUsage: (sessionId = null) => refreshUsage(sessionId, state.accessToken),
+    refreshAppState,
     signOut,
-  }), [hasConnectedAgent, initialize, refreshUsage, signOut, state]);
+  }), [hasConnectedAgent, initialize, refreshAppState, refreshUsage, signOut, state]);
 
   return (
     <SessionContext.Provider value={value}>

@@ -423,16 +423,16 @@ async function testWarningDetection() {
   assertNull(statusBefore.warningLimit, 'No warning at 66% usage');
   assertNull(statusBefore.blockedLimit, 'Not blocked at 66% usage');
 
-  // Use authenticated tier where limits are large enough for warnings
-  // maxExecutionsPerDay = 50, so 80% = 40. Record 40 executions.
+  // Use authenticated tier — drive usage to 80% of the configured daily cap.
   const authId = 'test-warning-' + Date.now();
   const session2 = await createTestSession(authId);
-  for (let i = 0; i < 40; i++) {
+  const dailyMax = FLOWFEX_LIMITS.authenticated.maxExecutionsPerDay;
+  const warningTrigger = Math.max(1, Math.floor(dailyMax * 0.8));
+  for (let i = 0; i < warningTrigger; i++) {
     await usageService.recordExecution({ sessionId: session2.sessionId, nodesProcessed: 1 });
   }
 
   const statusApproaching = await usageService.getUsageStatus({ sessionId: session2.sessionId });
-  // 40/50 = 80%, should trigger execution warning
   assertTruthy(statusApproaching.warningLimit, 'Warning at 80% of execution limit');
   assertEq(statusApproaching.warningLimit.status, 'approaching', 'Warning status is approaching');
   assertEq(statusApproaching.warningLimit.limit, 'maxExecutionsPerDay', 'Warning on correct limit');

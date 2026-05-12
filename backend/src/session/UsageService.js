@@ -198,7 +198,7 @@ function buildBlockedLimit(tier, usage, limits) {
       status: 'blocked',
       tier,
       limit: 'maxExecutionsPerSession',
-      reason: `Your anonymous Flowfex session has used all ${limits.maxExecutionsPerSession} free requests for today. Sign up to keep going, or wait until the daily reset.`,
+      reason: `Your connected agent has used all ${limits.maxExecutionsPerSession} free Flowfex skill or tool requests for this session. Sign up to keep going, or wait until the daily reset.`,
       currentValue: usage.executionsCount,
       limitValue: limits.maxExecutionsPerSession,
     };
@@ -208,7 +208,7 @@ function buildBlockedLimit(tier, usage, limits) {
       status: 'blocked',
       tier,
       limit: 'maxExecutionsPerDay',
-      reason: 'You have reached the 24-hour Flowfex request allowance for this account.',
+      reason: 'You have reached the 24-hour Flowfex skill and tool request allowance for this account.',
       currentValue: usage.executionsCount,
       limitValue: limits.maxExecutionsPerDay,
     };

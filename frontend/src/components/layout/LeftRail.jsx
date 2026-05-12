@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, ChevronRight, Plus, Search } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import useStore from '../../store/useStore';
 import { useSessionContext } from '../../context/SessionContext';
 import { DEMO_SKILL_LIBRARY } from '../../store/demoData';
@@ -84,6 +84,22 @@ function toCompactSkillRecord(skill) {
   };
 }
 
+function categoriesFromIndexPayload(categoriesPayload) {
+  if (!categoriesPayload || typeof categoriesPayload !== 'object') {
+    return [];
+  }
+
+  return Object.entries(categoriesPayload)
+    .map(([id, ids]) => ({
+      id,
+      label: formatCategoryLabel(id),
+      icon: resolveCategoryIcon(id),
+      count: Array.isArray(ids) ? ids.length : 0,
+    }))
+    .filter((entry) => entry.count > 0)
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+}
+
 function LeftRail() {
   const {
     activeSession,
@@ -106,21 +122,15 @@ function LeftRail() {
   const [searchValue, setSearchValue] = useState('');
   const [liveResults, setLiveResults] = useState(null);
   const [liveSkills, setLiveSkills] = useState([]);
+  const [categoryIndexStats, setCategoryIndexStats] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const debounceRef = useRef(null);
-  const [expandedSections, setExpandedSections] = useState({
-    agents: true,
-    skills: true,
-    history: true,
-  });
-  const [expandedCategories, setExpandedCategories] = useState({});
 
   const historyItems = useMemo(
-    () => sessions.filter((session) => session.id !== activeSession?.id).slice(0, 3),
+    () => sessions.filter((s) => s.id !== activeSession?.id).slice(0, 4),
     [sessions, activeSession]
   );
 
-  // Live skills search with debounce
   const searchSkills = useCallback(async (query) => {
     if (!query.trim()) {
       setLiveResults(null);
@@ -128,18 +138,17 @@ function LeftRail() {
     }
     setIsSearching(true);
     try {
-        const res = await fetch(`${backendUrl}/skills/search`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: buildSessionHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify({ query }),
-        });
+      const res = await fetch(`${backendUrl}/skills/search`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: buildSessionHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ query }),
+      });
       if (res.ok) {
         const data = await res.json();
         setLiveResults((data.results || []).map(toCompactSkillRecord));
       }
     } catch {
-      // Backend unreachable — fall back to local filter
       setLiveResults(null);
     } finally {
       setIsSearching(false);
@@ -179,57 +188,75 @@ function LeftRail() {
     };
   }, [backendUrl, buildSessionHeaders]);
 
-  const skillLibrary = useMemo(() => {
-    const groupedLiveSkills = groupSkillsByCategory(liveSkills);
-    return groupedLiveSkills.length > 0 ? groupedLiveSkills : DEMO_SKILL_LIBRARY;
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadCategories = async () => {
+      try {
+        const res = await fetch(`${backendUrl}/skills/categories`, {
+          headers: buildSessionHeaders(),
+          credentials: 'include',
+        });
+        if (!res.ok) {
+          throw new Error('categories unavailable');
+        }
+        const data = await res.json();
+        if (!cancelled) {
+          setCategoryIndexStats(categoriesFromIndexPayload(data.categories));
+        }
+      } catch {
+        if (!cancelled) {
+          setCategoryIndexStats(null);
+        }
+      }
+    };
+
+    loadCategories();
+    return () => {
+      cancelled = true;
+    };
+  }, [backendUrl, buildSessionHeaders]);
+
+  const fallbackGrouped = useMemo(() => {
+    const groupedLive = groupSkillsByCategory(liveSkills);
+    return groupedLive.length > 0 ? groupedLive : DEMO_SKILL_LIBRARY;
   }, [liveSkills]);
 
-  // Falls back to local filtering when backend is unreachable
-  const filteredCategories = useMemo(() => {
+  const categoryChips = useMemo(() => {
     if (liveResults && liveResults.length > 0) {
-      return groupSkillsByCategory(liveResults);
+      return groupSkillsByCategory(liveResults).map((cat) => ({
+        id: cat.id,
+        label: cat.label,
+        icon: resolveCategoryIcon(cat.id),
+        count: cat.items.length,
+      }));
     }
 
     const query = searchValue.trim().toLowerCase();
-    if (!query) return skillLibrary;
+    if (categoryIndexStats && categoryIndexStats.length > 0) {
+      if (!query) {
+        return categoryIndexStats;
+      }
+      return categoryIndexStats.filter(
+        (c) => c.label.toLowerCase().includes(query) || c.id.toLowerCase().includes(query)
+      );
+    }
 
-    return skillLibrary.map((category) => ({
-      ...category,
-      items: category.items.filter((item) =>
-        item.label.toLowerCase().includes(query)
-        || item.description?.toLowerCase().includes(query)
-        || category.label.toLowerCase().includes(query)
-      ),
-    })).filter((category) => category.items.length > 0);
-  }, [searchValue, liveResults, skillLibrary]);
-
-  useEffect(() => {
-    if (filteredCategories.length === 0) return;
-
-    setExpandedCategories((current) => {
-      const next = { ...current };
-      filteredCategories.slice(0, 4).forEach((category) => {
-        if (typeof next[category.id] !== 'boolean') {
-          next[category.id] = true;
-        }
-      });
-      return next;
+    return fallbackGrouped.map((cat) => ({
+      id: cat.id,
+      label: cat.label,
+      icon: resolveCategoryIcon(cat.id),
+      count: cat.items.length,
+    })).filter((c) => {
+      if (!query) return true;
+      return c.label.toLowerCase().includes(query) || c.id.toLowerCase().includes(query);
     });
-  }, [filteredCategories]);
+  }, [liveResults, searchValue, categoryIndexStats, fallbackGrouped]);
 
-  const toggleSection = (section) => {
-    setExpandedSections((current) => ({
-      ...current,
-      [section]: !current[section],
-    }));
-  };
-
-  const toggleCategory = (categoryId) => {
-    setExpandedCategories((current) => ({
-      ...current,
-      [categoryId]: !current[categoryId],
-    }));
-  };
+  const totalSkillsInFlowfex = useMemo(
+    () => categoryChips.reduce((sum, c) => sum + c.count, 0),
+    [categoryChips]
+  );
 
   return (
     <aside className="left-rail">
@@ -238,116 +265,95 @@ function LeftRail() {
           <span className="rail-kicker">Workspace</span>
           <strong>{activeSession?.name || 'Untitled Session'}</strong>
         </div>
-        <ChevronDown size={16} />
       </div>
 
       <label className="left-rail-search">
         <Search size={16} />
         <input
-          aria-label="Search skills, agents, connectors"
-          placeholder="Search skills, agents, connectors..."
+          aria-label="Search skills and categories"
+          placeholder="Search categories or skills…"
           value={searchValue}
           onChange={(event) => setSearchValue(event.target.value)}
         />
       </label>
 
-      <section className="rail-section">
-        <button className="rail-section-header" onClick={() => toggleSection('agents')}>
-          {expandedSections.agents ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-          <span>Connected Agents</span>
-          <span className="rail-section-count">{connectedAgents.length}</span>
-        </button>
-
-        {expandedSections.agents && (
-          <div className="rail-section-body">
-            <div className="agent-stack">
-              {connectedAgents.map((agent) => (
-                <button
-                  key={agent.id}
-                  className={`agent-card ${agent.status === 'connected' ? 'is-connected' : ''}`}
-                >
-                  <span className={`status-dot status-dot-${agent.status}`} />
-                  <div className="agent-card-copy">
-                    <strong>{agent.name}</strong>
-                    <span>{agent.lastSeen}</span>
-                  </div>
-                  <span className="agent-card-badge">{agent.type}</span>
-                </button>
-              ))}
-            </div>
-
-            <button className="rail-add-button" onClick={() => setConnectModalOpen(true)}>
-              <Plus size={14} />
-              Connect Agent
-            </button>
-          </div>
-        )}
-      </section>
-
-      <section className="rail-section">
-        <button className="rail-section-header" onClick={() => toggleSection('skills')}>
-          {expandedSections.skills ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-          <span>Skill Library</span>
-          <span className="rail-section-count">
-            {skillLibrary.reduce((total, category) => total + category.items.length, 0)}
-          </span>
-        </button>
-
-        {expandedSections.skills && (
-          <div className="rail-section-body rail-section-body-skills">
-            {filteredCategories.map((category) => (
-              <div key={category.id} className="skill-category">
-                <button className="skill-category-header" onClick={() => toggleCategory(category.id)}>
-                  {(expandedCategories[category.id] ?? true) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                  <span>{category.label}</span>
-                  <span className="skill-category-count">{category.items.length}</span>
-                </button>
-
-                {(expandedCategories[category.id] ?? true) && (
-                  <div className="skill-tile-grid">
-                    {category.items.map((item) => (
-                      <button key={item.id} className="skill-tile" title={item.description || item.label}>
-                        <FlowIcon name={item.icon} size={18} />
-                        <span>{item.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
+      <section className="rail-panel">
+        <div className="rail-panel-head">
+          <span className="rail-panel-title">Connected agents</span>
+          <span className="rail-panel-count">{connectedAgents.length}</span>
+        </div>
+        <div className="rail-panel-body">
+          <div className="agent-stack agent-stack--compact">
+            {connectedAgents.map((agent) => (
+              <div
+                key={agent.id}
+                className={`agent-row ${agent.status === 'connected' ? 'is-connected' : ''}`}
+              >
+                <span className={`status-dot status-dot-${agent.status}`} />
+                <div className="agent-row-copy">
+                  <strong>{agent.name}</strong>
+                  <span>{agent.lastSeen}</span>
+                </div>
+                <span className="agent-row-badge">{agent.type}</span>
               </div>
             ))}
           </div>
-        )}
+          <button type="button" className="rail-add-button" onClick={() => setConnectModalOpen(true)}>
+            <Plus size={14} />
+            Connect agent
+          </button>
+        </div>
       </section>
 
-      <section className="rail-section rail-section-history">
-        <button className="rail-section-header" onClick={() => toggleSection('history')}>
-          {expandedSections.history ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-          <span>Session History</span>
-          <span className="rail-section-count">{historyItems.length}</span>
-        </button>
-
-        {expandedSections.history && (
-          <div className="rail-section-body">
-            <div className="history-list">
-              {historyItems.map((session) => (
-                <button
-                  key={session.id}
-                  className={`history-row ${activeSession?.id === session.id ? 'is-active' : ''}`}
-                  onClick={() => setActiveSession(session)}
-                >
-                  <div className="history-row-copy">
-                    <strong>{session.name}</strong>
-                    <div className="history-row-meta">
-                      <span className={`history-row-status history-row-status-${session.status || 'completed'}`} />
-                      <span>{session.elapsed}</span>
-                    </div>
-                  </div>
-                </button>
+      <section className="rail-panel rail-panel--grow">
+        <div className="rail-panel-head">
+          <span className="rail-panel-title">Flowfex library</span>
+          <span className="rail-panel-count" title="Total skills/tools in catalog">
+            {totalSkillsInFlowfex}{isSearching ? '…' : ''}
+          </span>
+        </div>
+        <div className="rail-panel-body rail-panel-body--chips">
+          {categoryChips.length === 0 ? (
+            <p className="rail-empty-hint">No categories match this search.</p>
+          ) : (
+            <div className="category-chip-grid" aria-busy={isSearching}>
+              {categoryChips.map((cat) => (
+                <div key={cat.id} className="category-chip" title={`${cat.count} in Flowfex`}>
+                  <FlowIcon name={cat.icon} size={16} className="category-chip-icon" />
+                  <span className="category-chip-label">{cat.label}</span>
+                  <span className="category-chip-value">{cat.count}</span>
+                </div>
               ))}
             </div>
-            <button className="rail-view-all">View all</button>
+          )}
+        </div>
+      </section>
+
+      <section className="rail-panel rail-panel--bottom">
+        <div className="rail-panel-head">
+          <span className="rail-panel-title">Session history</span>
+          <span className="rail-panel-count">{historyItems.length}</span>
+        </div>
+        <div className="rail-panel-body">
+          <div className="history-list history-list--compact">
+            {historyItems.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                className={`history-row ${activeSession?.id === s.id ? 'is-active' : ''}`}
+                onClick={() => setActiveSession(s)}
+              >
+                <div className="history-row-copy">
+                  <strong>{s.name}</strong>
+                  <div className="history-row-meta">
+                    <span className={`history-row-status history-row-status-${s.status || 'completed'}`} />
+                    <span>{s.elapsed}</span>
+                  </div>
+                </div>
+              </button>
+            ))}
           </div>
-        )}
+        </div>
       </section>
     </aside>
   );

@@ -190,3 +190,19 @@
     height: 220px;
   }
 }
+
+/* Sign-up page: softer, more defocused hero orbs behind the card */
+.auth-backdrop--signup .auth-backdrop__orb {
+  filter: blur(22px);
+  opacity: 0.58;
+}
+
+.auth-backdrop--signup .auth-backdrop__glow--left,
+.auth-backdrop--signup .auth-backdrop__glow--right {
+  filter: blur(36px);
+  opacity: 1.05;
+}
+
+.auth-backdrop--signup .auth-backdrop__beam {
+  opacity: 0.35;
+}

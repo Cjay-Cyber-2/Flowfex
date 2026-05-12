@@ -8,16 +8,10 @@ import { isLiveConnectedAgent } from '../../utils/agentPresence';
 /**
  * Strict route guard for /dashboard.
  *
- * The dashboard only opens when EITHER:
- *   1. The session that the *current device* owns shows a verified connected
- *      agent (server-side `connectedAgents`, mirrored into the local store
- *      via SessionContext after backend hydration), OR
- *   2. The visitor is signed in (authenticated cookie + JWT).
- *
- * The fundamental rule the user asked for: if I open this URL on a fresh
- * laptop that has never attached an agent and has not signed in, I must
- * never see the dashboard or its transition. I get the loading shell, then
- * I am sent to /onboarding immediately. No flash, no race.
+ * The dashboard opens only when this browser's Flowfex session has a
+ * **verified live agent** (store mirror + server session snapshot).
+ * Being signed in with Better Auth is not enough: another laptop with the
+ * same account must still complete attach on that device.
  */
 function GuardLoading() {
   return (
@@ -42,7 +36,7 @@ function GuardLoading() {
 
 export default function RequireAttachedAgent({ children }) {
   const location = useLocation();
-  const { sessionReady, isAuthenticated, hasConnectedAgent } = useSessionContext();
+  const { sessionReady, hasConnectedAgent } = useSessionContext();
   const connectedAgents = useStore((state) => state.connectedAgents);
   const localHasConnectedAgent = connectedAgents.some(isLiveConnectedAgent);
   // The OAuth callback can land here while Better Auth is still hydrating
@@ -61,10 +55,6 @@ export default function RequireAttachedAgent({ children }) {
 
   if (!sessionReady) {
     return <GuardLoading />;
-  }
-
-  if (isAuthenticated) {
-    return children;
   }
 
   const verifiedAgent = hasConnectedAgent || localHasConnectedAgent;

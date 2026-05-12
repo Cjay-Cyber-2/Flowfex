@@ -5,25 +5,14 @@ import LeftRail from '../components/layout/LeftRail';
 import RightDrawer from '../components/layout/RightDrawer';
 import TopBar from '../components/layout/TopBar';
 import ConnectAgentModal from '../components/ConnectAgentModal';
+import QuotaPricingOverlay from '../components/billing/QuotaPricingOverlay';
 import useStore from '../store/useStore';
 import { useSessionContext } from '../context/SessionContext';
 import '../styles/canvas.css';
 
-function formatResetLabel(resetAt) {
-  if (!resetAt) {
-    return 'the next daily reset';
-  }
-
-  try {
-    return new Date(resetAt).toLocaleString();
-  } catch {
-    return 'the next daily reset';
-  }
-}
-
 function UsageGateBanner({ isAuthenticated, title, message, onSignIn, onSignUp }) {
   const headline = title
-    || (isAuthenticated ? 'Account limit reached' : 'Anonymous session limit reached');
+    || (isAuthenticated ? 'Account limit reached' : 'Guest session limit reached');
   return (
     <div style={{
       marginBottom: 16,
@@ -54,10 +43,14 @@ function UsageGateBanner({ isAuthenticated, title, message, onSignIn, onSignUp }
   );
 }
 
-function paymentGateHeadline(blockedLimit, connectionBlockedLimit) {
+function paymentGateHeadline(blockedLimit, connectionBlockedLimit, isAuthenticated) {
   const key = blockedLimit?.limit || connectionBlockedLimit?.limit;
+  const tier = blockedLimit?.tier || connectionBlockedLimit?.tier;
   if (key === 'maxExecutionsPerSession' || key === 'maxExecutionsPerDay') {
-    return 'You used all of today\u2019s free Flowfex requests.';
+    if (!isAuthenticated || tier === 'anonymous') {
+      return 'You used all 10 free Flowfex guest requests.';
+    }
+    return 'You used all of today’s free Flowfex requests on this account.';
   }
   if (key === 'maxConnectionsPerDay') {
     return 'You hit today\u2019s Flowfex attach cap.';
@@ -72,62 +65,6 @@ function paymentGateHeadline(blockedLimit, connectionBlockedLimit) {
     return 'Too many agents are connected for this tier.';
   }
   return 'Flowfex limits are blocking new work.';
-}
-
-function PaymentGate({ resetAt, onClose, headline, subline }) {
-  return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      zIndex: 120,
-      background: 'rgba(4, 8, 12, 0.7)',
-      backdropFilter: 'blur(14px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: 24,
-    }}>
-      <div style={{
-        width: 'min(560px, 100%)',
-        borderRadius: 20,
-        border: '1px solid rgba(0, 212, 170, 0.18)',
-        background: 'linear-gradient(180deg, rgba(16, 24, 32, 0.96) 0%, rgba(10, 16, 22, 0.98) 100%)',
-        boxShadow: '0 28px 90px rgba(0,0,0,0.45)',
-        overflow: 'hidden',
-      }}>
-        <div style={{ padding: 28, borderBottom: '1px solid rgba(0, 212, 170, 0.08)' }}>
-          <span style={{ display: 'inline-flex', padding: '6px 10px', borderRadius: 999, fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', background: 'rgba(0, 212, 170, 0.12)', color: 'var(--color-sinoper)' }}>
-            Upgrade Required
-          </span>
-          <h2 style={{ margin: '16px 0 8px', fontSize: 28, lineHeight: 1.1, color: 'var(--color-velin)' }}>
-            {headline || 'You used all of today\u2019s free Flowfex requests.'}
-          </h2>
-          <p style={{ margin: 0, color: 'rgba(232, 237, 242, 0.72)', lineHeight: 1.6 }}>
-            {subline || `Continue with a paid plan once billing is enabled for this account, or wait until ${formatResetLabel(resetAt)} for the next daily renewal.`}
-          </p>
-        </div>
-
-        <div style={{ padding: 28, display: 'grid', gap: 18 }}>
-          <div style={{
-            borderRadius: 16,
-            border: '1px solid rgba(0, 212, 170, 0.18)',
-            background: 'rgba(0, 212, 170, 0.08)',
-            padding: 18,
-          }}>
-            <strong style={{ display: 'block', marginBottom: 6, color: 'var(--color-velin)' }}>Current access state</strong>
-            <span style={{ color: 'rgba(232, 237, 242, 0.76)', lineHeight: 1.6 }}>
-              Your authenticated dashboard is live, but new Flowfex requests are paused until billing is turned on or the daily quota resets.
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-            <button className="btn btn-ghost" onClick={onClose}>Wait For Reset</button>
-            <button className="btn btn-primary" onClick={() => window.location.assign('/#pricing')}>View Pricing</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 function OrchestrationCanvas() {
@@ -163,14 +100,12 @@ function OrchestrationCanvas() {
   const blockedLimit = usage?.blockedLimit || null;
   const connectionBlockedLimit = usage?.connectionBlockedLimit || null;
   const anyBlockReason = blockedLimit?.reason || connectionBlockedLimit?.reason || null;
-  // Anonymous users see a strong sign-up wall the moment they exhaust their
-  // 10 requests. Authenticated users see the pricing modal (with "Wait For
-  // Reset" + "View Pricing"). Authenticated users who dismiss the modal keep
-  // working but see an inline banner so they always know they are gated.
+  const gateHeadline = paymentGateHeadline(blockedLimit, connectionBlockedLimit, isAuthenticated);
+  // Anonymous: full-screen pricing + sign up after free tier is exhausted.
+  // Authenticated: same pricing wall until pay or daily reset; dismiss shows inline banner.
   const showAnonymousGate = !isAuthenticated && Boolean(anyBlockReason);
   const showPaymentGate = isAuthenticated && Boolean(anyBlockReason) && !paymentGateDismissed;
   const showAuthenticatedBanner = isAuthenticated && Boolean(anyBlockReason) && paymentGateDismissed;
-  const paymentHeadline = paymentGateHeadline(blockedLimit, connectionBlockedLimit);
 
   useEffect(() => {
     setPaymentGateDismissed(false);
@@ -190,18 +125,10 @@ function OrchestrationCanvas() {
         <LeftRail />
 
         <main className="canvas-main-shell">
-          {showAnonymousGate ? (
-            <UsageGateBanner
-              isAuthenticated={false}
-              message={anyBlockReason}
-              onSignIn={() => navigate('/signin')}
-              onSignUp={() => navigate('/signup')}
-            />
-          ) : null}
-
           {showAuthenticatedBanner ? (
             <UsageGateBanner
               isAuthenticated
+              title={gateHeadline}
               message={anyBlockReason}
               onSignIn={() => {}}
               onSignUp={() => {}}
@@ -243,11 +170,23 @@ function OrchestrationCanvas() {
       </div>
 
       <ConnectAgentModal isOpen={connectModalOpen} onClose={() => setConnectModalOpen(false)} />
-      {showPaymentGate ? (
-        <PaymentGate
+      {showAnonymousGate ? (
+        <QuotaPricingOverlay
+          variant="anonymous"
+          headline={gateHeadline}
+          message={anyBlockReason}
           resetAt={usage?.resetAt}
-          onClose={() => setPaymentGateDismissed(true)}
-          headline={paymentHeadline}
+          onSignIn={() => navigate('/signin')}
+          onSignUp={() => navigate('/signup')}
+        />
+      ) : null}
+      {showPaymentGate ? (
+        <QuotaPricingOverlay
+          variant="authenticated"
+          headline={gateHeadline}
+          message={anyBlockReason}
+          resetAt={usage?.resetAt}
+          onDismiss={() => setPaymentGateDismissed(true)}
         />
       ) : null}
     </div>

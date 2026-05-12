@@ -27,7 +27,7 @@ function ForgotPassword() {
 
   useEffect(() => {
     if (sessionReady && isAuthenticated) {
-      navigate('/dashboard');
+      navigate('/onboarding');
     }
   }, [isAuthenticated, navigate, sessionReady]);
 

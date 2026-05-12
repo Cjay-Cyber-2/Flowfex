@@ -108,7 +108,7 @@ function AnimatedLayerButton({ children, onClick, className = '' }) {
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { isAuthenticated, sessionReady } = useSessionContext();
+  const { sessionReady } = useSessionContext();
   const connectedAgents = useStore((state) => state.connectedAgents);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [connectionStage, setConnectionStage] = useState('idle');
@@ -132,9 +132,9 @@ export default function Onboarding() {
 
   useEffect(() => clearTransitionTimers, [clearTransitionTimers]);
 
-  // If the device already has a verified attach (or the user is signed in)
-  // we never strand them on the onboarding screen — we play the transition
-  // and route them to the dashboard automatically.
+  // If this browser already has a verified live agent (e.g. refresh), skip
+  // stranding them on onboarding. Do not route signed-in users without an
+  // agent — they must complete attach on this device first.
   useEffect(() => {
     if (!sessionReady || autoTransitionStartedRef.current) {
       return;
@@ -143,15 +143,11 @@ export default function Onboarding() {
     const hasLiveAgent = Array.isArray(connectedAgents)
       && connectedAgents.some((agent) => isLiveConnectedAgent(agent));
 
-    if (hasLiveAgent || isAuthenticated) {
+    if (hasLiveAgent) {
       autoTransitionStartedRef.current = true;
-      if (hasLiveAgent) {
-        handleConnected();
-      } else {
-        navigate('/dashboard', { replace: true });
-      }
+      navigate('/dashboard', { replace: true });
     }
-  }, [connectedAgents, handleConnected, isAuthenticated, navigate, sessionReady]);
+  }, [connectedAgents, navigate, sessionReady]);
 
   return (
     <div className="ob-root">

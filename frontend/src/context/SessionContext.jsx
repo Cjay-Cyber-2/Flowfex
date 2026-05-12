@@ -33,7 +33,7 @@ function deriveDisplayName(user) {
     return null;
   }
 
-  return user.displayName || user.email?.split('@')[0] || 'Flowfex User';
+  return user.displayName || user.name || user.email?.split('@')[0] || 'Flowfex User';
 }
 
 function deriveInitials(name) {
@@ -201,7 +201,7 @@ export function SessionProvider({ children }) {
           session: backendSession,
           user: auth.user,
           sessionReady: true,
-          isAuthenticated: Boolean(auth.user),
+          isAuthenticated: Boolean(auth.user && (auth.user.id || auth.user.email)),
           configured: isAuthClientConfigured(),
           accessToken: auth.accessToken,
           error: null,

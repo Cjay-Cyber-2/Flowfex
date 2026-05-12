@@ -58,6 +58,20 @@
   margin: 0 auto;
 }
 
+.mps-root--embed {
+  min-height: auto;
+  padding: 1.25rem 0.25rem 2rem;
+  background: transparent;
+}
+
+.mps-heading--embed {
+  margin-bottom: 1.75rem;
+}
+
+.mps-title--embed {
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+}
+
 .mps-cards {
   display: flex;
   flex-direction: row;
@@ -66,6 +80,7 @@
   align-items: stretch;
   flex-wrap: wrap;
 }
+
 
 /* ── Individual Card ─────────────────────────────────────────────────────── */
 .mpc-card {

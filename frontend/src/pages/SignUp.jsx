@@ -38,7 +38,7 @@ function SignUp() {
 
   useEffect(() => {
     if (sessionReady && isAuthenticated) {
-      navigate('/dashboard');
+      navigate('/onboarding');
     }
   }, [isAuthenticated, navigate, sessionReady]);
 
@@ -68,7 +68,7 @@ function SignUp() {
         setNoticeMessage('Check your inbox to confirm your email, then come back to sign in.');
       } else {
         await refreshSession();
-        navigate('/dashboard');
+        navigate('/onboarding');
       }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to create your account.');
@@ -83,11 +83,11 @@ function SignUp() {
 
     try {
       if (provider === 'google') {
-        await signInWithGoogle('/dashboard', '/signup');
+        await signInWithGoogle('/onboarding', '/signup');
         return;
       }
 
-      await signInWithGitHub('/dashboard', '/signup');
+      await signInWithGitHub('/onboarding', '/signup');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to start social sign-in.');
     }
@@ -96,7 +96,7 @@ function SignUp() {
   return (
     <div className="auth-shell">
       <div className="auth-shell__bg">
-        <AuthBackdrop />
+        <AuthBackdrop variant="signup" />
         <div className="auth-shell__bg-blur" />
       </div>
 

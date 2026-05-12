@@ -523,7 +523,7 @@ function LandingPage() {
             <button className="btn btn-primary hero-primary-cta" onClick={() => navigate('/onboarding')}>
               Start Building Free
             </button>
-            <button className="btn btn-ghost" onClick={() => navigate('/dashboard')}>
+            <button className="btn btn-ghost" onClick={() => navigate('/onboarding')}>
               <Play size={16} />
               Watch Live Demo
             </button>
@@ -627,7 +627,7 @@ function LandingPage() {
               <button className="btn btn-primary" onClick={() => navigate('/onboarding')}>
                 Connect Agent
               </button>
-              <button className="btn btn-ghost" onClick={() => navigate('/dashboard')}>
+              <button className="btn btn-ghost" onClick={() => navigate('/onboarding')}>
                 See the Dashboard
               </button>
             </div>
@@ -740,7 +740,7 @@ function LandingPage() {
             <button className="btn btn-primary final-cta-enhanced" onClick={() => navigate('/onboarding')}>
               Start Building Free
             </button>
-            <button className="btn btn-ghost" onClick={() => navigate('/dashboard')}>
+            <button className="btn btn-ghost" onClick={() => navigate('/onboarding')}>
               See the Dashboard
               <ArrowRight size={16} />
             </button>

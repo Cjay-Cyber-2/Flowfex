@@ -8,7 +8,7 @@ import './TopBar.css';
 
 function TopBar() {
   const navigate = useNavigate();
-  const { isAuthenticated, hasConnectedAgent } = useSessionContext();
+  const { isAuthenticated, hasConnectedAgent, user: sessionUser } = useSessionContext();
   const {
     activeSession,
     canvasMode,
@@ -32,6 +32,16 @@ function TopBar() {
     { id: 'flow', label: 'Flow' },
     { id: 'live', label: 'Live' },
   ];
+
+  const displayEmail = sessionUser?.email || user?.email || '';
+  const accountLabel = isAuthenticated
+    ? (displayEmail ? displayEmail.split('@')[0] : 'Signed in')
+    : 'Guest';
+  const accountTitle = isAuthenticated
+    ? (displayEmail ? `Signed in as ${displayEmail}` : 'Signed in to Flowfex')
+    : 'Guest Flowfex session — connect an agent to orchestrate. Sign up after your free requests for a saved account and higher limits.';
+
+  const connectDisabled = !isAuthenticated && hasConnectedAgent;
 
   return (
     <header className="top-bar">
@@ -89,19 +99,33 @@ function TopBar() {
         </button>
 
         <button
+          type="button"
           className="top-bar-connect"
-          onClick={() => setConnectModalOpen(true)}
-          title={hasConnectedAgent ? 'Connect another agent' : 'Connect an agent to Flowfex'}
+          disabled={connectDisabled}
+          onClick={() => {
+            if (!connectDisabled) {
+              setConnectModalOpen(true);
+            }
+          }}
+          title={
+            connectDisabled
+              ? 'Anonymous sessions support one connected agent. Sign in to add more on a paid plan.'
+              : hasConnectedAgent
+                ? (isAuthenticated ? 'Connect or manage additional agents' : 'Your agent is connected')
+                : 'Connect an agent to Flowfex'
+          }
         >
-          {hasConnectedAgent ? 'Manage Agents' : 'Connect Agent'}
+          {hasConnectedAgent
+            ? (isAuthenticated ? 'Manage Agents' : 'Agent connected')
+            : 'Connect Agent'}
         </button>
 
         <span
           className={`top-bar-account-badge ${isAuthenticated ? 'is-auth' : 'is-anon'}`}
-          title={isAuthenticated ? 'Signed in to Flowfex' : 'Anonymous Flowfex session'}
+          title={accountTitle}
         >
           {isAuthenticated ? <ShieldCheck size={12} /> : <UserRound size={12} />}
-          {isAuthenticated ? 'Signed In' : 'Anonymous'}
+          {accountLabel}
         </span>
 
         <button className="top-bar-account" onClick={() => navigate('/settings')}>

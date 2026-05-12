@@ -26,7 +26,7 @@ function SignIn() {
 
   useEffect(() => {
     if (sessionReady && isAuthenticated) {
-      navigate('/dashboard');
+      navigate('/onboarding');
     }
   }, [isAuthenticated, navigate, sessionReady]);
 
@@ -46,7 +46,7 @@ function SignIn() {
     try {
       await signInWithEmail(email, password);
       await refreshSession();
-      navigate('/dashboard');
+      navigate('/onboarding');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to sign in.');
     } finally {
@@ -59,11 +59,11 @@ function SignIn() {
 
     try {
       if (provider === 'google') {
-        await signInWithGoogle('/dashboard', '/signin');
+        await signInWithGoogle('/onboarding', '/signin');
         return;
       }
 
-      await signInWithGitHub('/dashboard', '/signin');
+      await signInWithGitHub('/onboarding', '/signin');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to start social sign-in.');
     }

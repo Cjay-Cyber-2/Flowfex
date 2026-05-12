@@ -1,0 +1,88 @@
+.quota-pricing-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 160;
+  background: rgba(4, 8, 12, 0.82);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  display: flex;
+  justify-content: center;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.quota-pricing-overlay__scroller {
+  width: min(1120px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 22px;
+  border: 1px solid rgba(0, 212, 170, 0.16);
+  background: linear-gradient(165deg, rgba(12, 18, 26, 0.96), rgba(6, 10, 14, 0.98));
+  box-shadow: 0 32px 120px rgba(0, 0, 0, 0.55);
+}
+
+.quota-pricing-overlay__intro {
+  padding: clamp(20px, 3vw, 36px) clamp(18px, 3vw, 40px) 8px;
+  text-align: center;
+}
+
+.quota-pricing-overlay__eyebrow {
+  margin: 0 0 10px;
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-sinoper);
+}
+
+.quota-pricing-overlay__title {
+  margin: 0 0 12px;
+  font-family: var(--font-geist, sans-serif);
+  font-size: clamp(1.35rem, 3.2vw, 2rem);
+  font-weight: 700;
+  color: var(--color-velin);
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.quota-pricing-overlay__body {
+  margin: 0 auto 10px;
+  max-width: 640px;
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(232, 237, 242, 0.78);
+}
+
+.quota-pricing-overlay__reset {
+  margin: 0 auto 20px;
+  max-width: 560px;
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 13px;
+  color: rgba(127, 255, 240, 0.85);
+}
+
+.quota-pricing-overlay__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.quota-pricing-overlay__ghost {
+  opacity: 0.85;
+}
+
+.quota-pricing-overlay__pricing-host {
+  padding: 8px 0 28px;
+}
+
+.quota-pricing-overlay__fallback {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--color-bistre);
+  font-family: var(--font-inter, Inter, sans-serif);
+}

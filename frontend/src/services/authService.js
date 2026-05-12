@@ -8,7 +8,7 @@ const authClient = createAuthClient({
   plugins: [jwtClient()],
 });
 
-function buildAppUrl(pathname = '/dashboard') {
+function buildAppUrl(pathname = '/onboarding') {
   return new URL(pathname, `${getAppOrigin()}/`).toString();
 }
 
@@ -19,14 +19,26 @@ export function isAuthClientConfigured() {
 }
 
 export async function getCurrentAuthSession() {
-  const { data, error } = await authClient.getSession();
-  if (error || !data) {
-    return { user: null, accessToken: null };
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const attempts = 4;
+  for (let index = 0; index < attempts; index += 1) {
+    if (index > 0) {
+      await wait(90 * index);
+    }
+    const { data, error } = await authClient.getSession();
+    if (error || !data) {
+      continue;
+    }
+    const rawUser = data.user;
+    const user = rawUser && (rawUser.id || rawUser.email) ? rawUser : null;
+    if (user) {
+      return {
+        user,
+        accessToken: data.session?.token ?? null,
+      };
+    }
   }
-  return {
-    user: data.user,
-    accessToken: data.session?.token || null,
-  };
+  return { user: null, accessToken: null };
 }
 
 export function onAuthStateChange(callback) {
@@ -57,7 +69,7 @@ export async function signUpWithEmail(email, password, name = '') {
     email,
     password,
     name,
-    callbackURL: buildAppUrl('/dashboard'),
+    callbackURL: buildAppUrl('/onboarding'),
   });
   if (error || !data) {
     throw new Error(error?.message || 'Unable to create account. Please try again.');
@@ -68,7 +80,7 @@ export async function signUpWithEmail(email, password, name = '') {
   };
 }
 
-export async function signInWithGitHub(callbackPath = '/dashboard', errorPath = '/signin') {
+export async function signInWithGitHub(callbackPath = '/onboarding', errorPath = '/signin') {
   const { error } = await authClient.signIn.social({
     provider: 'github',
     callbackURL: buildAppUrl(callbackPath),
@@ -77,7 +89,7 @@ export async function signInWithGitHub(callbackPath = '/dashboard', errorPath = 
   if (error) throw new Error(error.message);
 }
 
-export async function signInWithGoogle(callbackPath = '/dashboard', errorPath = '/signin') {
+export async function signInWithGoogle(callbackPath = '/onboarding', errorPath = '/signin') {
   const { error } = await authClient.signIn.social({
     provider: 'google',
     callbackURL: buildAppUrl(callbackPath),

@@ -202,24 +202,42 @@ const PLANS = [
   },
 ];
 
-function ModernPricingSection() {
+function ModernPricingSection({ embedMode = false, embeddedCta }) {
   const navigate = useNavigate();
+  const handlePlanCta = (planName) => {
+    if (typeof embeddedCta === 'function') {
+      embeddedCta(planName);
+      return;
+    }
+    navigate('/onboarding');
+  };
   return (
-    <section id="pricing" data-section-id="pricing" className="mps-root">
+    <section
+      id={embedMode ? undefined : 'pricing'}
+      data-section-id="pricing"
+      className={`mps-root${embedMode ? ' mps-root--embed' : ''}`}
+    >
       <div className="mps-shader-host">
         <ShaderCanvas />
       </div>
       <div className="mps-inner">
-        <div className="mps-heading">
-          <h2 className="mps-title">Start free. Scale when you&apos;re ready.</h2>
-          <p className="mps-subtitle">No forced sign-up. No credit card for trial access. Just orchestration.</p>
-        </div>
+        {!embedMode ? (
+          <div className="mps-heading">
+            <h2 className="mps-title">Start free. Scale when you&apos;re ready.</h2>
+            <p className="mps-subtitle">No forced sign-up. No credit card for trial access. Just orchestration.</p>
+          </div>
+        ) : (
+          <div className="mps-heading mps-heading--embed">
+            <h2 className="mps-title mps-title--embed">Choose a plan</h2>
+            <p className="mps-subtitle">Upgrade to keep orchestrating today, or wait for your free quota to renew.</p>
+          </div>
+        )}
         <div className="mps-cards">
           {PLANS.map((plan) => (
             <ModernPricingCard
               key={plan.planName}
               {...plan}
-              onCta={() => navigate('/onboarding')}
+              onCta={() => handlePlanCta(plan.planName)}
             />
           ))}
         </div>

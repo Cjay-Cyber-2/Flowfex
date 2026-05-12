@@ -225,7 +225,14 @@
   transition: transform var(--duration-base) var(--ease-expo-out), box-shadow var(--duration-base) var(--ease-expo-out);
 }
 
-.top-bar-connect:hover,
+.top-bar-connect:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.top-bar-connect:hover:not(:disabled),
 .top-bar-account:hover,
 .top-bar-icon-button:hover {
   transform: translateY(-1px);

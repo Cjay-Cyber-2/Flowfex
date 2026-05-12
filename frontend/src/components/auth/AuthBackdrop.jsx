@@ -1,9 +1,12 @@
 import React from 'react';
 import './AuthBackdrop.css';
 
-export default function AuthBackdrop() {
+export default function AuthBackdrop({ variant = 'default' }) {
   return (
-    <div className="auth-backdrop" aria-hidden="true">
+    <div
+      className={`auth-backdrop${variant === 'signup' ? ' auth-backdrop--signup' : ''}`}
+      aria-hidden="true"
+    >
       <div className="auth-backdrop__glow auth-backdrop__glow--left" />
       <div className="auth-backdrop__glow auth-backdrop__glow--right" />
       <div className="auth-backdrop__orb-slot auth-backdrop__orb-slot--tl">

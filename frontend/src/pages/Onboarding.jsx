@@ -5,6 +5,9 @@ import { ArrowLeft, CheckCircle } from 'lucide-react';
 import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import ConnectAgentModal from '../components/ConnectAgentModal';
 import PulseBeams from '../components/animations/PulseBeams';
+import useStore from '../store/useStore';
+import { useSessionContext } from '../context/SessionContext';
+import { isLiveConnectedAgent } from '../utils/agentPresence';
 import '../styles/onboarding.css';
 
 const ONBOARDING_BEAMS = [
@@ -67,11 +70,50 @@ const ONBOARDING_BEAMS = [
   },
 ];
 
+// Restored Flowfex-branded spinning network Connect Agent button.
+function AnimatedLayerButton({ children, onClick, className = '' }) {
+  return (
+    <button
+      type="button"
+      className={`ob-animated-layer-btn ${className}`}
+      onClick={onClick}
+    >
+      <svg
+        className="ob-animated-layer-svg"
+        viewBox="0 0 1095.66 1095.63"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <path fill="#242021" d="M1298,749.62c.4,300.41-243,548-548.1,547.9C446.23,1297.4,201.92,1051.2,202.29,749c.37-301.52,244.49-547.41,548.34-547.12C1055.43,202.18,1298.25,449.6,1298,749.62Z" transform="translate(-202.29 -201.89)" />
+        <path fill="#00D4AA" d="M1285.89,749.79c-.25,297.07-241.24,535.86-536.12,535.66-296.34-.21-537-241.72-535.29-539,1.68-293.16,240.83-534.18,539.15-532.37C1046.8,215.84,1285.62,453.88,1285.89,749.79Z" transform="translate(-202.29 -201.89)" />
+        <path fill="#fefefe" d="M1195.29,749.56c.54,244.73-198.67,446.2-446.87,445.33C503.27,1194,304,994.53,304.93,748c.91-244.52,199.12-443.08,444.39-443.49C997.43,304,1195.74,505.59,1195.29,749.56Z" transform="translate(-202.29 -201.89)" />
+        <path fill="#00D4AA" d="M1097.23,749.87c.22,190.31-154.42,347.43-348,346.92-192-.5-346.48-156.44-346.17-347.7C403.33,558,558.18,402,751.08,402.55,944.62,403.09,1097.69,560.56,1097.23,749.87Z" transform="translate(-202.29 -201.89)" />
+        <path fill="#0d1117" d="M1006.72,744.28c2.81,143.23-110.17,257.35-247.42,261.9C613.15,1011,498.22,895.93,493.71,758.88,488.93,613.71,603,498,740.69,493.28,886.73,488.24,1004,603.87,1006.72,744.28Z" transform="translate(-202.29 -201.89)" />
+        <line x1="547.83" y1="547.81" x2="547.83" y2="300" stroke="#00D4AA" strokeWidth="24" strokeLinecap="round" />
+        <line x1="547.83" y1="547.81" x2="762.7" y2="672" stroke="#00D4AA" strokeWidth="24" strokeLinecap="round" />
+        <line x1="547.83" y1="547.81" x2="333.3" y2="672" stroke="#00D4AA" strokeWidth="24" strokeLinecap="round" />
+        <line x1="547.83" y1="300" x2="762.7" y2="672" stroke="#00D4AA" strokeWidth="8" strokeLinecap="round" strokeDasharray="15, 20" />
+        <line x1="762.7" y1="672" x2="333.3" y2="672" stroke="#00D4AA" strokeWidth="8" strokeLinecap="round" strokeDasharray="15, 20" />
+        <line x1="333.3" y1="672" x2="547.83" y2="300" stroke="#00D4AA" strokeWidth="8" strokeLinecap="round" strokeDasharray="15, 20" />
+        <circle cx="547.83" cy="547.81" r="55" fill="#00D4AA" />
+        <circle cx="547.83" cy="547.81" r="25" fill="#0d1117" />
+        <circle cx="547.83" cy="300" r="35" fill="#0d1117" stroke="#00D4AA" strokeWidth="16" />
+        <circle cx="762.7" cy="672" r="35" fill="#0d1117" stroke="#00D4AA" strokeWidth="16" />
+        <circle cx="333.3" cy="672" r="35" fill="#0d1117" stroke="#00D4AA" strokeWidth="16" />
+      </svg>
+      <span className="ob-animated-layer-text">{children}</span>
+    </button>
+  );
+}
+
 export default function Onboarding() {
   const navigate = useNavigate();
+  const { isAuthenticated, sessionReady } = useSessionContext();
+  const connectedAgents = useStore((state) => state.connectedAgents);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [connectionStage, setConnectionStage] = useState('idle');
   const transitionTimersRef = useRef([]);
+  const autoTransitionStartedRef = useRef(false);
 
   const clearTransitionTimers = useCallback(() => {
     transitionTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
@@ -90,11 +132,32 @@ export default function Onboarding() {
 
   useEffect(() => clearTransitionTimers, [clearTransitionTimers]);
 
+  // If the device already has a verified attach (or the user is signed in)
+  // we never strand them on the onboarding screen — we play the transition
+  // and route them to the dashboard automatically.
+  useEffect(() => {
+    if (!sessionReady || autoTransitionStartedRef.current) {
+      return;
+    }
+
+    const hasLiveAgent = Array.isArray(connectedAgents)
+      && connectedAgents.some((agent) => isLiveConnectedAgent(agent));
+
+    if (hasLiveAgent || isAuthenticated) {
+      autoTransitionStartedRef.current = true;
+      if (hasLiveAgent) {
+        handleConnected();
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
+    }
+  }, [connectedAgents, handleConnected, isAuthenticated, navigate, sessionReady]);
+
   return (
     <div className="ob-root">
       <div className="ob-dotgrid" />
 
-      <header className="ob-topbar" style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      <header className="ob-topbar">
         <button
           onClick={() => navigate(-1)}
           className="btn btn-ghost"
@@ -201,9 +264,13 @@ export default function Onboarding() {
             >
               <FlowfexLogoNew size={34} animated={false} />
             </motion.div>
-            <button type="button" className="ob-cta-btn" onClick={() => setIsModalOpen(true)}>
+            <p className="ob-onboarding-note">
+              Flowfex will route you to your dashboard the moment your agent attaches.
+              No false signal — the animation only plays once Flowfex verifies the connection.
+            </p>
+            <AnimatedLayerButton onClick={() => setIsModalOpen(true)}>
               Connect Agent
-            </button>
+            </AnimatedLayerButton>
           </div>
         ) : null}
       </main>

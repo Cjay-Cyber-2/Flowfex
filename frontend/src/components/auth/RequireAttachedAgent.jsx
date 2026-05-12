@@ -6,13 +6,18 @@ import FlowfexLogoNew from '../FlowfexLogoNew';
 import { isLiveConnectedAgent } from '../../utils/agentPresence';
 
 /**
- * Guard that protects /dashboard so it only renders when there is a real
- * verified connected agent for the current device's session, OR the user is
- * authenticated (authenticated users can land on the dashboard and connect
- * from there). Anonymous visitors with no connected agent are sent to
- * /onboarding to complete a real attach first.
+ * Strict route guard for /dashboard.
  *
- * This is what stops the "open the dashboard on a fresh laptop" problem.
+ * The dashboard only opens when EITHER:
+ *   1. The session that the *current device* owns shows a verified connected
+ *      agent (server-side `connectedAgents`, mirrored into the local store
+ *      via SessionContext after backend hydration), OR
+ *   2. The visitor is signed in (authenticated cookie + JWT).
+ *
+ * The fundamental rule the user asked for: if I open this URL on a fresh
+ * laptop that has never attached an agent and has not signed in, I must
+ * never see the dashboard or its transition. I get the loading shell, then
+ * I am sent to /onboarding immediately. No flash, no race.
  */
 function GuardLoading() {
   return (
@@ -40,6 +45,9 @@ export default function RequireAttachedAgent({ children }) {
   const { sessionReady, isAuthenticated, hasConnectedAgent } = useSessionContext();
   const connectedAgents = useStore((state) => state.connectedAgents);
   const localHasConnectedAgent = connectedAgents.some(isLiveConnectedAgent);
+  // The OAuth callback can land here while Better Auth is still hydrating
+  // the cookie/session. We only honour a 1s grace window in that case so a
+  // fresh device cannot ever see the dashboard skeleton.
   const [graceExpired, setGraceExpired] = useState(false);
 
   useEffect(() => {
@@ -47,9 +55,7 @@ export default function RequireAttachedAgent({ children }) {
       return undefined;
     }
 
-    // Give Better Auth and session hydration time after OAuth redirect so we
-    // do not send freshly signed-in users back to onboarding.
-    const timer = window.setTimeout(() => setGraceExpired(true), 2800);
+    const timer = window.setTimeout(() => setGraceExpired(true), 1000);
     return () => window.clearTimeout(timer);
   }, [sessionReady]);
 
@@ -57,13 +63,12 @@ export default function RequireAttachedAgent({ children }) {
     return <GuardLoading />;
   }
 
-  const verifiedAgent = hasConnectedAgent || localHasConnectedAgent;
-
-  if (verifiedAgent) {
+  if (isAuthenticated) {
     return children;
   }
 
-  if (isAuthenticated) {
+  const verifiedAgent = hasConnectedAgent || localHasConnectedAgent;
+  if (verifiedAgent) {
     return children;
   }
 

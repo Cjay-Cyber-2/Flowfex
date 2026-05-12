@@ -8,7 +8,7 @@ import './TopBar.css';
 
 function TopBar() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useSessionContext();
+  const { isAuthenticated, hasConnectedAgent } = useSessionContext();
   const {
     activeSession,
     canvasMode,
@@ -88,16 +88,20 @@ function TopBar() {
           {isExecuting ? <Pause size={16} /> : <Play size={16} />}
         </button>
 
-        <button className="top-bar-connect" onClick={() => setConnectModalOpen(true)}>
-          Connect Agent
+        <button
+          className="top-bar-connect"
+          onClick={() => setConnectModalOpen(true)}
+          title={hasConnectedAgent ? 'Connect another agent' : 'Connect an agent to Flowfex'}
+        >
+          {hasConnectedAgent ? 'Manage Agents' : 'Connect Agent'}
         </button>
 
         <span
           className={`top-bar-account-badge ${isAuthenticated ? 'is-auth' : 'is-anon'}`}
-          title={isAuthenticated ? 'Authenticated account' : 'Anonymous session'}
+          title={isAuthenticated ? 'Signed in to Flowfex' : 'Anonymous Flowfex session'}
         >
           {isAuthenticated ? <ShieldCheck size={12} /> : <UserRound size={12} />}
-          {isAuthenticated ? 'Authenticated' : 'Anonymous'}
+          {isAuthenticated ? 'Signed In' : 'Anonymous'}
         </span>
 
         <button className="top-bar-account" onClick={() => navigate('/settings')}>

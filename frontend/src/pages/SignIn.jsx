@@ -176,7 +176,7 @@ const styles = {
     boxSizing: 'border-box',
   },
   bgWrap: { position: 'fixed', inset: 0, zIndex: 0, opacity: 1 },
-  bgBlur: { position: 'absolute', inset: 0, backdropFilter: 'blur(1.5px)' },
+  bgBlur: { position: 'absolute', inset: 0, pointerEvents: 'none' },
   card: {
     position: 'relative',
     zIndex: 1,

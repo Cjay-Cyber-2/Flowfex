@@ -729,7 +729,7 @@
 .statement-animation-wrap {
   width: 100%;
   max-width: 1200px;
-  min-height: 176px;
+  min-height: 320px;
   padding: 1rem 1.5rem;
   display: flex;
   align-items: center;
@@ -2478,7 +2478,7 @@
   }
 
   .statement-animation-wrap {
-    min-height: 138px;
+    min-height: 220px;
     padding: 0.5rem 0.75rem;
   }
 

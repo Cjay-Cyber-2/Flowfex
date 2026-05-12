@@ -80,7 +80,7 @@ export function enforceUsageLimits(
       'maxExecutionsPerSession',
       usage.executionsCount,
       limits.maxExecutionsPerSession,
-      `Your anonymous Flowfex session has used all ${limits.maxExecutionsPerSession} free requests for today. Sign up to continue.`
+      `Your anonymous Flowfex session has used all ${limits.maxExecutionsPerSession} free requests for today. Sign up to keep going, or wait until the daily reset.`
     );
   }
 

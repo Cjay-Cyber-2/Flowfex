@@ -187,12 +187,17 @@ export function ParticleTextEffect({ words = ['309 Skills', '64 Agents', '45 Mul
 
     function resizeCanvas() {
       const container = canvas.parentElement;
-      const width = Math.min(container ? container.clientWidth : 960, 1040);
-      const height = Math.round(width * 0.34);
+      const measured = container ? container.clientWidth : 0;
+      // Layout can momentarily report 0 (e.g. before fonts settle or while a
+      // hidden ancestor is hydrating). Fall back to a reasonable minimum so
+      // the particles never render against a zero-sized canvas.
+      const width = Math.max(320, Math.min(measured || 960, 1040));
+      const height = Math.max(160, Math.round(width * 0.34));
       const dpr = Math.min(window.devicePixelRatio || 1, DEVICE_PIXEL_RATIO_CAP);
 
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
+      canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
       context.clearRect(0, 0, width, height);
@@ -272,11 +277,22 @@ export function ParticleTextEffect({ words = ['309 Skills', '64 Agents', '45 Mul
 
     window.addEventListener('resize', handleResize);
 
+    // ResizeObserver catches container width changes that the window
+    // resize event misses (e.g. flex/grid reflow after fonts settle).
+    let resizeObserver = null;
+    if (typeof ResizeObserver !== 'undefined' && canvas.parentElement) {
+      resizeObserver = new ResizeObserver(handleResize);
+      resizeObserver.observe(canvas.parentElement);
+    }
+
     return () => {
       if (animationRef.current) {
         window.cancelAnimationFrame(animationRef.current);
       }
       window.removeEventListener('resize', handleResize);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
     };
   }, [words]);
 

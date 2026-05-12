@@ -163,12 +163,13 @@ function OrchestrationCanvas() {
   const blockedLimit = usage?.blockedLimit || null;
   const connectionBlockedLimit = usage?.connectionBlockedLimit || null;
   const anyBlockReason = blockedLimit?.reason || connectionBlockedLimit?.reason || null;
-  // Any enforced limit should surface for anonymous users (requests, attach,
-  // session duration, nodes, concurrency). Authenticated users get the modal
-  // plus an inline banner only after the modal is dismissed.
-  const showAnonymousGate = false; // Disabled by user request
-  const showPaymentGate = false; // Disabled by user request
-  const showAuthenticatedBanner = false; // Disabled by user request
+  // Anonymous users see a strong sign-up wall the moment they exhaust their
+  // 10 requests. Authenticated users see the pricing modal (with "Wait For
+  // Reset" + "View Pricing"). Authenticated users who dismiss the modal keep
+  // working but see an inline banner so they always know they are gated.
+  const showAnonymousGate = !isAuthenticated && Boolean(anyBlockReason);
+  const showPaymentGate = isAuthenticated && Boolean(anyBlockReason) && !paymentGateDismissed;
+  const showAuthenticatedBanner = isAuthenticated && Boolean(anyBlockReason) && paymentGateDismissed;
   const paymentHeadline = paymentGateHeadline(blockedLimit, connectionBlockedLimit);
 
   useEffect(() => {

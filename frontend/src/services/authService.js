@@ -5,6 +5,7 @@ import { getAppOrigin, getBackendOrigin } from '../utils/runtimeConfig';
 
 const authClient = createAuthClient({
   baseURL: getBackendOrigin(),
+  basePath: '/api/auth',
   plugins: [jwtClient()],
 });
 

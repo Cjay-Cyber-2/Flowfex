@@ -70,7 +70,24 @@ export class FlowfexServer {
         return;
       }
 
+      let earlyPathname = '/';
+      try {
+        earlyPathname = new URL(request.url || '/', 'http://flowfex.local').pathname;
+      } catch {
+        earlyPathname = '/';
+      }
+
       this._setCorsHeaders(response, request);
+      if (request.method === 'OPTIONS' && earlyPathname.startsWith('/api/auth')) {
+        authHandler(request, response).catch((err) => {
+          console.error('[AUTH OPTIONS]', err);
+          if (!response.headersSent) {
+            response.writeHead(500, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ ok: false, error: String(err?.message || err) }));
+          }
+        });
+        return;
+      }
       if (request.method === 'OPTIONS') {
         response.writeHead(204);
         response.end();

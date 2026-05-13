@@ -209,7 +209,7 @@ function ModernPricingSection({ embedMode = false, embeddedCta }) {
       embeddedCta(planName);
       return;
     }
-    navigate('/onboarding');
+    navigate('/app');
   };
   return (
     <section

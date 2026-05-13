@@ -60,7 +60,7 @@ function DeveloperSection() {
             <button className="btn-ghost developer-cta" onClick={() => navigate('/demo')}>
               Watch Demo
             </button>
-            <button className="btn-primary developer-cta" onClick={() => navigate('/onboarding')}>
+            <button className="btn-primary developer-cta" onClick={() => navigate('/app')}>
               Connect Agent
             </button>
           </motion.div>

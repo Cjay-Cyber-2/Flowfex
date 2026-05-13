@@ -6,6 +6,7 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import ForgotPassword from './pages/ForgotPassword';
 import Onboarding from './pages/Onboarding';
+import AppEntry from './pages/AppEntry';
 import OrchestrationCanvas from './pages/OrchestrationCanvas';
 import SessionDetail from './pages/SessionDetail';
 import History from './pages/History';
@@ -47,6 +48,7 @@ function App() {
         <Route path="/choose-username" element={<ChooseUsername />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/reset-password" element={<ForgotPassword />} />
+        <Route path="/app" element={<AppEntry />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/canvas" element={<Navigate to="/dashboard" replace />} />
         <Route path="/session/:id" element={<SessionDetail />} />

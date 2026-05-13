@@ -496,7 +496,7 @@ function LandingPage() {
           <a href="#pricing">Pricing</a>
         </div>
 
-        <button className="btn btn-primary landing-nav-cta" onClick={() => navigate('/onboarding')}>
+        <button className="btn btn-primary landing-nav-cta" onClick={() => navigate('/app')}>
           Start Free
         </button>
       </nav>
@@ -520,10 +520,10 @@ function LandingPage() {
           </p>
 
           <div className="hero-actions">
-            <button className="btn btn-primary hero-primary-cta" onClick={() => navigate('/onboarding')}>
+            <button className="btn btn-primary hero-primary-cta" onClick={() => navigate('/app')}>
               Start Building Free
             </button>
-            <button className="btn btn-ghost" onClick={() => navigate('/onboarding')}>
+            <button className="btn btn-ghost" onClick={() => navigate('/app')}>
               <Play size={16} />
               Watch Live Demo
             </button>
@@ -624,10 +624,10 @@ function LandingPage() {
               <li>User controls: pause, approve, reject, or reroute</li>
             </ul>
             <div className="reveal-stage-buttons">
-              <button className="btn btn-primary" onClick={() => navigate('/onboarding')}>
+              <button className="btn btn-primary" onClick={() => navigate('/app')}>
                 Connect Agent
               </button>
-              <button className="btn btn-ghost" onClick={() => navigate('/onboarding')}>
+              <button className="btn btn-ghost" onClick={() => navigate('/app')}>
                 See the Dashboard
               </button>
             </div>
@@ -737,10 +737,10 @@ function LandingPage() {
             Start a session, connect an agent, and let Flowfex turn scattered resources into a live flow you can understand and steer.
           </p>
           <div className="final-actions">
-            <button className="btn btn-primary final-cta-enhanced" onClick={() => navigate('/onboarding')}>
+            <button className="btn btn-primary final-cta-enhanced" onClick={() => navigate('/app')}>
               Start Building Free
             </button>
-            <button className="btn btn-ghost" onClick={() => navigate('/onboarding')}>
+            <button className="btn btn-ghost" onClick={() => navigate('/app')}>
               See the Dashboard
               <ArrowRight size={16} />
             </button>

@@ -125,7 +125,7 @@ function History() {
               Connect an agent and run a task to see it here. Every Flowfex session
               is recorded the moment your agent's first request is verified.
             </p>
-            <button className="btn-primary" onClick={() => navigate('/onboarding')}>
+            <button className="btn-primary" onClick={() => navigate('/app')}>
               Connect Agent
             </button>
           </div>

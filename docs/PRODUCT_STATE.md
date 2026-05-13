@@ -59,6 +59,10 @@ stateDiagram-v2
 3. **`RequireAttachedAgent`**: allows `/dashboard` when `sessionReady` and (**server agent** OR **client live agent** OR `hasConnectedAgent`), with a short grace window for hydration.
 4. **Never** open the dashboard on “token exists alone”; **resolve-state** is the structured check; agent presence is explicit.
 
+### `/app` marketing entry
+
+Landing CTAs and in-page “open app” buttons use **`/app`**. The **`AppEntry`** route waits for `sessionReady`, runs **`refreshAppState()`** once if no snapshot is present yet, then redirects to **`/dashboard`** when **`gates.allowDashboard`** is true (server-verified live agent), otherwise **`/onboarding`**. Sign-in / sign-up success paths still navigate to **`/onboarding`** so connecting an agent stays the explicit next step after auth.
+
 ---
 
 ## 4. Upgrade and quota rules

@@ -4,6 +4,7 @@ import { flowfexSessions, usageTracking } from '../db/schema.js';
 import { eq, sql } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
 import { isProAuthId } from './proTier.js';
+import { isLiveConnectedAgentServer } from './agentPresenceServer.js';
 
 // ─── Policy Definitions ──────────────────────────────────────────────────────
 
@@ -183,7 +184,7 @@ function countConcurrentAgents(sessionRow, tier) {
   }
 
   if (tier === 'anonymous') {
-    return agents.length;
+    return agents.filter(isLiveConnectedAgentServer).length;
   }
 
   const authUpgradeBoundary = getAuthUpgradeBoundary(sessionRow);

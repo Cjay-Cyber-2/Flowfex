@@ -119,6 +119,10 @@ function collectTrustedOrigins() {
     addTrustedOrigin(trusted, allowedOrigin);
   }
 
+  // Vercel preview deployments (https://<project>-<hash>.vercel.app) share the same
+  // backend; Better Auth matches wildcard origin patterns for OAuth callbacks.
+  trusted.add('https://*.vercel.app');
+
   return Array.from(trusted);
 }
 

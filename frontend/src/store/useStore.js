@@ -5,6 +5,59 @@ import { getBackendOrigin } from '../utils/runtimeConfig';
 import { resolveRehydratedGraphState } from '../../../lib/session/rehydrate';
 import { filterLiveConnectedAgents } from '../utils/agentPresence';
 
+function parseAgentPresenceMs(agent) {
+  const raw = agent?.lastSeen || agent?.syncedAt || agent?.connectedAt || agent?.lastSeenAt;
+  const t = Date.parse(raw || '');
+  return Number.isNaN(t) ? null : t;
+}
+
+/**
+ * Re-hydrating from the API can carry slightly stale `lastSeen` while the in-memory
+ * store still reflects a live attach. Merging preserves the fresher timestamp so
+ * navigation (e.g. Settings → Dashboard) does not drop the agent and trip guards.
+ */
+function mergeConnectedAgentsForHydrate(session, graphState, previousActiveSessionId, existingAgents) {
+  const fromGraph = Array.isArray(graphState.connectedAgents) ? graphState.connectedAgents : [];
+  const fromSession = Array.isArray(session?.connectedAgents) ? session.connectedAgents : [];
+  const serverList = fromGraph.length > 0 ? fromGraph : fromSession;
+
+  const sameSession = Boolean(
+    session?.id
+    && previousActiveSessionId
+    && String(session.id) === String(previousActiveSessionId)
+  );
+
+  if (!sameSession || !Array.isArray(existingAgents) || existingAgents.length === 0) {
+    return filterLiveConnectedAgents(Array.isArray(serverList) ? serverList : []);
+  }
+
+  const byId = new Map();
+  for (const agent of serverList) {
+    if (agent && agent.id) {
+      byId.set(agent.id, { ...agent });
+    }
+  }
+
+  for (const local of existingAgents) {
+    if (!local || !local.id) {
+      continue;
+    }
+
+    const fromServer = byId.get(local.id) || {};
+    const merged = { ...fromServer, ...local };
+    const tServer = parseAgentPresenceMs(fromServer);
+    const tLocal = parseAgentPresenceMs(local);
+    const best = Math.max(tServer ?? 0, tLocal ?? 0);
+    if (best > 0) {
+      merged.lastSeen = new Date(best).toISOString();
+    }
+    merged.status = merged.status || local.status || fromServer.status || 'connected';
+    byId.set(local.id, merged);
+  }
+
+  return filterLiveConnectedAgents([...byId.values()]);
+}
+
 function syncSelectedNode(selectedNode, nodes) {
   if (!selectedNode) return null;
   return nodes.find((node) => node.id === selectedNode.id) || null;
@@ -435,12 +488,12 @@ const useStore = create((set, get) => ({
       const graphState = resolveRehydratedGraphState(session.graphState || {}, []);
       const nodes = Array.isArray(graphState.nodes) ? graphState.nodes : [];
       const edges = Array.isArray(graphState.edges) ? graphState.edges : [];
-      const rawAgents = graphState.connectedAgents.length > 0
-        ? graphState.connectedAgents
-        : Array.isArray(session.connectedAgents)
-          ? session.connectedAgents
-          : [];
-      const connectedAgents = filterLiveConnectedAgents(rawAgents);
+      const connectedAgents = mergeConnectedAgentsForHydrate(
+        session,
+        graphState,
+        state.activeSession?.id,
+        state.connectedAgents
+      );
       const activeSession = toPersistedActiveSession(session, graphState, state.activeSession);
       const selectedNode = syncSelectedNode(state.selectedNode, nodes)
         || nodes.find((node) => node.state === 'approval')

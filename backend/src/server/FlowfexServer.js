@@ -1328,7 +1328,17 @@ export class FlowfexServer {
     }
 
     response.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-    response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Flowfex-Api-Key, X-Flowfex-Anonymous-Token, X-Flowfex-Agent-Attach');
+    // Echo requested headers so Better Auth / browser preflights succeed even when clients
+    // send additional headers (e.g. custom Accept, cookie-related hints) not in a static list.
+    const requestedHeaders = request?.headers?.['access-control-request-headers'];
+    if (typeof requestedHeaders === 'string' && requestedHeaders.trim()) {
+      response.setHeader('Access-Control-Allow-Headers', requestedHeaders);
+    } else {
+      response.setHeader(
+        'Access-Control-Allow-Headers',
+        'Content-Type, Authorization, X-Flowfex-Api-Key, X-Flowfex-Anonymous-Token, X-Flowfex-Agent-Attach'
+      );
+    }
   }
 
   _wantsEventStream(request, url, body = {}) {

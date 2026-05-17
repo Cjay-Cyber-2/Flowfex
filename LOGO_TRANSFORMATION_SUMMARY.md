@@ -242,4 +242,4 @@ This creates a complex, never-repeating pattern that feels alive and dynamic.
 
 ## Result
 
-The logo transformation elevates the entire donut scroll animation from a technical demo to a **stunning, professional showcase** that immediately communicates the quality and sophistication of Flowfex.
+The logo transformation elevates the entire donut scroll animation from a technical demo to a **stunning, professional showcase** that immediately communicates the quality and sophistication of Syniq.

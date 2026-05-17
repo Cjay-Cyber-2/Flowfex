@@ -26,7 +26,7 @@ function buildApiUrl(pathname: string, apiBaseUrl?: string): string {
 }
 
 /**
- * Authoritative product snapshot from the Flowfex API (identity + workspace + usage + gates).
+ * Authoritative product snapshot from the Syniq API (identity + workspace + usage + gates).
  * Call after session cookies/tokens are available; do not infer dashboard access from tokens alone.
  */
 export async function fetchResolveAppState(options: FetchResolveAppStateOptions) {
@@ -36,7 +36,7 @@ export async function fetchResolveAppState(options: FetchResolveAppStateOptions)
   }
   const anon = readAnonymousToken(options.storage);
   if (anon) {
-    headers['X-Flowfex-Anonymous-Token'] = anon;
+    headers['X-Syniq-Anonymous-Token'] = anon;
   }
 
   const response = await getDefaultFetch(options.fetchImpl)(buildApiUrl('/api/session/resolve-state', options.apiBaseUrl), {

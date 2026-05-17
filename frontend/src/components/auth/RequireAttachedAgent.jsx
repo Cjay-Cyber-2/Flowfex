@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSessionContext } from '../../context/SessionContext';
 import useStore from '../../store/useStore';
-import FlowfexLogoNew from '../FlowfexLogoNew';
+import SyniqLogoNew from '../SyniqLogoNew';
 import { isLiveConnectedAgent } from '../../utils/agentPresence';
 
 /**
  * Strict route guard for /dashboard.
  *
- * The dashboard opens only when this browser's Flowfex session has a
+ * The dashboard opens only when this browser's Syn-IQ session has a
  * **verified live agent** (store mirror + server session snapshot).
  * Being signed in with Better Auth is not enough: another laptop with the
  * same account must still complete attach on that device.
@@ -27,8 +27,8 @@ function GuardLoading() {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <FlowfexLogoNew size={32} animated={false} />
-        <span>Verifying your Flowfex session…</span>
+        <SyniqLogoNew size={32} animated={false} />
+        <span>Verifying your Syn-IQ session…</span>
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ import { io as ioClient } from 'socket.io-client';
 import {
   CapabilityRetriever,
   ConnectionService,
-  FlowfexServer,
+  SyniqServer,
   Orchestrator,
   SessionManager,
   TaskIntentPlanner,
@@ -47,7 +47,7 @@ class ScenarioLLM {
   }
 
   async generate(systemPrompt, userPrompt) {
-    if (systemPrompt.includes('Flowfex orchestration planner')) {
+    if (systemPrompt.includes('Syniq orchestration planner')) {
       return JSON.stringify(this.planFactory(userPrompt));
     }
 
@@ -622,7 +622,7 @@ await test('connection-scoped agent and session context reach the selected tool 
       region: 'us-east-1',
     },
     capabilities: ['api'],
-    prompt: 'Ask Flowfex for resources before acting.',
+    prompt: 'Ask Syniq for resources before acting.',
     allowedToolIds: registry.getAllTools().map(tool => tool.id),
     recommendedToolIds: registry.getAllTools().map(tool => tool.id),
   });
@@ -639,7 +639,7 @@ await test('connection-scoped agent and session context reach the selected tool 
   assert.equal(result.output.session.mode, 'prompt');
   assert.equal(result.output.session.metadata.tenant, 'acme');
   assert.deepEqual(result.output.session.capabilities, ['api']);
-  assert.equal(result.output.session.prompt, 'Ask Flowfex for resources before acting.');
+  assert.equal(result.output.session.prompt, 'Ask Syniq for resources before acting.');
 });
 
 section('Live Server');
@@ -686,7 +686,7 @@ await test('frontend socket path receives live orchestration events from the exe
     recommendedToolIds: registry.getAllTools().map(tool => tool.id),
   });
 
-  const server = new FlowfexServer({
+  const server = new SyniqServer({
     host: '127.0.0.1',
     port: 0,
     connectionService,

@@ -1,6 +1,6 @@
-export type FlowfexUsageTier = 'anonymous' | 'authenticated';
+export type SyniqUsageTier = 'anonymous' | 'authenticated';
 
-export type FlowfexLimitKey =
+export type SyniqLimitKey =
   | 'maxConnectionsPerDay'
   | 'maxExecutionsPerSession'
   | 'maxNodesPerSession'
@@ -9,7 +9,7 @@ export type FlowfexLimitKey =
   | 'maxSessionDurationMinutes'
   | 'maxConcurrentAgents';
 
-export interface FlowfexUsageSnapshot {
+export interface SyniqUsageSnapshot {
   readonly connectionsCount: number;
   readonly executionsCount: number;
   readonly nodesProcessed: number;
@@ -17,16 +17,16 @@ export interface FlowfexUsageSnapshot {
   readonly concurrentAgents: number;
 }
 
-export interface FlowfexBlockedLimitState {
+export interface SyniqBlockedLimitState {
   readonly status: 'blocked';
-  readonly tier: FlowfexUsageTier;
-  readonly limit: FlowfexLimitKey;
+  readonly tier: SyniqUsageTier;
+  readonly limit: SyniqLimitKey;
   readonly reason: string;
   readonly currentValue: number;
   readonly limitValue: number;
 }
 
-export interface FlowfexUsageLimits {
+export interface SyniqUsageLimits {
   readonly maxConnectionsPerDay: number;
   readonly maxExecutionsPerSession?: number;
   readonly maxNodesPerSession?: number;
@@ -36,20 +36,20 @@ export interface FlowfexUsageLimits {
   readonly maxConcurrentAgents: number;
 }
 
-export interface FlowfexUsageStatusResponse {
+export interface SyniqUsageStatusResponse {
   readonly ok: boolean;
-  readonly tier: FlowfexUsageTier;
+  readonly tier: SyniqUsageTier;
   readonly sessionId: string;
   readonly authId: string | null;
   readonly anonymousToken: string | null;
-  readonly usage: FlowfexUsageSnapshot;
-  readonly limits: FlowfexUsageLimits;
-  readonly blockedLimit: FlowfexBlockedLimitState | null;
-  readonly connectionBlockedLimit: FlowfexBlockedLimitState | null;
+  readonly usage: SyniqUsageSnapshot;
+  readonly limits: SyniqUsageLimits;
+  readonly blockedLimit: SyniqBlockedLimitState | null;
+  readonly connectionBlockedLimit: SyniqBlockedLimitState | null;
   readonly warningLimit?: {
     readonly status: 'approaching';
-    readonly tier: FlowfexUsageTier;
-    readonly limit: FlowfexLimitKey;
+    readonly tier: SyniqUsageTier;
+    readonly limit: SyniqLimitKey;
     readonly reason: string;
     readonly currentValue: number;
     readonly limitValue: number;
@@ -58,7 +58,7 @@ export interface FlowfexUsageStatusResponse {
   readonly resetAt: string | null;
 }
 
-export interface FlowfexUsageRequestOptions {
+export interface SyniqUsageRequestOptions {
   readonly apiBaseUrl?: string;
   readonly fetchImpl?: typeof fetch;
   readonly anonymousToken?: string | null;
@@ -85,11 +85,11 @@ function buildApiUrl(pathname: string, apiBaseUrl?: string): string {
   return `${normalizedBaseUrl.replace(/\/+$/, '')}${pathname}`;
 }
 
-export async function fetchFlowfexUsageStatus(
+export async function fetchSyniqUsageStatus(
   sessionId: string,
   accessToken: string | null,
-  options: FlowfexUsageRequestOptions = {}
-): Promise<FlowfexUsageStatusResponse> {
+  options: SyniqUsageRequestOptions = {}
+): Promise<SyniqUsageStatusResponse> {
   const searchParams = new URLSearchParams({ sessionId });
   const response = await getDefaultFetch(options.fetchImpl)(
     buildApiUrl(`/api/session/usage?${searchParams.toString()}`, options.apiBaseUrl),
@@ -98,20 +98,20 @@ export async function fetchFlowfexUsageStatus(
       credentials: 'include',
       headers: {
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-        ...(options.anonymousToken ? { 'X-Flowfex-Anonymous-Token': options.anonymousToken } : {}),
+        ...(options.anonymousToken ? { 'X-Syniq-Anonymous-Token': options.anonymousToken } : {}),
       },
     }
   );
 
   if (!response.ok) {
     const message = await response.text();
-    throw new Error(message || `Flowfex usage request failed with ${response.status}.`);
+    throw new Error(message || `Syniq usage request failed with ${response.status}.`);
   }
 
-  return response.json() as Promise<FlowfexUsageStatusResponse>;
+  return response.json() as Promise<SyniqUsageStatusResponse>;
 }
 
-export function getUsageProgressValue(status: FlowfexUsageStatusResponse): {
+export function getUsageProgressValue(status: SyniqUsageStatusResponse): {
   readonly current: number;
   readonly limit: number;
   readonly ratio: number;

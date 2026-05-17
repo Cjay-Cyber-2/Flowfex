@@ -1,7 +1,7 @@
 {
-  "name": "flowfex-backend",
+  "name": "syniq-backend",
   "version": "1.0.0",
-  "description": "Flowfex Backend Orchestrator",
+  "description": "Syniq Backend Orchestrator",
   "main": "src/index.js",
   "type": "module",
   "scripts": {

@@ -43,7 +43,7 @@ function DeveloperSection() {
             <span className="section-kicker">FOR DEVELOPERS</span>
             <h2 className="section-headline">Give any agent a clean way to attach.</h2>
             <p className="section-description">
-              Use a short prompt, a link, an SDK snippet, or a live channel. Flowfex tells the agent how to
+              Use a short prompt, a link, an SDK snippet, or a live channel. Syn-IQ tells the agent how to
               connect, where to pull resources from, and how to report each step back to the session.
             </p>
           </motion.div>

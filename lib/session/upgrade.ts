@@ -1,6 +1,6 @@
-import type { FlowfexSessionUpgradeResponse } from '../../packages/types/session';
+import type { SyniqSessionUpgradeResponse } from '../../packages/types/session';
 import {
-  FLOWFEX_ANONYMOUS_TOKEN_STORAGE_KEY,
+  SYNIQ_ANONYMOUS_TOKEN_STORAGE_KEY,
   type SessionRequestOptions,
   type StorageLike,
   readAnonymousToken,
@@ -44,7 +44,7 @@ async function requestJson<T>(
 
   if (!response.ok) {
     const message = await response.text();
-    throw new Error(message || `Flowfex session upgrade failed with ${response.status}.`);
+    throw new Error(message || `Syniq session upgrade failed with ${response.status}.`);
   }
 
   return response.json() as Promise<T>;
@@ -58,15 +58,15 @@ export async function upgradeAnonymousSession(
   accessToken: string,
   anonymousToken: string | null,
   options: UpgradeAnonymousSessionOptions = {}
-): Promise<FlowfexSessionUpgradeResponse> {
+): Promise<SyniqSessionUpgradeResponse> {
   const resolvedToken = anonymousToken ?? readAnonymousToken(options.storage);
   if (!resolvedToken) {
     throw new Error(
-      `Missing ${FLOWFEX_ANONYMOUS_TOKEN_STORAGE_KEY}; cannot upgrade the anonymous Flowfex session.`
+      `Missing ${SYNIQ_ANONYMOUS_TOKEN_STORAGE_KEY}; cannot upgrade the anonymous Syniq session.`
     );
   }
 
-  const response = await requestJson<FlowfexSessionUpgradeResponse>(
+  const response = await requestJson<SyniqSessionUpgradeResponse>(
     '/api/session/upgrade',
     {
       method: 'POST',

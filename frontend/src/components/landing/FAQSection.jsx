@@ -16,7 +16,7 @@ function FAQSection() {
           <span className="section-kicker">QUESTIONS</span>
           <h2 className="section-headline">Simple answers before you connect.</h2>
           <p className="faq-description">
-            Flowfex should be easy to understand before you open the app.
+            Syn-IQ should be easy to understand before you open the app.
           </p>
         </div>
         

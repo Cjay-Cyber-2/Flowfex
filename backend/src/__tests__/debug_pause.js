@@ -3,7 +3,7 @@ resetSocketServer();
 
 import http from 'node:http';
 import { io as ioClient } from 'socket.io-client';
-import { FlowfexServer, ToolRegistry, Tool, LLMWrapper, Orchestrator } from '../index.js';
+import { SyniqServer, ToolRegistry, Tool, LLMWrapper, Orchestrator } from '../index.js';
 import { SessionManager, ConnectionService } from '../connection/index.js';
 
 resetSocketServer();
@@ -14,7 +14,7 @@ const orch = new Orchestrator({ registry, llm: new LLMWrapper() });
 const sm = new SessionManager();
 const cs = new ConnectionService({ registry, orchestrator: orch, sessionManager: sm });
 
-const server = new FlowfexServer({ host: '127.0.0.1', port: 0, connectionService: cs });
+const server = new SyniqServer({ host: '127.0.0.1', port: 0, connectionService: cs });
 const addr = await server.start();
 console.log('Port:', addr.port, 'SocketServer:', !!server.socketServer);
 

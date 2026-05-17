@@ -1,8 +1,8 @@
-# Flowfex Logo Integration Guide
+# Syniq Logo Integration Guide
 
 ## 🎨 Logo Overview
 
-The Flowfex logo has been perfectly integrated throughout the webapp using the historically rare color palette. The logo represents the core concept of AI orchestration through connected nodes - intelligence flowing through a system.
+The Syniq logo has been perfectly integrated throughout the webapp using the historically rare color palette. The logo represents the core concept of AI orchestration through connected nodes - intelligence flowing through a system.
 
 ## 🎯 Logo Variants
 
@@ -10,7 +10,7 @@ The logo component supports three variants:
 
 ### 1. **Full Logo** (Icon + Wordmark)
 ```jsx
-<FlowfexLogo variant="full" size={32} animated={false} />
+<SyniqLogo variant="full" size={32} animated={false} />
 ```
 - **Use for:** Navigation bars, headers, footers
 - **Where:** Landing page nav, auth pages, top bar
@@ -18,7 +18,7 @@ The logo component supports three variants:
 
 ### 2. **Icon Only**
 ```jsx
-<FlowfexLogo variant="icon" size={60} animated={true} />
+<SyniqLogo variant="icon" size={60} animated={true} />
 ```
 - **Use for:** Loading states, empty states, favicons
 - **Where:** Onboarding welcome, loading spinners, app icons
@@ -26,7 +26,7 @@ The logo component supports three variants:
 
 ### 3. **Wordmark Only**
 ```jsx
-<FlowfexLogo variant="wordmark" size={40} animated={false} />
+<SyniqLogo variant="wordmark" size={40} animated={false} />
 ```
 - **Use for:** Minimal headers, compact spaces
 - **Where:** Mobile views, compact layouts
@@ -34,7 +34,7 @@ The logo component supports three variants:
 
 ## 🎨 Color Adaptation
 
-The logo uses the Flowfex color palette:
+The logo uses the Syniq color palette:
 
 - **Primary nodes:** Sinoper (#9E3028) - Main accent
 - **Secondary nodes:** Massicot (#C49530) - Highlight
@@ -63,33 +63,33 @@ The animation represents:
 ### Landing Page
 ```jsx
 // Navigation
-<FlowfexLogo variant="full" size={32} animated={false} />
+<SyniqLogo variant="full" size={32} animated={false} />
 
 // Footer
-<FlowfexLogo variant="full" size={28} animated={false} />
+<SyniqLogo variant="full" size={28} animated={false} />
 ```
 
 ### Authentication Pages (Sign In / Sign Up)
 ```jsx
-<FlowfexLogo variant="full" size={32} animated={false} />
+<SyniqLogo variant="full" size={32} animated={false} />
 ```
 
 ### Onboarding
 ```jsx
 // Welcome screen with animated icon
-<FlowfexLogo variant="icon" size={80} animated={true} />
+<SyniqLogo variant="icon" size={80} animated={true} />
 ```
 
 ### Main App (TopBar)
 ```jsx
-<FlowfexLogo variant="full" size={28} animated={false} />
+<SyniqLogo variant="full" size={28} animated={false} />
 ```
 
 ### Loading Spinner
 ```jsx
 // Dedicated component
 <LoadingSpinner size={60} message="Loading..." />
-// Uses: <FlowfexLogo variant="icon" size={60} animated={true} />
+// Uses: <SyniqLogo variant="icon" size={60} animated={true} />
 ```
 
 ## 🎯 Usage Guidelines
@@ -122,7 +122,7 @@ The animation represents:
 ## 🔧 Customization
 
 ### Change Colors
-Edit `frontend/src/assets/FlowfexLogo.jsx`:
+Edit `frontend/src/assets/SyniqLogo.jsx`:
 
 ```javascript
 const colors = {
@@ -159,18 +159,18 @@ The logo automatically scales based on the `size` prop:
 
 ```jsx
 // Desktop
-<FlowfexLogo variant="full" size={32} />
+<SyniqLogo variant="full" size={32} />
 
 // Tablet
-<FlowfexLogo variant="full" size={28} />
+<SyniqLogo variant="full" size={28} />
 
 // Mobile
-<FlowfexLogo variant="icon" size={40} />
+<SyniqLogo variant="icon" size={40} />
 ```
 
 ## 🎨 Design Philosophy
 
-The logo embodies Flowfex's core identity:
+The logo embodies Syniq's core identity:
 
 1. **Connected Nodes** = AI orchestration
 2. **Flow Lines** = Intelligence pathways
@@ -185,19 +185,19 @@ Potential logo animations to add:
 ### 1. Connection Beam
 When agent connects, beam of light travels through nodes:
 ```jsx
-<FlowfexLogo variant="icon" size={80} animated={true} effect="connection-beam" />
+<SyniqLogo variant="icon" size={80} animated={true} effect="connection-beam" />
 ```
 
 ### 2. Execution Flow
 Particles flow along connections during execution:
 ```jsx
-<FlowfexLogo variant="icon" size={60} animated={true} effect="particle-flow" />
+<SyniqLogo variant="icon" size={60} animated={true} effect="particle-flow" />
 ```
 
 ### 3. Completion Bloom
 Golden bloom radiates from nodes on success:
 ```jsx
-<FlowfexLogo variant="icon" size={70} animated={true} effect="completion-bloom" />
+<SyniqLogo variant="icon" size={70} animated={true} effect="completion-bloom" />
 ```
 
 ## 📦 Export Formats
@@ -205,20 +205,20 @@ Golden bloom radiates from nodes on success:
 ### For Favicon
 ```jsx
 // Generate 32x32 PNG
-<FlowfexLogo variant="icon" size={32} animated={false} />
+<SyniqLogo variant="icon" size={32} animated={false} />
 ```
 
 ### For Social Media
 ```jsx
 // Generate 1200x630 for og:image
-<FlowfexLogo variant="full" size={120} animated={false} />
+<SyniqLogo variant="full" size={120} animated={false} />
 ```
 
 ### For App Icons
 ```jsx
 // iOS: 180x180
 // Android: 192x192
-<FlowfexLogo variant="icon" size={180} animated={false} />
+<SyniqLogo variant="icon" size={180} animated={false} />
 ```
 
 ## 🎯 Best Practices
@@ -240,12 +240,12 @@ Golden bloom radiates from nodes on success:
 
 ### Basic Usage
 ```jsx
-import FlowfexLogo from '../assets/FlowfexLogo';
+import SyniqLogo from '../assets/SyniqLogo';
 
 function MyComponent() {
   return (
     <div>
-      <FlowfexLogo variant="full" size={32} animated={false} />
+      <SyniqLogo variant="full" size={32} animated={false} />
     </div>
   );
 }
@@ -253,7 +253,7 @@ function MyComponent() {
 
 ### With Custom Styling
 ```jsx
-<FlowfexLogo 
+<SyniqLogo 
   variant="icon" 
   size={60} 
   animated={true}
@@ -275,7 +275,7 @@ function MyPage() {
 
 ## 🎉 Result
 
-The Flowfex logo is now:
+The Syniq logo is now:
 - ✅ Integrated throughout the entire webapp
 - ✅ Adapted to the rare color palette
 - ✅ Animated to represent AI orchestration
@@ -283,4 +283,4 @@ The Flowfex logo is now:
 - ✅ Consistent with brand identity
 - ✅ Performance optimized
 
-The logo perfectly represents "visible intelligence" - the core of what Flowfex does.
+The logo perfectly represents "visible intelligence" - the core of what Syniq does.

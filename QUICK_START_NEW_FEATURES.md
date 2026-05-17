@@ -238,7 +238,7 @@ The 404 error will be fixed!
 
 ## 🎉 Enjoy!
 
-The Flowfex canvas is now a living, intelligent instrument. Every animation encodes meaning. Every interaction provides control.
+The Syniq canvas is now a living, intelligent instrument. Every animation encodes meaning. Every interaction provides control.
 
 **Have fun exploring!** ✨
 

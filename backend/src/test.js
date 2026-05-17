@@ -1,7 +1,7 @@
 import { orchestrate } from './index.js';
 
 async function runTests() {
-  console.log("Starting Flowfex Orchestrator Tests...\n");
+  console.log("Starting Syniq Orchestrator Tests...\n");
 
   const testCases = [
     "What is the weather like today?",

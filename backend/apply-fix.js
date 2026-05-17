@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { execSync } from 'child_process';
 
-const tsPath = 'c:/Users/chiji/Documents/Flowfex/backend/src/orchestration-engine-src/ExecutionPlanSelector.ts';
+const tsPath = 'c:/Users/chiji/Documents/Syniq/backend/src/orchestration-engine-src/ExecutionPlanSelector.ts';
 
 // Revert the file first
 console.log('Reverting checkout...');

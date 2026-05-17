@@ -158,7 +158,7 @@ function ModernPricingCard({ planName, description, price, features, buttonText,
 const PLANS = [
   {
     planName: 'Free',
-    description: 'Perfect for exploring Flowfex and running your first live sessions.',
+    description: 'Perfect for exploring Syn-IQ and running your first live sessions.',
     price: '0',
     features: [
       '1 active session',

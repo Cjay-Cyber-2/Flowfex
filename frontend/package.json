@@ -1,7 +1,7 @@
 {
-  "name": "flowfex-frontend",
+  "name": "syniq-frontend",
   "version": "1.0.0",
-  "description": "Flowfex Visual AI Orchestration Platform - Frontend",
+  "description": "Syniq Visual AI Orchestration Platform - Frontend",
   "type": "module",
   "scripts": {
     "prepare:frames": "node ./scripts/prepare-scroll-frames.mjs",

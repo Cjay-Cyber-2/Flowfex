@@ -1,6 +1,6 @@
-# Flowfex product state: identity, workspace, routing
+# Syniq product state: identity, workspace, routing
 
-This document is the **authoritative description** of how Flowfex separates **account identity** (Better Auth) from **workspace / orchestration state** (Neon `sessions` row + usage), how **routing** decisions are made, and how the **`GET /api/session/resolve-state`** snapshot ties them together.
+This document is the **authoritative description** of how Syniq separates **account identity** (Better Auth) from **workspace / orchestration state** (Neon `sessions` row + usage), how **routing** decisions are made, and how the **`GET /api/session/resolve-state`** snapshot ties them together.
 
 ---
 
@@ -9,7 +9,7 @@ This document is the **authoritative description** of how Flowfex separates **ac
 | Layer | Responsibility | Storage / transport |
 |--------|----------------|---------------------|
 | **Better Auth** | Account: email, OAuth, password reset, JWT access token | HTTP-only cookies + `Authorization: Bearer` from `getSession()` |
-| **Flowfex session** | Workspace: graph, agents, execution pointer, anonymous token (until upgraded) | Postgres `sessions` table; anonymous token in `localStorage` + optional `fx_session` cookie |
+| **Syniq session** | Workspace: graph, agents, execution pointer, anonymous token (until upgraded) | Postgres `sessions` table; anonymous token in `localStorage` + optional `fx_session` cookie |
 | **Usage** | Quotas: skill/tool pulls, connections, duration windows | `usage_tracking` + policy in `UsageService` |
 
 Anonymous **identity** is not a full user record: it is a **real persisted workspace** keyed by `anonymous_token` until upgrade attaches `auth_id`.
@@ -20,7 +20,7 @@ Anonymous **identity** is not a full user record: it is a **real persisted works
 
 States are **combinations** of:
 
-- **Auth**: none · anonymous-only · authenticated (+ optional **pro** tier via `FLOWFEX_PRO_AUTH_IDS`)
+- **Auth**: none · anonymous-only · authenticated (+ optional **pro** tier via `SYNIQ_PRO_AUTH_IDS`)
 - **Workspace**: none · session exists
 - **Agent (server)**: disconnected · **live connected** (recent `lastSeen` / `connectedAt` within server `LIVE_AGENT_PRESENCE_MS`, same rule as the browser)
 - **Quota**: ok · blocked (`blockedLimit` / `connectionBlockedLimit` from usage)
@@ -35,7 +35,7 @@ stateDiagram-v2
   AnonOnboarding --> AuthOnboarding: sign in/up + upgrade session
   AuthOnboarding --> AuthWorkspace: server verifies live agent
   AuthWorkspace --> AuthBlocked: quota hit
-  AuthWorkspace --> ProWorkspace: account in FLOWFEX_PRO_AUTH_IDS
+  AuthWorkspace --> ProWorkspace: account in SYNIQ_PRO_AUTH_IDS
 ```
 
 **Legal transitions (events)**
@@ -68,7 +68,7 @@ Landing CTAs and in-page “open app” buttons use **`/app`**. The **`AppEntry`
 ## 4. Upgrade and quota rules
 
 - **Upgrade**: `POST /api/session/upgrade` with Bearer + anonymous token; server sets `auth_id`, stamps `authUpgradeAt` in graph metadata, clears conflicting ownership.
-- **Quota**: Enforced in `UsageService` / skill-tool endpoints; anonymous vs authenticated vs **pro** tiers use `FLOWFEX_LIMITS` (`pro` is selected when `auth_id` is listed in `FLOWFEX_PRO_AUTH_IDS`).
+- **Quota**: Enforced in `UsageService` / skill-tool endpoints; anonymous vs authenticated vs **pro** tiers use `SYNIQ_LIMITS` (`pro` is selected when `auth_id` is listed in `SYNIQ_PRO_AUTH_IDS`).
 - **Resolve payload** embeds the same **`usage`** object as `GET /api/session/usage` so the UI can trust one round-trip on boot.
 
 ---

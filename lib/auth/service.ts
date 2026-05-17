@@ -1,42 +1,42 @@
-import type { FlowfexAuthUser } from '../../packages/types/session';
+import type { SyniqAuthUser } from '../../packages/types/session';
 import { createAuthClient } from 'better-auth/client';
 import { jwtClient } from "better-auth/client/plugins";
 
-export type FlowfexAuthChangeEvent =
+export type SyniqAuthChangeEvent =
   | 'SIGNED_IN'
   | 'SIGNED_OUT'
   | 'TOKEN_REFRESHED';
 
-export type FlowfexAuthErrorCode =
+export type SyniqAuthErrorCode =
   | 'config_missing'
   | 'invalid_credentials'
   | 'oauth_failed'
   | 'sign_out_failed'
   | 'unknown';
 
-export interface FlowfexAuthError extends Error {
-  readonly code: FlowfexAuthErrorCode;
+export interface SyniqAuthError extends Error {
+  readonly code: SyniqAuthErrorCode;
 }
 
-export interface FlowfexAuthSessionSnapshot {
-  readonly user: FlowfexAuthUser | null;
+export interface SyniqAuthSessionSnapshot {
+  readonly user: SyniqAuthUser | null;
   readonly accessToken: string | null;
 }
 
-export interface FlowfexSignInResult {
-  readonly user: FlowfexAuthUser;
+export interface SyniqSignInResult {
+  readonly user: SyniqAuthUser;
   readonly accessToken: string | null;
 }
 
-export interface FlowfexSignUpResult {
-  readonly user: FlowfexAuthUser | null;
+export interface SyniqSignUpResult {
+  readonly user: SyniqAuthUser | null;
   readonly emailConfirmationPending: boolean;
 }
 
-export interface FlowfexAuthListenerPayload {
-  readonly event: FlowfexAuthChangeEvent;
-  readonly user: FlowfexAuthUser | null;
-  readonly session: FlowfexAuthSessionSnapshot | null;
+export interface SyniqAuthListenerPayload {
+  readonly event: SyniqAuthChangeEvent;
+  readonly user: SyniqAuthUser | null;
+  readonly session: SyniqAuthSessionSnapshot | null;
 }
 
 function getBaseUrl() {
@@ -44,7 +44,7 @@ function getBaseUrl() {
     return import.meta.env.VITE_BACKEND_URL;
   }
   // Hard fallback for production — works even without env vars set on frontend
-  return 'https://flowfex.onrender.com';
+  return 'https://syniq.onrender.com';
 }
 
 // Initialize Better Auth Client
@@ -53,8 +53,8 @@ const authClient = createAuthClient({
   plugins: [jwtClient()]
 });
 
-function createAuthError(code: FlowfexAuthErrorCode, message: string): FlowfexAuthError {
-  const error = new Error(message) as FlowfexAuthError;
+function createAuthError(code: SyniqAuthErrorCode, message: string): SyniqAuthError {
+  const error = new Error(message) as SyniqAuthError;
   Object.defineProperty(error, 'code', {
     value: code,
     enumerable: true,
@@ -66,7 +66,7 @@ export function isAuthClientConfigured(): boolean {
   return true; // Configured!
 }
 
-export async function getCurrentAuthSession(): Promise<FlowfexAuthSessionSnapshot> {
+export async function getCurrentAuthSession(): Promise<SyniqAuthSessionSnapshot> {
   const { data, error } = await authClient.getSession();
   if (error || !data) {
     return { user: null, accessToken: null };
@@ -75,32 +75,32 @@ export async function getCurrentAuthSession(): Promise<FlowfexAuthSessionSnapsho
   // Use Better Auth's token. Wait, if jwtClient is used, does getSession return jwt?
   // By default, better-auth session returns the DB session. We can use the session token as the JWT 
   // since we instructed the backend to verify the Better Auth token. Wait!
-  // In FlowfexServer.js, we expect `token` to be verified by `jsonwebtoken`. 
+  // In SyniqServer.js, we expect `token` to be verified by `jsonwebtoken`. 
   // We configured `jwt` plugin on backend, so better-auth automatically signs the session token as a JWT!
   return {
-    user: data.user as unknown as FlowfexAuthUser,
+    user: data.user as unknown as SyniqAuthUser,
     accessToken: data.session.token || null,
   };
 }
 
-export async function signInWithEmail(email: string, password: string):Promise<FlowfexSignInResult> {
+export async function signInWithEmail(email: string, password: string):Promise<SyniqSignInResult> {
   const { data, error } = await authClient.signIn.email({ email, password });
   if (error || !data) {
     throw createAuthError('invalid_credentials', error?.message || 'Invalid credentials');
   }
   return {
-    user: data.user as unknown as FlowfexAuthUser,
+    user: data.user as unknown as SyniqAuthUser,
     accessToken: data.session?.token || null,
   };
 }
 
-export async function signUpWithEmail(email: string, password: string, name: string):Promise<FlowfexSignUpResult> {
+export async function signUpWithEmail(email: string, password: string, name: string):Promise<SyniqSignUpResult> {
   const { data, error } = await authClient.signUp.email({ email, password, name });
   if (error || !data) {
     throw createAuthError('invalid_credentials', error?.message || 'Sign up failed');
   }
   return {
-    user: data.user as unknown as FlowfexAuthUser,
+    user: data.user as unknown as SyniqAuthUser,
     emailConfirmationPending: false, // configure based on provider settings
   };
 }
@@ -127,7 +127,7 @@ export async function signOut(): Promise<void> {
 }
 
 export function onAuthStateChange(
-  callback: (payload: FlowfexAuthListenerPayload) => void
+  callback: (payload: SyniqAuthListenerPayload) => void
 ): { unsubscribe(): void } {
   // Better Auth has no Firebase-style realtime listener; the frontend refreshes session on a timer in SessionContext.
   return {

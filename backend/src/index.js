@@ -33,8 +33,8 @@ export {
   ConnectionService,
   defaultConnectionService
 } from './connection/index.js';
-export { FlowfexServer, defaultFlowfexServer } from './server/FlowfexServer.js';
-export { FlowfexSocketServer, initSocketServer, getSocketServer } from './ws/server.js';
+export { SyniqServer, defaultSyniqServer } from './server/SyniqServer.js';
+export { SyniqSocketServer, initSocketServer, getSocketServer } from './ws/server.js';
 export { ControlController } from './control/ControlController.js';
 export { ControlService } from './control/ControlService.js';
 export { SessionLockManager, defaultSessionLockManager } from './control/SessionLockManager.js';

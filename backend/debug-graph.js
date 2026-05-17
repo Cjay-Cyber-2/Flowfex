@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-const testPath = 'c:/Users/chiji/Documents/Flowfex/backend/src/__tests__/orchestration-engine.test.js';
+const testPath = 'c:/Users/chiji/Documents/Syniq/backend/src/__tests__/orchestration-engine.test.js';
 let content = fs.readFileSync(testPath, 'utf8');
 
 // I will insert a console log to dump result.graph right before the assert

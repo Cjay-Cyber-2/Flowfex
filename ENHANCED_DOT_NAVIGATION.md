@@ -75,9 +75,9 @@ final → Rocket
 ### Descriptions Per Section
 ```javascript
 hero: 'The skill operating layer for connected agents'
-statement: 'What Flowfex does in action'
+statement: 'What Syniq does in action'
 problem: 'Why agents need a unified resource layer'
-reveal: 'How Flowfex bridges agents and resources'
+reveal: 'How Syniq bridges agents and resources'
 layers: 'Structure meets execution'
 demo: 'Live dashboard preview'
 bridge: 'Connect your agent now'
@@ -169,7 +169,7 @@ Update the `sectionIcons` and `sectionDescriptions` objects in `DotNavigation.js
 
 To see it in action:
 ```bash
-cd /home/gamp/Flowfex/frontend
+cd /home/gamp/Syniq/frontend
 npm run dev
 ```
 

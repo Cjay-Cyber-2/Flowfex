@@ -57,7 +57,7 @@
         "config": {
           "lane": 0
         },
-        "owner": "Flowfex Registry",
+        "owner": "Syniq Registry",
         "skill": "tool.api-builder",
         "executionMetadata": {
           "category": "api",
@@ -87,7 +87,7 @@
         "config": {
           "lane": 0
         },
-        "owner": "Flowfex Registry",
+        "owner": "Syniq Registry",
         "skill": "tool.security-auditor",
         "executionMetadata": {
           "category": "security",

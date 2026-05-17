@@ -1,4 +1,4 @@
-# FLOWFEX VISUAL REFERENCE GUIDE
+# SYNIQ VISUAL REFERENCE GUIDE
 
 ## Animation Descriptions & Visual Specifications
 
@@ -234,7 +234,7 @@ Final state:
 A ritual where agents connect to a central hub:
 
 Initial state:
-- Central hub: Large Flowfex logo node (60px diameter)
+- Central hub: Large Syniq logo node (60px diameter)
 - Agent nodes: 6 nodes in a circle around hub (radius: 200px)
 - Agent nodes are dim (30% opacity) and disconnected
 
@@ -266,7 +266,7 @@ Final state (after all 6 agents):
 - Nodes closer to viewer are larger (perspective)
 ```
 
-**Visual Metaphor:** Like a solar system forming, with agents as planets orbiting the Flowfex sun.
+**Visual Metaphor:** Like a solar system forming, with agents as planets orbiting the Syniq sun.
 
 ---
 

@@ -170,4 +170,4 @@ All four new sections are now part of the main landing page with:
 - Complete design system consistency
 - Production-ready code quality
 
-The Flowfex landing page now matches the GODMODE specification with Igloo/ActiveTheory quality level animations and interactions! 🎉
+The Syniq landing page now matches the GODMODE specification with Igloo/ActiveTheory quality level animations and interactions! 🎉

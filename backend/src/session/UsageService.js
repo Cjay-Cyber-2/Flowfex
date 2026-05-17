@@ -1,6 +1,6 @@
 import { createSessionDataClient } from './sessionDataAccess.js';
 import { logSessionError } from './sessionLogger.js';
-import { flowfexSessions, usageTracking } from '../db/schema.js';
+import { syniqSessions, usageTracking } from '../db/schema.js';
 import { eq, sql } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
 import { isProAuthId } from './proTier.js';
@@ -8,9 +8,9 @@ import { isLiveConnectedAgentServer } from './agentPresenceServer.js';
 
 // ─── Policy Definitions ──────────────────────────────────────────────────────
 
-export const FLOWFEX_LIMITS = {
+export const SYNIQ_LIMITS = {
   anonymous: {
-    // The user-visible quota for an anonymous Flowfex session is "10 requests
+    // The user-visible quota for an anonymous Syniq session is "10 requests
     // per day after a verified attach". We keep maxConnectionsPerDay loose
     // so a real agent can re-attach across the day while the request quota
     // is the actual cap that drives the sign-up wall.
@@ -209,7 +209,7 @@ function buildBlockedLimit(tier, usage, limits) {
       status: 'blocked',
       tier,
       limit: 'maxExecutionsPerSession',
-      reason: `Your connected agent has used all ${limits.maxExecutionsPerSession} free Flowfex skill or tool requests for this session. Sign up to keep going, or wait until the daily reset.`,
+      reason: `Your connected agent has used all ${limits.maxExecutionsPerSession} free Syniq skill or tool requests for this session. Sign up to keep going, or wait until the daily reset.`,
       currentValue: usage.executionsCount,
       limitValue: limits.maxExecutionsPerSession,
     };
@@ -219,7 +219,7 @@ function buildBlockedLimit(tier, usage, limits) {
       status: 'blocked',
       tier,
       limit: 'maxExecutionsPerDay',
-      reason: 'You have reached the 24-hour Flowfex skill and tool request allowance for this account.',
+      reason: 'You have reached the 24-hour Syniq skill and tool request allowance for this account.',
       currentValue: usage.executionsCount,
       limitValue: limits.maxExecutionsPerDay,
     };
@@ -270,7 +270,7 @@ function buildConnectionBlockedLimit(tier, usage, limits) {
       tier,
       limit: 'maxConnectionsPerDay',
       reason: tier === 'anonymous'
-        ? `This anonymous Flowfex session has hit the daily attach cap (${limits.maxConnectionsPerDay} verified attaches). Sign up to continue.`
+        ? `This anonymous Syniq session has hit the daily attach cap (${limits.maxConnectionsPerDay} verified attaches). Sign up to continue.`
         : `This account has hit the daily attach cap (${limits.maxConnectionsPerDay} verified attaches). Wait for the next reset or upgrade your plan.`,
       currentValue: usage.connectionsCount,
       limitValue: limits.maxConnectionsPerDay,
@@ -389,15 +389,15 @@ export class UsageService {
     try {
       const sessionRow = await this.client
         .select({
-          id: flowfexSessions.id,
-          auth_id: flowfexSessions.auth_id,
-          anonymous_token: flowfexSessions.anonymous_token,
-          connected_agents: flowfexSessions.connected_agents,
-          created_at: flowfexSessions.created_at,
-          graph_state: flowfexSessions.graph_state,
+          id: syniqSessions.id,
+          auth_id: syniqSessions.auth_id,
+          anonymous_token: syniqSessions.anonymous_token,
+          connected_agents: syniqSessions.connected_agents,
+          created_at: syniqSessions.created_at,
+          graph_state: syniqSessions.graph_state,
         })
-        .from(flowfexSessions)
-        .where(eq(flowfexSessions.id, sessionId))
+        .from(syniqSessions)
+        .where(eq(syniqSessions.id, sessionId))
         .limit(1);
 
       const session = firstRow(sessionRow);
@@ -406,7 +406,7 @@ export class UsageService {
       }
 
       const tier = this.resolveTier({ authId: session.auth_id, apiKeyId });
-      const limits = FLOWFEX_LIMITS[tier];
+      const limits = SYNIQ_LIMITS[tier];
       const nowMs = Date.now();
       const rollingWindowStart = new Date(nowMs - ONE_DAY_MS);
       let connectionSessionRows;
@@ -420,14 +420,14 @@ export class UsageService {
         connectionSessionRows = session.anonymous_token
           ? await this.client
               .select({
-                id: flowfexSessions.id,
-                graph_state: flowfexSessions.graph_state,
-                connected_agents: flowfexSessions.connected_agents,
-                created_at: flowfexSessions.created_at,
-                last_active_at: flowfexSessions.last_active_at,
+                id: syniqSessions.id,
+                graph_state: syniqSessions.graph_state,
+                connected_agents: syniqSessions.connected_agents,
+                created_at: syniqSessions.created_at,
+                last_active_at: syniqSessions.last_active_at,
               })
-              .from(flowfexSessions)
-              .where(eq(flowfexSessions.anonymous_token, session.anonymous_token))
+              .from(syniqSessions)
+              .where(eq(syniqSessions.anonymous_token, session.anonymous_token))
           : [];
       } else {
         usageRows = await this.client
@@ -439,14 +439,14 @@ export class UsageService {
         connectionSessionRows = session.auth_id
           ? await this.client
               .select({
-                id: flowfexSessions.id,
-                graph_state: flowfexSessions.graph_state,
-                connected_agents: flowfexSessions.connected_agents,
-                created_at: flowfexSessions.created_at,
-                last_active_at: flowfexSessions.last_active_at,
+                id: syniqSessions.id,
+                graph_state: syniqSessions.graph_state,
+                connected_agents: syniqSessions.connected_agents,
+                created_at: syniqSessions.created_at,
+                last_active_at: syniqSessions.last_active_at,
               })
-              .from(flowfexSessions)
-              .where(eq(flowfexSessions.auth_id, session.auth_id))
+              .from(syniqSessions)
+              .where(eq(syniqSessions.auth_id, session.auth_id))
           : [];
       }
 
@@ -550,14 +550,14 @@ export class UsageService {
     }
 
     const tier = this.resolveTier({ authId, apiKeyId });
-    const limits = FLOWFEX_LIMITS[tier];
+    const limits = SYNIQ_LIMITS[tier];
 
     try {
       const activeSessions = await this.client
-        .select({ id: flowfexSessions.id })
-        .from(flowfexSessions)
+        .select({ id: syniqSessions.id })
+        .from(syniqSessions)
         .where(
-          sql`${flowfexSessions.auth_id} = ${authId} AND ${flowfexSessions.status} IN ('active', 'paused')`
+          sql`${syniqSessions.auth_id} = ${authId} AND ${syniqSessions.status} IN ('active', 'paused')`
         );
 
       const count = Array.isArray(activeSessions) ? activeSessions.length : 0;
@@ -606,11 +606,11 @@ export class UsageService {
     try {
       const sessionRow = await this.client
         .select({
-          auth_id: flowfexSessions.auth_id,
-          anonymous_token: flowfexSessions.anonymous_token,
+          auth_id: syniqSessions.auth_id,
+          anonymous_token: syniqSessions.anonymous_token,
         })
-        .from(flowfexSessions)
-        .where(eq(flowfexSessions.id, sessionId))
+        .from(syniqSessions)
+        .where(eq(syniqSessions.id, sessionId))
         .limit(1);
 
       const session = firstRow(sessionRow);

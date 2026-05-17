@@ -60,7 +60,7 @@ function Edge({ edge, nodes, zoom }) {
   const handleClick = (e) => {
     e.stopPropagation();
     if (typeof window !== 'undefined' && typeof CustomEvent === 'function') {
-      window.dispatchEvent(new CustomEvent('flowfex:edge:click', {
+      window.dispatchEvent(new CustomEvent('syniq:edge:click', {
         detail: { edgeId: id, from, to, state },
       }));
     }

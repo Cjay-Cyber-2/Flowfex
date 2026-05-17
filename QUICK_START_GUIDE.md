@@ -1,4 +1,4 @@
-# FLOWFEX STUNNING REDESIGN — QUICK START GUIDE
+# SYNIQ STUNNING REDESIGN — QUICK START GUIDE
 
 ## Get Started in 30 Minutes
 
@@ -9,7 +9,7 @@ This guide will help you implement the most impactful visual enhancements immedi
 ## STEP 1: Install Dependencies (5 minutes)
 
 ```bash
-cd /home/gamp/Flowfex/frontend
+cd /home/gamp/Syniq/frontend
 
 # Install animation libraries
 npm install three @react-three/fiber @react-three/drei framer-motion gsap
@@ -403,14 +403,14 @@ Before considering this phase complete:
 
 ## CELEBRATE! 🎉
 
-You've just transformed Flowfex from a functional interface into a **visually stunning experience**. The landing page now:
+You've just transformed Syniq from a functional interface into a **visually stunning experience**. The landing page now:
 
 - Communicates sophistication and intelligence
 - Demonstrates the product's capabilities visually
 - Creates emotional resonance with users
 - Stands out from every competitor
 
-**This is just the beginning.** The full redesign strategy includes 20+ additional animation concepts, canvas enhancements, and micro-interactions that will make Flowfex truly unforgettable.
+**This is just the beginning.** The full redesign strategy includes 20+ additional animation concepts, canvas enhancements, and micro-interactions that will make Syniq truly unforgettable.
 
 ---
 

@@ -1,4 +1,4 @@
-export interface FlowfexAnonymousLimits {
+export interface SyniqAnonymousLimits {
   readonly maxConnectionsPerDay: 20;
   readonly maxExecutionsPerSession: 10;
   readonly maxNodesPerSession: 50;
@@ -6,7 +6,7 @@ export interface FlowfexAnonymousLimits {
   readonly maxConcurrentAgents: 1;
 }
 
-export interface FlowfexAuthenticatedLimits {
+export interface SyniqAuthenticatedLimits {
   readonly maxConnectionsPerDay: 20;
   readonly maxExecutionsPerDay: 10;
   readonly maxNodesPerDay: 100;
@@ -14,7 +14,7 @@ export interface FlowfexAuthenticatedLimits {
   readonly maxConcurrentAgents: 5;
 }
 
-export const FLOWFEX_LIMITS = {
+export const SYNIQ_LIMITS = {
   anonymous: {
     maxConnectionsPerDay: 20,
     maxExecutionsPerSession: 10,
@@ -30,6 +30,6 @@ export const FLOWFEX_LIMITS = {
     maxConcurrentAgents: 5,
   },
 } as const satisfies {
-  readonly anonymous: FlowfexAnonymousLimits;
-  readonly authenticated: FlowfexAuthenticatedLimits;
+  readonly anonymous: SyniqAnonymousLimits;
+  readonly authenticated: SyniqAuthenticatedLimits;
 };

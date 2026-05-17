@@ -127,7 +127,7 @@ function SessionDetail() {
           color: 'var(--color-velin)',
           marginBottom: 'var(--space-2)'
         }}>
-          {knownSession?.name || 'Flowfex session'}
+          {knownSession?.name || 'Syn-IQ session'}
         </h1>
 
         <p style={{

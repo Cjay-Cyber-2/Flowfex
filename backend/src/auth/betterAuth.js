@@ -11,7 +11,7 @@ neonConfig.webSocketConstructor = ws;
 
 const DEFAULT_AUTH_BASE_URL = "http://localhost:4000";
 const DEFAULT_TRUSTED_ORIGINS = [
-  "https://flowfex.vercel.app",
+  "https://syniq.vercel.app",
   "http://localhost:3000",
   "http://127.0.0.1:3000",
   "http://localhost:5173",
@@ -54,7 +54,7 @@ function normalizeUrl(value, { originOnly = false } = {}) {
 function resolveAuthBaseUrl() {
   return normalizeUrl(
     process.env.BETTER_AUTH_URL
-      || process.env.FLOWFEX_PUBLIC_ORIGIN
+      || process.env.SYNIQ_PUBLIC_ORIGIN
       || process.env.RENDER_EXTERNAL_URL
       || DEFAULT_AUTH_BASE_URL,
     { originOnly: true }
@@ -63,7 +63,7 @@ function resolveAuthBaseUrl() {
 
 function resolveFrontendAppOrigin() {
   return normalizeUrl(
-    process.env.FLOWFEX_APP_URL
+    process.env.SYNIQ_APP_URL
       || process.env.FRONTEND_URL
       || process.env.FRONTEND_ORIGIN
       || process.env.APP_URL
@@ -94,13 +94,13 @@ function collectTrustedOrigins() {
   const trusted = new Set(DEFAULT_TRUSTED_ORIGINS);
   const baseUrl = resolveAuthBaseUrl();
   const envCandidates = [
-    process.env.FLOWFEX_APP_URL,
+    process.env.SYNIQ_APP_URL,
     process.env.FRONTEND_URL,
     process.env.FRONTEND_ORIGIN,
     process.env.APP_URL,
     process.env.VITE_APP_URL,
     process.env.BETTER_AUTH_URL,
-    process.env.FLOWFEX_PUBLIC_ORIGIN,
+    process.env.SYNIQ_PUBLIC_ORIGIN,
     process.env.RENDER_EXTERNAL_URL,
     process.env.VERCEL_URL,
     baseUrl,
@@ -146,8 +146,8 @@ async function sendResendEmail({ to, subject, html, text }) {
       throw new Error(message);
     }
 
-    console.warn(`[Flowfex Auth] ${message}`);
-    console.info(`[Flowfex Auth] Reset email preview for ${to}: ${text}`);
+    console.warn(`[Syniq Auth] ${message}`);
+    console.info(`[Syniq Auth] Reset email preview for ${to}: ${text}`);
     return { skipped: true };
   }
 
@@ -184,11 +184,11 @@ async function sendPasswordResetEmail({ user, url }) {
   const displayName = user?.name || user?.email || "there";
   const safeName = escapeHtml(displayName);
   const safeUrl = escapeHtml(url);
-  const subject = "Reset your Flowfex password";
+  const subject = "Reset your Syniq password";
   const text = [
     `Hi ${displayName},`,
     "",
-    "Use the link below to reset your Flowfex password:",
+    "Use the link below to reset your Syniq password:",
     url,
     "",
     "If you did not request this, you can ignore this email.",
@@ -196,9 +196,9 @@ async function sendPasswordResetEmail({ user, url }) {
   const html = `
     <div style="background:#081019;padding:32px;font-family:Inter,Arial,sans-serif;color:#e8edf2;">
       <div style="max-width:560px;margin:0 auto;background:#0d131b;border:1px solid rgba(0,212,170,0.16);border-radius:20px;padding:32px;">
-        <p style="margin:0 0 12px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#00d4aa;">Flowfex Security</p>
+        <p style="margin:0 0 12px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#00d4aa;">Syniq Security</p>
         <h1 style="margin:0 0 12px;font-size:28px;line-height:1.1;color:#f8fafc;">Reset your password</h1>
-        <p style="margin:0 0 24px;color:rgba(232,237,242,0.78);line-height:1.6;">Hi ${safeName}, use the secure link below to set a new password for your Flowfex account.</p>
+        <p style="margin:0 0 24px;color:rgba(232,237,242,0.78);line-height:1.6;">Hi ${safeName}, use the secure link below to set a new password for your Syniq account.</p>
         <a href="${safeUrl}" style="display:inline-block;padding:14px 20px;border-radius:14px;background:#00d4aa;color:#031014;text-decoration:none;font-weight:700;">Reset Password</a>
         <p style="margin:24px 0 8px;color:rgba(232,237,242,0.64);line-height:1.6;">If the button does not open, copy this link directly:</p>
         <p style="margin:0;word-break:break-word;"><a href="${safeUrl}" style="color:#7ffff0;">${safeUrl}</a></p>
@@ -228,14 +228,14 @@ function resolveDatabaseConnectionString() {
   const env = (process.env.NODE_ENV || '').toLowerCase();
   if (env === 'production') {
     throw new Error(
-      'DATABASE_URL is required in production for Flowfex auth. Set it in the backend host environment.'
+      'DATABASE_URL is required in production for Syniq auth. Set it in the backend host environment.'
     );
   }
 
   // Local/dev/tests: keep a deterministic placeholder so the module still
   // loads when devs work without a database. Auth calls will fail until a
   // real URL is provided, which is the desired behavior for local work.
-  return 'postgres://flowfex_dev:flowfex_dev@localhost:5432/flowfex_dev';
+  return 'postgres://syniq_dev:syniq_dev@localhost:5432/syniq_dev';
 }
 
 const pool = new Pool({
@@ -259,7 +259,7 @@ export const auth = betterAuth({
   }),
   user: {
     additionalFields: {
-      flowfexHandleChosen: {
+      syniqHandleChosen: {
         type: "boolean",
         required: false,
         input: true,

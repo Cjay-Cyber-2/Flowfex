@@ -1,9 +1,9 @@
-import { defaultFlowfexServer } from './src/server/FlowfexServer.js';
+import { defaultSyniqServer } from './src/server/SyniqServer.js';
 import './src/init.js';
 import http from 'node:http';
 
 async function test() {
-  const address = await defaultFlowfexServer.start({ port: 4010 });
+  const address = await defaultSyniqServer.start({ port: 4010 });
   console.log(`Server started on port ${address.port}`);
   
   const req = http.get(`http://localhost:${address.port}/skills`, (res) => {

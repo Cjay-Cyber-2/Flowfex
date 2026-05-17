@@ -1,11 +1,11 @@
-# FLOWFEX STUNNING REDESIGN STRATEGY
+# SYNIQ STUNNING REDESIGN STRATEGY
 ## Ultra-Premium Visual Orchestration Experience
 
 ---
 
 ## EXECUTIVE VISION
 
-Transform Flowfex from a functional interface into an **unforgettable visual experience** that communicates intelligence, power, and sophistication through every pixel. The redesign will leverage cutting-edge web animation techniques, particle systems, 3D transforms, and cinematic transitions to create a product that feels like **the future of AI orchestration**.
+Transform Syniq from a functional interface into an **unforgettable visual experience** that communicates intelligence, power, and sophistication through every pixel. The redesign will leverage cutting-edge web animation techniques, particle systems, 3D transforms, and cinematic transitions to create a product that feels like **the future of AI orchestration**.
 
 ---
 
@@ -141,10 +141,10 @@ Pack the interface with **meaningful information** while maintaining visual hier
 
 #### Section 2: "Connect Anything"
 
-**Visual Concept:** A **connection ceremony** that shows agents linking to Flowfex
+**Visual Concept:** A **connection ceremony** that shows agents linking to Syniq
 
 **Implementation:**
-- **Central hub**: A large Flowfex logo node in the center
+- **Central hub**: A large Syniq logo node in the center
 - **Agent nodes**: 6-8 nodes representing different agents (Claude, GPT, Custom, etc.) arranged in a circle around the hub
 - **Connection animation** (plays on scroll-in):
   1. Agent nodes are initially **disconnected** and dim
@@ -556,12 +556,12 @@ Pack the interface with **meaningful information** while maintaining visual hier
 
 ## FINAL THOUGHTS
 
-This redesign transforms Flowfex from a functional tool into an **experience**. Every animation, every interaction, every visual detail is designed to:
+This redesign transforms Syniq from a functional tool into an **experience**. Every animation, every interaction, every visual detail is designed to:
 
 1. **Communicate the product's intelligence** — Users should feel they're interacting with a sophisticated system
 2. **Provide information through motion** — Animations aren't decorative; they encode meaning
 3. **Create emotional resonance** — Users should feel excitement, curiosity, and trust
-4. **Be memorable** — Users should remember Flowfex as "that stunning AI orchestration tool"
+4. **Be memorable** — Users should remember Syniq as "that stunning AI orchestration tool"
 
 The key is **balance**: Stunning visuals that never compromise usability or performance. Every effect should enhance understanding, not distract from it.
 

@@ -58,7 +58,7 @@ Always use exhaustive `when` with sealed types — no `else` branch.
 ## Extension Functions
 
 Use extension functions for utility operations, but keep them discoverable:
-- Place in a file named after the receiver type (`StringExt.kt`, `FlowExt.kt`)
+- Place in a file named after the receiver type (`StringExt.kt`, `Syniqt.kt`)
 - Keep scope limited — don't add extensions to `Any` or overly generic types
 
 ## Scope Functions

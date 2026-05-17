@@ -1,4 +1,4 @@
-# 🚀 How to Run Flowfex - Complete Guide
+# 🚀 How to Run Syniq - Complete Guide
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ npm --version    # Should show 8.x.x or higher
 ## 📁 Project Structure
 
 ```
-flowfex/
+syniq/
 ├── backend/              # Node.js backend (already exists)
 ├── frontend/            # React frontend (newly created)
 │   ├── src/
@@ -81,7 +81,7 @@ Open your browser and go to:
 http://localhost:3000
 ```
 
-**🎉 You should now see the Flowfex landing page with the animated logo!**
+**🎉 You should now see the Syniq landing page with the animated logo!**
 
 ## 🌐 Explore the Application
 
@@ -102,7 +102,7 @@ http://localhost:3000
 
 #### Landing Page (`/`)
 - **Animated canvas background** with flowing particles
-- **Flowfex logo** in navigation (full variant)
+- **Syniq logo** in navigation (full variant)
 - **Hero section** with character reveal animation
 - **Feature sections** with mini-canvas demonstrations
 - **Scroll down** to see all features
@@ -124,7 +124,7 @@ http://localhost:3000
 
 ## 🎨 Logo Integration
 
-The Flowfex logo is now integrated throughout:
+The Syniq logo is now integrated throughout:
 
 ### Where You'll See It
 
@@ -138,13 +138,13 @@ The Flowfex logo is now integrated throughout:
 
 ### Logo Variants
 
-- **Full:** Icon + "FLOWFEX" wordmark
+- **Full:** Icon + "SYNIQ" wordmark
 - **Icon:** Just the connected nodes
 - **Animated:** Nodes pulse, connections glow
 
 ### Logo Colors
 
-Adapted to Flowfex palette:
+Adapted to Syniq palette:
 - **Primary nodes:** Sinoper (#9E3028) - warm rust-red
 - **Secondary nodes:** Massicot (#C49530) - antique gold
 - **Tertiary nodes:** Mummy Brown (#8B5B38) - warm brown
@@ -260,7 +260,7 @@ npm install
 
 ### Logo Not Showing
 
-1. Check that `FlowfexLogo.jsx` exists in `src/assets/`
+1. Check that `SyniqLogo.jsx` exists in `src/assets/`
 2. Verify imports in page components
 3. Check browser console for import errors
 
@@ -314,7 +314,7 @@ proxy: {
 
 ### Change Logo Colors
 
-Edit `frontend/src/assets/FlowfexLogo.jsx`:
+Edit `frontend/src/assets/SyniqLogo.jsx`:
 
 ```javascript
 const colors = {
@@ -327,7 +327,7 @@ const colors = {
 
 ### Adjust Animation Speed
 
-In `FlowfexLogo.jsx`, change animation durations:
+In `SyniqLogo.jsx`, change animation durations:
 
 ```javascript
 // Slower pulse (more subtle)
@@ -385,12 +385,12 @@ Before considering the setup complete:
 
 If you can see:
 - ✅ Landing page with animated canvas background
-- ✅ Flowfex logo in navigation (with connected nodes)
+- ✅ Syniq logo in navigation (with connected nodes)
 - ✅ Interactive canvas with node graph
 - ✅ Smooth animations and transitions
 - ✅ All pages accessible
 
-**You're all set! The Flowfex frontend is running perfectly.**
+**You're all set! The Syniq frontend is running perfectly.**
 
 ## 💡 Next Steps
 
@@ -416,6 +416,6 @@ If you can see:
 
 ---
 
-**Enjoy building with Flowfex!** 🚀
+**Enjoy building with Syniq!** 🚀
 
 The logo now perfectly represents the flow of intelligence through connected nodes, embodying the core concept of visible AI orchestration.

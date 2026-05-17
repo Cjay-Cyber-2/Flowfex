@@ -1,7 +1,7 @@
 /**
  * Bulk Markdown Skill Import Runner
  *
- * Standalone CLI script that runs the full Flowfex skill ingestion pipeline
+ * Standalone CLI script that runs the full Syniq skill ingestion pipeline
  * across all configured markdown sources and produces detailed reports.
  *
  * Usage:
@@ -21,12 +21,12 @@ import {
 } from './index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const OUTPUT_DIR = path.resolve(__dirname, '../../.flowfex');
+const OUTPUT_DIR = path.resolve(__dirname, '../../.syniq');
 const reportOnly = process.argv.includes('--report-only');
 
 console.log('');
 console.log('╔══════════════════════════════════════════════════════╗');
-console.log('║   Flowfex Bulk Markdown Skill Import                ║');
+console.log('║   Syniq Bulk Markdown Skill Import                ║');
 console.log('╚══════════════════════════════════════════════════════╝');
 console.log('');
 
@@ -227,7 +227,7 @@ if (!reportOnly) {
   // Export human-readable catalog
   const catalogPath = path.join(OUTPUT_DIR, 'skill-catalog.md');
   const catalogLines = [
-    '# Flowfex Skill Catalog',
+    '# Syniq Skill Catalog',
     '',
     `> Auto-generated on ${new Date().toISOString()}`,
     `> ${registry.getAllTools().length} tools registered from ${stats.totalMarkdownFiles} markdown files across ${stats.totalSources} sources`,

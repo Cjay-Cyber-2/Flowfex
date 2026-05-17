@@ -15,7 +15,7 @@ const projectRoot = path.resolve(currentDir, '..', '..', '..');
 
 async function runPhase2Tests() {
   console.log('\n================================================================================');
-  console.log('FLOWFEX SKILL INGESTION - PHASE 2: ENHANCED CATALOG PROCESSING');
+  console.log('SYNIQ SKILL INGESTION - PHASE 2: ENHANCED CATALOG PROCESSING');
   console.log('================================================================================\n');
 
   const awesomeSkillsPath = path.join(projectRoot, 'awesome-agent-skills', 'README.md');

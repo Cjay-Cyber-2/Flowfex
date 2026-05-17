@@ -1,4 +1,4 @@
-# GODMODE FLOWFEX — Dashboard Canvas Phase 2 COMPLETE ✅
+# GODMODE SYNIQ — Dashboard Canvas Phase 2 COMPLETE ✅
 
 ## Executive Summary
 

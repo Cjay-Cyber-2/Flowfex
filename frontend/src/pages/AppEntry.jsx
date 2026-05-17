@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useSessionContext } from '../context/SessionContext';
-import FlowfexLogoNew from '../components/FlowfexLogoNew';
+import SyniqLogoNew from '../components/SyniqLogoNew';
 
 /**
  * Product entry URL from marketing (`/app`). Resolves server-backed gates and
@@ -36,7 +36,7 @@ export default function AppEntry() {
           fontFamily: 'Inter, sans-serif',
         }}
       >
-        <FlowfexLogoNew size={36} animated={false} />
+        <SyniqLogoNew size={36} animated={false} />
         <span>Preparing your workspace…</span>
       </div>
     );

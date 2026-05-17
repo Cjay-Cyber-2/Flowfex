@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Globe, Github } from 'lucide-react';
 import AuthBackdrop from '../components/auth/AuthBackdrop';
-import FlowfexLogoNew from '../components/FlowfexLogoNew';
+import SyniqLogoNew from '../components/SyniqLogoNew';
 import { useSessionContext } from '../context/SessionContext';
 import {
   signInWithEmail,
@@ -83,7 +83,7 @@ function SignIn() {
         transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
       >
         <div style={styles.logoRow}>
-          <FlowfexLogoNew size={36} animated={false} />
+          <SyniqLogoNew size={36} animated={false} />
         </div>
         <h1 style={styles.title}>Welcome back.</h1>
         <p style={styles.subtitle}>Your orchestrations are waiting.</p>

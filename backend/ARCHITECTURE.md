@@ -1,8 +1,8 @@
-# Flowfex Backend Architecture Document
+# Syniq Backend Architecture Document
 
 ## Design Philosophy
 
-The Flowfex backend is built on three core principles:
+The Syniq backend is built on three core principles:
 
 1. **Modular**: Each component has a single responsibility and can be used independently
 2. **Production-Ready**: Comprehensive validation, error handling, and logging
@@ -191,7 +191,7 @@ new Orchestrator(config)    // Create with registry/llm
 
 ### Markdown Skill Ingestion (src/skills/)
 
-**Purpose**: Convert imported markdown skills into validated Flowfex tools at startup or on demand
+**Purpose**: Convert imported markdown skills into validated Syniq tools at startup or on demand
 
 **Key Responsibilities**:
 - Recursively scan source directories for markdown content
@@ -206,7 +206,7 @@ new Orchestrator(config)    // Create with registry/llm
 ```javascript
 parser/MarkdownSkillParser.js   // Extracts title, sections, and instruction blocks
 catalog/CatalogSkillParser.js   // Indexes catalog-style README references
-normalization/SkillNormalizer.js // Builds consistent Flowfex prompt + metadata
+normalization/SkillNormalizer.js // Builds consistent Syniq prompt + metadata
 validation/SkillValidator.js     // Blocks unsafe or low-quality imports
 loader/MarkdownSkillLoader.js    // Recursively loads and registers skills
 ```
@@ -575,11 +575,11 @@ import { defaultLLM } from '../llm/LLMWrapper.js';
 
 ### Environment Variables
 ```
-FLOWFEX_LLM_PROVIDER=openai      # LLM provider
-FLOWFEX_LLM_API_KEY=sk-xxx       # API key
-FLOWFEX_LLM_MODEL=gpt-4          # Model to use
-FLOWFEX_TEMPERATURE=0.7          # LLM temperature
-FLOWFEX_MAX_TOKENS=2048          # Max tokens
+SYNIQ_LLM_PROVIDER=openai      # LLM provider
+SYNIQ_LLM_API_KEY=sk-xxx       # API key
+SYNIQ_LLM_MODEL=gpt-4          # Model to use
+SYNIQ_TEMPERATURE=0.7          # LLM temperature
+SYNIQ_MAX_TOKENS=2048          # Max tokens
 ```
 
 ### Monitoring Points
@@ -597,7 +597,7 @@ FLOWFEX_MAX_TOKENS=2048          # Max tokens
 
 ## Summary
 
-The Flowfex backend is designed as a clean, modular system that:
+The Syniq backend is designed as a clean, modular system that:
 - Provides a clear contract for tools via the Tool interface
 - Manages tools efficiently through the ToolRegistry
 - Abstracts LLM providers through the LLMWrapper

@@ -1,4 +1,4 @@
-# Flowfex Frontend - Quick Start Guide
+# Syniq Frontend - Quick Start Guide
 
 ## 🚀 Get Started in 3 Steps
 

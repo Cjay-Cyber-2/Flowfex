@@ -93,7 +93,7 @@ export class OrchestrationEngine {
         });
         if (selection.selectedSteps.length === 0) {
             const error = {
-                message: 'Flowfex could not find any directly relevant skills or resources for this request.',
+                message: 'Syniq could not find any directly relevant skills or resources for this request.',
                 type: 'NoRelevantCapabilitiesError',
             };
             this.stateStore.initialize({
@@ -107,7 +107,7 @@ export class OrchestrationEngine {
                 sessionContext: context.sessionContext || null,
                 status: 'failed',
             });
-            this.stateStore.recordError(context.sessionId, 'flowfex:no_relevant_capabilities', error);
+            this.stateStore.recordError(context.sessionId, 'syniq:no_relevant_capabilities', error);
             bridge.emitGraphCreated(buildResult.graph);
             bridge.emitDiagnostic('execution.failed', {
                 status: 'failed',

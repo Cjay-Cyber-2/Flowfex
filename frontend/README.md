@@ -1,12 +1,12 @@
-# Flowfex Frontend
+# Syniq Frontend
 
-A production-ready, visually stunning frontend for the Flowfex AI orchestration platform. Built with React, featuring a historically rare color palette, custom canvas animations, and a premium user experience.
+A production-ready, visually stunning frontend for the Syniq AI orchestration platform. Built with React, featuring a historically rare color palette, custom canvas animations, and a premium user experience.
 
 ## 🎨 Design System
 
 ### Historically Rare Color Palette
 
-Flowfex uses a unique color system based on genuine rare pigments from history:
+Syniq uses a unique color system based on genuine rare pigments from history:
 
 - **Eigengrau** (#16161D) - German optical science term for color perceived in total darkness
 - **Wenge Ash** (#1C1812) - Named after endangered African hardwood
@@ -339,7 +339,7 @@ When adding new features:
 
 ## 🎓 Design Philosophy
 
-Flowfex is not a workflow builder, not a node editor, not a dashboard, and not a chatbot. It is a **live intelligent control surface** — the visual layer between the user and any agent environment.
+Syniq is not a workflow builder, not a node editor, not a dashboard, and not a chatbot. It is a **live intelligent control surface** — the visual layer between the user and any agent environment.
 
 Every design decision must be traceable to the product's core idea:
 - **Visible intelligence**

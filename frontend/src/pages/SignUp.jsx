@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Globe, Github } from 'lucide-react';
 import AuthBackdrop from '../components/auth/AuthBackdrop';
-import FlowfexLogoNew from '../components/FlowfexLogoNew';
+import SyniqLogoNew from '../components/SyniqLogoNew';
 import { useSessionContext } from '../context/SessionContext';
 import {
   signInWithGitHub,
@@ -117,7 +117,7 @@ function SignUp() {
         transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
       >
         <div style={styles.logoRow}>
-          <FlowfexLogoNew size={34} animated={false} />
+          <SyniqLogoNew size={34} animated={false} />
         </div>
         <h1 style={styles.title}>Start your session.</h1>
         <p style={styles.subtitle}>No credit card. No commitment. Just start.</p>
@@ -227,7 +227,7 @@ function SignUp() {
         {errorMessage ? <p style={styles.errorText}>{errorMessage}</p> : null}
 
         <p style={styles.legalText}>
-          By continuing you agree to Flowfex's{' '}
+          By continuing you agree to Syn-IQ's{' '}
           <a href="#terms" style={styles.legalLink}>Terms</a> and{' '}
           <a href="#privacy" style={styles.legalLink}>Privacy Policy</a>
         </p>

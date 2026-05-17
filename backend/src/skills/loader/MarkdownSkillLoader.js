@@ -9,14 +9,14 @@ import { parseCatalogMarkdown, isCatalogMarkdown } from '../catalog/CatalogSkill
 import { buildCatalogSkillRegistry } from '../catalog/CatalogSkillEnhancer.js';
 import { validateNormalizedSkill } from '../validation/SkillValidator.js';
 
-const FLOWFEX_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../');
+const SYNIQ_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../');
 
 const DEFAULT_CHUNK_SIZE = 100;
 const DEFAULT_MAX_FILE_SIZE_BYTES = 1024 * 1024;
 const IGNORED_DIRECTORIES = new Set([
   '.git',
   '.github',
-  '.flowfex',
+  '.syniq',
   '.cache',
   '.next',
   '.turbo',
@@ -34,10 +34,10 @@ const IGNORED_FILES = new Set(['license.md', 'contributing.md', 'changelog.md', 
 const SKILL_SOURCE_NAME_PATTERN = /(skill|skills|agent|agents|llm|rag|mcp|voice|memory|chat|tutorial|awesome|ai)/i;
 const SKILL_SOURCE_CONTENT_PATTERN = /(table of contents|skills count|awesome agent skills|awesome llm apps|multi-agent|agent skill|agentic|slash command|use when|instructions|workflow|tutorial|rag|mcp|voice|memory)/i;
 
-export const DEFAULT_MARKDOWN_SKILL_SOURCES = discoverMarkdownSkillSources(FLOWFEX_ROOT);
+export const DEFAULT_MARKDOWN_SKILL_SOURCES = discoverMarkdownSkillSources(SYNIQ_ROOT);
 
-export function discoverMarkdownSkillSources(rootDirectory = FLOWFEX_ROOT, options = {}) {
-  const resolvedRoot = resolveSourceDirectory(rootDirectory, FLOWFEX_ROOT);
+export function discoverMarkdownSkillSources(rootDirectory = SYNIQ_ROOT, options = {}) {
+  const resolvedRoot = resolveSourceDirectory(rootDirectory, SYNIQ_ROOT);
   const maxDiscoveryDepth = Math.max(0, Number(options.maxDiscoveryDepth) || 1);
   const minMarkdownFiles = Math.max(1, Number(options.minMarkdownFiles) || 5);
   const sources = [];
@@ -107,7 +107,7 @@ export function discoverMarkdownSkillSources(rootDirectory = FLOWFEX_ROOT, optio
 }
 
 function addSourceCandidate(sources, seenDirectories, directory, overrides = {}) {
-  const resolvedDirectory = resolveSourceDirectory(directory, FLOWFEX_ROOT);
+  const resolvedDirectory = resolveSourceDirectory(directory, SYNIQ_ROOT);
   const canonicalDirectory = resolveCanonicalPath(resolvedDirectory);
 
   if (seenDirectories.has(canonicalDirectory) || !fs.existsSync(resolvedDirectory)) {
@@ -172,12 +172,12 @@ function isLikelyMarkdownSkillSource(directory, options = {}) {
 }
 
 function inferSourceName(directory) {
-  const normalized = resolveSourceDirectory(directory, FLOWFEX_ROOT);
+  const normalized = resolveSourceDirectory(directory, SYNIQ_ROOT);
   const baseName = path.basename(normalized);
   return baseName || 'markdown-source';
 }
 
-function resolveSourceDirectory(directory, baseDirectory = FLOWFEX_ROOT) {
+function resolveSourceDirectory(directory, baseDirectory = SYNIQ_ROOT) {
   if (!directory) {
     return baseDirectory;
   }
@@ -186,7 +186,7 @@ function resolveSourceDirectory(directory, baseDirectory = FLOWFEX_ROOT) {
 }
 
 function resolveSourceTrustLevel(directory) {
-  const normalized = resolveSourceDirectory(directory, FLOWFEX_ROOT).toLowerCase().replace(/\\/g, '/');
+  const normalized = resolveSourceDirectory(directory, SYNIQ_ROOT).toLowerCase().replace(/\\/g, '/');
   return normalized.includes('/skills-md') ? 'trusted' : 'unverified';
 }
 
@@ -419,11 +419,11 @@ export function logSkillRegistrationReport(report, logger = console) {
   const durationMs = report.processing?.durationMs || 0;
 
   logger.info(
-    `[Flowfex] Markdown skill ingestion loaded ${totalLoaded} tools, blocked ${totalBlocked}, discovered ${totalCatalogEntries} catalog entries in ${durationMs}ms.`
+    `[Syniq] Markdown skill ingestion loaded ${totalLoaded} tools, blocked ${totalBlocked}, discovered ${totalCatalogEntries} catalog entries in ${durationMs}ms.`
   );
 
   if (report.duplicateSkills?.length > 0) {
-    logger.warn(`[Flowfex] Duplicate skill candidates detected: ${report.duplicateSkills.length}`);
+    logger.warn(`[Syniq] Duplicate skill candidates detected: ${report.duplicateSkills.length}`);
   }
 
   if (totalBlocked > 0) {
@@ -432,7 +432,7 @@ export function logSkillRegistrationReport(report, logger = console) {
       .map(entry => `${entry.normalizedSkill.id} (${entry.validation.findings.map(finding => finding.type).join(', ')})`)
       .join('; ');
 
-    logger.warn(`[Flowfex] Blocked markdown skills: ${blockedPreview}`);
+    logger.warn(`[Syniq] Blocked markdown skills: ${blockedPreview}`);
   }
 
   if (totalErrors > 0) {
@@ -441,7 +441,7 @@ export function logSkillRegistrationReport(report, logger = console) {
       .map(entry => `${entry.filePath}: ${entry.error.message}`)
       .join('; ');
 
-    logger.warn(`[Flowfex] Processing errors: ${failedPreview}`);
+    logger.warn(`[Syniq] Processing errors: ${failedPreview}`);
   }
 }
 
@@ -561,9 +561,9 @@ function createMarkdownSkillTool(record) {
   // Safety fallbacks for required Tool fields — edge-case files with heavy HTML
   // preambles or emoji-only content can produce empty strings after cleaning.
   const safeDescription = normalizedSkill.description?.trim()
-    || `${normalizedSkill.name || normalizedSkill.id} — imported Flowfex skill.`;
+    || `${normalizedSkill.name || normalizedSkill.id} — imported Syniq skill.`;
   const safePrompt = validation.sanitizedPrompt?.trim()
-    || `You are executing the Flowfex skill "${normalizedSkill.name || normalizedSkill.id}". Follow the user's instructions and produce practical output.`;
+    || `You are executing the Syniq skill "${normalizedSkill.name || normalizedSkill.id}". Follow the user's instructions and produce practical output.`;
 
   return new Tool({
     id: normalizedSkill.id,

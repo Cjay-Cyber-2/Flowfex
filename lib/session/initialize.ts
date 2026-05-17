@@ -1,6 +1,6 @@
-import type { FlowfexAnonymousSessionResponse } from '../../packages/types/session';
+import type { SyniqAnonymousSessionResponse } from '../../packages/types/session';
 
-export const FLOWFEX_ANONYMOUS_TOKEN_STORAGE_KEY = 'flowfex_anonymous_token';
+export const SYNIQ_ANONYMOUS_TOKEN_STORAGE_KEY = 'syniq_anonymous_token';
 
 export interface StorageLike {
   getItem(key: string): string | null;
@@ -14,14 +14,14 @@ export interface SessionRequestOptions {
   readonly storage?: StorageLike | null;
 }
 
-export interface FlowfexInitializedSession {
+export interface SyniqInitializedSession {
   readonly anonymousToken: string | null;
-  readonly session: FlowfexAnonymousSessionResponse['session'];
+  readonly session: SyniqAnonymousSessionResponse['session'];
 }
 
-export interface FlowfexRecentSessionResponse {
+export interface SyniqRecentSessionResponse {
   readonly ok: boolean;
-  readonly session: FlowfexAnonymousSessionResponse['session'];
+  readonly session: SyniqAnonymousSessionResponse['session'];
 }
 
 function getDefaultFetch(fetchImpl?: typeof fetch): typeof fetch {
@@ -73,14 +73,14 @@ async function requestJson<T>(
 
   if (!response.ok) {
     const message = await response.text();
-    throw new Error(message || `Flowfex session request failed with ${response.status}.`);
+    throw new Error(message || `Syniq session request failed with ${response.status}.`);
   }
 
   return response.json() as Promise<T>;
 }
 
 export function readAnonymousToken(storage?: StorageLike | null): string | null {
-  return getDefaultStorage(storage)?.getItem(FLOWFEX_ANONYMOUS_TOKEN_STORAGE_KEY) ?? null;
+  return getDefaultStorage(storage)?.getItem(SYNIQ_ANONYMOUS_TOKEN_STORAGE_KEY) ?? null;
 }
 
 export function writeAnonymousToken(token: string | null, storage?: StorageLike | null): void {
@@ -90,17 +90,17 @@ export function writeAnonymousToken(token: string | null, storage?: StorageLike 
   }
 
   if (token) {
-    resolvedStorage.setItem(FLOWFEX_ANONYMOUS_TOKEN_STORAGE_KEY, token);
+    resolvedStorage.setItem(SYNIQ_ANONYMOUS_TOKEN_STORAGE_KEY, token);
     return;
   }
 
-  resolvedStorage.removeItem(FLOWFEX_ANONYMOUS_TOKEN_STORAGE_KEY);
+  resolvedStorage.removeItem(SYNIQ_ANONYMOUS_TOKEN_STORAGE_KEY);
 }
 
 export async function createAnonymousSession(
   options: SessionRequestOptions = {}
-): Promise<FlowfexAnonymousSessionResponse> {
-  const response = await requestJson<FlowfexAnonymousSessionResponse>(
+): Promise<SyniqAnonymousSessionResponse> {
+  const response = await requestJson<SyniqAnonymousSessionResponse>(
     '/api/session/create-anonymous',
     {
       method: 'POST',
@@ -115,8 +115,8 @@ export async function createAnonymousSession(
 export async function validateAnonymousSession(
   anonymousToken: string,
   options: SessionRequestOptions = {}
-): Promise<FlowfexAnonymousSessionResponse> {
-  return requestJson<FlowfexAnonymousSessionResponse>(
+): Promise<SyniqAnonymousSessionResponse> {
+  return requestJson<SyniqAnonymousSessionResponse>(
     '/api/session/validate-anonymous',
     {
       method: 'POST',
@@ -131,8 +131,8 @@ export async function validateAnonymousSession(
 export async function fetchRecentAuthenticatedSession(
   accessToken: string,
   options: SessionRequestOptions = {}
-): Promise<FlowfexRecentSessionResponse> {
-  return requestJson<FlowfexRecentSessionResponse>(
+): Promise<SyniqRecentSessionResponse> {
+  return requestJson<SyniqRecentSessionResponse>(
     '/api/session/recent',
     {
       method: 'GET',
@@ -144,9 +144,9 @@ export async function fetchRecentAuthenticatedSession(
   );
 }
 
-export async function initializeFlowfexSession(
+export async function initializeSyniqSession(
   options: SessionRequestOptions = {}
-): Promise<FlowfexInitializedSession> {
+): Promise<SyniqInitializedSession> {
   const storedToken = readAnonymousToken(options.storage);
 
   if (storedToken) {

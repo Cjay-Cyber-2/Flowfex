@@ -1,4 +1,4 @@
-# Flowfex Agent Connection System - Complete
+# Syniq Agent Connection System - Complete
 
 ## Status: ✅ PRODUCTION READY
 
@@ -45,7 +45,7 @@ const response = await fetch('/connect', {
 await fetch('/ingest', {
   method: 'POST',
   headers: { 'Authorization': 'Bearer ffx_abc123...' },
-  body: JSON.stringify({ task: 'FLOWFEX_SESSION_TOKEN: ffx_abc123...\nAnalyze data' })
+  body: JSON.stringify({ task: 'SYNIQ_SESSION_TOKEN: ffx_abc123...\nAnalyze data' })
 });
 ```
 
@@ -85,9 +85,9 @@ cd sdk/js && npm install && npm run build
 ```
 
 ```javascript
-import { FlowfexClient } from 'flowfex';
+import { SyniqClient } from 'syniq';
 
-const client = new FlowfexClient('http://localhost:4000');
+const client = new SyniqClient('http://localhost:4000');
 await client.connect({ name: 'my-agent' }, { mode: 'sdk' });
 const result = await client.send('Analyze data');
 client.subscribe('node:completed', (data) => console.log(data));
@@ -103,9 +103,9 @@ cd sdk/python && pip install -e .
 ```
 
 ```python
-from flowfex import FlowfexClient
+from syniq import SyniqClient
 
-client = FlowfexClient('http://localhost:4000')
+client = SyniqClient('http://localhost:4000')
 client.connect({'name': 'my-agent'}, mode='sdk')
 result = client.send('Analyze data')
 client.subscribe('node:completed', lambda d: print(d))
@@ -186,7 +186,7 @@ Content-Type: text/event-stream
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                    FlowfexServer                                 │
+│                    SyniqServer                                 │
 │  POST /connect  │  POST /ingest  │  GET /connect/live/:id       │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
@@ -210,7 +210,7 @@ Content-Type: text/event-stream
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                 FlowfexSocketServer                              │
+│                 SyniqSocketServer                              │
 │  /orchestration │ /session │ /control                           │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
@@ -234,7 +234,7 @@ Content-Type: text/event-stream
 | `sdk/js/README.md` | JavaScript SDK documentation |
 | `sdk/js/example.mjs` | JavaScript usage example |
 | `sdk/python/pyproject.toml` | Python package configuration |
-| `sdk/python/flowfex/__init__.py` | Python SDK implementation |
+| `sdk/python/syniq/__init__.py` | Python SDK implementation |
 | `sdk/python/README.md` | Python SDK documentation |
 | `sdk/python/example.py` | Python usage example |
 
@@ -267,4 +267,4 @@ pip install -e .
 python example.py
 ```
 
-Both SDKs connect to a running Flowfex backend at `http://127.0.0.1:4000`.
+Both SDKs connect to a running Syniq backend at `http://127.0.0.1:4000`.

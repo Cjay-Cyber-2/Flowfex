@@ -1,20 +1,20 @@
-# Flowfex Python SDK
+# Syniq Python SDK
 
-Connect AI agents to the Flowfex orchestration platform.
+Connect AI agents to the Syniq orchestration platform.
 
 ## Installation
 
 ```bash
-pip install flowfex
+pip install syniq
 ```
 
 ## Quick Start
 
 ```python
-from flowfex import FlowfexClient
+from syniq import SyniqClient
 
 # Create client
-client = FlowfexClient('http://localhost:4000')
+client = SyniqClient('http://localhost:4000')
 
 # Connect your agent
 session = client.connect(
@@ -45,7 +45,7 @@ client.disconnect()
 
 ### `connect(agent, **options)`
 
-Create a session and connect to Flowfex.
+Create a session and connect to Syniq.
 
 | Option | Type | Description |
 |--------|------|-------------|

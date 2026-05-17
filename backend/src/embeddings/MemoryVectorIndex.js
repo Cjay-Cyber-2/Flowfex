@@ -19,7 +19,7 @@ function cosineSimilarity(left, right) {
 }
 
 /**
- * Minimal in-memory vector index for Flowfex tool retrieval.
+ * Minimal in-memory vector index for Syniq tool retrieval.
  */
 export class MemoryVectorIndex {
   constructor() {

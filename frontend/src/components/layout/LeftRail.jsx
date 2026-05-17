@@ -115,7 +115,7 @@ function LeftRail() {
     if (accessToken) {
       headers.Authorization = `Bearer ${accessToken}`;
     } else if (session?.anonymousToken) {
-      headers['X-Flowfex-Anonymous-Token'] = session.anonymousToken;
+      headers['X-Syniq-Anonymous-Token'] = session.anonymousToken;
     }
     return headers;
   }, [accessToken, session?.anonymousToken]);
@@ -253,7 +253,7 @@ function LeftRail() {
     });
   }, [liveResults, searchValue, categoryIndexStats, fallbackGrouped]);
 
-  const totalSkillsInFlowfex = useMemo(
+  const totalSkillsInSyniq = useMemo(
     () => categoryChips.reduce((sum, c) => sum + c.count, 0),
     [categoryChips]
   );
@@ -307,9 +307,9 @@ function LeftRail() {
 
       <section className="rail-panel rail-panel--grow">
         <div className="rail-panel-head">
-          <span className="rail-panel-title">Flowfex library</span>
+          <span className="rail-panel-title">Syn-IQ library</span>
           <span className="rail-panel-count" title="Total skills/tools in catalog">
-            {totalSkillsInFlowfex}{isSearching ? '…' : ''}
+            {totalSkillsInSyniq}{isSearching ? '…' : ''}
           </span>
         </div>
         <div className="rail-panel-body rail-panel-body--chips">
@@ -318,7 +318,7 @@ function LeftRail() {
           ) : (
             <div className="category-chip-grid" aria-busy={isSearching}>
               {categoryChips.map((cat) => (
-                <div key={cat.id} className="category-chip" title={`${cat.count} in Flowfex`}>
+                <div key={cat.id} className="category-chip" title={`${cat.count} in Syniq`}>
                   <FlowIcon name={cat.icon} size={16} className="category-chip-icon" />
                   <span className="category-chip-label">{cat.label}</span>
                   <span className="category-chip-value">{cat.count}</span>

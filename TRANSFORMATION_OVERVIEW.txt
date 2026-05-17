@@ -1,5 +1,5 @@
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║                    FLOWFEX STUNNING REDESIGN TRANSFORMATION                  ║
+║                    SYNIQ STUNNING REDESIGN TRANSFORMATION                  ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -46,7 +46,7 @@
 │                         ANIMATION HIERARCHY                                  │
 └──────────────────────────────────────────────────────────────────────────────┘
 
-                            FLOWFEX EXPERIENCE
+                            SYNIQ EXPERIENCE
                                     │
                 ┌───────────────────┼───────────────────┐
                 │                   │                   │
@@ -213,10 +213,10 @@ AFTER CANVAS:   ████████████████████ 100
 
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                              ║
-║                    🚀 READY TO TRANSFORM FLOWFEX 🚀                          ║
+║                    🚀 READY TO TRANSFORM SYNIQ 🚀                          ║
 ║                                                                              ║
 ║  The redesign strategy is complete. The components are ready.                ║
-║  The roadmap is clear. Let's make Flowfex unforgettable.                    ║
+║  The roadmap is clear. Let's make Syniq unforgettable.                    ║
 ║                                                                              ║
 ║                    START WITH: STUNNING_REDESIGN_STRATEGY.md                 ║
 ║                                                                              ║

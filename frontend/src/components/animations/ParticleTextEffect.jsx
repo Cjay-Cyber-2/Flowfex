@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-const FLOWFEX_COLORS = [
+const SYNIQ_COLORS = [
   { r: 0, g: 212, b: 170 },
   { r: 0, g: 229, b: 195 },
   { r: 127, g: 255, b: 240 },
@@ -118,7 +118,7 @@ function generateRandomPos(width, height, radiusScale = 1) {
 }
 
 function pickWordColor(index) {
-  const baseColor = FLOWFEX_COLORS[index % FLOWFEX_COLORS.length];
+  const baseColor = SYNIQ_COLORS[index % SYNIQ_COLORS.length];
   return {
     r: Math.max(0, Math.min(255, baseColor.r + Math.floor(Math.random() * 26 - 13))),
     g: Math.max(0, Math.min(255, baseColor.g + Math.floor(Math.random() * 26 - 13))),
@@ -142,7 +142,7 @@ function createWordTargets(word, width, height) {
   const pixels = offscreenContext.getImageData(0, 0, offscreen.width, offscreen.height).data;
   const targets = [];
   // Smaller sample step gives denser, more legible text — matches the
-  // original Flowfex animation density (every ~6 px) instead of the sparse
+  // original Syn-IQ animation density (every ~6 px) instead of the sparse
   // step the section had drifted to.
   const sampleStep = Math.max(5, Math.floor(offscreen.width / 200));
 

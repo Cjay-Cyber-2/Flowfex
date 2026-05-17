@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChevronDown, Pause, Play, ShieldCheck, UserRound } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import FlowfexLogoNew from '../FlowfexLogoNew';
+import SyniqLogoNew from '../SyniqLogoNew';
 import useStore from '../../store/useStore';
 import { useSessionContext } from '../../context/SessionContext';
 import './TopBar.css';
@@ -40,8 +40,8 @@ function TopBar() {
     ? (displayUsername || (displayEmail ? displayEmail.split('@')[0] : '') || 'Signed in')
     : 'Anonymous';
   const accountTitle = isAuthenticated
-    ? (displayEmail ? `Signed in as ${displayUsername || displayEmail}` : 'Signed in to Flowfex')
-    : 'Anonymous Flowfex session — connect an agent to orchestrate. Sign up after your free requests for a saved account and higher limits.';
+    ? (displayEmail ? `Signed in as ${displayUsername || displayEmail}` : 'Signed in to Syn-IQ')
+    : 'Anonymous Syn-IQ session — connect an agent to orchestrate. Sign up after your free requests for a saved account and higher limits.';
   const avatarLetters = isAuthenticated ? (user?.initials || '').trim() : '';
 
   const connectDisabled = !isAuthenticated && hasConnectedAgent;
@@ -50,7 +50,7 @@ function TopBar() {
     <header className="top-bar">
       <div className="top-bar-left">
         <button className="top-bar-brand" onClick={() => navigate('/')}>
-          <FlowfexLogoNew size={32} animated={false} />
+          <SyniqLogoNew size={32} animated={false} />
         </button>
 
         <div className="session-editor">
@@ -115,7 +115,7 @@ function TopBar() {
               ? 'Anonymous sessions support one connected agent. Sign in to add more on a paid plan.'
               : hasConnectedAgent
                 ? (isAuthenticated ? 'Connect or manage additional agents' : 'Your agent is connected')
-                : 'Connect an agent to Flowfex'
+                : 'Connect an agent to Syn-IQ'
           }
         >
           {hasConnectedAgent

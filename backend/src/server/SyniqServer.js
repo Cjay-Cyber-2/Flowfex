@@ -2,7 +2,7 @@ import http from 'node:http';
 import { URL } from 'node:url';
 import zlib from 'node:zlib';
 import { defaultConnectionService } from '../connection/index.js';
-import { FlowfexSocketServer, initSocketServer, getSocketServer } from '../ws/server.js';
+import { SyniqSocketServer, initSocketServer, getSocketServer } from '../ws/server.js';
 import { ControlController } from '../control/ControlController.js';
 import { executionRateLimiter, controlRateLimiter, connectRateLimiter } from './RateLimiter.js';
 import { sessionLockManager } from '../session/SessionLockManager.js';
@@ -28,7 +28,7 @@ const authHandler = toNodeHandler(auth);
 /**
  * Minimal HTTP surface for external agent connections.
  */
-export class FlowfexServer {
+export class SyniqServer {
   constructor(config = {}) {
     const sessionStateRepository = config.sessionStateRepository || defaultSessionStateRepository;
 
@@ -40,8 +40,8 @@ export class FlowfexServer {
       socketServer: config.socketServer || null,
     });
     this.sessionStateRepository = sessionStateRepository;
-    this.host = config.host || process.env.FLOWFEX_HOST || undefined;
-    this.port = Number(config.port ?? process.env.PORT ?? process.env.FLOWFEX_PORT ?? 10000);
+    this.host = config.host || process.env.SYNIQ_HOST || undefined;
+    this.port = Number(config.port ?? process.env.PORT ?? process.env.SYNIQ_PORT ?? 10000);
     this.maxBodySize = config.maxBodySize || 1024 * 1024;
     this.sessionDataEnabled = config.sessionDataEnabled ?? isSessionDataConfigured();
     this.anonymousSessionService = config.anonymousSessionService
@@ -70,7 +70,7 @@ export class FlowfexServer {
     const host = overrides.host || this.host;
     const port = Number(overrides.port ?? this.port);
     this.server = http.createServer((request, response) => {
-      console.log("[FLOWFEX ENTRY HIT]", request.url);
+      console.log("[SYNIQ ENTRY HIT]", request.url);
       // Health check MUST respond immediately for Render
       if (request.url === '/health' || request.url === '/') {
         response.writeHead(200, { 'Content-Type': 'text/plain' });
@@ -80,7 +80,7 @@ export class FlowfexServer {
 
       let earlyPathname = '/';
       try {
-        earlyPathname = new URL(request.url || '/', 'http://flowfex.local').pathname;
+        earlyPathname = new URL(request.url || '/', 'http://syniq.local').pathname;
       } catch {
         earlyPathname = '/';
       }
@@ -107,7 +107,7 @@ export class FlowfexServer {
     });
 
     // Attach Socket.io directly to this server (avoid stale singletons)
-    this.socketServer = new FlowfexSocketServer(this.server, {
+    this.socketServer = new SyniqSocketServer(this.server, {
       corsOrigins: getAllowedBrowserOrigins(),
     });
     if (this.connectionService?.orchestrator?.setSocketServer) {
@@ -119,7 +119,7 @@ export class FlowfexServer {
     if (this.usageService?.setSocketServer) {
       this.usageService.setSocketServer(this.socketServer);
     }
-    console.log('[Flowfex] Socket.io server attached with /orchestration, /session, /control namespaces');
+    console.log('[Syniq] Socket.io server attached with /orchestration, /session, /control namespaces');
 
     await this._listenWithFallback(port, host);
 
@@ -173,7 +173,7 @@ export class FlowfexServer {
   }
 
   async _handleRequest(request, response) {
-    const url = new URL(request.url, 'http://flowfex.local');
+    const url = new URL(request.url, 'http://syniq.local');
     const ip = request.headers['x-forwarded-for'] || request.socket?.remoteAddress || 'unknown';
     const accessToken = this._extractBearerToken(request);
     const authUser = accessToken && this.sessionDataEnabled
@@ -186,7 +186,7 @@ export class FlowfexServer {
         ? `anon:${anonymousToken}`
         : String(ip);
 
-    console.log("[FLOWFEX ROUTER HIT]", url.pathname);
+    console.log("[SYNIQ ROUTER HIT]", url.pathname);
 
     // ─── Identity-Aware Rate Limiting ──────────────────────────────────
     if (authUser) {
@@ -384,7 +384,7 @@ export class FlowfexServer {
       } else if (status.anonymousToken !== this._extractAnonymousSessionToken(request)) {
         return this._writeJson(response, 403, {
           error: {
-            message: 'Anonymous session usage requires the active Flowfex session token.',
+            message: 'Anonymous session usage requires the active Syniq session token.',
           },
         });
       }
@@ -496,7 +496,7 @@ export class FlowfexServer {
         return this._writeJson(response, 401, {
           error: {
             code: 'invalid_api_key',
-            message: 'SDK and live channel connections require a valid Flowfex API key, an authenticated account, or the active anonymous Flowfex session.',
+            message: 'SDK and live channel connections require a valid Syniq API key, an authenticated account, or the active anonymous Syniq session.',
           },
         });
       }
@@ -600,7 +600,7 @@ export class FlowfexServer {
         return this._writeJson(response, 401, {
           error: {
             code: 'skills_catalog_requires_session',
-            message: 'Flowfex skill catalog is only readable from a live Flowfex session.',
+            message: 'Syniq skill catalog is only readable from a live Syniq session.',
           },
         });
       }
@@ -660,7 +660,7 @@ export class FlowfexServer {
         return this._writeJson(response, 401, {
           error: {
             code: 'skills_catalog_requires_session',
-            message: 'Flowfex skill catalog is only readable from a live Flowfex session.',
+            message: 'Syniq skill catalog is only readable from a live Syniq session.',
           },
         });
       }
@@ -688,7 +688,7 @@ export class FlowfexServer {
         return this._writeJson(response, 401, {
           error: {
             code: 'skills_catalog_requires_session',
-            message: 'Flowfex skill catalog is only searchable from a live Flowfex session.',
+            message: 'Syniq skill catalog is only searchable from a live Syniq session.',
           },
         });
       }
@@ -850,11 +850,11 @@ export class FlowfexServer {
   }
 
   _extractApiKey(request) {
-    return request.headers['x-flowfex-api-key'] || null;
+    return request.headers['x-syniq-api-key'] || null;
   }
 
   _extractAnonymousSessionToken(request) {
-    const headerValue = request.headers['x-flowfex-anonymous-token'];
+    const headerValue = request.headers['x-syniq-anonymous-token'];
     if (typeof headerValue === 'string' && headerValue.trim().length > 0) {
       return headerValue.trim();
     }
@@ -999,7 +999,7 @@ export class FlowfexServer {
   }
 
   /**
-   * Anonymous free-tier quota applies only when the agent calls Flowfex using
+   * Anonymous free-tier quota applies only when the agent calls Syniq using
    * the live attach token (`ffx_...`). Browser catalog loads use Better Auth
    * JWT or anonymous cookies and do not increment usage.
    */
@@ -1042,8 +1042,8 @@ export class FlowfexServer {
     }
 
     // Anonymous browser sessions are allowed if they carry the per-device
-    // Flowfex token. The token is generated by /api/session/create-anonymous
-    // and stored locally — scrapers without a real Flowfex session cannot
+    // Syniq token. The token is generated by /api/session/create-anonymous
+    // and stored locally — scrapers without a real Syniq session cannot
     // bulk-download the catalog.
     if (anonymousToken && this.anonymousSessionService) {
       try {
@@ -1089,7 +1089,7 @@ export class FlowfexServer {
       return true;
     }
 
-    const attachHeader = request.headers['x-flowfex-agent-attach'];
+    const attachHeader = request.headers['x-syniq-agent-attach'];
     const normalized = Array.isArray(attachHeader) ? attachHeader[0] : attachHeader;
     return /^(1|true|yes)$/i.test(String(normalized || '').trim());
   }
@@ -1141,8 +1141,8 @@ export class FlowfexServer {
 
     const normalizedTask = task.replace(/\r\n/g, '\n');
     const patterns = [
-      /^\s*\[\[\s*FLOWFEX_SESSION_TOKEN\s*:\s*(ffx_[a-f0-9]+)\s*\]\]\s*\n?([\s\S]*)$/i,
-      /^\s*FLOWFEX_SESSION_TOKEN\s*:\s*(ffx_[a-f0-9]+)\s*\n+([\s\S]*)$/i,
+      /^\s*\[\[\s*SYNIQ_SESSION_TOKEN\s*:\s*(ffx_[a-f0-9]+)\s*\]\]\s*\n?([\s\S]*)$/i,
+      /^\s*SYNIQ_SESSION_TOKEN\s*:\s*(ffx_[a-f0-9]+)\s*\n+([\s\S]*)$/i,
     ];
 
     for (const pattern of patterns) {
@@ -1336,7 +1336,7 @@ export class FlowfexServer {
     } else {
       response.setHeader(
         'Access-Control-Allow-Headers',
-        'Content-Type, Authorization, X-Flowfex-Api-Key, X-Flowfex-Anonymous-Token, X-Flowfex-Agent-Attach'
+        'Content-Type, Authorization, X-Syniq-Api-Key, X-Syniq-Anonymous-Token, X-Syniq-Agent-Attach'
       );
     }
   }
@@ -1356,7 +1356,7 @@ export class FlowfexServer {
   }
 
   _buildBaseUrl(request) {
-    const configuredOrigin = process.env.BETTER_AUTH_URL || process.env.FLOWFEX_PUBLIC_ORIGIN || this.connectionService?.publicBaseUrl || null;
+    const configuredOrigin = process.env.BETTER_AUTH_URL || process.env.SYNIQ_PUBLIC_ORIGIN || this.connectionService?.publicBaseUrl || null;
     if (configuredOrigin) {
       return configuredOrigin.replace(/\/+$/, '');
     }
@@ -1376,7 +1376,7 @@ export class FlowfexServer {
       await this._listen(port, host);
     } catch (error) {
       if (this._shouldRetryListen(error, host)) {
-        console.warn(`[Flowfex] Retrying server bind on 0.0.0.0 after ${host} failed with ${error.code}`);
+        console.warn(`[Syniq] Retrying server bind on 0.0.0.0 after ${host} failed with ${error.code}`);
         await this._listen(port, '0.0.0.0');
         return;
       }
@@ -1456,7 +1456,7 @@ export class FlowfexServer {
   }
 }
 
-export const defaultFlowfexServer = new FlowfexServer();
+export const defaultSyniqServer = new SyniqServer();
 
 function createHttpError(message, statusCode) {
   const error = new Error(message);

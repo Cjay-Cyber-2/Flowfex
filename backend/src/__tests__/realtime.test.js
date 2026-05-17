@@ -1,5 +1,5 @@
 /**
- * Real-Time Integration Tests for Flowfex
+ * Real-Time Integration Tests for Syniq
  *
  * Tests WebSocket communication, control API endpoints,
  * GraphBuilder, and Socket.io event bridging.
@@ -13,8 +13,8 @@ import { resetSocketServer } from '../ws/server.js';
 resetSocketServer();
 
 import {
-  FlowfexServer,
-  FlowfexSocketServer,
+  SyniqServer,
+  SyniqSocketServer,
   initSocketServer,
   ToolRegistry,
   Tool,
@@ -188,7 +188,7 @@ section('2. WebSocket Server & Control API');
 let testServer;
 let testPort;
 
-await test('FlowfexServer starts with Socket.io attached', async () => {
+await test('SyniqServer starts with Socket.io attached', async () => {
   const registry = new ToolRegistry();
   const summarizer = new Tool({
     id: 'rt.summarizer',
@@ -203,7 +203,7 @@ await test('FlowfexServer starts with Socket.io attached', async () => {
   const sessionManager = new SessionManager();
   const connectionService = new ConnectionService({ registry, orchestrator, sessionManager });
 
-  testServer = new FlowfexServer({
+  testServer = new SyniqServer({
     host: '127.0.0.1',
     port: 0, // Random port
     connectionService,
@@ -347,7 +347,7 @@ await test('SDK/live attach emits agent:connected only after the verified attach
     null,
     {
       Authorization: `Bearer ${sessionToken}`,
-      'X-Flowfex-Agent-Attach': '1',
+      'X-Syniq-Agent-Attach': '1',
     }
   );
 

@@ -1,7 +1,7 @@
 import { spawnSync } from 'child_process';
 import fs from 'fs';
 
-const runnerPath = 'c:/Users/chiji/Documents/Flowfex/backend/src/orchestration-engine/ExecutionRunner.js';
+const runnerPath = 'c:/Users/chiji/Documents/Syniq/backend/src/orchestration-engine/ExecutionRunner.js';
 let content = fs.readFileSync(runnerPath, 'utf8');
 
 // Insert a log before breaking the loop

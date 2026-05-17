@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { execSync } from 'child_process';
 
-const testPath = 'c:/Users/chiji/Documents/Flowfex/backend/src/__tests__/orchestration-engine.test.js';
+const testPath = 'c:/Users/chiji/Documents/Syniq/backend/src/__tests__/orchestration-engine.test.js';
 
 console.log('Restoring test file...');
 execSync(`git checkout -- "${testPath}"`);

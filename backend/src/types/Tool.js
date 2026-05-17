@@ -1,7 +1,7 @@
 /**
  * Tool Interface Definition
  * 
- * Every tool in Flowfex must conform to this interface.
+ * Every tool in Syniq must conform to this interface.
  * This provides a contract for the orchestration engine.
  */
 

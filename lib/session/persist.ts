@@ -1,25 +1,25 @@
 import type {
-  FlowfexConnectedAgent,
-  FlowfexGraphState,
-  FlowfexPersistedSessionStatus,
-  FlowfexSessionStatus,
+  SyniqConnectedAgent,
+  SyniqGraphState,
+  SyniqPersistedSessionStatus,
+  SyniqSessionStatus,
 } from '../../packages/types/graph';
 
 export interface PersistedGraphStatePayload {
   readonly sessionId: string;
-  readonly graphState: FlowfexGraphState;
+  readonly graphState: SyniqGraphState;
   readonly executionPointer: string | null;
-  readonly connectedAgents: readonly FlowfexConnectedAgent[];
+  readonly connectedAgents: readonly SyniqConnectedAgent[];
   readonly constraints: readonly string[];
-  readonly mode: FlowfexGraphState['mode'];
-  readonly status: FlowfexPersistedSessionStatus;
-  readonly snapshot: FlowfexGraphState;
+  readonly mode: SyniqGraphState['mode'];
+  readonly status: SyniqPersistedSessionStatus;
+  readonly snapshot: SyniqGraphState;
 }
 
 export type PersistSessionWriter = (payload: PersistedGraphStatePayload) => Promise<void>;
 
 export interface SessionPersistor {
-  schedule(graphState: FlowfexGraphState): void;
+  schedule(graphState: SyniqGraphState): void;
   flush(): Promise<void>;
   startHeartbeat(): void;
   stopHeartbeat(): void;
@@ -33,7 +33,7 @@ export interface SessionPersistorOptions {
   readonly write: PersistSessionWriter;
 }
 
-function toPersistedStatus(status: FlowfexSessionStatus | undefined): FlowfexPersistedSessionStatus {
+function toPersistedStatus(status: SyniqSessionStatus | undefined): SyniqPersistedSessionStatus {
   switch (status) {
     case 'paused':
       return 'paused';
@@ -46,11 +46,11 @@ function toPersistedStatus(status: FlowfexSessionStatus | undefined): FlowfexPer
   }
 }
 
-export function serializeGraphState(graphState: FlowfexGraphState): FlowfexGraphState {
-  return JSON.parse(JSON.stringify(graphState)) as FlowfexGraphState;
+export function serializeGraphState(graphState: SyniqGraphState): SyniqGraphState {
+  return JSON.parse(JSON.stringify(graphState)) as SyniqGraphState;
 }
 
-function buildPayload(sessionId: string, graphState: FlowfexGraphState): PersistedGraphStatePayload {
+function buildPayload(sessionId: string, graphState: SyniqGraphState): PersistedGraphStatePayload {
   const snapshot = serializeGraphState(graphState);
 
   return {
@@ -68,7 +68,7 @@ function buildPayload(sessionId: string, graphState: FlowfexGraphState): Persist
 export function createSessionPersistor(options: SessionPersistorOptions): SessionPersistor {
   const debounceMs = options.debounceMs ?? 500;
   const heartbeatMs = options.heartbeatMs ?? 10_000;
-  let pendingGraphState: FlowfexGraphState | null = null;
+  let pendingGraphState: SyniqGraphState | null = null;
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
   let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
 

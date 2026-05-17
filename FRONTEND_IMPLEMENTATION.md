@@ -1,8 +1,8 @@
-# Flowfex Frontend Implementation Summary
+# Syniq Frontend Implementation Summary
 
 ## 🎯 Overview
 
-A complete, production-ready frontend implementation for Flowfex following the comprehensive UI/UX master prompt. This is a premium visual AI orchestration platform with a distinctive design language built on historically rare colors and sophisticated animations.
+A complete, production-ready frontend implementation for Syniq following the comprehensive UI/UX master prompt. This is a premium visual AI orchestration platform with a distinctive design language built on historically rare colors and sophisticated animations.
 
 ## ✅ What Has Been Built
 
@@ -76,7 +76,7 @@ A complete, production-ready frontend implementation for Flowfex following the c
 ### 4. Layout Components
 
 #### TopBar ✅
-- Flowfex wordmark with navigation
+- Syniq wordmark with navigation
 - Session name display (editable)
 - Mode toggle (Map/Flow/Live) with active state
 - Connect Agent button
@@ -436,7 +436,7 @@ Easy to extend:
 
 The implementation maintains the core philosophy:
 
-> "Flowfex is not a workflow builder, not a node editor, not a dashboard, and not a chatbot. It is a live intelligent control surface — the visual layer between the user and any agent environment."
+> "Syniq is not a workflow builder, not a node editor, not a dashboard, and not a chatbot. It is a live intelligent control surface — the visual layer between the user and any agent environment."
 
 Every design decision is traceable to:
 - **Visible intelligence** - Canvas shows every step
@@ -460,11 +460,11 @@ The interface feels like a living intelligent instrument. Users can watch the sy
 
 ## 🎉 Result
 
-A stunning, production-ready frontend that brings the Flowfex vision to life with:
+A stunning, production-ready frontend that brings the Syniq vision to life with:
 - A unique visual identity unlike any other AI tool
 - Smooth, meaningful animations that encode information
 - An intuitive interface that makes AI orchestration visible
 - Premium feel with attention to every detail
 - Solid technical foundation for future growth
 
-The frontend is ready to connect to the backend and deliver the complete Flowfex experience.
+The frontend is ready to connect to the backend and deliver the complete Syniq experience.

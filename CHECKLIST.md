@@ -1,4 +1,4 @@
-# ✅ Flowfex Frontend - Production Checklist
+# ✅ Syniq Frontend - Production Checklist
 
 ## 🎯 Quick Status: 75% Complete - MVP Ready ✅
 

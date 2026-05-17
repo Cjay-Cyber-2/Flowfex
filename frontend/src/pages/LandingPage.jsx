@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { ArrowRight, ChevronRight, Network, Play, ShieldCheck, Sparkles, Workflow } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import FlowfexLogoNew from '../components/FlowfexLogoNew';
+import SyniqLogoNew from '../components/SyniqLogoNew';
 import { useSessionContext } from '../context/SessionContext';
 import HeroOrchestrationScene from '../components/animations/HeroOrchestrationScene';
 import FlowIcon from '../components/common/FlowIcon';
@@ -333,13 +333,13 @@ function LandingPage() {
       {
         label: 'Skill records',
         value: formatCatalogCount(catalogStats.skillsIndexed),
-        detail: 'Live markdown skill records indexed into Flowfex for search, validation, and routing.',
+        detail: 'Live markdown skill records indexed into Syn-IQ for search, validation, and routing.',
         icon: Sparkles,
       },
       {
         label: 'Agent templates',
         value: formatCatalogCount(catalogStats.agentTemplates),
-        detail: 'Single-agent templates Flowfex can surface across research, workflow, app, and voice use cases.',
+        detail: 'Single-agent templates Syn-IQ can surface across research, workflow, app, and voice use cases.',
         icon: Network,
       },
       {
@@ -356,7 +356,7 @@ function LandingPage() {
       {
         label: 'Skills',
         value: formatCatalogCount(catalogStats.skillsIndexed),
-        detail: 'Real skill records currently available to the Flowfex routing layer.',
+        detail: 'Real skill records currently available to the Syn-IQ routing layer.',
       },
       {
         label: 'Agents',
@@ -449,7 +449,7 @@ function LandingPage() {
         if (accessToken) {
           headers.Authorization = `Bearer ${accessToken}`;
         } else if (session?.anonymousToken) {
-          headers['X-Flowfex-Anonymous-Token'] = session.anonymousToken;
+          headers['X-Syniq-Anonymous-Token'] = session.anonymousToken;
         }
         const response = await fetch(`${backendUrl}/skills`, {
           headers,
@@ -469,7 +469,7 @@ function LandingPage() {
 
     // Wait for SessionContext to bootstrap the anonymous token so the
     // skill catalog endpoint accepts the request (it is gated to live
-    // Flowfex sessions to stop bulk scraping).
+    // Syn-IQ sessions to stop bulk scraping).
     if (backendUrl && sessionReady) {
       loadCatalogStats();
     }
@@ -485,7 +485,7 @@ function LandingPage() {
 
       <nav className="landing-nav">
         <button className="landing-nav-brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <FlowfexLogoNew size={32} animated={false} />
+          <SyniqLogoNew size={32} animated={false} />
         </button>
 
         <div className="landing-nav-links">
@@ -537,12 +537,12 @@ function LandingPage() {
         className="landing-section statement-section"
       >
         <p className="statement-kicker">
-          What Flowfex does
+          What Syn-IQ does
         </p>
-        <div className="statement-animation-wrap" aria-label="Flowfex live catalog coverage">
+        <div className="statement-animation-wrap" aria-label="Syniq live catalog coverage">
           <ParticleTextEffect words={particleWords} />
         </div>
-        <div className="statement-metrics" aria-label="Flowfex catalog facts">
+        <div className="statement-metrics" aria-label="Syniq catalog facts">
           {statementMetrics.map(({ label, value, detail, icon: Icon }) => (
             <article key={label} className="statement-metric">
               <span className="statement-metric-icon">
@@ -562,7 +562,7 @@ function LandingPage() {
           <h2>Agents need one shared place to pull the right resources.</h2>
           <p>
             Teams already have useful tools, skills, prompts, and workflows, but they live in different places.
-            Flowfex gives every agent one bridge into that resource layer and one live view for the user.
+            Syn-IQ gives every agent one bridge into that resource layer and one live view for the user.
           </p>
 
           <div className="problem-card-list">
@@ -601,10 +601,10 @@ function LandingPage() {
 
       <section id="reveal" data-section-id="reveal" className="landing-section reveal-section">
         <div className="section-copy">
-          <span className="section-kicker">What Flowfex does</span>
-          <h2>Flowfex sits between the agent and the resource layer.</h2>
+          <span className="section-kicker">What Syn-IQ does</span>
+          <h2>Syn-IQ sits between the agent and the resource layer.</h2>
           <p>
-            The agent connects once. Flowfex reads the task, picks the right skills and tools, builds the flow,
+            The agent connects once. Syn-IQ reads the task, picks the right skills and tools, builds the flow,
             and streams each step back to the dashboard and the calling agent.
           </p>
         </div>
@@ -615,7 +615,7 @@ function LandingPage() {
             <span className="section-kicker">Live bridge session</span>
             <h3>Connect. Pull. Guide. Return.</h3>
             <p>
-              Flowfex does not replace the agent. It gives the agent a better resource layer and gives the user
+              Syn-IQ does not replace the agent. It gives the agent a better resource layer and gives the user
               one live place to supervise the run.
             </p>
             <ul>
@@ -665,7 +665,7 @@ function LandingPage() {
               <ShieldCheck size={18} />
             </span>
             <h3>Connect anything</h3>
-            <p>Prompt, link, SDK, or live channel. Attach the agent and Flowfex becomes the shared control surface.</p>
+            <p>Prompt, link, SDK, or live channel. Attach the agent and Syn-IQ becomes the shared control surface.</p>
           </article>
         </div>
       </section>
@@ -680,7 +680,7 @@ function LandingPage() {
               <span className="section-kicker">Product preview</span>
               <h2 style={{ marginBottom: '0.75rem', fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)' }}>The dashboard shows what connected, what was pulled, and where the flow is going.</h2>
               <p style={{ maxWidth: '800px', margin: '0 auto' }}>
-                Flowfex is not a static graph mock. The main app is a live control surface with sessions, a graph
+                Syn-IQ is not a static graph mock. The main app is a live control surface with sessions, a graph
                 canvas, and clear places where the user can step in.
               </p>
             </div>
@@ -734,7 +734,7 @@ function LandingPage() {
             Give <span className="final-headline-highlight">every agent</span> one place to pull the right tools and skills.
           </h2>
           <p>
-            Start a session, connect an agent, and let Flowfex turn scattered resources into a live flow you can understand and steer.
+            Start a session, connect an agent, and let Syn-IQ turn scattered resources into a live flow you can understand and steer.
           </p>
           <div className="final-actions">
             <button className="btn btn-primary final-cta-enhanced" onClick={() => navigate('/app')}>

@@ -1,10 +1,10 @@
 import type {
-  FlowfexApiKeyGenerationResponse,
-  FlowfexApiKeyListResponse,
-  FlowfexApiKeyRevokeResponse,
+  SyniqApiKeyGenerationResponse,
+  SyniqApiKeyListResponse,
+  SyniqApiKeyRevokeResponse,
 } from '../../packages/types/session';
 
-export interface FlowfexApiKeyRequestOptions {
+export interface SyniqApiKeyRequestOptions {
   readonly apiBaseUrl?: string;
   readonly fetchImpl?: typeof fetch;
 }
@@ -34,7 +34,7 @@ async function requestJson<T>(
   pathname: string,
   accessToken: string,
   init: RequestInit,
-  options: FlowfexApiKeyRequestOptions
+  options: SyniqApiKeyRequestOptions
 ): Promise<T> {
   const response = await getDefaultFetch(options.fetchImpl)(buildApiUrl(pathname, options.apiBaseUrl), {
     credentials: 'include',
@@ -48,7 +48,7 @@ async function requestJson<T>(
 
   if (!response.ok) {
     const message = await response.text();
-    throw new Error(message || `Flowfex API key request failed with ${response.status}.`);
+    throw new Error(message || `Syniq API key request failed with ${response.status}.`);
   }
 
   return response.json() as Promise<T>;
@@ -56,9 +56,9 @@ async function requestJson<T>(
 
 export async function listApiKeys(
   accessToken: string,
-  options: FlowfexApiKeyRequestOptions = {}
-): Promise<FlowfexApiKeyListResponse> {
-  return requestJson<FlowfexApiKeyListResponse>(
+  options: SyniqApiKeyRequestOptions = {}
+): Promise<SyniqApiKeyListResponse> {
+  return requestJson<SyniqApiKeyListResponse>(
     '/api/api-keys',
     accessToken,
     {
@@ -71,14 +71,14 @@ export async function listApiKeys(
 export async function generateApiKey(
   accessToken: string,
   label: string,
-  options: FlowfexApiKeyRequestOptions = {}
-): Promise<FlowfexApiKeyGenerationResponse> {
+  options: SyniqApiKeyRequestOptions = {}
+): Promise<SyniqApiKeyGenerationResponse> {
   const normalizedLabel = label.trim();
   if (!normalizedLabel) {
     throw new Error('API key label is required.');
   }
 
-  return requestJson<FlowfexApiKeyGenerationResponse>(
+  return requestJson<SyniqApiKeyGenerationResponse>(
     '/api/api-keys',
     accessToken,
     {
@@ -94,9 +94,9 @@ export async function generateApiKey(
 export async function revokeApiKey(
   accessToken: string,
   keyId: string,
-  options: FlowfexApiKeyRequestOptions = {}
-): Promise<FlowfexApiKeyRevokeResponse> {
-  return requestJson<FlowfexApiKeyRevokeResponse>(
+  options: SyniqApiKeyRequestOptions = {}
+): Promise<SyniqApiKeyRevokeResponse> {
+  return requestJson<SyniqApiKeyRevokeResponse>(
     `/api/api-keys/${encodeURIComponent(keyId)}`,
     accessToken,
     {

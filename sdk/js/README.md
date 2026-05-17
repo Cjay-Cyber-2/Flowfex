@@ -1,19 +1,19 @@
-# Flowfex JavaScript SDK
+# Syniq JavaScript SDK
 
-Connect AI agents to the Flowfex orchestration platform.
+Connect AI agents to the Syniq orchestration platform.
 
 ## Installation
 
 ```bash
-npm install flowfex
+npm install syniq
 ```
 
 ## Quick Start
 
 ```javascript
-import { FlowfexClient } from 'flowfex';
+import { SyniqClient } from 'syniq';
 
-const client = new FlowfexClient('http://localhost:4000');
+const client = new SyniqClient('http://localhost:4000');
 
 // Connect your agent
 const session = await client.connect(
@@ -43,7 +43,7 @@ client.disconnect();
 
 ### `connect(agent, options)`
 
-Create a session and connect to Flowfex.
+Create a session and connect to Syniq.
 
 | Option | Type | Description |
 |--------|------|-------------|

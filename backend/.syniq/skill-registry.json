@@ -104,7 +104,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/advanced-ai-agents/consultant.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/advanced-ai-agents/consultant.md"
     },
     {
       "id": "skill.advanced-ai-agents.deep-research",
@@ -132,7 +132,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/advanced-ai-agents/deep-research.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/advanced-ai-agents/deep-research.md"
     },
     {
       "id": "skill.advanced-ai-agents.financial-coach",
@@ -160,7 +160,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/advanced-ai-agents/financial-coach.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/advanced-ai-agents/financial-coach.md"
     },
     {
       "id": "skill.advanced-ai-agents.fraud-investigation",
@@ -189,7 +189,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/advanced-ai-agents/fraud-investigation.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/advanced-ai-agents/fraud-investigation.md"
     },
     {
       "id": "skill.advanced-ai-agents.health-fitness",
@@ -217,7 +217,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/advanced-ai-agents/health-fitness.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/advanced-ai-agents/health-fitness.md"
     },
     {
       "id": "skill.advanced-ai-agents.investment",
@@ -245,7 +245,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/advanced-ai-agents/investment.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/advanced-ai-agents/investment.md"
     },
     {
       "id": "skill.advanced-ai-agents.journalist",
@@ -273,7 +273,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/advanced-ai-agents/journalist.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/advanced-ai-agents/journalist.md"
     },
     {
       "id": "skill.advanced-ai-agents.meeting-agent",
@@ -302,7 +302,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/advanced-ai-agents/meeting-agent.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/advanced-ai-agents/meeting-agent.md"
     },
     {
       "id": "skill.advanced-ai-agents.mental-wellbeing",
@@ -332,7 +332,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/advanced-ai-agents/mental-wellbeing.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/advanced-ai-agents/mental-wellbeing.md"
     },
     {
       "id": "skill.advanced-ai-agents.product-launch",
@@ -361,7 +361,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/advanced-ai-agents/product-launch.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/advanced-ai-agents/product-launch.md"
     },
     {
       "id": "skill.advanced-ai-agents.sales-intelligence",
@@ -391,7 +391,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/advanced-ai-agents/sales-intelligence.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/advanced-ai-agents/sales-intelligence.md"
     },
     {
       "id": "skill.advanced-ai-agents.self-evolving",
@@ -422,7 +422,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/advanced-ai-agents/self-evolving.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/advanced-ai-agents/self-evolving.md"
     },
     {
       "id": "skill.advanced-ai-agents.social-media-podcast",
@@ -452,7 +452,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/advanced-ai-agents/social-media-podcast.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/advanced-ai-agents/social-media-podcast.md"
     },
     {
       "id": "skill.advanced-ai-agents.system-architect",
@@ -484,7 +484,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/advanced-ai-agents/system-architect.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/advanced-ai-agents/system-architect.md"
     },
     {
       "id": "skill.advanced-ai-agents.trust-gated-research",
@@ -513,7 +513,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/advanced-ai-agents/trust-gated-research.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/advanced-ai-agents/trust-gated-research.md"
     },
     {
       "id": "skill.advanced-ai-agents.vc-due-diligence",
@@ -545,7 +545,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/advanced-ai-agents/vc-due-diligence.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/advanced-ai-agents/vc-due-diligence.md"
     },
     {
       "id": "skill.agent-skills.api-integration",
@@ -574,7 +574,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/agent-skills/api-integration.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/agent-skills/api-integration.md"
     },
     {
       "id": "skill.agent-skills.code-review",
@@ -603,7 +603,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/agent-skills/code-review.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/agent-skills/code-review.md"
     },
     {
       "id": "skill.agent-skills.content-creator",
@@ -634,7 +634,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/agent-skills/content-creator.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/agent-skills/content-creator.md"
     },
     {
       "id": "skill.agent-skills.data-pipeline",
@@ -664,7 +664,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/agent-skills/data-pipeline.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/agent-skills/data-pipeline.md"
     },
     {
       "id": "skill.agent-skills.devops-agent",
@@ -693,7 +693,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/agent-skills/devops-agent.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/agent-skills/devops-agent.md"
     },
     {
       "id": "skill.agent-skills.documentation-writer",
@@ -724,7 +724,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/agent-skills/documentation-writer.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/agent-skills/documentation-writer.md"
     },
     {
       "id": "skill.agent-skills.image-analyzer",
@@ -755,7 +755,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/agent-skills/image-analyzer.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/agent-skills/image-analyzer.md"
     },
     {
       "id": "skill.agent-skills.prompt-optimizer",
@@ -785,7 +785,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/agent-skills/prompt-optimizer.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/agent-skills/prompt-optimizer.md"
     },
     {
       "id": "skill.agent-skills.security-auditor",
@@ -814,7 +814,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/agent-skills/security-auditor.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/agent-skills/security-auditor.md"
     },
     {
       "id": "skill.agent-skills.self-improving",
@@ -847,7 +847,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/agent-skills/self-improving.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/agent-skills/self-improving.md"
     },
     {
       "id": "skill.agent-skills.sql-agent",
@@ -879,7 +879,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/agent-skills/sql-agent.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/agent-skills/sql-agent.md"
     },
     {
       "id": "skill.agent-skills.test-generator",
@@ -911,7 +911,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/agent-skills/test-generator.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/agent-skills/test-generator.md"
     },
     {
       "id": "skill.agent-skills.translation-agent",
@@ -942,7 +942,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/agent-skills/translation-agent.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/agent-skills/translation-agent.md"
     },
     {
       "id": "skill.agent-skills.workflow-automator",
@@ -973,7 +973,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/agent-skills/workflow-automator.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/agent-skills/workflow-automator.md"
     },
     {
       "id": "skill.chat-with-x.chat-github",
@@ -1001,7 +1001,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/chat-with-x/chat-github.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/chat-with-x/chat-github.md"
     },
     {
       "id": "skill.chat-with-x.chat-gmail",
@@ -1030,7 +1030,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/chat-with-x/chat-gmail.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/chat-with-x/chat-gmail.md"
     },
     {
       "id": "skill.chat-with-x.chat-pdf",
@@ -1058,7 +1058,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/chat-with-x/chat-pdf.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/chat-with-x/chat-pdf.md"
     },
     {
       "id": "skill.chat-with-x.chat-research-papers",
@@ -1084,7 +1084,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/chat-with-x/chat-research-papers.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/chat-with-x/chat-research-papers.md"
     },
     {
       "id": "skill.chat-with-x.chat-substack",
@@ -1111,7 +1111,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/chat-with-x/chat-substack.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/chat-with-x/chat-substack.md"
     },
     {
       "id": "skill.chat-with-x.chat-youtube",
@@ -1137,7 +1137,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/chat-with-x/chat-youtube.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/chat-with-x/chat-youtube.md"
     },
     {
       "id": "skill.agents.code-review-agent",
@@ -1162,7 +1162,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/examples/agents/code-review-agent.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/examples/agents/code-review-agent.md"
     },
     {
       "id": "skill.commands.release-coordinator",
@@ -1189,7 +1189,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/examples/before/commands/release-coordinator.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/examples/before/commands/release-coordinator.md"
     },
     {
       "id": "skill.product-planner",
@@ -1217,7 +1217,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/examples/before/product-planner.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/examples/before/product-planner.md"
     },
     {
       "id": "skill.commands.release-check",
@@ -1244,7 +1244,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/examples/commands/release-check.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/examples/commands/release-check.md"
     },
     {
       "id": "skill.frontend-review",
@@ -1269,7 +1269,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/examples/frontend-review.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/examples/frontend-review.md"
     },
     {
       "id": "skill.framework-tutorials.ag2",
@@ -1298,7 +1298,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/framework-tutorials/ag2.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/framework-tutorials/ag2.md"
     },
     {
       "id": "skill.framework-tutorials.crewai",
@@ -1329,7 +1329,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/framework-tutorials/crewai.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/framework-tutorials/crewai.md"
     },
     {
       "id": "skill.framework-tutorials.langchain",
@@ -1360,7 +1360,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/framework-tutorials/langchain.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/framework-tutorials/langchain.md"
     },
     {
       "id": "skill.framework-tutorials.phidata",
@@ -1392,7 +1392,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/framework-tutorials/phidata.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/framework-tutorials/phidata.md"
     },
     {
       "id": "skill.framework-tutorials.pydantic-ai",
@@ -1424,7 +1424,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/framework-tutorials/pydantic-ai.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/framework-tutorials/pydantic-ai.md"
     },
     {
       "id": "skill.game-agents.chess-agent",
@@ -1452,7 +1452,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/game-agents/chess-agent.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/game-agents/chess-agent.md"
     },
     {
       "id": "skill.game-agents.pygame-3d",
@@ -1482,7 +1482,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/game-agents/pygame-3d.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/game-agents/pygame-3d.md"
     },
     {
       "id": "skill.game-agents.tic-tac-toe",
@@ -1510,7 +1510,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/game-agents/tic-tac-toe.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/game-agents/tic-tac-toe.md"
     },
     {
       "id": "skill.llm-finetuning.gemma3",
@@ -1539,7 +1539,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/llm-finetuning/gemma3.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/llm-finetuning/gemma3.md"
     },
     {
       "id": "skill.llm-finetuning.llama32",
@@ -1568,7 +1568,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/llm-finetuning/llama32.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/llm-finetuning/llama32.md"
     },
     {
       "id": "skill.llm-memory.arxiv-memory",
@@ -1596,7 +1596,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/llm-memory/arxiv-memory.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/llm-memory/arxiv-memory.md"
     },
     {
       "id": "skill.llm-memory.llama-stateful-chat",
@@ -1624,7 +1624,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/llm-memory/llama-stateful-chat.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/llm-memory/llama-stateful-chat.md"
     },
     {
       "id": "skill.llm-memory.local-chatgpt-memory",
@@ -1654,7 +1654,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/llm-memory/local-chatgpt-memory.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/llm-memory/local-chatgpt-memory.md"
     },
     {
       "id": "skill.llm-memory.multi-llm-shared-memory",
@@ -1684,7 +1684,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/llm-memory/multi-llm-shared-memory.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/llm-memory/multi-llm-shared-memory.md"
     },
     {
       "id": "skill.llm-memory.personalized-memory",
@@ -1714,7 +1714,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/llm-memory/personalized-memory.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/llm-memory/personalized-memory.md"
     },
     {
       "id": "skill.llm-memory.travel-memory",
@@ -1741,7 +1741,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/llm-memory/travel-memory.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/llm-memory/travel-memory.md"
     },
     {
       "id": "skill.llm-optimization.headroom",
@@ -1769,7 +1769,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/llm-optimization/headroom.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/llm-optimization/headroom.md"
     },
     {
       "id": "skill.llm-optimization.toonify",
@@ -1800,7 +1800,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/llm-optimization/toonify.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/llm-optimization/toonify.md"
     },
     {
       "id": "skill.mcp-ai-agents.browser-mcp",
@@ -1827,7 +1827,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/mcp-ai-agents/browser-mcp.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/mcp-ai-agents/browser-mcp.md"
     },
     {
       "id": "skill.mcp-ai-agents.github-mcp",
@@ -1855,7 +1855,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/mcp-ai-agents/github-mcp.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/mcp-ai-agents/github-mcp.md"
     },
     {
       "id": "skill.mcp-ai-agents.multi-mcp-router",
@@ -1885,7 +1885,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/mcp-ai-agents/multi-mcp-router.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/mcp-ai-agents/multi-mcp-router.md"
     },
     {
       "id": "skill.mcp-ai-agents.notion-mcp",
@@ -1913,7 +1913,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/mcp-ai-agents/notion-mcp.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/mcp-ai-agents/notion-mcp.md"
     },
     {
       "id": "skill.mcp-ai-agents.travel-planner-mcp",
@@ -1941,7 +1941,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/mcp-ai-agents/travel-planner-mcp.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/mcp-ai-agents/travel-planner-mcp.md"
     },
     {
       "id": "skill.multi-agent-teams.competitor-intelligence",
@@ -1973,7 +1973,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/multi-agent-teams/competitor-intelligence.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/multi-agent-teams/competitor-intelligence.md"
     },
     {
       "id": "skill.multi-agent-teams.design-team",
@@ -2003,7 +2003,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/multi-agent-teams/design-team.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/multi-agent-teams/design-team.md"
     },
     {
       "id": "skill.multi-agent-teams.finance-team",
@@ -2033,7 +2033,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/multi-agent-teams/finance-team.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/multi-agent-teams/finance-team.md"
     },
     {
       "id": "skill.multi-agent-teams.game-design-team",
@@ -2064,7 +2064,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/multi-agent-teams/game-design-team.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/multi-agent-teams/game-design-team.md"
     },
     {
       "id": "skill.multi-agent-teams.legal-team",
@@ -2096,7 +2096,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/multi-agent-teams/legal-team.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/multi-agent-teams/legal-team.md"
     },
     {
       "id": "skill.multi-agent-teams.multimodal-coding-team",
@@ -2125,7 +2125,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/multi-agent-teams/multimodal-coding-team.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/multi-agent-teams/multimodal-coding-team.md"
     },
     {
       "id": "skill.multi-agent-teams.real-estate-team",
@@ -2157,7 +2157,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/multi-agent-teams/real-estate-team.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/multi-agent-teams/real-estate-team.md"
     },
     {
       "id": "skill.multi-agent-teams.recruitment-team",
@@ -2189,7 +2189,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/multi-agent-teams/recruitment-team.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/multi-agent-teams/recruitment-team.md"
     },
     {
       "id": "skill.multi-agent-teams.teaching-team",
@@ -2221,7 +2221,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/multi-agent-teams/teaching-team.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/multi-agent-teams/teaching-team.md"
     },
     {
       "id": "skill.multi-agent-teams.travel-planner",
@@ -2250,7 +2250,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/multi-agent-teams/travel-planner.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/multi-agent-teams/travel-planner.md"
     },
     {
       "id": "skill.rag-tutorials.agentic-rag-reasoning",
@@ -2279,7 +2279,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/rag-tutorials/agentic-rag-reasoning.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/rag-tutorials/agentic-rag-reasoning.md"
     },
     {
       "id": "skill.rag-tutorials.agentic-rag",
@@ -2305,7 +2305,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/rag-tutorials/agentic-rag.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/rag-tutorials/agentic-rag.md"
     },
     {
       "id": "skill.rag-tutorials.autonomous-rag",
@@ -2332,7 +2332,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/rag-tutorials/autonomous-rag.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/rag-tutorials/autonomous-rag.md"
     },
     {
       "id": "skill.rag-tutorials.basic-rag",
@@ -2361,7 +2361,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/rag-tutorials/basic-rag.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/rag-tutorials/basic-rag.md"
     },
     {
       "id": "skill.rag-tutorials.blog-search-rag",
@@ -2389,7 +2389,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/rag-tutorials/blog-search-rag.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/rag-tutorials/blog-search-rag.md"
     },
     {
       "id": "skill.rag-tutorials.contextual-rag",
@@ -2418,7 +2418,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/rag-tutorials/contextual-rag.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/rag-tutorials/contextual-rag.md"
     },
     {
       "id": "skill.rag-tutorials.corrective-rag",
@@ -2446,7 +2446,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/rag-tutorials/corrective-rag.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/rag-tutorials/corrective-rag.md"
     },
     {
       "id": "skill.rag-tutorials.database-routing-rag",
@@ -2474,7 +2474,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/rag-tutorials/database-routing-rag.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/rag-tutorials/database-routing-rag.md"
     },
     {
       "id": "skill.rag-tutorials.deepseek-local-rag",
@@ -2504,7 +2504,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/rag-tutorials/deepseek-local-rag.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/rag-tutorials/deepseek-local-rag.md"
     },
     {
       "id": "skill.rag-tutorials.gemini-agentic-rag",
@@ -2529,7 +2529,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/rag-tutorials/gemini-agentic-rag.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/rag-tutorials/gemini-agentic-rag.md"
     },
     {
       "id": "skill.rag-tutorials.hybrid-search-rag",
@@ -2559,7 +2559,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/rag-tutorials/hybrid-search-rag.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/rag-tutorials/hybrid-search-rag.md"
     },
     {
       "id": "skill.rag-tutorials.knowledge-graph-rag",
@@ -2589,7 +2589,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/rag-tutorials/knowledge-graph-rag.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/rag-tutorials/knowledge-graph-rag.md"
     },
     {
       "id": "skill.rag-tutorials.llama-local-rag",
@@ -2617,7 +2617,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/rag-tutorials/llama-local-rag.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/rag-tutorials/llama-local-rag.md"
     },
     {
       "id": "skill.rag-tutorials.local-hybrid-search",
@@ -2643,7 +2643,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/rag-tutorials/local-hybrid-search.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/rag-tutorials/local-hybrid-search.md"
     },
     {
       "id": "skill.rag-tutorials.local-rag-agent",
@@ -2667,7 +2667,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/rag-tutorials/local-rag-agent.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/rag-tutorials/local-rag-agent.md"
     },
     {
       "id": "skill.rag-tutorials.rag-as-service",
@@ -2694,7 +2694,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/rag-tutorials/rag-as-service.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/rag-tutorials/rag-as-service.md"
     },
     {
       "id": "skill.rag-tutorials.rag-cohere",
@@ -2724,7 +2724,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/rag-tutorials/rag-cohere.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/rag-tutorials/rag-cohere.md"
     },
     {
       "id": "skill.rag-tutorials.rag-diagnostics",
@@ -2754,7 +2754,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/rag-tutorials/rag-diagnostics.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/rag-tutorials/rag-diagnostics.md"
     },
     {
       "id": "skill.rag-tutorials.vision-rag",
@@ -2780,7 +2780,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/rag-tutorials/vision-rag.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/rag-tutorials/vision-rag.md"
     },
     {
       "id": "skill.starter-ai-agents.blog-to-podcast",
@@ -2809,7 +2809,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/starter-ai-agents/blog-to-podcast.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/starter-ai-agents/blog-to-podcast.md"
     },
     {
       "id": "skill.starter-ai-agents.breakup-recovery",
@@ -2838,7 +2838,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/starter-ai-agents/breakup-recovery.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/starter-ai-agents/breakup-recovery.md"
     },
     {
       "id": "skill.starter-ai-agents.data-analysis",
@@ -2868,7 +2868,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/starter-ai-agents/data-analysis.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/starter-ai-agents/data-analysis.md"
     },
     {
       "id": "skill.starter-ai-agents.finance-agent",
@@ -2897,7 +2897,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/starter-ai-agents/finance-agent.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/starter-ai-agents/finance-agent.md"
     },
     {
       "id": "skill.starter-ai-agents.gemini-multimodal",
@@ -2927,7 +2927,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/starter-ai-agents/gemini-multimodal.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/starter-ai-agents/gemini-multimodal.md"
     },
     {
       "id": "skill.starter-ai-agents.medical-imaging",
@@ -2957,7 +2957,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/starter-ai-agents/medical-imaging.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/starter-ai-agents/medical-imaging.md"
     },
     {
       "id": "skill.starter-ai-agents.meme-generator",
@@ -2988,7 +2988,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/starter-ai-agents/meme-generator.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/starter-ai-agents/meme-generator.md"
     },
     {
       "id": "skill.starter-ai-agents.mixture-of-agents",
@@ -3017,7 +3017,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/starter-ai-agents/mixture-of-agents.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/starter-ai-agents/mixture-of-agents.md"
     },
     {
       "id": "skill.starter-ai-agents.music-generator",
@@ -3046,7 +3046,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/starter-ai-agents/music-generator.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/starter-ai-agents/music-generator.md"
     },
     {
       "id": "skill.starter-ai-agents.research-agent",
@@ -3075,7 +3075,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/starter-ai-agents/research-agent.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/starter-ai-agents/research-agent.md"
     },
     {
       "id": "skill.starter-ai-agents.travel-agent",
@@ -3104,7 +3104,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/starter-ai-agents/travel-agent.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/starter-ai-agents/travel-agent.md"
     },
     {
       "id": "skill.starter-ai-agents.web-scraping",
@@ -3134,7 +3134,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/starter-ai-agents/web-scraping.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/starter-ai-agents/web-scraping.md"
     },
     {
       "id": "skill.voice-ai-agents.audio-tour",
@@ -3162,7 +3162,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/voice-ai-agents/audio-tour.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/voice-ai-agents/audio-tour.md"
     },
     {
       "id": "skill.voice-ai-agents.customer-support",
@@ -3190,7 +3190,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/voice-ai-agents/customer-support.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/voice-ai-agents/customer-support.md"
     },
     {
       "id": "skill.voice-ai-agents.voice-dictation",
@@ -3218,7 +3218,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/voice-ai-agents/voice-dictation.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/voice-ai-agents/voice-dictation.md"
     },
     {
       "id": "skill.voice-ai-agents.voice-rag",
@@ -3246,7 +3246,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/skills-md/voice-ai-agents/voice-rag.md"
+      "sourcePath": "/home/gamp/Syniq/skills-md/voice-ai-agents/voice-rag.md"
     },
     {
       "id": "skill.academic-researcher",
@@ -3269,7 +3269,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/academic-researcher/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/academic-researcher/SKILL.md"
     },
     {
       "id": "skill.code-reviewer.agents",
@@ -3298,7 +3298,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/code-reviewer/AGENTS.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/code-reviewer/AGENTS.md"
     },
     {
       "id": "skill.code-reviewer",
@@ -3321,7 +3321,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/code-reviewer/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/code-reviewer/SKILL.md"
     },
     {
       "id": "skill.code-reviewer.rules.correctness-error-handling",
@@ -3355,7 +3355,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/code-reviewer/rules/correctness-error-handling.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/code-reviewer/rules/correctness-error-handling.md"
     },
     {
       "id": "skill.code-reviewer.rules.maintainability-naming",
@@ -3390,7 +3390,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/code-reviewer/rules/maintainability-naming.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/code-reviewer/rules/maintainability-naming.md"
     },
     {
       "id": "skill.code-reviewer.rules.maintainability-type-hints",
@@ -3423,7 +3423,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/code-reviewer/rules/maintainability-type-hints.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/code-reviewer/rules/maintainability-type-hints.md"
     },
     {
       "id": "skill.code-reviewer.rules.performance-n-plus-one",
@@ -3457,7 +3457,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/code-reviewer/rules/performance-n-plus-one.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/code-reviewer/rules/performance-n-plus-one.md"
     },
     {
       "id": "skill.code-reviewer.rules.security-sql-injection",
@@ -3489,7 +3489,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/code-reviewer/rules/security-sql-injection.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/code-reviewer/rules/security-sql-injection.md"
     },
     {
       "id": "skill.code-reviewer.rules.security-xss-prevention",
@@ -3522,7 +3522,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/code-reviewer/rules/security-xss-prevention.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/code-reviewer/rules/security-xss-prevention.md"
     },
     {
       "id": "skill.content-creator",
@@ -3545,7 +3545,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/content-creator/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/content-creator/SKILL.md"
     },
     {
       "id": "skill.data-analyst",
@@ -3567,7 +3567,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/data-analyst/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/data-analyst/SKILL.md"
     },
     {
       "id": "skill.debugger",
@@ -3588,7 +3588,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/debugger/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/debugger/SKILL.md"
     },
     {
       "id": "skill.decision-helper",
@@ -3611,7 +3611,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/decision-helper/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/decision-helper/SKILL.md"
     },
     {
       "id": "skill.deep-research",
@@ -3633,7 +3633,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/deep-research/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/deep-research/SKILL.md"
     },
     {
       "id": "skill.editor",
@@ -3654,7 +3654,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/editor/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/editor/SKILL.md"
     },
     {
       "id": "skill.email-drafter",
@@ -3676,7 +3676,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/email-drafter/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/email-drafter/SKILL.md"
     },
     {
       "id": "skill.fact-checker",
@@ -3699,7 +3699,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/fact-checker/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/fact-checker/SKILL.md"
     },
     {
       "id": "skill.fullstack-developer",
@@ -3723,7 +3723,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/fullstack-developer/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/fullstack-developer/SKILL.md"
     },
     {
       "id": "skill.meeting-notes",
@@ -3746,7 +3746,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/meeting-notes/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/meeting-notes/SKILL.md"
     },
     {
       "id": "skill.project-planner",
@@ -3769,7 +3769,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/project-planner/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/project-planner/SKILL.md"
     },
     {
       "id": "skill.python-expert.agents",
@@ -3799,7 +3799,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/python-expert/AGENTS.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/python-expert/AGENTS.md"
     },
     {
       "id": "skill.python-expert",
@@ -3822,7 +3822,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/python-expert/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/python-expert/SKILL.md"
     },
     {
       "id": "skill.self-improving-agent-skills",
@@ -3851,7 +3851,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/self-improving-agent-skills/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/self-improving-agent-skills/README.md"
     },
     {
       "id": "skill.self-improving-agent-skills.example-skills.code-reviewer",
@@ -3877,7 +3877,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/self-improving-agent-skills/example_skills/code-reviewer/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/self-improving-agent-skills/example_skills/code-reviewer/SKILL.md"
     },
     {
       "id": "skill.self-improving-agent-skills.example-skills.content-writer",
@@ -3905,7 +3905,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/self-improving-agent-skills/example_skills/content-writer/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/self-improving-agent-skills/example_skills/content-writer/SKILL.md"
     },
     {
       "id": "skill.self-improving-agent-skills.example-skills.content-writer.references.style-guide",
@@ -3936,7 +3936,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/self-improving-agent-skills/example_skills/content-writer/references/style-guide.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/self-improving-agent-skills/example_skills/content-writer/references/style-guide.md"
     },
     {
       "id": "skill.sprint-planner",
@@ -3959,7 +3959,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/sprint-planner/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/sprint-planner/SKILL.md"
     },
     {
       "id": "skill.strategy-advisor",
@@ -3982,7 +3982,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/strategy-advisor/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/strategy-advisor/SKILL.md"
     },
     {
       "id": "skill.technical-writer",
@@ -4005,7 +4005,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/technical-writer/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/technical-writer/SKILL.md"
     },
     {
       "id": "skill.ux-designer.agents",
@@ -4036,7 +4036,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/ux-designer/AGENTS.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/ux-designer/AGENTS.md"
     },
     {
       "id": "skill.ux-designer",
@@ -4058,7 +4058,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/ux-designer/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/ux-designer/SKILL.md"
     },
     {
       "id": "skill.ux-designer.rules.accessibility",
@@ -4088,7 +4088,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/ux-designer/rules/accessibility.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/ux-designer/rules/accessibility.md"
     },
     {
       "id": "skill.ux-designer.rules.information-architecture",
@@ -4118,7 +4118,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/ux-designer/rules/information-architecture.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/ux-designer/rules/information-architecture.md"
     },
     {
       "id": "skill.ux-designer.rules.interaction-design",
@@ -4148,7 +4148,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/ux-designer/rules/interaction-design.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/ux-designer/rules/interaction-design.md"
     },
     {
       "id": "skill.ux-designer.rules.research",
@@ -4176,7 +4176,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/ux-designer/rules/research.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/ux-designer/rules/research.md"
     },
     {
       "id": "skill.ux-designer.rules.visual-design",
@@ -4206,7 +4206,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/ux-designer/rules/visual-design.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/ux-designer/rules/visual-design.md"
     },
     {
       "id": "skill.visualization-expert",
@@ -4228,7 +4228,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/awesome_agent_skills/visualization-expert/SKILL.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/awesome_agent_skills/visualization-expert/SKILL.md"
     },
     {
       "id": "skill.advanced-ai-agents.autonomous-game-playing-agent-apps.ai-3dpygame-r1",
@@ -4260,7 +4260,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/autonomous_game_playing_agent_apps/ai_3dpygame_r1/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/autonomous_game_playing_agent_apps/ai_3dpygame_r1/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.autonomous-game-playing-agent-apps.ai-chess-agent",
@@ -4292,7 +4292,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/autonomous_game_playing_agent_apps/ai_chess_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/autonomous_game_playing_agent_apps/ai_chess_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.autonomous-game-playing-agent-apps.ai-tic-tac-toe-agent",
@@ -4329,7 +4329,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/autonomous_game_playing_agent_apps/ai_tic_tac_toe_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/autonomous_game_playing_agent_apps/ai_tic_tac_toe_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.agent-teams.ag2-adaptive-research-team",
@@ -4361,7 +4361,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ag2_adaptive_research_team/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ag2_adaptive_research_team/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.agent-teams.ai-competitor-intelligence-agent-team",
@@ -4395,7 +4395,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_competitor_intelligence_agent_team/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_competitor_intelligence_agent_team/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.agent-teams.ai-finance-agent-team",
@@ -4428,7 +4428,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_finance_agent_team/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_finance_agent_team/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.agent-teams.ai-game-design-agent-team",
@@ -4462,7 +4462,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_game_design_agent_team/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_game_design_agent_team/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.agent-teams.ai-legal-agent-team",
@@ -4497,7 +4497,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_legal_agent_team/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_legal_agent_team/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.agent-teams.ai-legal-agent-team.local-ai-legal-agent-team",
@@ -4522,7 +4522,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_legal_agent_team/local_ai_legal_agent_team/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_legal_agent_team/local_ai_legal_agent_team/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.agent-teams.ai-real-estate-agent-team",
@@ -4557,7 +4557,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_real_estate_agent_team/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_real_estate_agent_team/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.agent-teams.ai-recruitment-agent-team",
@@ -4591,7 +4591,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_recruitment_agent_team/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_recruitment_agent_team/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.agent-teams.ai-sales-intelligence-agent-team",
@@ -4624,7 +4624,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_sales_intelligence_agent_team/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_sales_intelligence_agent_team/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.agent-teams.ai-seo-audit-team",
@@ -4660,7 +4660,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_seo_audit_team/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_seo_audit_team/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.agent-teams.ai-services-agency",
@@ -4694,7 +4694,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_services_agency/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_services_agency/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.agent-teams.ai-teaching-agent-team",
@@ -4730,7 +4730,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_teaching_agent_team/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_teaching_agent_team/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.agent-teams.ai-travel-planner-agent-team",
@@ -4761,7 +4761,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_travel_planner_agent_team/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_travel_planner_agent_team/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.agent-teams.ai-travel-planner-agent-team.backend.agents",
@@ -4794,7 +4794,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_travel_planner_agent_team/backend/agents/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_travel_planner_agent_team/backend/agents/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.agent-teams.ai-travel-planner-agent-team.client",
@@ -4824,7 +4824,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_travel_planner_agent_team/client/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_travel_planner_agent_team/client/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.agent-teams.ai-vc-due-diligence-agent-team",
@@ -4857,7 +4857,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_vc_due_diligence_agent_team/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/ai_vc_due_diligence_agent_team/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.agent-teams.multimodal-coding-agent-team",
@@ -4891,7 +4891,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/multimodal_coding_agent_team/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/multimodal_coding_agent_team/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.agent-teams.multimodal-design-agent-team",
@@ -4927,7 +4927,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/multimodal_design_agent_team/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/multimodal_design_agent_team/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.agent-teams.multimodal-uiux-feedback-agent-team",
@@ -4962,7 +4962,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/multimodal_uiux_feedback_agent_team/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/agent_teams/multimodal_uiux_feedback_agent_team/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.ai-aqi-analysis-agent",
@@ -4994,7 +4994,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_aqi_analysis_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_aqi_analysis_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.ai-domain-deep-research-agent",
@@ -5029,7 +5029,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_domain_deep_research_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_domain_deep_research_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.ai-email-gtm-outreach-agent",
@@ -5062,7 +5062,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_email_gtm_outreach_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_email_gtm_outreach_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.ai-financial-coach-agent",
@@ -5095,7 +5095,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_financial_coach_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_financial_coach_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.ai-home-renovation-agent",
@@ -5129,7 +5129,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_home_renovation_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_home_renovation_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.ai-mental-wellbeing-agent",
@@ -5158,7 +5158,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_mental_wellbeing_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_mental_wellbeing_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.ai-negotiation-battle-simulator",
@@ -5192,7 +5192,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_negotiation_battle_simulator/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_negotiation_battle_simulator/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.ai-news-and-podcast-agents",
@@ -5228,7 +5228,7 @@
       "validationStatus": "review",
       "qualityScore": 80,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_news_and_podcast_agents/readme.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_news_and_podcast_agents/readme.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.ai-news-and-podcast-agents.web",
@@ -5261,7 +5261,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_news_and_podcast_agents/web/readme.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_news_and_podcast_agents/web/readme.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.ai-self-evolving-agent",
@@ -5294,7 +5294,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_self_evolving_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_self_evolving_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.ai-speech-trainer-agent",
@@ -5325,7 +5325,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_speech_trainer_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/ai_speech_trainer_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.devpulse-ai",
@@ -5363,7 +5363,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/devpulse_ai/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/devpulse_ai/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.multi-agent-researcher",
@@ -5395,7 +5395,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/multi_agent_researcher/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/multi_agent_researcher/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.multi-agent-trust-layer",
@@ -5428,7 +5428,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/multi_agent_trust_layer/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/multi_agent_trust_layer/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.product-launch-intelligence-agent",
@@ -5462,7 +5462,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/product_launch_intelligence_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/product_launch_intelligence_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.multi-agent-apps.trust-gated-agent-team",
@@ -5495,7 +5495,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/trust_gated_agent_team/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/multi_agent_apps/trust_gated_agent_team/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.ai-agent-governance",
@@ -5529,7 +5529,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_agent_governance/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_agent_governance/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.ai-consultant-agent",
@@ -5563,7 +5563,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_consultant_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_consultant_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.ai-customer-support-agent",
@@ -5594,7 +5594,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_customer_support_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_customer_support_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.ai-deep-research-agent",
@@ -5627,7 +5627,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_deep_research_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_deep_research_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.ai-email-gtm-reachout-agent",
@@ -5661,7 +5661,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_email_gtm_reachout_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_email_gtm_reachout_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.ai-fraud-investigation-agent",
@@ -5695,7 +5695,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_fraud_investigation_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_fraud_investigation_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.ai-health-fitness-agent",
@@ -5728,7 +5728,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_health_fitness_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_health_fitness_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.ai-investment-agent",
@@ -5757,7 +5757,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_investment_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_investment_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.ai-journalist-agent",
@@ -5787,7 +5787,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_journalist_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_journalist_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.ai-meeting-agent",
@@ -5820,7 +5820,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_meeting_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_meeting_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.ai-movie-production-agent",
@@ -5852,7 +5852,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_movie_production_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_movie_production_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.ai-personal-finance-agent",
@@ -5881,7 +5881,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_personal_finance_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_personal_finance_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.ai-recipe-meal-planning-agent",
@@ -5912,7 +5912,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_recipe_meal_planning_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_recipe_meal_planning_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.ai-startup-insight-fire1-agent",
@@ -5946,7 +5946,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_startup_insight_fire1_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_startup_insight_fire1_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.ai-system-architect-r1",
@@ -5981,7 +5981,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_system_architect_r1/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/ai_system_architect_r1/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.research-agent-gemini-interaction-api",
@@ -6015,7 +6015,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/research_agent_gemini_interaction_api/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/research_agent_gemini_interaction_api/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.windows-use-autonomous-agent",
@@ -6048,7 +6048,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/windows_use_autonomous_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/windows_use_autonomous_agent/README.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.windows-use-autonomous-agent.windows-use.agent.prompt.action",
@@ -6076,7 +6076,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/windows_use_autonomous_agent/windows_use/agent/prompt/action.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/windows_use_autonomous_agent/windows_use/agent/prompt/action.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.windows-use-autonomous-agent.windows-use.agent.prompt.answer",
@@ -6103,7 +6103,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/windows_use_autonomous_agent/windows_use/agent/prompt/answer.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/windows_use_autonomous_agent/windows_use/agent/prompt/answer.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.windows-use-autonomous-agent.windows-use.agent.prompt.observation",
@@ -6130,7 +6130,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/windows_use_autonomous_agent/windows_use/agent/prompt/observation.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/windows_use_autonomous_agent/windows_use/agent/prompt/observation.md"
     },
     {
       "id": "skill.advanced-ai-agents.single-agent-apps.windows-use-autonomous-agent.windows-use.agent.prompt.system",
@@ -6163,7 +6163,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_ai_agents/single_agent_apps/windows_use_autonomous_agent/windows_use/agent/prompt/system.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_ai_agents/single_agent_apps/windows_use_autonomous_agent/windows_use/agent/prompt/system.md"
     },
     {
       "id": "skill.advanced-llm-apps.chat-with-tarots",
@@ -6194,7 +6194,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/chat-with-tarots/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/chat-with-tarots/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.chat-with-x-tutorials.chat-with-github",
@@ -6225,7 +6225,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/chat_with_X_tutorials/chat_with_github/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/chat_with_X_tutorials/chat_with_github/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.chat-with-x-tutorials.chat-with-gmail",
@@ -6255,7 +6255,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/chat_with_X_tutorials/chat_with_gmail/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/chat_with_X_tutorials/chat_with_gmail/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.chat-with-x-tutorials.chat-with-pdf",
@@ -6286,7 +6286,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/chat_with_X_tutorials/chat_with_pdf/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/chat_with_X_tutorials/chat_with_pdf/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.chat-with-x-tutorials.chat-with-research-papers",
@@ -6316,7 +6316,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/chat_with_X_tutorials/chat_with_research_papers/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/chat_with_X_tutorials/chat_with_research_papers/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.chat-with-x-tutorials.chat-with-substack",
@@ -6347,7 +6347,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/chat_with_X_tutorials/chat_with_substack/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/chat_with_X_tutorials/chat_with_substack/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.chat-with-x-tutorials.chat-with-youtube-videos",
@@ -6377,7 +6377,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/chat_with_X_tutorials/chat_with_youtube_videos/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/chat_with_X_tutorials/chat_with_youtube_videos/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.chat-with-x-tutorials.streaming-ai-chatbot",
@@ -6408,7 +6408,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/chat_with_X_tutorials/streaming_ai_chatbot/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/chat_with_X_tutorials/streaming_ai_chatbot/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.cursor-ai-experiments.llm-router-app",
@@ -6441,7 +6441,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/cursor_ai_experiments/llm_router_app/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/cursor_ai_experiments/llm_router_app/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.cursor-ai-experiments.local-chatgpt-clone",
@@ -6473,7 +6473,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/cursor_ai_experiments/local_chatgpt_clone/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/cursor_ai_experiments/local_chatgpt_clone/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.gpt-oss-critique-improvement-loop",
@@ -6504,7 +6504,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/gpt_oss_critique_improvement_loop/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/gpt_oss_critique_improvement_loop/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.llm-apps-with-memory-tutorials.ai-arxiv-agent-memory",
@@ -6535,7 +6535,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/llm_apps_with_memory_tutorials/ai_arxiv_agent_memory/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/llm_apps_with_memory_tutorials/ai_arxiv_agent_memory/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.llm-apps-with-memory-tutorials.ai-travel-agent-memory",
@@ -6566,7 +6566,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/llm_apps_with_memory_tutorials/ai_travel_agent_memory/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/llm_apps_with_memory_tutorials/ai_travel_agent_memory/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.llm-apps-with-memory-tutorials.llm-app-personalized-memory",
@@ -6597,7 +6597,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/llm_apps_with_memory_tutorials/llm_app_personalized_memory/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/llm_apps_with_memory_tutorials/llm_app_personalized_memory/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.llm-apps-with-memory-tutorials.local-chatgpt-with-memory",
@@ -6628,7 +6628,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/llm_apps_with_memory_tutorials/local_chatgpt_with_memory/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/llm_apps_with_memory_tutorials/local_chatgpt_with_memory/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.llm-apps-with-memory-tutorials.multi-llm-memory",
@@ -6661,7 +6661,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/llm_apps_with_memory_tutorials/multi_llm_memory/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/llm_apps_with_memory_tutorials/multi_llm_memory/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.llm-finetuning-tutorials.gemma3-finetuning",
@@ -6693,7 +6693,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/llm_finetuning_tutorials/gemma3_finetuning/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/llm_finetuning_tutorials/gemma3_finetuning/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.llm-finetuning-tutorials.llama3",
@@ -6726,7 +6726,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/llm_finetuning_tutorials/llama3.2_finetuning/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/llm_finetuning_tutorials/llama3.2_finetuning/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.llm-optimization-tools",
@@ -6756,7 +6756,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/llm_optimization_tools/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/llm_optimization_tools/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.llm-optimization-tools.headroom-context-optimization",
@@ -6793,7 +6793,7 @@
       "validationStatus": "review",
       "qualityScore": 80,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/llm_optimization_tools/headroom_context_optimization/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/llm_optimization_tools/headroom_context_optimization/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.llm-optimization-tools.toonify-token-optimization",
@@ -6828,7 +6828,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/llm_optimization_tools/toonify_token_optimization/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/llm_optimization_tools/toonify_token_optimization/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.multimodal-video-moment-finder",
@@ -6859,7 +6859,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/multimodal_video_moment_finder/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/multimodal_video_moment_finder/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.multimodal-video-moment-finder.frontend",
@@ -6886,7 +6886,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/multimodal_video_moment_finder/frontend/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/multimodal_video_moment_finder/frontend/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.resume-job-matcher",
@@ -6915,7 +6915,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/resume_job_matcher/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/resume_job_matcher/README.md"
     },
     {
       "id": "skill.advanced-llm-apps.thinkpath-chatbot-app",
@@ -6948,7 +6948,7 @@
       "validationStatus": "review",
       "qualityScore": 80,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/thinkpath_chatbot_app/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/thinkpath_chatbot_app/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.1-starter-agent",
@@ -6981,7 +6981,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/1_starter_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/1_starter_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.2-model-agnostic-agent",
@@ -7017,7 +7017,7 @@
       "validationStatus": "review",
       "qualityScore": 80,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/2_model_agnostic_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/2_model_agnostic_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.3-structured-output-agent.3-1-customer-support-ticket-agent",
@@ -7052,7 +7052,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/3_structured_output_agent/3_1_customer_support_ticket_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/3_structured_output_agent/3_1_customer_support_ticket_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.3-structured-output-agent.3-2-email-agent",
@@ -7087,7 +7087,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/3_structured_output_agent/3_2_email_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/3_structured_output_agent/3_2_email_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.3-structured-output-agent",
@@ -7119,7 +7119,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/3_structured_output_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/3_structured_output_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.4-tool-using-agent.4-1-builtin-tools",
@@ -7153,7 +7153,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/4_tool_using_agent/4_1_builtin_tools/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/4_tool_using_agent/4_1_builtin_tools/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.4-tool-using-agent.4-2-function-tools",
@@ -7184,7 +7184,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/4_tool_using_agent/4_2_function_tools/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/4_tool_using_agent/4_2_function_tools/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.4-tool-using-agent.4-3-thirdparty-tools",
@@ -7221,7 +7221,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/4_tool_using_agent/4_3_thirdparty_tools/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/4_tool_using_agent/4_3_thirdparty_tools/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.4-tool-using-agent.4-4-mcp-tools",
@@ -7253,7 +7253,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/4_tool_using_agent/4_4_mcp_tools/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/4_tool_using_agent/4_4_mcp_tools/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.4-tool-using-agent.4-4-mcp-tools.filesystem-agent",
@@ -7287,7 +7287,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/4_tool_using_agent/4_4_mcp_tools/filesystem_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/4_tool_using_agent/4_4_mcp_tools/filesystem_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.4-tool-using-agent.4-4-mcp-tools.firecrawl-agent",
@@ -7320,7 +7320,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/4_tool_using_agent/4_4_mcp_tools/firecrawl_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/4_tool_using_agent/4_4_mcp_tools/firecrawl_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.4-tool-using-agent",
@@ -7357,7 +7357,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/4_tool_using_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/4_tool_using_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.5-memory-agent.5-1-in-memory-conversation-agent",
@@ -7391,7 +7391,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/5_memory_agent/5_1_in_memory_conversation_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/5_memory_agent/5_1_in_memory_conversation_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.5-memory-agent.5-2-persistent-conversation-agent",
@@ -7424,7 +7424,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/5_memory_agent/5_2_persistent_conversation_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/5_memory_agent/5_2_persistent_conversation_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.5-memory-agent",
@@ -7456,7 +7456,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/5_memory_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/5_memory_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.6-callbacks.6-1-agent-lifecycle-callbacks",
@@ -7490,7 +7490,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/6_callbacks/6_1_agent_lifecycle_callbacks/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/6_callbacks/6_1_agent_lifecycle_callbacks/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.6-callbacks.6-2-llm-interaction-callbacks",
@@ -7525,7 +7525,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/6_callbacks/6_2_llm_interaction_callbacks/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/6_callbacks/6_2_llm_interaction_callbacks/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.6-callbacks.6-3-tool-execution-callbacks",
@@ -7559,7 +7559,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/6_callbacks/6_3_tool_execution_callbacks/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/6_callbacks/6_3_tool_execution_callbacks/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.6-callbacks",
@@ -7592,7 +7592,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/6_callbacks/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/6_callbacks/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.7-plugins",
@@ -7625,7 +7625,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/7_plugins/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/7_plugins/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.8-simple-multi-agent",
@@ -7656,7 +7656,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/8_simple_multi_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/8_simple_multi_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.9-multi-agent-patterns.9-1-sequential-agent",
@@ -7689,7 +7689,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/9_multi_agent_patterns/9_1_sequential_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/9_multi_agent_patterns/9_1_sequential_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.9-multi-agent-patterns.9-2-loop-agent",
@@ -7722,7 +7722,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/9_multi_agent_patterns/9_2_loop_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/9_multi_agent_patterns/9_2_loop_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.9-multi-agent-patterns.9-3-parallel-agent",
@@ -7755,7 +7755,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/9_multi_agent_patterns/9_3_parallel_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/9_multi_agent_patterns/9_3_parallel_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course",
@@ -7793,7 +7793,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.google-adk-crash-course.adk-yaml-examples.multi-agent-web-research-team",
@@ -7828,7 +7828,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/adk_yaml_examples/multi_agent_web_research_team/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/google_adk_crash_course/adk_yaml_examples/multi_agent_web_research_team/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.10-tracing-observability.10-1-default-tracing",
@@ -7861,7 +7861,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/10_tracing_observability/10_1_default_tracing/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/10_tracing_observability/10_1_default_tracing/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.10-tracing-observability.10-2-custom-tracing",
@@ -7893,7 +7893,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/10_tracing_observability/10_2_custom_tracing/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/10_tracing_observability/10_2_custom_tracing/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.10-tracing-observability",
@@ -7926,7 +7926,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/10_tracing_observability/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/10_tracing_observability/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.11-voice",
@@ -7955,7 +7955,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/11_voice/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/11_voice/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.11-voice.realtime",
@@ -7984,7 +7984,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/11_voice/realtime/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/11_voice/realtime/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.11-voice.static",
@@ -8015,7 +8015,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/11_voice/static/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/11_voice/static/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.11-voice.streamed",
@@ -8047,7 +8047,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/11_voice/streamed/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/11_voice/streamed/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.1-starter-agent.1-personal-assistant-agent",
@@ -8077,7 +8077,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/1_starter_agent/1_personal_assistant_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/1_starter_agent/1_personal_assistant_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.1-starter-agent",
@@ -8108,7 +8108,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/1_starter_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/1_starter_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.2-structured-output-agent.2-1-support-ticket-agent",
@@ -8141,7 +8141,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/2_structured_output_agent/2_1_support_ticket_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/2_structured_output_agent/2_1_support_ticket_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.2-structured-output-agent.2-2-product-review-agent",
@@ -8174,7 +8174,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/2_structured_output_agent/2_2_product_review_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/2_structured_output_agent/2_2_product_review_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.2-structured-output-agent",
@@ -8208,7 +8208,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/2_structured_output_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/2_structured_output_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.3-tool-using-agent.3-1-function-tools",
@@ -8240,7 +8240,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/3_tool_using_agent/3_1_function_tools/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/3_tool_using_agent/3_1_function_tools/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.3-tool-using-agent.3-2-builtin-tools",
@@ -8273,7 +8273,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/3_tool_using_agent/3_2_builtin_tools/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/3_tool_using_agent/3_2_builtin_tools/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.3-tool-using-agent.3-3-agents-as-tools",
@@ -8306,7 +8306,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/3_tool_using_agent/3_3_agents_as_tools/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/3_tool_using_agent/3_3_agents_as_tools/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.3-tool-using-agent",
@@ -8340,7 +8340,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/3_tool_using_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/3_tool_using_agent/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.4-running-agents.4-1-execution-methods",
@@ -8370,7 +8370,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/4_running_agents/4_1_execution_methods/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/4_running_agents/4_1_execution_methods/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.4-running-agents.4-2-conversation-management",
@@ -8402,7 +8402,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/4_running_agents/4_2_conversation_management/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/4_running_agents/4_2_conversation_management/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.4-running-agents",
@@ -8434,7 +8434,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/4_running_agents/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/4_running_agents/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.5-context-management",
@@ -8466,7 +8466,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/5_context_management/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/5_context_management/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.6-guardrails-validation",
@@ -8497,7 +8497,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/6_guardrails_validation/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/6_guardrails_validation/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.7-sessions.7-1-basic-sessions",
@@ -8531,7 +8531,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/7_sessions/7_1_basic_sessions/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/7_sessions/7_1_basic_sessions/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.7-sessions.7-2-memory-operations",
@@ -8563,7 +8563,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/7_sessions/7_2_memory_operations/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/7_sessions/7_2_memory_operations/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.7-sessions.7-3-multi-sessions",
@@ -8596,7 +8596,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/7_sessions/7_3_multi_sessions/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/7_sessions/7_3_multi_sessions/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.7-sessions",
@@ -8629,7 +8629,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/7_sessions/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/7_sessions/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.8-handoffs-delegation.8-1-basic-handoffs",
@@ -8662,7 +8662,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/8_handoffs_delegation/8_1_basic_handoffs/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/8_handoffs_delegation/8_1_basic_handoffs/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.8-handoffs-delegation.8-2-advanced-handoffs",
@@ -8695,7 +8695,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/8_handoffs_delegation/8_2_advanced_handoffs/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/8_handoffs_delegation/8_2_advanced_handoffs/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.8-handoffs-delegation",
@@ -8727,7 +8727,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/8_handoffs_delegation/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/8_handoffs_delegation/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.9-multi-agent-orchestration.9-1-parallel-execution",
@@ -8761,7 +8761,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/9_multi_agent_orchestration/9_1_parallel_execution/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/9_multi_agent_orchestration/9_1_parallel_execution/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.9-multi-agent-orchestration.9-2-agents-as-tools",
@@ -8795,7 +8795,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/9_multi_agent_orchestration/9_2_agents_as_tools/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/9_multi_agent_orchestration/9_2_agents_as_tools/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course.9-multi-agent-orchestration",
@@ -8827,7 +8827,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/9_multi_agent_orchestration/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/9_multi_agent_orchestration/README.md"
     },
     {
       "id": "skill.ai-agent-framework-crash-course.openai-sdk-crash-course",
@@ -8859,7 +8859,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/ai_agent_framework_crash_course/openai_sdk_crash_course/README.md"
     },
     {
       "id": "skill.mcp-ai-agents.ai-travel-planner-mcp-agent-team",
@@ -8891,7 +8891,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/mcp_ai_agents/ai_travel_planner_mcp_agent_team/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/mcp_ai_agents/ai_travel_planner_mcp_agent_team/README.md"
     },
     {
       "id": "skill.mcp-ai-agents.browser-mcp-agent",
@@ -8923,7 +8923,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/mcp_ai_agents/browser_mcp_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/mcp_ai_agents/browser_mcp_agent/README.md"
     },
     {
       "id": "skill.mcp-ai-agents.github-mcp-agent",
@@ -8955,7 +8955,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/mcp_ai_agents/github_mcp_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/mcp_ai_agents/github_mcp_agent/README.md"
     },
     {
       "id": "skill.mcp-ai-agents.multi-mcp-agent",
@@ -8982,7 +8982,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/mcp_ai_agents/multi_mcp_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/mcp_ai_agents/multi_mcp_agent/README.md"
     },
     {
       "id": "skill.mcp-ai-agents.multi-mcp-agent-router",
@@ -9013,7 +9013,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/mcp_ai_agents/multi_mcp_agent_router/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/mcp_ai_agents/multi_mcp_agent_router/README.md"
     },
     {
       "id": "skill.mcp-ai-agents.notion-mcp-agent",
@@ -9044,7 +9044,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/mcp_ai_agents/notion_mcp_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/mcp_ai_agents/notion_mcp_agent/README.md"
     },
     {
       "id": "skill.rag-tutorials.agentic-rag-embedding-gemma",
@@ -9076,7 +9076,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/agentic_rag_embedding_gemma/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/agentic_rag_embedding_gemma/README.md"
     },
     {
       "id": "skill.rag-tutorials.agentic-rag-gpt5",
@@ -9108,7 +9108,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/agentic_rag_gpt5/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/agentic_rag_gpt5/README.md"
     },
     {
       "id": "skill.rag-tutorials.agentic-rag-math-agent",
@@ -9143,7 +9143,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/agentic_rag_math_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/agentic_rag_math_agent/README.md"
     },
     {
       "id": "skill.rag-tutorials.agentic-rag-with-reasoning",
@@ -9177,7 +9177,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/agentic_rag_with_reasoning/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/agentic_rag_with_reasoning/README.md"
     },
     {
       "id": "skill.rag-tutorials.ai-blog-search",
@@ -9207,7 +9207,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/ai_blog_search/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/ai_blog_search/README.md"
     },
     {
       "id": "skill.rag-tutorials.contextualai-rag-agent",
@@ -9236,7 +9236,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/contextualai_rag_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/contextualai_rag_agent/README.md"
     },
     {
       "id": "skill.rag-tutorials.deepseek-local-rag-agent",
@@ -9268,7 +9268,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/deepseek_local_rag_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/deepseek_local_rag_agent/README.md"
     },
     {
       "id": "skill.rag-tutorials.knowledge-graph-rag-citations",
@@ -9298,7 +9298,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/knowledge_graph_rag_citations/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/knowledge_graph_rag_citations/README.md"
     },
     {
       "id": "skill.rag-tutorials.llama3",
@@ -9328,7 +9328,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/llama3.1_local_rag/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/llama3.1_local_rag/README.md"
     },
     {
       "id": "skill.rag-tutorials.local-hybrid-search-rag",
@@ -9360,7 +9360,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/local_hybrid_search_rag/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/local_hybrid_search_rag/README.md"
     },
     {
       "id": "skill.rag-tutorials.qwen-local-rag",
@@ -9392,7 +9392,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/qwen_local_rag/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/qwen_local_rag/README.md"
     },
     {
       "id": "skill.rag-tutorials.rag-as-a-service",
@@ -9423,7 +9423,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/rag-as-a-service/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/rag-as-a-service/README.md"
     },
     {
       "id": "skill.rag-tutorials.rag-agent-cohere",
@@ -9455,7 +9455,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/rag_agent_cohere/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/rag_agent_cohere/README.md"
     },
     {
       "id": "skill.rag-tutorials.rag-chain",
@@ -9488,7 +9488,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/rag_chain/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/rag_chain/README.md"
     },
     {
       "id": "skill.rag-tutorials.rag-database-routing",
@@ -9523,7 +9523,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/rag_database_routing/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/rag_database_routing/README.md"
     },
     {
       "id": "skill.rag-tutorials.rag-failure-diagnostics-clinic",
@@ -9553,7 +9553,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/rag_failure_diagnostics_clinic/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/rag_failure_diagnostics_clinic/README.md"
     },
     {
       "id": "skill.starter-ai-agents.ai-blog-to-podcast-agent",
@@ -9585,7 +9585,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/starter_ai_agents/ai_blog_to_podcast_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/starter_ai_agents/ai_blog_to_podcast_agent/README.md"
     },
     {
       "id": "skill.starter-ai-agents.ai-breakup-recovery-agent",
@@ -9619,7 +9619,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/starter_ai_agents/ai_breakup_recovery_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/starter_ai_agents/ai_breakup_recovery_agent/README.md"
     },
     {
       "id": "skill.starter-ai-agents.ai-data-analysis-agent",
@@ -9650,7 +9650,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/starter_ai_agents/ai_data_analysis_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/starter_ai_agents/ai_data_analysis_agent/README.md"
     },
     {
       "id": "skill.starter-ai-agents.ai-data-visualisation-agent",
@@ -9684,7 +9684,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/starter_ai_agents/ai_data_visualisation_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/starter_ai_agents/ai_data_visualisation_agent/README.md"
     },
     {
       "id": "skill.starter-ai-agents.ai-life-insurance-advisor-agent",
@@ -9716,7 +9716,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/starter_ai_agents/ai_life_insurance_advisor_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/starter_ai_agents/ai_life_insurance_advisor_agent/README.md"
     },
     {
       "id": "skill.starter-ai-agents.ai-medical-imaging-agent",
@@ -9745,7 +9745,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/starter_ai_agents/ai_medical_imaging_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/starter_ai_agents/ai_medical_imaging_agent/README.md"
     },
     {
       "id": "skill.starter-ai-agents.ai-meme-generator-agent-browseruse",
@@ -9775,7 +9775,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/starter_ai_agents/ai_meme_generator_agent_browseruse/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/starter_ai_agents/ai_meme_generator_agent_browseruse/README.md"
     },
     {
       "id": "skill.starter-ai-agents.ai-music-generator-agent",
@@ -9807,7 +9807,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/starter_ai_agents/ai_music_generator_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/starter_ai_agents/ai_music_generator_agent/README.md"
     },
     {
       "id": "skill.starter-ai-agents.ai-reasoning-agent",
@@ -9836,7 +9836,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/starter_ai_agents/ai_reasoning_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/starter_ai_agents/ai_reasoning_agent/README.md"
     },
     {
       "id": "skill.starter-ai-agents.ai-startup-trend-analysis-agent",
@@ -9868,7 +9868,7 @@
       "validationStatus": "review",
       "qualityScore": 90,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/starter_ai_agents/ai_startup_trend_analysis_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/starter_ai_agents/ai_startup_trend_analysis_agent/README.md"
     },
     {
       "id": "skill.starter-ai-agents.ai-travel-agent",
@@ -9899,7 +9899,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/starter_ai_agents/ai_travel_agent/README.MD"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/starter_ai_agents/ai_travel_agent/README.MD"
     },
     {
       "id": "skill.starter-ai-agents.multimodal-ai-agent",
@@ -9928,7 +9928,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/starter_ai_agents/multimodal_ai_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/starter_ai_agents/multimodal_ai_agent/README.md"
     },
     {
       "id": "skill.starter-ai-agents.openai-research-agent",
@@ -9957,7 +9957,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/starter_ai_agents/openai_research_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/starter_ai_agents/openai_research_agent/README.md"
     },
     {
       "id": "skill.starter-ai-agents.web-scraping-ai-agent",
@@ -9988,7 +9988,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/starter_ai_agents/web_scraping_ai_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/starter_ai_agents/web_scraping_ai_agent/README.md"
     },
     {
       "id": "skill.starter-ai-agents.xai-finance-agent",
@@ -10020,7 +10020,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/starter_ai_agents/xai_finance_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/starter_ai_agents/xai_finance_agent/README.md"
     },
     {
       "id": "skill.voice-ai-agents.ai-audio-tour-agent",
@@ -10053,7 +10053,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/voice_ai_agents/ai_audio_tour_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/voice_ai_agents/ai_audio_tour_agent/README.md"
     },
     {
       "id": "skill.voice-ai-agents.customer-support-voice-agent",
@@ -10084,7 +10084,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/voice_ai_agents/customer_support_voice_agent/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/voice_ai_agents/customer_support_voice_agent/README.md"
     },
     {
       "id": "skill.voice-ai-agents.voice-rag-openaisdk",
@@ -10116,7 +10116,7 @@
       "validationStatus": "approved",
       "qualityScore": 100,
       "executable": true,
-      "sourcePath": "/home/gamp/Flowfex/awesome-llm-apps/voice_ai_agents/voice_rag_openaisdk/README.md"
+      "sourcePath": "/home/gamp/Syniq/awesome-llm-apps/voice_ai_agents/voice_rag_openaisdk/README.md"
     }
   ],
   "catalogs": [
@@ -11475,73 +11475,73 @@
   "duplicates": [
     {
       "id": "skill.rag-tutorials.autonomous-rag",
-      "filePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/autonomous_rag/README.md",
+      "filePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/autonomous_rag/README.md",
       "findings": [
         {
           "type": "duplicate-id",
           "severity": "high",
           "message": "Duplicate skill id 'skill.rag-tutorials.autonomous-rag' detected.",
-          "evidence": "/home/gamp/Flowfex/skills-md/rag-tutorials/autonomous-rag.md"
+          "evidence": "/home/gamp/Syniq/skills-md/rag-tutorials/autonomous-rag.md"
         }
       ]
     },
     {
       "id": "skill.rag-tutorials.corrective-rag",
-      "filePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/corrective_rag/README.md",
+      "filePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/corrective_rag/README.md",
       "findings": [
         {
           "type": "duplicate-id",
           "severity": "high",
           "message": "Duplicate skill id 'skill.rag-tutorials.corrective-rag' detected.",
-          "evidence": "/home/gamp/Flowfex/skills-md/rag-tutorials/corrective-rag.md"
+          "evidence": "/home/gamp/Syniq/skills-md/rag-tutorials/corrective-rag.md"
         }
       ]
     },
     {
       "id": "skill.rag-tutorials.gemini-agentic-rag",
-      "filePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/gemini_agentic_rag/README.md",
+      "filePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/gemini_agentic_rag/README.md",
       "findings": [
         {
           "type": "duplicate-id",
           "severity": "high",
           "message": "Duplicate skill id 'skill.rag-tutorials.gemini-agentic-rag' detected.",
-          "evidence": "/home/gamp/Flowfex/skills-md/rag-tutorials/gemini-agentic-rag.md"
+          "evidence": "/home/gamp/Syniq/skills-md/rag-tutorials/gemini-agentic-rag.md"
         }
       ]
     },
     {
       "id": "skill.rag-tutorials.hybrid-search-rag",
-      "filePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/hybrid_search_rag/README.md",
+      "filePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/hybrid_search_rag/README.md",
       "findings": [
         {
           "type": "duplicate-id",
           "severity": "high",
           "message": "Duplicate skill id 'skill.rag-tutorials.hybrid-search-rag' detected.",
-          "evidence": "/home/gamp/Flowfex/skills-md/rag-tutorials/hybrid-search-rag.md"
+          "evidence": "/home/gamp/Syniq/skills-md/rag-tutorials/hybrid-search-rag.md"
         }
       ]
     },
     {
       "id": "skill.rag-tutorials.local-rag-agent",
-      "filePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/local_rag_agent/README.md",
+      "filePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/local_rag_agent/README.md",
       "findings": [
         {
           "type": "duplicate-id",
           "severity": "high",
           "message": "Duplicate skill id 'skill.rag-tutorials.local-rag-agent' detected.",
-          "evidence": "/home/gamp/Flowfex/skills-md/rag-tutorials/local-rag-agent.md"
+          "evidence": "/home/gamp/Syniq/skills-md/rag-tutorials/local-rag-agent.md"
         }
       ]
     },
     {
       "id": "skill.rag-tutorials.vision-rag",
-      "filePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/vision_rag/README.md",
+      "filePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/vision_rag/README.md",
       "findings": [
         {
           "type": "duplicate-id",
           "severity": "high",
           "message": "Duplicate skill id 'skill.rag-tutorials.vision-rag' detected.",
-          "evidence": "/home/gamp/Flowfex/skills-md/rag-tutorials/vision-rag.md"
+          "evidence": "/home/gamp/Syniq/skills-md/rag-tutorials/vision-rag.md"
         }
       ]
     }
@@ -11549,48 +11549,48 @@
   "blocked": [
     {
       "id": "skill.security.unsafe-secret-extractor",
-      "filePath": "/home/gamp/Flowfex/skills-md/examples/before/security/unsafe-secret-extractor.md",
+      "filePath": "/home/gamp/Syniq/skills-md/examples/before/security/unsafe-secret-extractor.md",
       "findings": []
     },
     {
       "id": "skill.dangerous-exfiltration",
-      "filePath": "/home/gamp/Flowfex/skills-md/examples/dangerous-exfiltration.md",
+      "filePath": "/home/gamp/Syniq/skills-md/examples/dangerous-exfiltration.md",
       "findings": []
     },
     {
       "id": "skill.rag-tutorials.autonomous-rag",
-      "filePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/autonomous_rag/README.md",
+      "filePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/autonomous_rag/README.md",
       "findings": []
     },
     {
       "id": "skill.rag-tutorials.corrective-rag",
-      "filePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/corrective_rag/README.md",
+      "filePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/corrective_rag/README.md",
       "findings": []
     },
     {
       "id": "skill.rag-tutorials.gemini-agentic-rag",
-      "filePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/gemini_agentic_rag/README.md",
+      "filePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/gemini_agentic_rag/README.md",
       "findings": []
     },
     {
       "id": "skill.rag-tutorials.hybrid-search-rag",
-      "filePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/hybrid_search_rag/README.md",
+      "filePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/hybrid_search_rag/README.md",
       "findings": []
     },
     {
       "id": "skill.rag-tutorials.local-rag-agent",
-      "filePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/local_rag_agent/README.md",
+      "filePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/local_rag_agent/README.md",
       "findings": []
     },
     {
       "id": "skill.rag-tutorials.vision-rag",
-      "filePath": "/home/gamp/Flowfex/awesome-llm-apps/rag_tutorials/vision_rag/README.md",
+      "filePath": "/home/gamp/Syniq/awesome-llm-apps/rag_tutorials/vision_rag/README.md",
       "findings": []
     }
   ],
   "skipped": [
     {
-      "filePath": "/home/gamp/Flowfex/awesome-llm-apps/advanced_llm_apps/chat_with_X_tutorials/chat_with_youtube_videos/FIX_SUMMARY.md",
+      "filePath": "/home/gamp/Syniq/awesome-llm-apps/advanced_llm_apps/chat_with_X_tutorials/chat_with_youtube_videos/FIX_SUMMARY.md",
       "reason": "ignored-document",
       "classification": "ignore"
     }

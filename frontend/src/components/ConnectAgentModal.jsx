@@ -318,7 +318,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
         return {
           sessionId: activeSession?.id,
           mode: 'prompt',
-          prompt: 'Attach this agent to Flowfex for the full conversation and route every request through Flowfex before acting.',
+          prompt: 'Attach this agent to Syn-IQ for the full conversation and route every request through Syn-IQ before acting.',
           agent: { name: 'Prompt Agent', type: 'prompt' },
         };
       case 'Link':
@@ -362,7 +362,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
         headers: {
           'Content-Type': 'application/json',
           ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-          ...(!accessToken && session?.anonymousToken ? { 'X-Flowfex-Anonymous-Token': session.anonymousToken } : {}),
+          ...(!accessToken && session?.anonymousToken ? { 'X-Syniq-Anonymous-Token': session.anonymousToken } : {}),
         },
         body: JSON.stringify(request),
       });
@@ -430,7 +430,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     // the modal so they cannot try to attach a second agent without
     // upgrading.
     const anonymousAlreadyAttached = !isAuthenticated && hasConnectedAgent
-      ? 'You already have one anonymous Flowfex attach today. Sign in to manage multiple agents on a paid plan.'
+      ? 'You already have one anonymous Syn-IQ attach today. Sign in to manage multiple agents on a paid plan.'
       : null;
 
     const message = reqReason || anonymousAlreadyAttached;
@@ -476,7 +476,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     const sessionRecord = {
       id: session.id,
       name: `${tab} Session`,
-      task: 'Connected through Flowfex',
+      task: 'Connected through Syniq',
       heartbeat: `${tab} connection synced`,
       status: 'ready',
       revision: 0,
@@ -663,7 +663,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
             <div className="cam-header">
               <div>
                 <h2 className="cam-title">Connect Your Agent</h2>
-                <p className="cam-subtitle">Choose how this agent connects to Flowfex.</p>
+                <p className="cam-subtitle">Choose how this agent connects to Syn-IQ.</p>
               </div>
               <button className="cam-close" onClick={onClose}><X size={18} /></button>
             </div>

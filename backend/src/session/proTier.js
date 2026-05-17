@@ -1,9 +1,9 @@
 /**
  * Optional comma-separated Better Auth user ids that receive the `pro` usage tier.
- * Set in deployment: FLOWFEX_PRO_AUTH_IDS=userId1,userId2
+ * Set in deployment: SYNIQ_PRO_AUTH_IDS=userId1,userId2
  */
 export function parseProAuthIdSet() {
-  const raw = process.env.FLOWFEX_PRO_AUTH_IDS || '';
+  const raw = process.env.SYNIQ_PRO_AUTH_IDS || '';
   return new Set(
     String(raw)
       .split(',')

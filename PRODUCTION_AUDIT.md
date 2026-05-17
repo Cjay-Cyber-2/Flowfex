@@ -1,4 +1,4 @@
-# Flowfex Frontend - Production Audit Against UI/UX Master Prompt
+# Syniq Frontend - Production Audit Against UI/UX Master Prompt
 
 ## ✅ FULLY IMPLEMENTED
 
@@ -296,7 +296,7 @@
 
 **Current State:** The frontend is a **solid MVP** with excellent design foundations. The core user journey works (landing → auth → onboarding → canvas). The design system is production-ready. The logo integration is stunning.
 
-**What's Missing:** The "wow" moments - the cinematic animations that make Flowfex feel like a living intelligent instrument. The advanced user control features. The performance optimizations for complex graphs.
+**What's Missing:** The "wow" moments - the cinematic animations that make Syniq feel like a living intelligent instrument. The advanced user control features. The performance optimizations for complex graphs.
 
 **Recommendation:** 
 - **Ship current version** as MVP to get user feedback

@@ -1,4 +1,4 @@
-"""Flowfex Agent SDK - Connect agents to Flowfex orchestration platform."""
+"""Syniq Agent SDK - Connect agents to Syniq orchestration platform."""
 
 import json
 import threading
@@ -7,15 +7,15 @@ import requests
 import websocket
 
 
-class FlowfexError(Exception):
-    """Flowfex SDK error."""
+class SyniqError(Exception):
+    """Syniq SDK error."""
     def __init__(self, message: str, status_code: int = 500):
         super().__init__(message)
         self.status_code = status_code
 
 
 class Session:
-    """Active Flowfex session."""
+    """Active Syniq session."""
     def __init__(self, data: Dict[str, Any]):
         self.id: str = data.get('id', '')
         self.token: str = data.get('token', '')
@@ -25,12 +25,12 @@ class Session:
         self.endpoints: Dict[str, Any] = data.get('endpoints', {})
 
 
-class FlowfexClient:
+class SyniqClient:
     """
-    Flowfex orchestration client.
+    Syniq orchestration client.
     
     Usage:
-        client = FlowfexClient('http://localhost:4000')
+        client = SyniqClient('http://localhost:4000')
         session = client.connect({'name': 'my-agent'}, mode='sdk')
         result = client.send('Analyze data')
         client.disconnect()
@@ -54,7 +54,7 @@ class FlowfexClient:
         ttl_seconds: Optional[int] = None,
     ) -> Session:
         """
-        Connect to Flowfex and create a session.
+        Connect to Syniq and create a session.
         
         Args:
             agent: Agent configuration with 'name' required
@@ -83,7 +83,7 @@ class FlowfexClient:
         
         headers = {'Content-Type': 'application/json'}
         if api_key:
-            headers['X-Flowfex-Api-Key'] = api_key
+            headers['X-Syniq-Api-Key'] = api_key
         
         response = requests.post(
             f'{self.base_url}/connect',
@@ -93,13 +93,13 @@ class FlowfexClient:
         
         if not response.ok:
             error = response.json().get('error', {}).get('message', 'Connection failed')
-            raise FlowfexError(error, response.status_code)
+            raise SyniqError(error, response.status_code)
         
         data = response.json()
         self.session = Session(data['connection']['session'])
 
         # SDK / live modes must perform the verified attach before the
-        # Flowfex dashboard will open for the user. This mirrors the JS SDK.
+        # Syniq dashboard will open for the user. This mirrors the JS SDK.
         if mode in ('live', 'sdk'):
             self._attach_session(api_key=api_key)
             self._connect_ws()
@@ -117,10 +117,10 @@ class FlowfexClient:
 
         headers = {
             'Authorization': f'Bearer {self.session.token}',
-            'X-Flowfex-Agent-Attach': '1',
+            'X-Syniq-Agent-Attach': '1',
         }
         if api_key:
-            headers['X-Flowfex-Api-Key'] = api_key
+            headers['X-Syniq-Api-Key'] = api_key
 
         response = requests.get(attach_url, headers=headers)
         if not response.ok:
@@ -128,7 +128,7 @@ class FlowfexClient:
                 error = response.json().get('error', {}).get('message', 'Session attach failed')
             except ValueError:
                 error = 'Session attach failed'
-            raise FlowfexError(error, response.status_code)
+            raise SyniqError(error, response.status_code)
     
     def send(self, task: str) -> Dict[str, Any]:
         """
@@ -156,7 +156,7 @@ class FlowfexClient:
         
         if not response.ok:
             error = response.json().get('error', {}).get('message', 'Execution failed')
-            raise FlowfexError(error, response.status_code)
+            raise SyniqError(error, response.status_code)
         
         return response.json()
     
@@ -183,7 +183,7 @@ class FlowfexClient:
         )
         
         if not response.ok:
-            raise FlowfexError('Tool execution failed', response.status_code)
+            raise SyniqError('Tool execution failed', response.status_code)
         
         return response.json()
     
@@ -216,7 +216,7 @@ class FlowfexClient:
         )
         
         if not response.ok:
-            raise FlowfexError('Failed to get session state', response.status_code)
+            raise SyniqError('Failed to get session state', response.status_code)
         
         return response.json().get('snapshot', {})
     
@@ -250,7 +250,7 @@ class FlowfexClient:
         )
         
         if not response.ok:
-            raise FlowfexError('Failed to approve node', response.status_code)
+            raise SyniqError('Failed to approve node', response.status_code)
     
     def reject(self, node_id: str, reason: Optional[str] = None) -> None:
         """
@@ -272,7 +272,7 @@ class FlowfexClient:
         )
         
         if not response.ok:
-            raise FlowfexError('Failed to reject node', response.status_code)
+            raise SyniqError('Failed to reject node', response.status_code)
     
     def disconnect(self) -> None:
         """Disconnect and cleanup resources."""
@@ -287,7 +287,7 @@ class FlowfexClient:
     
     def _require_session(self) -> None:
         if not self.session:
-            raise FlowfexError('Not connected. Call connect() first.', 401)
+            raise SyniqError('Not connected. Call connect() first.', 401)
     
     def _control_action(self, action: str) -> None:
         response = requests.post(
@@ -299,7 +299,7 @@ class FlowfexClient:
         )
         
         if not response.ok:
-            raise FlowfexError(f'Failed to {action} session', response.status_code)
+            raise SyniqError(f'Failed to {action} session', response.status_code)
     
     def _connect_ws(self) -> None:
         if self._ws or not self.session:
@@ -331,9 +331,9 @@ class FlowfexClient:
         self._ws_thread.start()
 
 
-def connect(base_url: str = 'http://127.0.0.1:4000') -> FlowfexClient:
-    """Create a Flowfex client instance."""
-    return FlowfexClient(base_url)
+def connect(base_url: str = 'http://127.0.0.1:4000') -> SyniqClient:
+    """Create a Syniq client instance."""
+    return SyniqClient(base_url)
 
 
-__all__ = ['FlowfexClient', 'FlowfexError', 'Session', 'connect']
+__all__ = ['SyniqClient', 'SyniqError', 'Session', 'connect']

@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import AuthBackdrop from '../components/auth/AuthBackdrop';
-import FlowfexLogoNew from '../components/FlowfexLogoNew';
+import SyniqLogoNew from '../components/SyniqLogoNew';
 import { useSessionContext } from '../context/SessionContext';
-import { setFlowfexProfileUsername, userMustChooseFlowfexUsername } from '../services/authService';
+import { setSyniqProfileUsername, userMustChooseSyniqUsername } from '../services/authService';
 import '../styles/authPagesLayout.css';
 
 function resolveReturnPath(location) {
@@ -36,7 +36,7 @@ export default function ChooseUsername() {
     if (!sessionReady || !user) {
       return;
     }
-    if (!userMustChooseFlowfexUsername(user)) {
+    if (!userMustChooseSyniqUsername(user)) {
       navigate(resolveReturnPath(location), { replace: true });
     }
   }, [sessionReady, user, navigate, location]);
@@ -57,7 +57,7 @@ export default function ChooseUsername() {
 
     setIsSubmitting(true);
     try {
-      await setFlowfexProfileUsername(trimmed);
+      await setSyniqProfileUsername(trimmed);
       await refreshSession();
       navigate(resolveReturnPath(location), { replace: true });
     } catch (error) {
@@ -85,9 +85,9 @@ export default function ChooseUsername() {
         transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
       >
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
-          <FlowfexLogoNew size={34} animated={false} />
+          <SyniqLogoNew size={34} animated={false} />
         </div>
-        <h1 style={styles.title}>Choose your Flowfex username</h1>
+        <h1 style={styles.title}>Choose your Syn-IQ username</h1>
         <p style={styles.subtitle}>
           This is how you appear in the app. You can use letters, numbers, dot, underscore, or hyphen.
         </p>

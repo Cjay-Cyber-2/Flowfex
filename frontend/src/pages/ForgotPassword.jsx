@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
 import AuthBackdrop from '../components/auth/AuthBackdrop';
-import FlowfexLogoNew from '../components/FlowfexLogoNew';
+import SyniqLogoNew from '../components/SyniqLogoNew';
 import { useSessionContext } from '../context/SessionContext';
 import { requestPasswordReset, resetPassword } from '../services/authService';
 import { getAuthErrorMessage } from '../utils/authErrorMessages';
@@ -38,8 +38,8 @@ function ForgotPassword() {
 
   const subtitle = useMemo(
     () => (isResetMode
-      ? 'Choose a new password for your Flowfex account.'
-      : 'Enter the account email and Flowfex will send a reset link.'),
+      ? 'Choose a new password for your Syn-IQ account.'
+      : 'Enter the account email and Syn-IQ will send a reset link.'),
     [isResetMode]
   );
 
@@ -85,7 +85,7 @@ function ForgotPassword() {
         transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
       >
         <div style={styles.logoRow}>
-          <FlowfexLogoNew size={38} animated={false} />
+          <SyniqLogoNew size={38} animated={false} />
         </div>
         <h1 style={styles.title}>{heading}</h1>
         <p style={styles.subtitle}>{subtitle}</p>

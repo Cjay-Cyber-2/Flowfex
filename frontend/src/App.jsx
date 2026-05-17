@@ -12,7 +12,7 @@ import SessionDetail from './pages/SessionDetail';
 import History from './pages/History';
 import Settings from './pages/Settings';
 import Toast from './components/common/Toast';
-import FlowfexUsernameGate from './components/auth/FlowfexUsernameGate';
+import SyniqUsernameGate from './components/auth/SyniqUsernameGate';
 import RequireAttachedAgent from './components/auth/RequireAttachedAgent';
 import ChooseUsername from './pages/ChooseUsername';
 import useStore from './store/useStore';
@@ -32,7 +32,7 @@ function App() {
 
   return (
     <>
-      <FlowfexUsernameGate />
+      <SyniqUsernameGate />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/demo" element={<LiveDemoPage />} />

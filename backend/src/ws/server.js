@@ -6,14 +6,14 @@ import {
 } from './events.js';
 
 /**
- * FlowfexSocketServer
+ * SyniqSocketServer
  *
  * Manages the Socket.io server with three namespaces:
  * - /orchestration: graph execution events
  * - /session: connection and agent state events
  * - /control: user intervention events
  */
-export class FlowfexSocketServer {
+export class SyniqSocketServer {
   /**
    * @param {import('http').Server} httpServer
    * @param {Object} [options]
@@ -456,26 +456,26 @@ export class FlowfexSocketServer {
   }
 }
 
-/** @type {FlowfexSocketServer|null} */
+/** @type {SyniqSocketServer|null} */
 let defaultSocketServer = null;
 
 /**
  * Initialize the global Socket.io server
  * @param {import('http').Server} httpServer
  * @param {Object} [options]
- * @returns {FlowfexSocketServer}
+ * @returns {SyniqSocketServer}
  */
 export function initSocketServer(httpServer, options = {}) {
   if (defaultSocketServer) {
     return defaultSocketServer;
   }
-  defaultSocketServer = new FlowfexSocketServer(httpServer, options);
+  defaultSocketServer = new SyniqSocketServer(httpServer, options);
   return defaultSocketServer;
 }
 
 /**
  * Get the global Socket.io server instance
- * @returns {FlowfexSocketServer|null}
+ * @returns {SyniqSocketServer|null}
  */
 export function getSocketServer() {
   return defaultSocketServer;

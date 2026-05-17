@@ -12,7 +12,7 @@ Your donut scroll animation now features a **gorgeous 3D logo** that:
 ## File Modified
 
 ```
-/home/gamp/Flowfex/frontend/src/styles/landing.css
+/home/gamp/Syniq/frontend/src/styles/landing.css
 ```
 
 **Lines 268-450**: Complete logo CSS rewrite

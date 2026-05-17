@@ -1,4 +1,4 @@
-# 🎉 What's New in Flowfex Frontend
+# 🎉 What's New in Syniq Frontend
 
 ## Latest Updates - Advanced Animations & Approvals Queue
 
@@ -251,7 +251,7 @@ git commit -m "Add Vercel config for SPA routing"
 git push
 
 # Vercel auto-deploys!
-# Visit https://flowfex.vercel.app
+# Visit https://syniq.vercel.app
 ```
 
 ## Questions?
@@ -264,7 +264,7 @@ Check these docs:
 
 ---
 
-**The Flowfex canvas is now a living, intelligent instrument.** 🎨✨
+**The Syniq canvas is now a living, intelligent instrument.** 🎨✨
 
 Every animation has meaning. Every interaction provides control. Every moment delights.
 

@@ -1,16 +1,16 @@
 import React from 'react';
-import FlowfexLogo from '../../assets/FlowfexLogo';
+import SyniqLogo from '../../assets/SyniqLogo';
 import './LoadingSpinner.css';
 
 /**
- * Loading Spinner using the Flowfex logo
+ * Loading Spinner using the Syn-IQ logo
  * Represents the flow of intelligence through the system
  */
 function LoadingSpinner({ size = 60, message = 'Loading...' }) {
   return (
     <div className="loading-spinner-container">
       <div className="loading-spinner">
-        <FlowfexLogo variant="icon" size={size} animated={true} />
+        <SyniqLogo variant="icon" size={size} animated={true} />
       </div>
       {message && <p className="loading-message">{message}</p>}
     </div>

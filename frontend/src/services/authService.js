@@ -19,8 +19,8 @@ export function isAuthClientConfigured() {
   return true;
 }
 
-export function userMustChooseFlowfexUsername(user) {
-  return Boolean(user && user.flowfexHandleChosen === false);
+export function userMustChooseSyniqUsername(user) {
+  return Boolean(user && user.syniqHandleChosen === false);
 }
 
 export async function getCurrentAuthSession() {
@@ -74,7 +74,7 @@ export async function signUpWithEmail(email, password, name = '') {
     email,
     password,
     name,
-    flowfexHandleChosen: true,
+    syniqHandleChosen: true,
     callbackURL: buildAppUrl('/onboarding'),
   });
   if (error || !data) {
@@ -83,11 +83,11 @@ export async function signUpWithEmail(email, password, name = '') {
   return { user: data.user, needsEmailConfirmation: false };
 }
 
-/** Sets Better Auth `name` (Flowfex username) and marks the handle step complete (OAuth users). */
-export async function setFlowfexProfileUsername(name) {
+/** Sets Better Auth `name` (Syniq username) and marks the handle step complete (OAuth users). */
+export async function setSyniqProfileUsername(name) {
   const { error } = await authClient.updateUser({
     name,
-    flowfexHandleChosen: true,
+    syniqHandleChosen: true,
   });
   if (error) {
     throw new Error(error.message || 'Unable to save your username.');

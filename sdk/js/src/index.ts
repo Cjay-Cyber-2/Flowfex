@@ -71,7 +71,7 @@ export interface SessionSnapshot {
 export type EventHandler = (data: unknown) => void;
 
 // Main Client
-export class FlowfexClient {
+export class SyniqClient {
   private baseUrl: string;
   private session: Session | null = null;
   private socket: Socket | null = null;
@@ -82,7 +82,7 @@ export class FlowfexClient {
   }
 
   /**
-   * Connect to Flowfex and create a session
+   * Connect to Syniq and create a session
    */
   async connect(agent: AgentConfig, options: ConnectOptions = {}): Promise<Session> {
     const url = options.baseUrl || this.baseUrl;
@@ -92,8 +92,8 @@ export class FlowfexClient {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(options.apiKey ? { 'X-Flowfex-Api-Key': options.apiKey } : {}),
-        ...(options.anonymousToken ? { 'X-Flowfex-Anonymous-Token': options.anonymousToken } : {}),
+        ...(options.apiKey ? { 'X-Syniq-Api-Key': options.apiKey } : {}),
+        ...(options.anonymousToken ? { 'X-Syniq-Anonymous-Token': options.anonymousToken } : {}),
       },
       body: JSON.stringify({
         sessionId: options.sessionId,
@@ -108,7 +108,7 @@ export class FlowfexClient {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Connection failed' }));
-      throw new FlowfexError(error.message || 'Connection failed', response.status);
+      throw new SyniqError(error.message || 'Connection failed', response.status);
     }
 
     const data = await response.json();
@@ -147,7 +147,7 @@ export class FlowfexClient {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Execution failed' }));
-      throw new FlowfexError(error.message || 'Execution failed', response.status);
+      throw new SyniqError(error.message || 'Execution failed', response.status);
     }
 
     return response.json();
@@ -170,7 +170,7 @@ export class FlowfexClient {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Tool execution failed' }));
-      throw new FlowfexError(error.message || 'Tool execution failed', response.status);
+      throw new SyniqError(error.message || 'Tool execution failed', response.status);
     }
 
     return response.json();
@@ -208,7 +208,7 @@ export class FlowfexClient {
     });
 
     if (!response.ok) {
-      throw new FlowfexError('Failed to get session state', response.status);
+      throw new SyniqError('Failed to get session state', response.status);
     }
 
     const data = await response.json();
@@ -247,7 +247,7 @@ export class FlowfexClient {
     });
 
     if (!response.ok) {
-      throw new FlowfexError('Failed to approve node', response.status);
+      throw new SyniqError('Failed to approve node', response.status);
     }
   }
 
@@ -267,7 +267,7 @@ export class FlowfexClient {
     });
 
     if (!response.ok) {
-      throw new FlowfexError('Failed to reject node', response.status);
+      throw new SyniqError('Failed to reject node', response.status);
     }
   }
 
@@ -285,7 +285,7 @@ export class FlowfexClient {
 
   private _requireSession(): void {
     if (!this.session) {
-      throw new FlowfexError('Not connected. Call connect() first.', 401);
+      throw new SyniqError('Not connected. Call connect() first.', 401);
     }
   }
 
@@ -299,7 +299,7 @@ export class FlowfexClient {
     });
 
     if (!response.ok) {
-      throw new FlowfexError(`Failed to ${action} session`, response.status);
+      throw new SyniqError(`Failed to ${action} session`, response.status);
     }
   }
 
@@ -328,31 +328,31 @@ export class FlowfexClient {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${this.session.token}`,
-        'X-Flowfex-Agent-Attach': '1',
-        ...(options.apiKey ? { 'X-Flowfex-Api-Key': options.apiKey } : {}),
-        ...(options.anonymousToken ? { 'X-Flowfex-Anonymous-Token': options.anonymousToken } : {}),
+        'X-Syniq-Agent-Attach': '1',
+        ...(options.apiKey ? { 'X-Syniq-Api-Key': options.apiKey } : {}),
+        ...(options.anonymousToken ? { 'X-Syniq-Anonymous-Token': options.anonymousToken } : {}),
       },
     });
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Session attach failed' }));
-      throw new FlowfexError(error.message || 'Session attach failed', response.status);
+      throw new SyniqError(error.message || 'Session attach failed', response.status);
     }
   }
 }
 
 // Error class
-export class FlowfexError extends Error {
+export class SyniqError extends Error {
   constructor(message: string, public statusCode: number) {
     super(message);
-    this.name = 'FlowfexError';
+    this.name = 'SyniqError';
   }
 }
 
 // Convenience function
-export function connect(baseUrl?: string): FlowfexClient {
-  return new FlowfexClient(baseUrl);
+export function connect(baseUrl?: string): SyniqClient {
+  return new SyniqClient(baseUrl);
 }
 
 // Default export
-export default FlowfexClient;
+export default SyniqClient;

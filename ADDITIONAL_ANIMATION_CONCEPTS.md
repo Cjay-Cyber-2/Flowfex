@@ -624,7 +624,7 @@ These 20 additional animation concepts provide a **vast toolkit** for creating a
 4. **Encode meaning** (every animation should communicate something)
 5. **Test extensively** (what looks good in isolation may not work in context)
 
-With these effects combined with the core redesign strategy, Flowfex will be **visually unforgettable** while remaining highly functional and performant.
+With these effects combined with the core redesign strategy, Syniq will be **visually unforgettable** while remaining highly functional and performant.
 
 ---
 

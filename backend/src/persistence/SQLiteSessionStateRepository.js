@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 
-const DEFAULT_DATABASE_PATH = path.resolve(process.cwd(), '.flowfex', 'state', 'flowfex-state.sqlite');
+const DEFAULT_DATABASE_PATH = path.resolve(process.cwd(), '.syniq', 'state', 'syniq-state.sqlite');
 
 export class SQLiteSessionStateRepository {
   constructor(config = {}) {

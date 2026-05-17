@@ -6,12 +6,12 @@ const ModernPricingSection = lazy(() => import('../landing/ModernPricingSection'
 
 function formatResetLine(resetAt) {
   if (!resetAt) {
-    return 'Your free Flowfex requests renew on the next daily reset (UTC).';
+    return 'Your free Syn-IQ requests renew on the next daily reset (UTC).';
   }
   try {
     return `Quota renews after ${new Date(resetAt).toLocaleString()}.`;
   } catch {
-    return 'Your free Flowfex requests renew on the next daily reset.';
+    return 'Your free Syn-IQ requests renew on the next daily reset.';
   }
 }
 

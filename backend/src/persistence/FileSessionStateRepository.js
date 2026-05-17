@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-const DEFAULT_STATE_DIRECTORY = path.resolve(process.cwd(), '.flowfex', 'state', 'sessions');
+const DEFAULT_STATE_DIRECTORY = path.resolve(process.cwd(), '.syniq', 'state', 'sessions');
 
 export class FileSessionStateRepository {
   constructor(config = {}) {

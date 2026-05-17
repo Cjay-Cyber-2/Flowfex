@@ -1,7 +1,7 @@
 import React, { useLayoutEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSessionContext } from '../../context/SessionContext';
-import { userMustChooseFlowfexUsername } from '../../services/authService';
+import { userMustChooseSyniqUsername } from '../../services/authService';
 
 const AUTH_PATHS = new Set(['/choose-username', '/signin', '/signup', '/reset-password']);
 
@@ -13,10 +13,10 @@ function resolveInternalReturnPath(from) {
 }
 
 /**
- * OAuth (and any account with flowfexHandleChosen === false) must finish
+ * OAuth (and any account with syniqHandleChosen === false) must finish
  * /choose-username before using the rest of the signed-in app.
  */
-export default function FlowfexUsernameGate() {
+export default function SyniqUsernameGate() {
   const navigate = useNavigate();
   const location = useLocation();
   const { sessionReady, isAuthenticated, user } = useSessionContext();
@@ -26,7 +26,7 @@ export default function FlowfexUsernameGate() {
       return;
     }
 
-    const needs = userMustChooseFlowfexUsername(user);
+    const needs = userMustChooseSyniqUsername(user);
     const onChoose = location.pathname === '/choose-username';
 
     if (needs && !onChoose && !AUTH_PATHS.has(location.pathname)) {

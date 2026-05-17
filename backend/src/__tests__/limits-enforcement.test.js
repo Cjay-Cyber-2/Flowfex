@@ -14,14 +14,14 @@
  * 10. Warning / approaching-limit detection
  */
 
-import { UsageService, FLOWFEX_LIMITS } from '../session/UsageService.js';
+import { UsageService, SYNIQ_LIMITS } from '../session/UsageService.js';
 import { ApiKeyService } from '../session/ApiKeyService.js';
 import { AnonymousSessionService } from '../session/AnonymousSessionService.js';
 import { DatabaseSessionStateRepository } from '../persistence/DatabaseSessionStateRepository.js';
 import { RateLimiter } from '../server/RateLimiter.js';
 import { SessionLockManager } from '../session/SessionLockManager.js';
 import { isSessionDataConfigured, createSessionDataClient } from '../session/sessionDataAccess.js';
-import { flowfexSessions, usageTracking, apiKeys } from '../db/schema.js';
+import { syniqSessions, usageTracking, apiKeys } from '../db/schema.js';
 import { eq, like } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
 
@@ -68,7 +68,7 @@ async function testAnonymousLimits() {
   console.log('\n── 1. Anonymous Usage Limits ──');
 
   const session = await createTestSession();
-  const limits = FLOWFEX_LIMITS.anonymous;
+  const limits = SYNIQ_LIMITS.anonymous;
 
   // Record up to the limit
   for (let i = 0; i < limits.maxExecutionsPerSession; i++) {
@@ -103,7 +103,7 @@ async function testAuthenticatedLimits() {
 
   const authId = 'test-auth-limit-' + Date.now();
   const session = await createTestSession(authId);
-  const limits = FLOWFEX_LIMITS.authenticated;
+  const limits = SYNIQ_LIMITS.authenticated;
 
   // Record many executions
   for (let i = 0; i < limits.maxExecutionsPerDay; i++) {
@@ -123,7 +123,7 @@ async function testConnectionQuota() {
   console.log('\n── 2b. Connection Quota ──');
 
   const session = await createTestSession();
-  for (let index = 0; index < FLOWFEX_LIMITS.anonymous.maxConnectionsPerDay; index += 1) {
+  for (let index = 0; index < SYNIQ_LIMITS.anonymous.maxConnectionsPerDay; index += 1) {
     await anonymousSessionService.markConnectedAgent(session.sessionId, {
       connectionId: `anon-connection-${index}`,
       agentId: `anon-agent-${index}`,
@@ -134,7 +134,7 @@ async function testConnectionQuota() {
   }
 
   const anonymousStatus = await usageService.getUsageStatus({ sessionId: session.sessionId });
-  assertEq(anonymousStatus.usage.connectionsCount, FLOWFEX_LIMITS.anonymous.maxConnectionsPerDay, 'Anonymous connection count reaches the daily quota');
+  assertEq(anonymousStatus.usage.connectionsCount, SYNIQ_LIMITS.anonymous.maxConnectionsPerDay, 'Anonymous connection count reaches the daily quota');
   assertTruthy(anonymousStatus.connectionBlockedLimit, 'Anonymous connection quota is blocked');
   assertEq(anonymousStatus.connectionBlockedLimit.limit, 'maxConnectionsPerDay', 'Anonymous quota blocks on connection count');
 
@@ -149,7 +149,7 @@ async function testConnectionQuota() {
 
   const authId = 'test-connection-quota-' + Date.now();
   const authenticatedSession = await createTestSession(authId);
-  for (let index = 0; index < FLOWFEX_LIMITS.authenticated.maxConnectionsPerDay; index += 1) {
+  for (let index = 0; index < SYNIQ_LIMITS.authenticated.maxConnectionsPerDay; index += 1) {
     await anonymousSessionService.markConnectedAgent(authenticatedSession.sessionId, {
       connectionId: `auth-connection-${index}`,
       agentId: `auth-agent-${index}`,
@@ -160,7 +160,7 @@ async function testConnectionQuota() {
   }
 
   const authenticatedStatus = await usageService.getUsageStatus({ sessionId: authenticatedSession.sessionId });
-  assertEq(authenticatedStatus.usage.connectionsCount, FLOWFEX_LIMITS.authenticated.maxConnectionsPerDay, 'Authenticated connection count reaches the daily quota');
+  assertEq(authenticatedStatus.usage.connectionsCount, SYNIQ_LIMITS.authenticated.maxConnectionsPerDay, 'Authenticated connection count reaches the daily quota');
   assertTruthy(authenticatedStatus.connectionBlockedLimit, 'Authenticated connection quota is blocked');
   assertEq(authenticatedStatus.connectionBlockedLimit.limit, 'maxConnectionsPerDay', 'Authenticated quota blocks on connection count');
 
@@ -173,7 +173,7 @@ async function testAnonymousQuotaResetsOnUpgrade() {
   const authId = 'test-upgrade-quota-' + Date.now();
   const session = await createTestSession();
 
-  for (let index = 0; index < FLOWFEX_LIMITS.anonymous.maxConnectionsPerDay; index += 1) {
+  for (let index = 0; index < SYNIQ_LIMITS.anonymous.maxConnectionsPerDay; index += 1) {
     await anonymousSessionService.markConnectedAgent(session.sessionId, {
       connectionId: `upgrade-connection-${index}`,
       agentId: `upgrade-agent-${index}`,
@@ -215,7 +215,7 @@ async function testApiKeyLimits() {
   const tier = usageService.resolveTier({ authId, apiKeyId: generated.record.id });
   assertEq(tier, 'api_key', 'Tier resolves to api_key when apiKeyId present');
 
-  const limits = FLOWFEX_LIMITS.api_key;
+  const limits = SYNIQ_LIMITS.api_key;
   assertEq(limits.maxExecutionsPerDay, 100, 'API key tier has 100 executions/day');
   assertEq(limits.maxConcurrentAgents, 10, 'API key tier has 10 concurrent agents');
   assertEq(limits.maxConcurrentSessions, 5, 'API key tier has 5 concurrent sessions');
@@ -239,7 +239,7 @@ async function testBlockedExecution() {
   const session = await createTestSession();
 
   // Max out executions
-  for (let i = 0; i < FLOWFEX_LIMITS.anonymous.maxExecutionsPerSession; i++) {
+  for (let i = 0; i < SYNIQ_LIMITS.anonymous.maxExecutionsPerSession; i++) {
     await usageService.recordExecution({ sessionId: session.sessionId, nodesProcessed: 1 });
   }
 
@@ -333,7 +333,7 @@ async function testStatePreservedOnBlock() {
   });
 
   // Max out executions to trigger block
-  for (let i = 0; i < FLOWFEX_LIMITS.anonymous.maxExecutionsPerSession; i++) {
+  for (let i = 0; i < SYNIQ_LIMITS.anonymous.maxExecutionsPerSession; i++) {
     await usageService.recordExecution({ sessionId: session.sessionId, nodesProcessed: 1 });
   }
 
@@ -426,7 +426,7 @@ async function testWarningDetection() {
   // Use authenticated tier — drive usage to 80% of the configured daily cap.
   const authId = 'test-warning-' + Date.now();
   const session2 = await createTestSession(authId);
-  const dailyMax = FLOWFEX_LIMITS.authenticated.maxExecutionsPerDay;
+  const dailyMax = SYNIQ_LIMITS.authenticated.maxExecutionsPerDay;
   const warningTrigger = Math.max(1, Math.floor(dailyMax * 0.8));
   for (let i = 0; i < warningTrigger; i++) {
     await usageService.recordExecution({ sessionId: session2.sessionId, nodesProcessed: 1 });
@@ -447,31 +447,31 @@ function testPolicyStructure() {
   console.log('\n── 11. Policy Tier Structure ──');
 
   // Verify all three tiers exist
-  assertTruthy(FLOWFEX_LIMITS.anonymous, 'Anonymous tier exists');
-  assertTruthy(FLOWFEX_LIMITS.authenticated, 'Authenticated tier exists');
-  assertTruthy(FLOWFEX_LIMITS.api_key, 'API key tier exists');
+  assertTruthy(SYNIQ_LIMITS.anonymous, 'Anonymous tier exists');
+  assertTruthy(SYNIQ_LIMITS.authenticated, 'Authenticated tier exists');
+  assertTruthy(SYNIQ_LIMITS.api_key, 'API key tier exists');
 
   // Verify escalation: api_key > authenticated > anonymous
   assert(
-    FLOWFEX_LIMITS.api_key.maxExecutionsPerDay > FLOWFEX_LIMITS.authenticated.maxExecutionsPerDay,
+    SYNIQ_LIMITS.api_key.maxExecutionsPerDay > SYNIQ_LIMITS.authenticated.maxExecutionsPerDay,
     'API key has more executions than authenticated'
   );
   assert(
-    FLOWFEX_LIMITS.api_key.maxConcurrentAgents > FLOWFEX_LIMITS.authenticated.maxConcurrentAgents,
+    SYNIQ_LIMITS.api_key.maxConcurrentAgents > SYNIQ_LIMITS.authenticated.maxConcurrentAgents,
     'API key allows more agents than authenticated'
   );
   assert(
-    FLOWFEX_LIMITS.api_key.maxConcurrentSessions > FLOWFEX_LIMITS.authenticated.maxConcurrentSessions,
+    SYNIQ_LIMITS.api_key.maxConcurrentSessions > SYNIQ_LIMITS.authenticated.maxConcurrentSessions,
     'API key allows more sessions than authenticated'
   );
 
   // Verify billing-ready structure
   for (const tier of ['anonymous', 'authenticated', 'api_key']) {
-    assertTruthy(FLOWFEX_LIMITS[tier].maxConnectionsPerDay, `${tier} has maxConnectionsPerDay`);
-    assertTruthy(FLOWFEX_LIMITS[tier].warningThreshold, `${tier} has warningThreshold`);
-    assertTruthy(FLOWFEX_LIMITS[tier].maxSessionDurationMinutes, `${tier} has maxSessionDurationMinutes`);
-    assertTruthy(FLOWFEX_LIMITS[tier].maxConcurrentAgents, `${tier} has maxConcurrentAgents`);
-    assertTruthy(FLOWFEX_LIMITS[tier].maxConcurrentSessions, `${tier} has maxConcurrentSessions`);
+    assertTruthy(SYNIQ_LIMITS[tier].maxConnectionsPerDay, `${tier} has maxConnectionsPerDay`);
+    assertTruthy(SYNIQ_LIMITS[tier].warningThreshold, `${tier} has warningThreshold`);
+    assertTruthy(SYNIQ_LIMITS[tier].maxSessionDurationMinutes, `${tier} has maxSessionDurationMinutes`);
+    assertTruthy(SYNIQ_LIMITS[tier].maxConcurrentAgents, `${tier} has maxConcurrentAgents`);
+    assertTruthy(SYNIQ_LIMITS[tier].maxConcurrentSessions, `${tier} has maxConcurrentSessions`);
   }
 }
 
@@ -482,7 +482,7 @@ async function cleanup(sessionIds) {
   for (const id of sessionIds) {
     try {
       await db.delete(usageTracking).where(eq(usageTracking.session_id, id));
-      await db.delete(flowfexSessions).where(eq(flowfexSessions.id, id));
+      await db.delete(syniqSessions).where(eq(syniqSessions.id, id));
     } catch { /* best effort */ }
   }
   try {
@@ -498,7 +498,7 @@ async function cleanup(sessionIds) {
 
 async function run() {
   console.log('═══════════════════════════════════════════════════════');
-  console.log('  Flowfex Limits + Control + Hardening Tests');
+  console.log('  Syniq Limits + Control + Hardening Tests');
   console.log('═══════════════════════════════════════════════════════');
 
   if (!isSessionDataConfigured()) {

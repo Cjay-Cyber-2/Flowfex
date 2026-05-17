@@ -18,11 +18,11 @@
 - Removed background and shape - kept only the minimal logo mark
 - Logo now displays as a simple geometric mark with circle and diamond
 - Added proper styling with `color: var(--color-velin)` for consistency
-- **File**: `/frontend/src/components/FlowfexLogoNew.jsx`
+- **File**: `/frontend/src/components/SyniqLogoNew.jsx`
 
 ### 4. **Reduced Connected Nodes Visibility**
 - Removed CLI, IDE, and Web nodes from hero graph
-- Kept only core flow: Flowfex → Skills/Tools → Canvas
+- Kept only core flow: Syniq → Skills/Tools → Canvas
 - Makes diagram less cluttered and more focused on the main flow
 - **File**: `/frontend/src/pages/LandingPage.jsx` (HERO_GRAPH constant)
 
@@ -52,12 +52,12 @@
 
 1. `/frontend/src/pages/LandingPage.jsx` - Hero graph, layers section, demo section
 2. `/frontend/src/styles/landing.css` - Typography, colors, demo video styles
-3. `/frontend/src/components/FlowfexLogoNew.jsx` - Logo component
+3. `/frontend/src/components/SyniqLogoNew.jsx` - Logo component
 
 ## Next Steps
 
 1. **Add Demo Video**: Place a demo video file at `/frontend/public/demo-video.mp4`
-   - Should show the actual Flowfex app in action
+   - Should show the actual Syniq app in action
    - Recommended format: MP4, 16:9 aspect ratio
    - Should demonstrate: agent connection, resource pulling, live flow visualization
 

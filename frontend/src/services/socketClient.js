@@ -2,7 +2,7 @@ import { io } from 'socket.io-client';
 import { getBackendOrigin } from '../utils/runtimeConfig';
 
 /**
- * Flowfex WebSocket Client Singleton
+ * Syn-IQ WebSocket Client Singleton
  *
  * Connects to the backend Socket.io server on load.
  * Exposes typed event subscriptions per namespace.
@@ -21,7 +21,7 @@ const RECONNECT_CONFIG = {
   transports: ['websocket', 'polling'],
 };
 
-class FlowfexSocketClient {
+class SyniqSocketClient {
   constructor() {
     this._sockets = {};
     this._listeners = new Map();
@@ -48,15 +48,15 @@ class FlowfexSocketClient {
       });
 
       socket.on('connect', () => {
-        console.log(`[Flowfex WS] /${ns} connected`);
+        console.log(`[Syniq WS] /${ns} connected`);
       });
 
       socket.on('disconnect', (reason) => {
-        console.log(`[Flowfex WS] /${ns} disconnected:`, reason);
+        console.log(`[Syniq WS] /${ns} disconnected:`, reason);
       });
 
       socket.on('connect_error', (error) => {
-        console.warn(`[Flowfex WS] /${ns} error:`, error.message);
+        console.warn(`[Syniq WS] /${ns} error:`, error.message);
       });
 
       this._sockets[ns] = socket;
@@ -124,7 +124,7 @@ class FlowfexSocketClient {
   emit(namespace, event, data) {
     const socket = this._sockets[namespace];
     if (!socket) {
-      console.warn(`[Flowfex WS] No socket for namespace: ${namespace}`);
+      console.warn(`[Syniq WS] No socket for namespace: ${namespace}`);
       return;
     }
     socket.emit(event, data);
@@ -152,6 +152,6 @@ class FlowfexSocketClient {
 }
 
 // Singleton instance
-const socketClient = new FlowfexSocketClient();
+const socketClient = new SyniqSocketClient();
 
 export default socketClient;

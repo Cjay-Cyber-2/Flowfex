@@ -1,12 +1,12 @@
 import {
   EMPTY_GRAPH_STATE,
-  type FlowfexConnectedAgent,
-  type FlowfexGraphEdge,
-  type FlowfexGraphNode,
-  type FlowfexGraphState,
+  type SyniqConnectedAgent,
+  type SyniqGraphEdge,
+  type SyniqGraphNode,
+  type SyniqGraphState,
 } from '../../packages/types/graph';
 
-export interface FlowfexSnapshotEvent {
+export interface SyniqSnapshotEvent {
   readonly payload?: unknown;
   readonly createdAt?: string;
 }
@@ -19,7 +19,7 @@ function isStringArray(value: unknown): value is readonly string[] {
   return Array.isArray(value) && value.every((entry) => typeof entry === 'string');
 }
 
-function isConnectedAgents(value: unknown): value is readonly FlowfexConnectedAgent[] {
+function isConnectedAgents(value: unknown): value is readonly SyniqConnectedAgent[] {
   return Array.isArray(value) && value.every((entry) => {
     if (!isRecord(entry)) {
       return false;
@@ -35,7 +35,7 @@ function isConnectedAgents(value: unknown): value is readonly FlowfexConnectedAg
   });
 }
 
-function isGraphNodes(value: unknown): value is readonly FlowfexGraphNode[] {
+function isGraphNodes(value: unknown): value is readonly SyniqGraphNode[] {
   return Array.isArray(value) && value.every((entry) => {
     if (!isRecord(entry)) {
       return false;
@@ -63,7 +63,7 @@ function isGraphNodes(value: unknown): value is readonly FlowfexGraphNode[] {
   });
 }
 
-function isGraphEdges(value: unknown): value is readonly FlowfexGraphEdge[] {
+function isGraphEdges(value: unknown): value is readonly SyniqGraphEdge[] {
   return Array.isArray(value) && value.every((entry) => {
     if (!isRecord(entry)) {
       return false;
@@ -80,7 +80,7 @@ function isGraphEdges(value: unknown): value is readonly FlowfexGraphEdge[] {
   });
 }
 
-export function parseRehydratedGraphState(input: unknown): FlowfexGraphState | null {
+export function parseRehydratedGraphState(input: unknown): SyniqGraphState | null {
   if (!isRecord(input)) {
     return null;
   }
@@ -109,13 +109,13 @@ export function parseRehydratedGraphState(input: unknown): FlowfexGraphState | n
     connectedAgents: input.connectedAgents,
     constraints: input.constraints,
     mode: input.mode,
-  } as FlowfexGraphState;
+  } as SyniqGraphState;
 }
 
 export function resolveRehydratedGraphState(
   primaryGraphState: unknown,
-  snapshots: readonly FlowfexSnapshotEvent[] = []
-): FlowfexGraphState {
+  snapshots: readonly SyniqSnapshotEvent[] = []
+): SyniqGraphState {
   const parsedPrimary = parseRehydratedGraphState(primaryGraphState);
   if (parsedPrimary) {
     return parsedPrimary;

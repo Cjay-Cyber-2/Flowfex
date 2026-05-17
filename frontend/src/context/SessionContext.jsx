@@ -11,12 +11,12 @@ import React, {
 import {
   createAnonymousSession,
   fetchRecentAuthenticatedSession,
-  initializeFlowfexSession,
+  initializeSyniqSession,
   readAnonymousToken,
   writeAnonymousToken,
 } from '../../../lib/session/initialize';
 import { upgradeAnonymousSession } from '../../../lib/session/upgrade';
-import { fetchFlowfexUsageStatus } from '../../../lib/limits/service';
+import { fetchSyniqUsageStatus } from '../../../lib/limits/service';
 import { fetchResolveAppState } from '../../../lib/session/resolveAppState';
 import { getBackendOrigin } from '../utils/runtimeConfig';
 import {
@@ -148,7 +148,7 @@ export function SessionProvider({ children }) {
     }
 
     try {
-      const usage = await fetchFlowfexUsageStatus(sessionId, accessToken, {
+      const usage = await fetchSyniqUsageStatus(sessionId, accessToken, {
         apiBaseUrl: backendOrigin,
         anonymousToken: state.session?.anonymousToken || readAnonymousToken(),
       });
@@ -226,7 +226,7 @@ export function SessionProvider({ children }) {
       }
 
       if (!backendSession) {
-        const initialized = await initializeFlowfexSession({
+        const initialized = await initializeSyniqSession({
           apiBaseUrl: backendOrigin,
         });
         backendSession = initialized.session || null;
@@ -288,7 +288,7 @@ export function SessionProvider({ children }) {
           ...current,
           sessionReady: true,
           configured: isAuthClientConfigured(),
-          error: error instanceof Error ? error.message : 'Unable to initialize the Flowfex session.',
+          error: error instanceof Error ? error.message : 'Unable to initialize the Syn-IQ session.',
           appState: null,
           appStateError: null,
         }));
@@ -305,7 +305,7 @@ export function SessionProvider({ children }) {
   }, [initialize]);
 
   // Better Auth has no browser push channel; re-check session when the user returns
-  // so sign-in state and Flowfex session stay aligned with server cookies.
+  // so sign-in state and Syn-IQ session stay aligned with server cookies.
   useEffect(() => {
     const refreshOnReturn = () => {
       if (document.visibilityState !== 'visible') {

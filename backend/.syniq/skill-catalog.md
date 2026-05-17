@@ -1,4 +1,4 @@
-# Flowfex Skill Catalog
+# Syniq Skill Catalog
 
 > Auto-generated on 2026-04-21T12:29:49.866Z
 > 328 tools registered from 340 markdown files across 4 sources

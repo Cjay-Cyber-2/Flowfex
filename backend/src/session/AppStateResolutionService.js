@@ -9,13 +9,13 @@ function parseTimestamp(value) {
 }
 
 function anonymousIdleStaleDays() {
-  const n = Number(process.env.FLOWFEX_ANONYMOUS_IDLE_STALE_DAYS || '14');
+  const n = Number(process.env.SYNIQ_ANONYMOUS_IDLE_STALE_DAYS || '14');
   return Number.isFinite(n) && n > 0 ? n : 14;
 }
 
 /**
  * Single authoritative product snapshot for routing and UI.
- * Identity (Better Auth) is separate from workspace (Flowfex session row).
+ * Identity (Better Auth) is separate from workspace (Syniq session row).
  */
 export class AppStateResolutionService {
   constructor(config = {}) {
@@ -93,7 +93,7 @@ export class AppStateResolutionService {
         resolvedAt,
         error: {
           code: 'session_identity_mismatch',
-          message: 'This Flowfex session does not belong to the signed-in account.',
+          message: 'This Syniq session does not belong to the signed-in account.',
         },
       };
     }

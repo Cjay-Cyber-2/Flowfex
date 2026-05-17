@@ -57,7 +57,7 @@ logSkillRegistrationReport(defaultSkillLoadReport);
 export const markdownSkillReport = defaultSkillLoadReport;
 
 const totalTools = defaultRegistry.getAllTools().length;
-console.log(`[Flowfex] Registry initialized with ${totalTools} tools (3 core + 3 system + ${allProductionTools.length} production + ${defaultSkillLoadReport.registeredTools?.length || 0} markdown)`);
+console.log(`[Syniq] Registry initialized with ${totalTools} tools (3 core + 3 system + ${allProductionTools.length} production + ${defaultSkillLoadReport.registeredTools?.length || 0} markdown)`);
 
 export { defaultRegistry };
 

@@ -11,7 +11,7 @@ import { UsageService } from '../session/UsageService.js';
 import { DatabaseSessionStateRepository } from '../persistence/DatabaseSessionStateRepository.js';
 import { isSessionDataConfigured, createSessionDataClient } from '../session/sessionDataAccess.js';
 import { toDashboardSessionRecord, serializeGraphStateFromSnapshot } from '../session/sessionSerializers.js';
-import { flowfexSessions, usageTracking, apiKeys } from '../db/schema.js';
+import { syniqSessions, usageTracking, apiKeys } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
 
 let db;
@@ -283,7 +283,7 @@ async function cleanup(sessionIds) {
   for (const id of sessionIds) {
     try {
       await db.delete(usageTracking).where(eq(usageTracking.session_id, id));
-      await db.delete(flowfexSessions).where(eq(flowfexSessions.id, id));
+      await db.delete(syniqSessions).where(eq(syniqSessions.id, id));
     } catch {
       // best effort
     }
@@ -305,7 +305,7 @@ async function cleanup(sessionIds) {
 
 async function run() {
   console.log('═══════════════════════════════════════════════════════');
-  console.log('  Flowfex Auth + Session Integration Tests');
+  console.log('  Syniq Auth + Session Integration Tests');
   console.log('═══════════════════════════════════════════════════════');
 
   if (!isSessionDataConfigured()) {

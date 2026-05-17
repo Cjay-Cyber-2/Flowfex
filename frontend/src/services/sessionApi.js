@@ -1,6 +1,6 @@
 import { getBackendOrigin } from '../utils/runtimeConfig';
 
-export const ANONYMOUS_TOKEN_STORAGE_KEY = 'flowfex_anonymous_token';
+export const ANONYMOUS_TOKEN_STORAGE_KEY = 'syniq_anonymous_token';
 
 async function parseResponse(response) {
   const contentType = response.headers.get('content-type') || '';
@@ -24,7 +24,7 @@ async function request(path, options = {}) {
   const payload = await parseResponse(response);
 
   if (!response.ok) {
-    const error = new Error(payload?.error?.message || 'Flowfex session request failed.');
+    const error = new Error(payload?.error?.message || 'Syn-IQ session request failed.');
     error.statusCode = response.status;
     error.payload = payload;
     throw error;

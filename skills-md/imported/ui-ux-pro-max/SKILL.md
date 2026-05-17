@@ -79,7 +79,7 @@ Return a single design brief with these sections:
 ## Notes
 
 This skill's underlying CSV-indexed data was authored upstream in
-`ui-ux-pro-max-skill` (Cjay-Cyber-2). When Flowfex routes a design task to
+`ui-ux-pro-max-skill` (Cjay-Cyber-2). When Syniq routes a design task to
 this skill, the agent should treat the recommendations as informed
 heuristics and adapt them to the brand and accessibility constraints of
 the calling product.

@@ -1,13 +1,13 @@
-# Flowfex SDK
+# Syniq SDK
 
-Official SDKs for connecting AI agents to the Flowfex orchestration platform.
+Official SDKs for connecting AI agents to the Syniq orchestration platform.
 
 ## Packages
 
 | Language | Package | Path |
 |----------|---------|------|
-| JavaScript/TypeScript | `flowfex` | [js/](./js/) |
-| Python | `flowfex` | [python/](./python/) |
+| JavaScript/TypeScript | `syniq` | [js/](./js/) |
+| Python | `syniq` | [python/](./python/) |
 
 ## Quick Start
 
@@ -20,9 +20,9 @@ npm run build
 ```
 
 ```javascript
-import { FlowfexClient } from 'flowfex';
+import { SyniqClient } from 'syniq';
 
-const client = new FlowfexClient('http://localhost:4000');
+const client = new SyniqClient('http://localhost:4000');
 const session = await client.connect({ name: 'my-agent' }, { mode: 'sdk' });
 const result = await client.send('Analyze data');
 ```
@@ -35,9 +35,9 @@ pip install -e .
 ```
 
 ```python
-from flowfex import FlowfexClient
+from syniq import SyniqClient
 
-client = FlowfexClient('http://localhost:4000')
+client = SyniqClient('http://localhost:4000')
 session = client.connect({'name': 'my-agent'}, mode='sdk')
 result = client.send('Analyze data')
 ```

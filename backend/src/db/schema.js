@@ -6,8 +6,8 @@ export const user = pgTable("user", {
   email: text('email').notNull().unique(),
   emailVerified: boolean('emailVerified').notNull(),
   image: text('image'),
-  /** False until the user sets a Flowfex handle (required after OAuth). Email sign-up sets true immediately. */
-  flowfexHandleChosen: boolean('flowfexHandleChosen').notNull().default(false),
+  /** False until the user sets a Syniq handle (required after OAuth). Email sign-up sets true immediately. */
+  syniqHandleChosen: boolean('syniqHandleChosen').notNull().default(false),
   createdAt: timestamp('createdAt').notNull(),
   updatedAt: timestamp('updatedAt').notNull()
 });
@@ -48,8 +48,8 @@ export const verification = pgTable("verification", {
   updatedAt: timestamp('updatedAt')
 });
 
-// Legacy/Flowfex custom tables (migrated to Drizzle)
-export const flowfexSessions = pgTable("sessions", {
+// Legacy/Syniq custom tables (migrated to Drizzle)
+export const syniqSessions = pgTable("sessions", {
   id: text("id").primaryKey(),
   auth_id: text("auth_id"),
   anonymous_token: text("anonymous_token"),

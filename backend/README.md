@@ -1,6 +1,6 @@
-# Flowfex Backend Foundation
+# Syniq Backend Foundation
 
-A production-grade Node.js backend for the Flowfex AI orchestration platform. This is the core execution engine that manages tools, LLM interactions, and workflow orchestration.
+A production-grade Node.js backend for the Syniq AI orchestration platform. This is the core execution engine that manages tools, LLM interactions, and workflow orchestration.
 
 ## Architecture Overview
 
@@ -39,7 +39,7 @@ skills-md/
 
 ### 1. Tool (src/types/Tool.js)
 
-Every tool in Flowfex follows a strict interface with required fields:
+Every tool in Syniq follows a strict interface with required fields:
 
 ```javascript
 const tool = new Tool({
@@ -144,7 +144,7 @@ const usage = llm.getUsage();
 
 ### 4. Markdown Skill Ingestion (src/skills/)
 
-Flowfex can import markdown skills recursively, normalize them into consistent prompts, validate them for unsafe behavior, and register the safe ones as tools.
+Syniq can import markdown skills recursively, normalize them into consistent prompts, validate them for unsafe behavior, and register the safe ones as tools.
 
 ```javascript
 import {
@@ -167,7 +167,7 @@ console.log(report.catalogReferences);
 - Recursively scans `skills-md/` and any configured source roots
 - Classifies markdown as `skill_markdown`, `command_markdown`, `agent_definition`, `catalog_markdown`, or `ignore`
 - Extracts title, sections, description, instructions, and frontmatter
-- Normalizes prompts into a consistent Flowfex tool format
+- Normalizes prompts into a consistent Syniq tool format
 - Adds inferred tags, category, keywords, source metadata, trust level, and validation status
 - Blocks unsafe, duplicate, or low-quality skills before registration
 - Indexes catalog-only markdown references without registering them as runnable tools

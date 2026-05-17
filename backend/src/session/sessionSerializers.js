@@ -64,7 +64,7 @@ export function toDashboardSessionRecord(sessionRow) {
 
   return {
     id: sessionRow.id,
-    name: sessionRow.name || 'Flowfex Session',
+    name: sessionRow.name || 'Syniq Session',
     task: sessionRow.graph_state?.metadata?.task || 'Live orchestration',
     heartbeat: sessionRow.status === 'paused' ? 'Execution paused' : 'Session live',
     status: sessionRow.status || 'active',

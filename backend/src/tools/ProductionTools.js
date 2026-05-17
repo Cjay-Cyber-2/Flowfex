@@ -1,7 +1,7 @@
 /**
  * Production Skill Tools
  *
- * 15 LLM-powered tools across key categories that expand Flowfex's
+ * 15 LLM-powered tools across key categories that expand Syniq's
  * skill registry for real orchestration. Each tool uses the LLM via
  * the unified registry.executeTool(id, input, llm, runtime) interface.
  */

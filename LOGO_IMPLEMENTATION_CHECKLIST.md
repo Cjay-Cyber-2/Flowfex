@@ -3,7 +3,7 @@
 ## ✅ Implementation Complete
 
 ### File Changes
-- [x] Modified `/home/gamp/Flowfex/frontend/src/styles/landing.css`
+- [x] Modified `/home/gamp/Syniq/frontend/src/styles/landing.css`
 - [x] Lines 268-450: Complete logo CSS rewrite
 - [x] No changes to HTML structure (pure CSS)
 - [x] No JavaScript modifications needed

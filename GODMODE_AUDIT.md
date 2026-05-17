@@ -1,4 +1,4 @@
-# Flowfex Frontend - GODMODE Production Audit
+# Syniq Frontend - GODMODE Production Audit
 ## Igloo & ActiveTheory Quality Standard
 
 This document audits the current implementation against the complete UI/UX GODMODE specification to ensure production-level quality matching Igloo and ActiveTheory standards.
@@ -523,7 +523,7 @@ To reach Igloo/ActiveTheory production level:
 
 ## CONCLUSION
 
-The Flowfex frontend has **excellent foundations** with production-ready canvas animations and approvals system. The core experience is solid.
+The Syniq frontend has **excellent foundations** with production-ready canvas animations and approvals system. The core experience is solid.
 
 To reach **Igloo/ActiveTheory level**, we need to:
 - Complete the landing page (4 missing sections)

@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
-Example: Using Flowfex SDK with an AI agent
+Example: Using Syniq SDK with an AI agent
 
 Run: python example.py
 """
 
-from flowfex import FlowfexClient
+from syniq import SyniqClient
 
 
 def main():
-    client = FlowfexClient('http://127.0.0.1:4000')
+    client = SyniqClient('http://127.0.0.1:4000')
 
     # 1. Connect your agent
-    print('Connecting to Flowfex...')
+    print('Connecting to Syniq...')
     session = client.connect(
         agent={'name': 'example-agent', 'type': 'assistant'},
         mode='sdk'

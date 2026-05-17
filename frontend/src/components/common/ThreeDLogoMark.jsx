@@ -1,5 +1,5 @@
 import React from 'react';
-import flowfexLogo from '../../assets/flowfex-logo-official.png';
+import syniqLogo from '../../assets/syniq-logo-official.png';
 
 function buildLayers(depth) {
   return Array.from({ length: depth }, (_, index) => index);
@@ -27,7 +27,7 @@ export default function ThreeDLogoMark({
         {layers.map((layerIndex) => (
           <img
             key={layerIndex}
-            src={flowfexLogo}
+            src={syniqLogo}
             alt=""
             className="three-d-logo-mark-layer"
             style={{
@@ -39,7 +39,7 @@ export default function ThreeDLogoMark({
         ))}
         <div className="three-d-logo-mark-front-shell">
           <img
-            src={flowfexLogo}
+            src={syniqLogo}
             alt={alt}
             className="three-d-logo-mark-front"
             draggable="false"

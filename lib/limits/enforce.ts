@@ -1,8 +1,8 @@
-import { FLOWFEX_LIMITS } from './config';
+import { SYNIQ_LIMITS } from './config';
 
-export type FlowfexUsageTier = keyof typeof FLOWFEX_LIMITS;
+export type SyniqUsageTier = keyof typeof SYNIQ_LIMITS;
 
-export type FlowfexLimitKey =
+export type SyniqLimitKey =
   | 'maxConnectionsPerDay'
   | 'maxExecutionsPerSession'
   | 'maxNodesPerSession'
@@ -11,7 +11,7 @@ export type FlowfexLimitKey =
   | 'maxSessionDurationMinutes'
   | 'maxConcurrentAgents';
 
-export interface FlowfexUsageSnapshot {
+export interface SyniqUsageSnapshot {
   readonly connectionsCount: number;
   readonly executionsCount: number;
   readonly nodesProcessed: number;
@@ -19,29 +19,29 @@ export interface FlowfexUsageSnapshot {
   readonly concurrentAgents: number;
 }
 
-export interface FlowfexAllowedLimitResult {
+export interface SyniqAllowedLimitResult {
   readonly status: 'allowed';
-  readonly tier: FlowfexUsageTier;
+  readonly tier: SyniqUsageTier;
 }
 
-export interface FlowfexBlockedLimitResult {
+export interface SyniqBlockedLimitResult {
   readonly status: 'blocked';
-  readonly tier: FlowfexUsageTier;
-  readonly limit: FlowfexLimitKey;
+  readonly tier: SyniqUsageTier;
+  readonly limit: SyniqLimitKey;
   readonly reason: string;
   readonly currentValue: number;
   readonly limitValue: number;
 }
 
-export type FlowfexLimitResult = FlowfexAllowedLimitResult | FlowfexBlockedLimitResult;
+export type SyniqLimitResult = SyniqAllowedLimitResult | SyniqBlockedLimitResult;
 
 function block(
-  tier: FlowfexUsageTier,
-  limit: FlowfexLimitKey,
+  tier: SyniqUsageTier,
+  limit: SyniqLimitKey,
   currentValue: number,
   limitValue: number,
   reason: string
-): FlowfexBlockedLimitResult {
+): SyniqBlockedLimitResult {
   return {
     status: 'blocked',
     tier,
@@ -52,15 +52,15 @@ function block(
   };
 }
 
-export function resolveUsageTier(isAuthenticated: boolean): FlowfexUsageTier {
+export function resolveUsageTier(isAuthenticated: boolean): SyniqUsageTier {
   return isAuthenticated ? 'authenticated' : 'anonymous';
 }
 
 export function enforceUsageLimits(
-  tier: FlowfexUsageTier,
-  usage: FlowfexUsageSnapshot
-): FlowfexLimitResult {
-  const limits = FLOWFEX_LIMITS[tier];
+  tier: SyniqUsageTier,
+  usage: SyniqUsageSnapshot
+): SyniqLimitResult {
+  const limits = SYNIQ_LIMITS[tier];
 
   if (usage.connectionsCount >= limits.maxConnectionsPerDay) {
     return block(
@@ -80,7 +80,7 @@ export function enforceUsageLimits(
       'maxExecutionsPerSession',
       usage.executionsCount,
       limits.maxExecutionsPerSession,
-      `Your connected agent has used all ${limits.maxExecutionsPerSession} free Flowfex skill or tool requests for this session. Sign up to keep going, or wait until the daily reset.`
+      `Your connected agent has used all ${limits.maxExecutionsPerSession} free Syniq skill or tool requests for this session. Sign up to keep going, or wait until the daily reset.`
     );
   }
 
@@ -90,7 +90,7 @@ export function enforceUsageLimits(
       'maxExecutionsPerDay',
       usage.executionsCount,
       limits.maxExecutionsPerDay,
-      'You have reached the 24-hour Flowfex skill and tool request allowance for this account.'
+      'You have reached the 24-hour Syniq skill and tool request allowance for this account.'
     );
   }
 

@@ -35,7 +35,7 @@ Your donut scroll animation features a **gorgeous, professional 3D logo** that:
 ## 📁 Files Modified
 
 ```
-/home/gamp/Flowfex/frontend/src/styles/landing.css
+/home/gamp/Syniq/frontend/src/styles/landing.css
 Lines 268-450: Complete logo CSS rewrite
 ```
 
@@ -294,7 +294,7 @@ Your donut scroll animation now features a **stunning, professional 3D logo** th
 - **Immediately captures attention** with its size and glow
 - **Conveys quality** through sophisticated 3D effects
 - **Creates a "wow" moment** for users
-- **Enhances brand perception** of Flowfex
+- **Enhances brand perception** of Syniq
 - **Scales beautifully** on all devices
 - **Performs smoothly** at 60fps
 - **Never touches** the donut edges

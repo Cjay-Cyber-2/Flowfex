@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import FlowfexLogo from '../../assets/FlowfexLogo';
+import SyniqLogo from '../../assets/SyniqLogo';
 import '../../styles/landing-sections3.css';
 
 const SVG_NODES = [
@@ -47,8 +47,8 @@ function FinalCTASection() {
       <footer className="fcta-footer">
         <div className="fcta-footer-inner">
           <div className="fcta-footer-col">
-            <FlowfexLogo size={24} />
-            <span className="fcta-footer-brand">Flowfex</span>
+            <SyniqLogo size={24} />
+            <span className="fcta-footer-brand">Syn-IQ</span>
             <p className="fcta-footer-tagline">Visual AI orchestration for every agent.</p>
           </div>
           <div className="fcta-footer-col fcta-footer-nav">

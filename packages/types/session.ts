@@ -1,28 +1,28 @@
 import type {
-  FlowfexCanvasMode,
-  FlowfexConnectedAgent,
-  FlowfexGraphState,
-  FlowfexPersistedSessionStatus,
+  SyniqCanvasMode,
+  SyniqConnectedAgent,
+  SyniqGraphState,
+  SyniqPersistedSessionStatus,
 } from './graph';
 
-export interface FlowfexAuthUser {
+export interface SyniqAuthUser {
   readonly id: string;
   readonly email: string | null;
   readonly displayName: string | null;
   readonly avatarUrl: string | null;
 }
 
-export interface FlowfexSessionRecord {
+export interface SyniqSessionRecord {
   readonly id: string;
   readonly connectionId?: string | null;
   readonly authId: string | null;
   readonly anonymousToken: string | null;
-  readonly status: FlowfexPersistedSessionStatus;
-  readonly graphState: FlowfexGraphState;
+  readonly status: SyniqPersistedSessionStatus;
+  readonly graphState: SyniqGraphState;
   readonly executionPointer: string | null;
-  readonly connectedAgents: readonly FlowfexConnectedAgent[];
+  readonly connectedAgents: readonly SyniqConnectedAgent[];
   readonly constraints: readonly string[];
-  readonly mode: FlowfexCanvasMode;
+  readonly mode: SyniqCanvasMode;
   readonly createdAt?: string;
   readonly updatedAt?: string;
   readonly lastActiveAt?: string;
@@ -31,23 +31,23 @@ export interface FlowfexSessionRecord {
   readonly heartbeat?: string | null;
 }
 
-export interface FlowfexAnonymousSessionResponse {
+export interface SyniqAnonymousSessionResponse {
   readonly ok: boolean;
   readonly anonymousToken: string;
-  readonly session: FlowfexSessionRecord | null;
+  readonly session: SyniqSessionRecord | null;
 }
 
-export interface FlowfexRecentSessionResponse {
+export interface SyniqRecentSessionResponse {
   readonly ok: boolean;
-  readonly session: FlowfexSessionRecord | null;
+  readonly session: SyniqSessionRecord | null;
 }
 
-export interface FlowfexSessionUpgradeResponse {
+export interface SyniqSessionUpgradeResponse {
   readonly ok: boolean;
-  readonly session: FlowfexSessionRecord | null;
+  readonly session: SyniqSessionRecord | null;
 }
 
-export interface FlowfexApiKeyRecord {
+export interface SyniqApiKeyRecord {
   readonly id: string;
   readonly key_prefix: string;
   readonly label: string;
@@ -56,18 +56,18 @@ export interface FlowfexApiKeyRecord {
   readonly last_used_at: string | null;
 }
 
-export interface FlowfexApiKeyListResponse {
+export interface SyniqApiKeyListResponse {
   readonly ok: boolean;
-  readonly apiKeys: readonly FlowfexApiKeyRecord[];
+  readonly apiKeys: readonly SyniqApiKeyRecord[];
 }
 
-export interface FlowfexApiKeyGenerationResponse {
+export interface SyniqApiKeyGenerationResponse {
   readonly ok: boolean;
   readonly apiKey: string;
-  readonly record: FlowfexApiKeyRecord;
+  readonly record: SyniqApiKeyRecord;
 }
 
-export interface FlowfexApiKeyRevokeResponse {
+export interface SyniqApiKeyRevokeResponse {
   readonly ok: boolean;
-  readonly record: FlowfexApiKeyRecord;
+  readonly record: SyniqApiKeyRecord;
 }

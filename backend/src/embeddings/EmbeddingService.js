@@ -48,7 +48,7 @@ const TOKEN_TO_GROUP = buildTokenToGroup(SYNONYM_GROUPS);
  * Lightweight embedding service.
  *
  * This uses deterministic feature hashing over normalized tokens and a small
- * synonym graph so Flowfex can perform semantic-ish retrieval without an
+ * synonym graph so Syniq can perform semantic-ish retrieval without an
  * external vector dependency.
  */
 export class EmbeddingService {

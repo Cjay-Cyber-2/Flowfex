@@ -1,16 +1,16 @@
 /**
- * Example: Using Flowfex SDK with an AI agent
+ * Example: Using Syniq SDK with an AI agent
  * 
  * Run: node example.mjs
  */
 
-import { FlowfexClient } from './dist/index.js';
+import { SyniqClient } from './dist/index.js';
 
 async function main() {
-  const client = new FlowfexClient('http://127.0.0.1:4000');
+  const client = new SyniqClient('http://127.0.0.1:4000');
 
   // 1. Connect your agent
-  console.log('Connecting to Flowfex...');
+  console.log('Connecting to Syniq...');
   const session = await client.connect(
     { name: 'example-agent', type: 'assistant' },
     { mode: 'sdk' }

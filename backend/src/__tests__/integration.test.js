@@ -1,5 +1,5 @@
 /**
- * Integration Tests for Flowfex Backend
+ * Integration Tests for Syniq Backend
  * 
  * Comprehensive testing of:
  * - Tool interface and validation
@@ -18,7 +18,7 @@ import {
   Tool,
   SessionManager,
   ConnectionService,
-  FlowfexServer,
+  SyniqServer,
   ToolRegistry,
   LLMWrapper,
   Orchestrator,
@@ -554,7 +554,7 @@ await test('Orchestrator executes multi-step workflows with trace and references
 
   const orchestrator = new Orchestrator({ registry, llm: defaultLLM });
   const result = await orchestrator.orchestrate({
-    input: { seed: 'hello flowfex' },
+    input: { seed: 'hello syniq' },
     steps: [
       {
         tool: 'workflow.seed',
@@ -574,8 +574,8 @@ await test('Orchestrator executes multi-step workflows with trace and references
   assert(result.status === 'success', 'Workflow should succeed');
   assert(result.trace.length === 2, 'Workflow should record each step');
   assert(result.trace[0].tool === 'workflow.seed', 'First step should record the seed tool');
-  assert(result.trace[1].input.text === 'hello flowfex', 'Second step should receive prior output');
-  assert(result.finalResult.result === 'hello flowfex -> transformed', 'Should expose final result separately');
+  assert(result.trace[1].input.text === 'hello syniq', 'Second step should receive prior output');
+  assert(result.finalResult.result === 'hello syniq -> transformed', 'Should expose final result separately');
 });
 
 await test('Orchestrator defaults missing step input to prior output', async () => {
@@ -790,7 +790,7 @@ await test('ConnectionService creates prompt-scoped sessions from semantic tool 
   assert(!allowedToolIds.includes('connect.api'), 'Prompt session should stay scoped instead of granting everything');
 });
 
-await test('FlowfexServer exposes connect and execute endpoints for external agents', async () => {
+await test('SyniqServer exposes connect and execute endpoints for external agents', async () => {
   const registry = new ToolRegistry();
   const summarizer = new Tool({
     id: 'server.summary',
@@ -811,7 +811,7 @@ await test('FlowfexServer exposes connect and execute endpoints for external age
     orchestrator,
     sessionManager: new SessionManager()
   });
-  const server = new FlowfexServer({
+  const server = new SyniqServer({
     connectionService,
     host: '127.0.0.1',
     port: 0
@@ -858,7 +858,7 @@ await test('FlowfexServer exposes connect and execute endpoints for external age
   }
 });
 
-await test('FlowfexServer ingests token-prefixed prompt tasks without separate auth headers', async () => {
+await test('SyniqServer ingests token-prefixed prompt tasks without separate auth headers', async () => {
   const registry = new ToolRegistry();
   const promptTool = new Tool({
     id: 'server.prompt-ingest',
@@ -881,7 +881,7 @@ await test('FlowfexServer ingests token-prefixed prompt tasks without separate a
 
   const plannerLLM = {
     async generate(systemPrompt, userPrompt) {
-      if (systemPrompt.includes('Flowfex orchestration planner')) {
+      if (systemPrompt.includes('Syniq orchestration planner')) {
         return JSON.stringify({
           goal: 'Handle a prompt-ingested task',
           capabilityCategories: ['text'],
@@ -910,7 +910,7 @@ await test('FlowfexServer ingests token-prefixed prompt tasks without separate a
     orchestrator,
     sessionManager: new SessionManager()
   });
-  const server = new FlowfexServer({
+  const server = new SyniqServer({
     connectionService,
     host: '127.0.0.1',
     port: 0
@@ -926,14 +926,14 @@ await test('FlowfexServer ingests token-prefixed prompt tasks without separate a
       method: 'POST',
       body: {
         mode: 'prompt',
-        prompt: 'I am a connected agent that needs Flowfex to process prompt-ingested tasks.',
+        prompt: 'I am a connected agent that needs Syniq to process prompt-ingested tasks.',
         agent: { name: 'Prompt Ingest Agent', type: 'cli' }
       }
     });
 
     assert(connectResponse.statusCode === 200, 'Prompt connect should return 200');
     const session = connectResponse.body.connection.session;
-    const task = `FLOWFEX_SESSION_TOKEN: ${session.token}\nSummarize the connected deployment notes.`;
+    const task = `SYNIQ_SESSION_TOKEN: ${session.token}\nSummarize the connected deployment notes.`;
     const ingestResponse = await requestJson({
       host: address.host,
       port: address.port,
@@ -953,7 +953,7 @@ await test('FlowfexServer ingests token-prefixed prompt tasks without separate a
   }
 });
 
-await test('FlowfexServer streams execution events over SSE for live clients', async () => {
+await test('SyniqServer streams execution events over SSE for live clients', async () => {
   const registry = new ToolRegistry();
   const streamingTool = new Tool({
     id: 'server.stream',
@@ -989,7 +989,7 @@ await test('FlowfexServer streams execution events over SSE for live clients', a
     orchestrator,
     sessionManager: new SessionManager()
   });
-  const server = new FlowfexServer({
+  const server = new SyniqServer({
     connectionService,
     host: '127.0.0.1',
     port: 0

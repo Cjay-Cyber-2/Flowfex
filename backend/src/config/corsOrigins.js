@@ -9,8 +9,8 @@ const DEFAULT_ORIGINS = [
   'http://127.0.0.1:3000',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-  'https://flowfex.vercel.app',
-  'https://flowfex.onrender.com',
+  'https://syniq.vercel.app',
+  'https://syniq.onrender.com',
 ];
 
 function parseEnvOrigins() {

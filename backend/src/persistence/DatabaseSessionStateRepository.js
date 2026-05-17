@@ -1,6 +1,6 @@
 import { createSessionDataClient } from '../session/sessionDataAccess.js';
 import { logSessionError } from '../session/sessionLogger.js';
-import { flowfexSessions } from '../db/schema.js';
+import { syniqSessions } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
 import {
   mapExecutionStatusToPersistedStatus,
@@ -17,15 +17,15 @@ export class DatabaseSessionStateRepository {
     try {
       const rows = await this.client
         .select({
-          graph_state: flowfexSessions.graph_state,
-          execution_pointer: flowfexSessions.execution_pointer,
-          connected_agents: flowfexSessions.connected_agents,
-          constraints: flowfexSessions.constraints,
-          status: flowfexSessions.status,
-          mode: flowfexSessions.mode,
+          graph_state: syniqSessions.graph_state,
+          execution_pointer: syniqSessions.execution_pointer,
+          connected_agents: syniqSessions.connected_agents,
+          constraints: syniqSessions.constraints,
+          status: syniqSessions.status,
+          mode: syniqSessions.mode,
         })
-        .from(flowfexSessions)
-        .where(eq(flowfexSessions.id, sessionId))
+        .from(syniqSessions)
+        .where(eq(syniqSessions.id, sessionId))
         .limit(1);
 
       const row = Array.isArray(rows) ? rows[0] : rows;
@@ -56,7 +56,7 @@ export class DatabaseSessionStateRepository {
       const constraints = Array.isArray(snapshot?.blockedSkillIds) ? snapshot.blockedSkillIds : [];
 
       await this.client
-        .update(flowfexSessions)
+        .update(syniqSessions)
         .set({
           graph_state: graphState,
           execution_pointer: snapshot?.pendingNodeId || snapshot?.currentNodeId || null,
@@ -67,7 +67,7 @@ export class DatabaseSessionStateRepository {
           last_active_at: new Date(),
           updated_at: new Date(),
         })
-        .where(eq(flowfexSessions.id, sessionId));
+        .where(eq(syniqSessions.id, sessionId));
     } catch (error) {
       logSessionError({
         operation: 'database_session_repository.write',
@@ -81,8 +81,8 @@ export class DatabaseSessionStateRepository {
   async delete(sessionId) {
     try {
       await this.client
-        .delete(flowfexSessions)
-        .where(eq(flowfexSessions.id, sessionId));
+        .delete(syniqSessions)
+        .where(eq(syniqSessions.id, sessionId));
 
       return true;
     } catch (error) {

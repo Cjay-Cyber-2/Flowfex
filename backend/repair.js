@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-const tsPath = 'c:/Users/chiji/Documents/Flowfex/backend/src/orchestration-engine-src/ExecutionPlanSelector.ts';
+const tsPath = 'c:/Users/chiji/Documents/Syniq/backend/src/orchestration-engine-src/ExecutionPlanSelector.ts';
 let content = fs.readFileSync(tsPath, 'utf8');
 
 const targetFunction = `function findSourceStepIndex(`;

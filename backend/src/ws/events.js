@@ -1,7 +1,7 @@
 import { CONTROL_EVENTS as SHARED_CONTROL_EVENTS } from '../../../shared/control-contracts.js';
 
 /**
- * Shared WebSocket Event Types for Flowfex
+ * Shared WebSocket Event Types for Syniq
  * 
  * These event names and payload shapes are used by both the backend Socket.io server
  * and the frontend Socket.io client to ensure a consistent event contract.

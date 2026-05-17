@@ -1,6 +1,6 @@
-export type FlowfexCanvasMode = 'map' | 'flow' | 'live';
+export type SyniqCanvasMode = 'map' | 'flow' | 'live';
 
-export type FlowfexSessionStatus =
+export type SyniqSessionStatus =
   | 'planning'
   | 'ready'
   | 'running'
@@ -9,15 +9,15 @@ export type FlowfexSessionStatus =
   | 'completed'
   | 'failed';
 
-export type FlowfexPersistedSessionStatus =
+export type SyniqPersistedSessionStatus =
   | 'active'
   | 'paused'
   | 'completed'
   | 'error';
 
-export type FlowfexNodeShape = 'rect' | 'diamond';
+export type SyniqNodeShape = 'rect' | 'diamond';
 
-export type FlowfexNodeState =
+export type SyniqNodeState =
   | 'idle'
   | 'queued'
   | 'active'
@@ -27,16 +27,16 @@ export type FlowfexNodeState =
   | 'error'
   | 'paused';
 
-export type FlowfexEdgeState =
+export type SyniqEdgeState =
   | 'inactive'
   | 'queued'
   | 'active'
   | 'completed'
   | 'rerouted';
 
-export type FlowfexEdgeType = 'sequential' | 'conditional';
+export type SyniqEdgeType = 'sequential' | 'conditional';
 
-export interface FlowfexGraphAlternative {
+export interface SyniqGraphAlternative {
   readonly toolId?: string;
   readonly name: string;
   readonly score?: number;
@@ -44,7 +44,7 @@ export interface FlowfexGraphAlternative {
   readonly reason: string;
 }
 
-export interface FlowfexGraphNodeExecutionMetadata {
+export interface SyniqGraphNodeExecutionMetadata {
   readonly category?: string;
   readonly objective?: string;
   readonly selectionScore?: number;
@@ -53,38 +53,38 @@ export interface FlowfexGraphNodeExecutionMetadata {
   readonly [key: string]: unknown;
 }
 
-export interface FlowfexGraphNode {
+export interface SyniqGraphNode {
   readonly id: string;
   readonly type: string;
-  readonly shape: FlowfexNodeShape;
+  readonly shape: SyniqNodeShape;
   readonly x: number;
   readonly y: number;
   readonly width: number;
   readonly height: number;
   readonly title: string;
   readonly subtitle: string;
-  readonly state: FlowfexNodeState;
+  readonly state: SyniqNodeState;
   readonly icon: string;
   readonly confidence: number;
   readonly reasoning: string;
-  readonly alternatives: readonly FlowfexGraphAlternative[];
+  readonly alternatives: readonly SyniqGraphAlternative[];
   readonly inputs: Readonly<Record<string, unknown>>;
   readonly config: Readonly<Record<string, unknown>>;
   readonly owner: string;
   readonly skill?: string | null;
-  readonly executionMetadata?: FlowfexGraphNodeExecutionMetadata;
+  readonly executionMetadata?: SyniqGraphNodeExecutionMetadata;
 }
 
-export interface FlowfexGraphEdge {
+export interface SyniqGraphEdge {
   readonly id: string;
   readonly from: string;
   readonly to: string;
-  readonly state: FlowfexEdgeState;
+  readonly state: SyniqEdgeState;
   readonly label?: string | null;
-  readonly type?: FlowfexEdgeType;
+  readonly type?: SyniqEdgeType;
 }
 
-export interface FlowfexConnectedAgent {
+export interface SyniqConnectedAgent {
   readonly connectionId?: string | null;
   readonly id: string;
   readonly name: string;
@@ -93,24 +93,24 @@ export interface FlowfexConnectedAgent {
   readonly lastSeen?: string;
 }
 
-export interface FlowfexGraphState {
+export interface SyniqGraphState {
   readonly sessionId?: string | null;
   readonly executionId?: string | null;
-  readonly status?: FlowfexSessionStatus;
-  readonly nodes: readonly FlowfexGraphNode[];
-  readonly edges: readonly FlowfexGraphEdge[];
+  readonly status?: SyniqSessionStatus;
+  readonly nodes: readonly SyniqGraphNode[];
+  readonly edges: readonly SyniqGraphEdge[];
   readonly currentNodeId?: string | null;
   readonly pendingNodeId?: string | null;
   readonly executionPointer?: string | null;
-  readonly connectedAgents: readonly FlowfexConnectedAgent[];
+  readonly connectedAgents: readonly SyniqConnectedAgent[];
   readonly constraints: readonly string[];
-  readonly mode: FlowfexCanvasMode;
+  readonly mode: SyniqCanvasMode;
   readonly outputs?: Readonly<Record<string, unknown>>;
   readonly errors?: Readonly<Record<string, unknown>>;
   readonly metadata?: Readonly<Record<string, unknown>>;
 }
 
-export const EMPTY_GRAPH_STATE: FlowfexGraphState = {
+export const EMPTY_GRAPH_STATE: SyniqGraphState = {
   sessionId: null,
   executionId: null,
   status: 'ready',

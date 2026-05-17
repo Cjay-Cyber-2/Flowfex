@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-const builderPath = 'c:/Users/chiji/Documents/Flowfex/backend/src/orchestration-engine/ExecutionGraphBuilder.js';
+const builderPath = 'c:/Users/chiji/Documents/Syniq/backend/src/orchestration-engine/ExecutionGraphBuilder.js';
 let content = fs.readFileSync(builderPath, 'utf8');
 
 content = content.replace(

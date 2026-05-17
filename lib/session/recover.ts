@@ -1,6 +1,6 @@
-import type { FlowfexSessionRecord } from '../../packages/types/session';
-import type { FlowfexGraphState } from '../../packages/types/graph';
-import { resolveRehydratedGraphState, type FlowfexSnapshotEvent } from './rehydrate';
+import type { SyniqSessionRecord } from '../../packages/types/session';
+import type { SyniqGraphState } from '../../packages/types/graph';
+import { resolveRehydratedGraphState, type SyniqSnapshotEvent } from './rehydrate';
 
 export interface ReconnectBackoffOptions {
   readonly initialDelayMs?: number;
@@ -24,7 +24,7 @@ export function getReconnectDelayMs(
 }
 
 export function isSessionStale(
-  session: Pick<FlowfexSessionRecord, 'authId' | 'lastActiveAt'>,
+  session: Pick<SyniqSessionRecord, 'authId' | 'lastActiveAt'>,
   now: number = Date.now()
 ): boolean {
   if (!session.lastActiveAt) {
@@ -42,7 +42,7 @@ export function isSessionStale(
 
 export function recoverGraphState(
   primaryGraphState: unknown,
-  snapshots: readonly FlowfexSnapshotEvent[] = []
-): FlowfexGraphState {
+  snapshots: readonly SyniqSnapshotEvent[] = []
+): SyniqGraphState {
   return resolveRehydratedGraphState(primaryGraphState, snapshots);
 }

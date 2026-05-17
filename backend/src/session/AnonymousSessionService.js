@@ -2,7 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { createSessionDataClient } from './sessionDataAccess.js';
 import { logSessionError } from './sessionLogger.js';
 import { toDashboardSessionRecord } from './sessionSerializers.js';
-import { flowfexSessions } from '../db/schema.js';
+import { syniqSessions } from '../db/schema.js';
 import { eq, desc } from 'drizzle-orm';
 
 function firstResult(data) {
@@ -96,7 +96,7 @@ export class AnonymousSessionService {
     const sessionId = randomUUID();
 
     try {
-      const data = await this.client.insert(flowfexSessions).values({
+      const data = await this.client.insert(syniqSessions).values({
         id: sessionId,
         anonymous_token: anonymousToken,
       }).returning();
@@ -121,8 +121,8 @@ export class AnonymousSessionService {
     try {
       const data = await this.client
         .select()
-        .from(flowfexSessions)
-        .where(eq(flowfexSessions.anonymous_token, anonymousToken))
+        .from(syniqSessions)
+        .where(eq(syniqSessions.anonymous_token, anonymousToken))
         .limit(1);
 
       const row = firstResult(data);
@@ -141,8 +141,8 @@ export class AnonymousSessionService {
     try {
       const existingRows = await this.client
         .select()
-        .from(flowfexSessions)
-        .where(eq(flowfexSessions.anonymous_token, anonymousToken))
+        .from(syniqSessions)
+        .where(eq(syniqSessions.anonymous_token, anonymousToken))
         .limit(1);
 
       const existing = firstResult(existingRows);
@@ -151,7 +151,7 @@ export class AnonymousSessionService {
       }
 
       if (existing.auth_id && existing.auth_id !== authId) {
-        const error = new Error('This anonymous Flowfex session is already assigned to another account.');
+        const error = new Error('This anonymous Syniq session is already assigned to another account.');
         error.code = 'session_ownership_conflict';
         error.statusCode = 409;
         throw error;
@@ -165,14 +165,14 @@ export class AnonymousSessionService {
       const graphState = markAuthUpgrade(existing.graph_state, upgradedAt);
 
       const data = await this.client
-        .update(flowfexSessions)
+        .update(syniqSessions)
         .set({
           auth_id: authId,
           graph_state: graphState,
           last_active_at: new Date(),
           updated_at: new Date(),
         })
-        .where(eq(flowfexSessions.anonymous_token, anonymousToken))
+        .where(eq(syniqSessions.anonymous_token, anonymousToken))
         .returning();
 
       const row = firstResult(data);
@@ -191,9 +191,9 @@ export class AnonymousSessionService {
     try {
       const data = await this.client
         .select()
-        .from(flowfexSessions)
-        .where(eq(flowfexSessions.auth_id, authId))
-        .orderBy(desc(flowfexSessions.last_active_at))
+        .from(syniqSessions)
+        .where(eq(syniqSessions.auth_id, authId))
+        .orderBy(desc(syniqSessions.last_active_at))
         .limit(1);
 
       const row = firstResult(data);
@@ -217,11 +217,11 @@ export class AnonymousSessionService {
     try {
       const existingRows = await this.client
         .select({
-          connected_agents: flowfexSessions.connected_agents,
-          graph_state: flowfexSessions.graph_state,
+          connected_agents: syniqSessions.connected_agents,
+          graph_state: syniqSessions.graph_state,
         })
-        .from(flowfexSessions)
-        .where(eq(flowfexSessions.id, sessionId))
+        .from(syniqSessions)
+        .where(eq(syniqSessions.id, sessionId))
         .limit(1);
 
       const existingRow = firstResult(existingRows);
@@ -235,14 +235,14 @@ export class AnonymousSessionService {
       ];
 
       const data = await this.client
-        .update(flowfexSessions)
+        .update(syniqSessions)
         .set({
           connected_agents: nextAgents,
           graph_state: graphState,
           last_active_at: new Date(),
           updated_at: new Date(),
         })
-        .where(eq(flowfexSessions.id, sessionId))
+        .where(eq(syniqSessions.id, sessionId))
         .returning();
 
       const row = firstResult(data);

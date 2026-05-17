@@ -145,7 +145,7 @@ export class ExecutionGraphBuilder {
           config: {
             lane: 0,
           },
-          owner: 'Flowfex Engine',
+          owner: 'Syniq Engine',
           skill: null,
           executionMetadata: {
             branchCondition: node.condition,
@@ -176,7 +176,7 @@ export class ExecutionGraphBuilder {
         },
         owner: node.tool.metadata?.source
           ? String(node.tool.metadata.source)
-          : 'Flowfex Registry',
+          : 'Syniq Registry',
         skill: node.toolId,
         executionMetadata: {
           category: node.capabilityCategory,

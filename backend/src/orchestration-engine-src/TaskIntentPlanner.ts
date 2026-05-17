@@ -11,7 +11,7 @@ import { TaskIntentSchema } from './schemas.js';
 import { extractJsonDocument, stableId, tokenize, uniqueStrings } from './utils.js';
 
 const TASK_INTENT_SYSTEM_PROMPT = [
-  'You are the Flowfex orchestration planner.',
+  'You are the Syniq orchestration planner.',
   'Read the task and return ONLY strict JSON.',
   'Do not use markdown, prose, or code fences.',
   'The JSON must include:',

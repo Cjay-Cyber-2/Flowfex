@@ -10,7 +10,7 @@ import { io as ioClient } from 'socket.io-client';
 import {
   ConnectionService,
   FileSessionStateRepository,
-  FlowfexServer,
+  SyniqServer,
   Orchestrator,
   SessionManager,
   SessionStateStore,
@@ -33,7 +33,7 @@ class ScenarioLLM {
   }
 
   async generate(systemPrompt, userPrompt) {
-    if (systemPrompt.includes('Flowfex orchestration planner')) {
+    if (systemPrompt.includes('Syniq orchestration planner')) {
       return JSON.stringify(this.planFactory(userPrompt));
     }
 
@@ -193,7 +193,7 @@ function stableId(prefix, ...parts) {
 async function createHarness(config) {
   const tempRoot = config.repositoryDirectory
     ? path.dirname(config.repositoryDirectory)
-    : await fs.mkdtemp(path.join(os.tmpdir(), 'flowfex-control-'));
+    : await fs.mkdtemp(path.join(os.tmpdir(), 'syniq-control-'));
   const repository = new FileSessionStateRepository({
     directory: config.repositoryDirectory || path.join(tempRoot, 'sessions'),
   });
@@ -215,7 +215,7 @@ async function createHarness(config) {
     sessionManager,
     publicBaseUrl: 'http://127.0.0.1:4000',
   });
-  const server = new FlowfexServer({
+  const server = new SyniqServer({
     host: '127.0.0.1',
     port: 0,
     connectionService,

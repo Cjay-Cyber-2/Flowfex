@@ -1,8 +1,8 @@
-# Flowfex production operator checklist
+# Syniq production operator checklist
 
 Human-only work in **external** consoles (hosting dashboards, DNS, OAuth vendors, email providers, payment providers, and live browsers). Nothing here is done by editing the application repository.
 
-If the default Flowfex stack is already live (Render Web Service + Vercel frontend + Neon + Resend + Google/GitHub OAuth), treat most environment items as **confirm values, rotate after incidents, and keep provider consoles in sync**—not as greenfield setup.
+If the default Syniq stack is already live (Render Web Service + Vercel frontend + Neon + Resend + Google/GitHub OAuth), treat most environment items as **confirm values, rotate after incidents, and keep provider consoles in sync**—not as greenfield setup.
 
 ---
 
@@ -14,7 +14,7 @@ If the default Flowfex stack is already live (Render Web Service + Vercel fronte
 - [ ] Confirm the **Resend** account that owns production sending domains and API keys.
 - [ ] Confirm the **Google Cloud** project used for the production Google OAuth client.
 - [ ] Confirm the **GitHub** organization or user that owns the production GitHub OAuth App.
-- [ ] When billing is enabled, confirm the **Stripe** account, business profile, and tax settings used for Flowfex charges.
+- [ ] When billing is enabled, confirm the **Stripe** account, business profile, and tax settings used for Syniq charges.
 - [ ] In each host’s billing UI (**Render**, **Vercel**, **Neon**), choose paid or reserved capacity so cold starts and connection limits match launch expectations.
 
 ---
@@ -26,11 +26,11 @@ If the default Flowfex stack is already live (Render Web Service + Vercel fronte
 - [ ] Open the service **Environment** tab and confirm every required secret is present for production (no placeholder text, no accidental dev values).
 - [ ] Confirm `DATABASE_URL` matches the **pooled** connection string for the production Neon branch you intend to serve traffic.
 - [ ] Confirm `BETTER_AUTH_SECRET` and `JWT_SECRET` are long random values appropriate for production (rotate both together if either may have leaked).
-- [ ] Confirm `BETTER_AUTH_URL` and `FLOWFEX_PUBLIC_ORIGIN` match the **public HTTPS origin** of this Render service.
-- [ ] Confirm `FLOWFEX_APP_URL` matches the **public HTTPS origin** of the Vercel frontend (used for cookies and trusted browser origins).
+- [ ] Confirm `BETTER_AUTH_URL` and `SYNIQ_PUBLIC_ORIGIN` match the **public HTTPS origin** of this Render service.
+- [ ] Confirm `SYNIQ_APP_URL` matches the **public HTTPS origin** of the Vercel frontend (used for cookies and trusted browser origins).
 - [ ] Confirm `ALLOWED_ORIGINS` lists every browser origin that must call the API (production frontend, public backend origin if browsers hit it, staging hosts if used)—comma-separated, no spaces unless intentional.
-- [ ] Confirm `FLOWFEX_LINK_SECRET` is set to a strong random value used only for signing attach links.
-- [ ] Optionally set `FLOWFEX_CONNECTION_API_KEY` if you require a shared key for SDK or anonymous attach traffic; leave unset only if that policy is intentional.
+- [ ] Confirm `SYNIQ_LINK_SECRET` is set to a strong random value used only for signing attach links.
+- [ ] Optionally set `SYNIQ_CONNECTION_API_KEY` if you require a shared key for SDK or anonymous attach traffic; leave unset only if that policy is intentional.
 - [ ] Confirm `RESEND_API_KEY`, `EMAIL_FROM`, and optional `EMAIL_REPLY_TO` match the verified sender configuration in Resend.
 - [ ] Confirm `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, and `GITHUB_CLIENT_SECRET` match the live OAuth apps in Google Cloud and GitHub.
 - [ ] Confirm `GROQ_API_KEY` (or whichever LLM vendor keys the deployment uses) is present if orchestration calls hosted models from this service.
@@ -69,11 +69,11 @@ If the default Flowfex stack is already live (Render Web Service + Vercel fronte
 
 ## 5. DNS and domain configuration
 
-- [ ] Decide the long-term **apex and API hostnames** (for example `flowfex.app` and `api.flowfex.app`).
+- [ ] Decide the long-term **apex and API hostnames** (for example `syniq.app` and `api.syniq.app`).
 - [ ] At your DNS provider, create the **CNAME / A / ALIAS** records Vercel shows for the frontend custom domain; wait until Vercel marks the domain as verified and SSL is active.
 - [ ] Create the DNS records Render shows for a **custom backend hostname** if the API should not stay on the default `onrender.com` name.
 - [ ] Add the **Resend** DNS records (SPF, DKIM, optional DMARC) for the domain you send mail from; wait until Resend shows the domain as verified.
-- [ ] When cutover completes, manually update **every** dependent URL: Render env (`BETTER_AUTH_URL`, `FLOWFEX_PUBLIC_ORIGIN`, `FLOWFEX_APP_URL`, `ALLOWED_ORIGINS`), Vercel env (`VITE_APP_URL`, `VITE_BACKEND_URL`), Google **Authorized JavaScript origins** and **redirect URIs**, GitHub **Authorization callback URL**, and any marketing links—then redeploy both hosts.
+- [ ] When cutover completes, manually update **every** dependent URL: Render env (`BETTER_AUTH_URL`, `SYNIQ_PUBLIC_ORIGIN`, `SYNIQ_APP_URL`, `ALLOWED_ORIGINS`), Vercel env (`VITE_APP_URL`, `VITE_BACKEND_URL`), Google **Authorized JavaScript origins** and **redirect URIs**, GitHub **Authorization callback URL**, and any marketing links—then redeploy both hosts.
 
 ---
 
@@ -111,7 +111,7 @@ Run these in a **clean browser profile** (or separate device) against the live U
 - [ ] Email **sign-up** and **sign-in** with a disposable domain you control; confirm the session persists across refresh.
 - [ ] **Forgot password**: request a link, consume it, set a new password, sign in with the new password.
 - [ ] **Google** and **GitHub** sign-in each complete end-to-end and return to the authenticated dashboard.
-- [ ] Cross-device attach: on hardware that has never used Flowfex, confirm `/dashboard` stays gated until a real attach succeeds.
+- [ ] Cross-device attach: on hardware that has never used Syniq, confirm `/dashboard` stays gated until a real attach succeeds.
 - [ ] Authenticated **quota exhaustion**: confirm the upgrade / wait messaging matches the intended commercial state (billing on vs daily reset only).
 - [ ] **API keys** (if exposed in Settings): create, use with the SDK once, revoke, and confirm revoked keys are rejected.
 - [ ] **WebSocket / live orchestration**: leave the dashboard open through a long session and confirm reconnect behavior after putting the laptop to sleep or toggling networks.

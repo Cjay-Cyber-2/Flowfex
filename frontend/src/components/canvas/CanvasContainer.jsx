@@ -8,7 +8,7 @@ import Minimap from './Minimap';
 import './CanvasContainer.css';
 
 /**
- * CanvasContainer - The soul of Flowfex
+ * CanvasContainer - The soul of Syniq
  * 
  * A 5-layer rendering system that makes AI orchestration visible:
  * Layer 1: Base void (#080C10)

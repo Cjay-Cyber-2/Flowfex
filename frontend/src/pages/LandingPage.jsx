@@ -539,10 +539,10 @@ function LandingPage() {
         <p className="statement-kicker">
           What Syn-IQ does
         </p>
-        <div className="statement-animation-wrap" aria-label="Syniq live catalog coverage">
+        <div className="statement-animation-wrap" aria-label="Syn-IQ live catalog coverage">
           <ParticleTextEffect words={particleWords} />
         </div>
-        <div className="statement-metrics" aria-label="Syniq catalog facts">
+        <div className="statement-metrics" aria-label="Syn-IQ catalog facts">
           {statementMetrics.map(({ label, value, detail, icon: Icon }) => (
             <article key={label} className="statement-metric">
               <span className="statement-metric-icon">

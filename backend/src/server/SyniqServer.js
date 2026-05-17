@@ -1356,7 +1356,7 @@ export class SyniqServer {
   }
 
   _buildBaseUrl(request) {
-    const configuredOrigin = process.env.BETTER_AUTH_URL || process.env.SYNIQ_PUBLIC_ORIGIN || this.connectionService?.publicBaseUrl || null;
+    const configuredOrigin = process.env.BETTER_AUTH_URL || process.env.SYNIQ_PUBLIC_ORIGIN || process.env.FLOWFEX_PUBLIC_ORIGIN || this.connectionService?.publicBaseUrl || null;
     if (configuredOrigin) {
       return configuredOrigin.replace(/\/+$/, '');
     }

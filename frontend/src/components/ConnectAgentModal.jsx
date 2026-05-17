@@ -114,7 +114,9 @@ function ConnectionLimitPanel({ isAuthenticated, message, onSignUp, onSignIn, on
 
 function ConnectionHeadline() {
   return (
-    <p className="cam-connect-headline">Your dashboard opens when the agent is connected</p>
+    <p className="cam-connect-headline">
+      <strong style={{ color: 'var(--color-sinoper)' }}>→</strong> You'll be taken to your dashboard only after your agent successfully connects to Syn-IQ.
+    </p>
   );
 }
 
@@ -476,7 +478,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     const sessionRecord = {
       id: session.id,
       name: `${tab} Session`,
-      task: 'Connected through Syniq',
+      task: 'Connected through Syn-IQ',
       heartbeat: `${tab} connection synced`,
       status: 'ready',
       revision: 0,

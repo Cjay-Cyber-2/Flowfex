@@ -64,7 +64,7 @@ function paymentGateHeadline(blockedLimit, connectionBlockedLimit, isAuthenticat
   if (key === 'maxConcurrentAgents') {
     return 'Too many agents are connected for this tier.';
   }
-  return 'Syniq limits are blocking new work.';
+  return 'Syn-IQ limits are blocking new work.';
 }
 
 function OrchestrationCanvas() {

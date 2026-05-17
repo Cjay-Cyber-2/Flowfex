@@ -5,7 +5,7 @@ export const faqs = [
   },
   {
     question: 'What does Syn-IQ actually do?',
-    answer: 'Syniq sits between the agent and a shared store of tools, skills, and workflows. It helps the agent pull the right resources, builds a visible flow, and gives the user a live place to supervise the run.'
+    answer: 'Syn-IQ sits between the agent and a shared store of tools, skills, and workflows. It helps the agent pull the right resources, builds a visible flow, and gives the user a live place to supervise the run.'
   },
   {
     question: 'How does the prompt connection work?',

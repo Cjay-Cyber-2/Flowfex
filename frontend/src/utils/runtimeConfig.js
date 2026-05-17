@@ -1,6 +1,6 @@
 const DEFAULT_APP_ORIGIN = 'http://localhost:3000';
 const DEFAULT_BACKEND_ORIGIN = 'http://localhost:4000';
-const DEFAULT_VERCEL_PRODUCTION_BACKEND = 'https://syniq.onrender.com';
+const DEFAULT_VERCEL_PRODUCTION_BACKEND = 'https://flowfex.onrender.com';
 const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1']);
 
 function trimTrailingSlash(value) {
@@ -62,7 +62,7 @@ export function getBackendOrigin() {
     return DEFAULT_BACKEND_ORIGIN;
   }
 
-  if (location.hostname === 'syniq.vercel.app') {
+  if (location.hostname === 'flowfex.vercel.app') {
     return DEFAULT_VERCEL_PRODUCTION_BACKEND;
   }
 

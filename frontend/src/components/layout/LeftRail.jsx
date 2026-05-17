@@ -253,7 +253,7 @@ function LeftRail() {
     });
   }, [liveResults, searchValue, categoryIndexStats, fallbackGrouped]);
 
-  const totalSkillsInSyniq = useMemo(
+  const totalSkillsInSynIQ = useMemo(
     () => categoryChips.reduce((sum, c) => sum + c.count, 0),
     [categoryChips]
   );
@@ -309,7 +309,7 @@ function LeftRail() {
         <div className="rail-panel-head">
           <span className="rail-panel-title">Syn-IQ library</span>
           <span className="rail-panel-count" title="Total skills/tools in catalog">
-            {totalSkillsInSyniq}{isSearching ? '…' : ''}
+            {totalSkillsInSynIQ}{isSearching ? '…' : ''}
           </span>
         </div>
         <div className="rail-panel-body rail-panel-body--chips">
@@ -318,7 +318,7 @@ function LeftRail() {
           ) : (
             <div className="category-chip-grid" aria-busy={isSearching}>
               {categoryChips.map((cat) => (
-                <div key={cat.id} className="category-chip" title={`${cat.count} in Syniq`}>
+                <div key={cat.id} className="category-chip" title={`${cat.count} in Syn-IQ`}>
                   <FlowIcon name={cat.icon} size={16} className="category-chip-icon" />
                   <span className="category-chip-label">{cat.label}</span>
                   <span className="category-chip-value">{cat.count}</span>

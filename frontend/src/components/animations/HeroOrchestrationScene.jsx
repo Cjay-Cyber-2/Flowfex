@@ -20,7 +20,7 @@ const HERO_NODES = [
     kind: 'foundation',
     side: 'left',
     accent: '#00d4aa',
-    explanation: 'Syniq maintains a unified registry where all skills are stored with structured schemas, making them discoverable and version-controlled.',
+    explanation: 'Syn-IQ maintains a unified registry where all skills are stored with structured schemas, making them discoverable and version-controlled.',
   },
   {
     id: 'importer',
@@ -65,7 +65,7 @@ const HERO_NODES = [
     kind: 'intelligence',
     side: 'right',
     accent: '#7ffff0',
-    explanation: 'Syniq uses AI embeddings to match tasks with the most relevant skills based on meaning, not just keywords.',
+    explanation: 'Syn-IQ uses AI embeddings to match tasks with the most relevant skills based on meaning, not just keywords.',
   },
   {
     id: 'selection',

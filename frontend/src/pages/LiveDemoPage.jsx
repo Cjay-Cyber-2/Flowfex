@@ -172,7 +172,7 @@ function LiveDemoPage() {
   }
 
   return (
-    <main className="live-demo-page" aria-label="Syniq live demo">
+    <main className="live-demo-page" aria-label="Syn-IQ live demo">
       <canvas ref={canvasRef} className="live-demo-canvas" />
       <div className={`live-demo-loading ${isReady ? 'is-hidden' : ''}`}>Loading live demo…</div>
     </main>

@@ -194,7 +194,7 @@ function buildNodes() {
       state: 'completed',
       icon: 'sparkles',
       confidence: 98,
-      reasoning: 'Syniq registered the connected agent, the incoming task, and the session mode before building the flow.',
+      reasoning: 'Syn-IQ registered the connected agent, the incoming task, and the session mode before building the flow.',
       alternatives: buildAlternatives('Passive Logging', 'Direct agent execution'),
       inputs: {
         task: 'Connect an agent, pull the right resources, and stream the run live.',
@@ -221,7 +221,7 @@ function buildNodes() {
       state: 'completed',
       icon: 'brain',
       confidence: 94,
-      reasoning: 'Syniq broke the request into resource discovery, flow building, operator check, and return steps.',
+      reasoning: 'Syn-IQ broke the request into resource discovery, flow building, operator check, and return steps.',
       alternatives: buildAlternatives('Loose prompt parse', 'Static workflow'),
       inputs: {
         taskType: 'Agent bridge session',
@@ -248,7 +248,7 @@ function buildNodes() {
       state: 'completed',
       icon: 'git-branch',
       confidence: 88,
-      reasoning: 'Syniq chose the strongest resource lane for this task before execution moved forward.',
+      reasoning: 'Syn-IQ chose the strongest resource lane for this task before execution moved forward.',
       alternatives: [
         {
           name: 'Broad tool dump',
@@ -286,7 +286,7 @@ function buildNodes() {
       state: 'completed',
       icon: 'globe',
       confidence: 91,
-      reasoning: 'Syniq pulled the most relevant skills for the current task and ranked them before execution.',
+      reasoning: 'Syn-IQ pulled the most relevant skills for the current task and ranked them before execution.',
       alternatives: buildAlternatives('Full catalog dump', 'Manual skill pick'),
       inputs: {
         sources: 'Shared skill catalog',
@@ -340,7 +340,7 @@ function buildNodes() {
       state: 'completed',
       icon: 'layers',
       confidence: 89,
-      reasoning: 'Syniq chained the selected resources into an execution path and kept the state readable for the operator.',
+      reasoning: 'Syn-IQ chained the selected resources into an execution path and kept the state readable for the operator.',
       alternatives: buildAlternatives('Single-step run', 'Static path'),
       inputs: {
         sourceCount: '4 resources selected',
@@ -367,7 +367,7 @@ function buildNodes() {
       state: 'approval',
       icon: 'shield-check',
       confidence: 84,
-      reasoning: 'Syniq paused here because the next step uses pulled resources in a high-impact action and the user can guide the path before it continues.',
+      reasoning: 'Syn-IQ paused here because the next step uses pulled resources in a high-impact action and the user can guide the path before it continues.',
       alternatives: [
         {
           name: 'Continue automatically',

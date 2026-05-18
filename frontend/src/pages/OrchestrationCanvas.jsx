@@ -67,9 +67,43 @@ function paymentGateHeadline(blockedLimit, connectionBlockedLimit, isAuthenticat
   return 'Syn-IQ limits are blocking new work.';
 }
 
+function FreeTierPlanCard({ requestsLeft, requestLimit, onUpgrade, onDismiss }) {
+  return (
+    <div style={{
+      marginBottom: 16,
+      padding: '18px 20px',
+      borderRadius: 20,
+      border: '1px solid rgba(0, 212, 170, 0.18)',
+      background:
+        'linear-gradient(180deg, rgba(9, 24, 21, 0.92), rgba(8, 12, 16, 0.88))',
+      boxShadow: '0 24px 54px rgba(0, 0, 0, 0.24)',
+      display: 'grid',
+      gap: 12,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+        <div>
+          <strong style={{ display: 'block', marginBottom: 6, color: 'var(--color-velin)', fontSize: 18 }}>
+            Free account active
+          </strong>
+          <span style={{ color: 'rgba(232, 237, 242, 0.8)', fontSize: 14, lineHeight: 1.6 }}>
+            You are now signed in. This account keeps your workspace, supports one connected agent, and includes {requestLimit} Flowfex requests per day. Upgrade later for uninterrupted usage after the free quota is exhausted.
+          </span>
+        </div>
+        <button className="btn btn-ghost" onClick={onDismiss}>Dismiss</button>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <span style={{ color: 'var(--color-bistre)', fontSize: 14 }}>
+          Requests remaining today: <strong style={{ color: 'var(--color-velin)' }}>{Math.max(0, requestsLeft)}</strong>
+        </span>
+        <button className="btn btn-primary" onClick={onUpgrade}>View plans</button>
+      </div>
+    </div>
+  );
+}
+
 function OrchestrationCanvas() {
   const navigate = useNavigate();
-  const { isAuthenticated, sessionReady, usage } = useSessionContext();
+  const { isAuthenticated, sessionReady, usage, appState } = useSessionContext();
   const {
     activeSession,
     approvalQueue,
@@ -80,6 +114,7 @@ function OrchestrationCanvas() {
     setConnectModalOpen,
   } = useStore();
   const [paymentGateDismissed, setPaymentGateDismissed] = useState(false);
+  const [freeTierCardDismissed, setFreeTierCardDismissed] = useState(false);
 
   useEffect(() => {
     if (!sessionReady) {
@@ -97,6 +132,7 @@ function OrchestrationCanvas() {
     || usage?.limits?.maxExecutionsPerDay
     || null;
   const requestsToday = usage?.usage?.executionsCount || 0;
+  const requestsLeft = requestLimit ? requestLimit - requestsToday : 0;
   const blockedLimit = usage?.blockedLimit || null;
   const connectionBlockedLimit = usage?.connectionBlockedLimit || null;
   const anyBlockReason = blockedLimit?.reason || connectionBlockedLimit?.reason || null;
@@ -106,6 +142,10 @@ function OrchestrationCanvas() {
   const showAnonymousGate = !isAuthenticated && Boolean(anyBlockReason);
   const showPaymentGate = isAuthenticated && Boolean(anyBlockReason) && !paymentGateDismissed;
   const showAuthenticatedBanner = isAuthenticated && Boolean(anyBlockReason) && paymentGateDismissed;
+  const showFreeTierCard = isAuthenticated
+    && appState?.identity?.billing === 'free'
+    && !freeTierCardDismissed
+    && !showPaymentGate;
 
   useEffect(() => {
     setPaymentGateDismissed(false);
@@ -116,6 +156,10 @@ function OrchestrationCanvas() {
     connectionBlockedLimit?.limit,
     activeSession?.id,
   ]);
+
+  useEffect(() => {
+    setFreeTierCardDismissed(false);
+  }, [activeSession?.id, appState?.identity?.billing]);
 
   return (
     <div className="orchestration-canvas-page">
@@ -132,6 +176,15 @@ function OrchestrationCanvas() {
               message={anyBlockReason}
               onSignIn={() => {}}
               onSignUp={() => {}}
+            />
+          ) : null}
+
+          {showFreeTierCard ? (
+            <FreeTierPlanCard
+              requestsLeft={requestsLeft}
+              requestLimit={requestLimit || 10}
+              onDismiss={() => setFreeTierCardDismissed(true)}
+              onUpgrade={() => window.location.assign('/#pricing')}
             />
           ) : null}
 

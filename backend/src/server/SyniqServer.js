@@ -501,6 +501,15 @@ export class SyniqServer {
         });
       }
 
+      if (body.sessionId) {
+        await this._assertWorkspaceAccessBySessionId({
+          sessionId: body.sessionId,
+          authUser,
+          anonymousToken,
+          validatedApiKey,
+        });
+      }
+
       // Enforce agent concurrency limit before connecting
       if (this.usageService && body.sessionId) {
         await this.usageService.assertAgentConnectionAllowed({
@@ -533,6 +542,11 @@ export class SyniqServer {
     }
 
     if (request.method === 'GET' && sessionStateMatch) {
+      await this._assertWorkspaceAccessBySessionId({
+        sessionId: sessionStateMatch[1],
+        authUser,
+        anonymousToken,
+      });
       const payload = await this.controlController.getSessionState({
         sessionId: sessionStateMatch[1],
       });
@@ -545,6 +559,11 @@ export class SyniqServer {
 
     if (request.method === 'POST' && pauseMatch) {
       const body = await this._readAndValidateJsonBody(request, emptySchema);
+      await this._assertWorkspaceAccessBySessionId({
+        sessionId: pauseMatch[1],
+        authUser,
+        anonymousToken,
+      });
       const payload = await this.controlController.pauseSession({
         sessionId: pauseMatch[1],
       }, body);
@@ -553,6 +572,11 @@ export class SyniqServer {
 
     if (request.method === 'POST' && resumeMatch) {
       const body = await this._readAndValidateJsonBody(request, emptySchema);
+      await this._assertWorkspaceAccessBySessionId({
+        sessionId: resumeMatch[1],
+        authUser,
+        anonymousToken,
+      });
       const payload = await this.controlController.resumeSession({
         sessionId: resumeMatch[1],
       }, body);
@@ -561,6 +585,11 @@ export class SyniqServer {
 
     if (request.method === 'POST' && approveMatch) {
       const body = await this._readAndValidateJsonBody(request, approveSchema);
+      await this._assertWorkspaceAccessBySessionId({
+        sessionId: body?.sessionId || null,
+        authUser,
+        anonymousToken,
+      });
       const payload = await this.controlController.approveNode({
         nodeId: approveMatch[1],
       }, body);
@@ -569,6 +598,11 @@ export class SyniqServer {
 
     if (request.method === 'POST' && rejectMatch) {
       const body = await this._readAndValidateJsonBody(request, rejectSchema);
+      await this._assertWorkspaceAccessBySessionId({
+        sessionId: body?.sessionId || null,
+        authUser,
+        anonymousToken,
+      });
       const payload = await this.controlController.rejectNode({
         nodeId: rejectMatch[1],
       }, body);
@@ -577,6 +611,11 @@ export class SyniqServer {
 
     if (request.method === 'POST' && rerouteMatch) {
       const body = await this._readAndValidateJsonBody(request, rerouteSchema);
+      await this._assertWorkspaceAccessBySessionId({
+        sessionId: body?.sessionId || null,
+        authUser,
+        anonymousToken,
+      });
       const payload = await this.controlController.rerouteNode({
         nodeId: rerouteMatch[1],
       }, body);
@@ -585,6 +624,11 @@ export class SyniqServer {
 
     if (request.method === 'POST' && constrainMatch) {
       const body = await this._readAndValidateJsonBody(request, constrainSchema);
+      await this._assertWorkspaceAccessBySessionId({
+        sessionId: constrainMatch[1],
+        authUser,
+        anonymousToken,
+      });
       const payload = await this.controlController.constrainSession({
         sessionId: constrainMatch[1],
       }, {
@@ -895,6 +939,48 @@ export class SyniqServer {
     }
 
     return user;
+  }
+
+  async _assertWorkspaceAccessBySessionId({
+    sessionId,
+    authUser = null,
+    anonymousToken = null,
+    validatedApiKey = null,
+  }) {
+    if (!sessionId) {
+      throw createHttpError('A workspace session id is required for this action.', 400);
+    }
+
+    if (!this.sessionDataEnabled || !this.anonymousSessionService?.getSessionById) {
+      return null;
+    }
+
+    const session = await this.anonymousSessionService.getSessionById(sessionId);
+    if (!session) {
+      throw createHttpError('The requested workspace session was not found.', 404);
+    }
+
+    if (validatedApiKey?.authId && session.authId && String(session.authId) === String(validatedApiKey.authId)) {
+      return session;
+    }
+
+    if (authUser?.id) {
+      if (session.authId && String(session.authId) === String(authUser.id)) {
+        return session;
+      }
+
+      if (!session.authId && anonymousToken && session.anonymousToken && String(session.anonymousToken) === String(anonymousToken)) {
+        return session;
+      }
+
+      throw createHttpError('You do not have access to this workspace session.', 403);
+    }
+
+    if (!session.authId && anonymousToken && session.anonymousToken && String(session.anonymousToken) === String(anonymousToken)) {
+      return session;
+    }
+
+    throw createHttpError('You do not have access to this workspace session.', 403);
   }
 
   _readCookie(request, name) {

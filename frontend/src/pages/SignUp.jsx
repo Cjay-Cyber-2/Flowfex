@@ -39,7 +39,7 @@ function SignUp() {
 
   useEffect(() => {
     if (sessionReady && isAuthenticated) {
-      navigate('/onboarding');
+      navigate('/app');
     }
   }, [isAuthenticated, navigate, sessionReady]);
 
@@ -78,7 +78,7 @@ function SignUp() {
         setNoticeMessage('Check your inbox to confirm your email, then come back to sign in.');
       } else {
         await refreshSession();
-        navigate('/onboarding');
+        navigate('/app');
       }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to create your account.');
@@ -93,11 +93,11 @@ function SignUp() {
 
     try {
       if (provider === 'google') {
-        await signInWithGoogle('/onboarding', '/signup');
+        await signInWithGoogle('/app', '/signup');
         return;
       }
 
-      await signInWithGitHub('/onboarding', '/signup');
+      await signInWithGitHub('/app', '/signup');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to start social sign-in.');
     }

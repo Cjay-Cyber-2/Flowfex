@@ -4,6 +4,7 @@ import { CONTROL_EVENTS } from '../../../shared/control-contracts.js';
 import { getBackendOrigin } from '../utils/runtimeConfig';
 import { resolveRehydratedGraphState } from '../../../lib/session/rehydrate';
 import { filterLiveConnectedAgents } from '../utils/agentPresence';
+import { buildWorkspaceAuthRequestInit } from '../services/sessionRequestAuth';
 
 function parseAgentPresenceMs(agent) {
   const raw = agent?.lastSeen || agent?.syncedAt || agent?.connectedAt || agent?.lastSeenAt;
@@ -776,12 +777,14 @@ const useStore = create((set, get) => ({
     const url = `${state.backendUrl}/node/${nodeId}/approve`;
     try {
       const response = await fetch(url, {
+        ...(await buildWorkspaceAuthRequestInit({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId,
           expectedRevision: state.activeSession?.revision,
         }),
+        })),
       });
       const payload = await response.json();
       if (!response.ok) {
@@ -807,12 +810,14 @@ const useStore = create((set, get) => ({
     const url = `${state.backendUrl}/node/${nodeId}/reject`;
     try {
       const response = await fetch(url, {
+        ...(await buildWorkspaceAuthRequestInit({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId,
           expectedRevision: state.activeSession?.revision,
         }),
+        })),
       });
       const payload = await response.json();
       if (!response.ok) {
@@ -843,6 +848,7 @@ const useStore = create((set, get) => ({
       }
 
       const response = await fetch(url, {
+        ...(await buildWorkspaceAuthRequestInit({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -850,6 +856,7 @@ const useStore = create((set, get) => ({
           targetNodeId: fallbackTargetId,
           expectedRevision: state.activeSession?.revision,
         }),
+        })),
       });
       const payload = await response.json();
       if (!response.ok) {
@@ -875,11 +882,13 @@ const useStore = create((set, get) => ({
     const url = `${state.backendUrl}/session/${sessionId}/pause`;
     try {
       const response = await fetch(url, {
+        ...(await buildWorkspaceAuthRequestInit({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           expectedRevision: state.activeSession?.revision,
         }),
+        })),
       });
       const payload = await response.json();
       if (!response.ok) {
@@ -905,11 +914,13 @@ const useStore = create((set, get) => ({
     const url = `${state.backendUrl}/session/${sessionId}/resume`;
     try {
       const response = await fetch(url, {
+        ...(await buildWorkspaceAuthRequestInit({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           expectedRevision: state.activeSession?.revision,
         }),
+        })),
       });
       const payload = await response.json();
       if (!response.ok) {
@@ -935,12 +946,14 @@ const useStore = create((set, get) => ({
     const url = `${state.backendUrl}/session/${sessionId}/constrain`;
     try {
       const response = await fetch(url, {
+        ...(await buildWorkspaceAuthRequestInit({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           blockedSkillIds,
           expectedRevision: state.activeSession?.revision,
         }),
+        })),
       });
       const payload = await response.json();
       if (!response.ok) {
@@ -963,7 +976,10 @@ const useStore = create((set, get) => ({
   hydrateSessionState: async (sessionId) => {
     const backendUrl = get().backendUrl;
     try {
-      const response = await fetch(`${backendUrl}/session/${sessionId}/state`);
+      const response = await fetch(
+        `${backendUrl}/session/${sessionId}/state`,
+        await buildWorkspaceAuthRequestInit()
+      );
       const payload = await response.json();
       if (!response.ok || !payload?.snapshot) {
         return;

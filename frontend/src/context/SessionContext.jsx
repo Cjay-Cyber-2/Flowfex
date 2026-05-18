@@ -194,9 +194,14 @@ export function SessionProvider({ children }) {
             apiBaseUrl: backendOrigin,
           });
           backendSession = upgraded.session || null;
-          writeAnonymousToken(null);
-        } catch {
-          writeAnonymousToken(null);
+          if (backendSession) {
+            writeAnonymousToken(null);
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : '';
+          if (/already assigned to another account/i.test(message) || /cannot upgrade/i.test(message)) {
+            writeAnonymousToken(null);
+          }
         }
       }
 
@@ -252,6 +257,9 @@ export function SessionProvider({ children }) {
         });
         if (resolvedAppState?.ok && resolvedAppState.usage) {
           usageFromResolve = resolvedAppState.usage;
+        }
+        if (resolvedAppState?.ok && resolvedAppState?.lifecycle?.clearAnonymousTokenSuggested) {
+          writeAnonymousToken(null);
         }
       } catch (err) {
         resolvedAppStateError = err instanceof Error ? err.message : 'Unable to resolve app state.';

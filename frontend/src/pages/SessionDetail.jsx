@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { X, Play, RefreshCw } from 'lucide-react';
 import useStore from '../store/useStore';
 import { getBackendOrigin } from '../utils/runtimeConfig';
+import { buildWorkspaceAuthRequestInit } from '../services/sessionRequestAuth';
 
 function SessionDetail() {
   const { id } = useParams();
@@ -31,7 +32,8 @@ function SessionDetail() {
     setLoading(true);
     setError(null);
 
-    fetch(`${backendOrigin}/session/${encodeURIComponent(id)}/state`)
+    buildWorkspaceAuthRequestInit()
+      .then((requestInit) => fetch(`${backendOrigin}/session/${encodeURIComponent(id)}/state`, requestInit))
       .then(async (response) => {
         const payload = await response.json().catch(() => null);
         if (!response.ok) {

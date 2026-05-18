@@ -15,17 +15,17 @@
 
 .auth-backdrop__glow--left {
   background:
-    radial-gradient(circle at 16% 22%, rgba(0, 212, 170, 0.38), transparent 36%),
-    radial-gradient(circle at 28% 68%, rgba(127, 255, 240, 0.22), transparent 30%);
-  filter: blur(8px);
+    radial-gradient(circle at 16% 22%, rgba(0, 212, 170, 0.54), transparent 40%),
+    radial-gradient(circle at 28% 68%, rgba(127, 255, 240, 0.28), transparent 34%);
+  filter: blur(12px);
   animation: authBackdropDrift 18s ease-in-out infinite alternate;
 }
 
 .auth-backdrop__glow--right {
   background:
-    radial-gradient(circle at 82% 18%, rgba(70, 189, 169, 0.32), transparent 34%),
-    radial-gradient(circle at 70% 72%, rgba(0, 229, 195, 0.24), transparent 28%);
-  filter: blur(8px);
+    radial-gradient(circle at 82% 18%, rgba(70, 189, 169, 0.44), transparent 38%),
+    radial-gradient(circle at 70% 72%, rgba(0, 229, 195, 0.3), transparent 32%);
+  filter: blur(12px);
   animation: authBackdropDrift 22s ease-in-out infinite alternate-reverse;
 }
 
@@ -74,20 +74,20 @@
 .auth-backdrop__orb-slot--tl .auth-backdrop__orb {
   top: 0;
   left: 0;
-  width: min(52vw, 580px);
-  height: min(52vw, 580px);
-  transform: translate(-42%, -42%);
-  opacity: 0.92;
+  width: min(56vw, 640px);
+  height: min(56vw, 640px);
+  transform: translate(-38%, -38%);
+  opacity: 0.98;
   animation: authOrbPulseTl 10s ease-in-out infinite;
 }
 
 .auth-backdrop__orb-slot--br .auth-backdrop__orb {
   right: 0;
   bottom: 0;
-  width: min(46vw, 520px);
-  height: min(46vw, 520px);
-  transform: translate(42%, 42%);
-  opacity: 0.90;
+  width: min(50vw, 560px);
+  height: min(50vw, 560px);
+  transform: translate(38%, 38%);
+  opacity: 0.96;
   animation: authOrbPulseBr 12s ease-in-out infinite reverse;
 }
 
@@ -193,13 +193,13 @@
 
 /* Sign-up page: slightly softer but still clearly visible */
 .auth-backdrop--signup .auth-backdrop__orb {
-  filter: blur(6px);
-  opacity: 0.75;
+  filter: blur(12px);
+  opacity: 0.88;
 }
 
 .auth-backdrop--signup .auth-backdrop__glow--left,
 .auth-backdrop--signup .auth-backdrop__glow--right {
-  filter: blur(16px);
+  filter: blur(22px);
   opacity: 1;
 }
 

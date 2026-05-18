@@ -26,12 +26,14 @@ export const SYNIQ_LIMITS = {
     // Free authenticated tier gets 10 requests per day. After they finish,
     // the dashboard pops the pricing card; payment unlocks the paid plan
     // (handled separately) — otherwise the quota renews the next day.
+    // Keep the free tier to one active agent/session so multi-agent usage
+    // stays a paid capability instead of an auth bypass.
     maxConnectionsPerDay: 20,
     maxExecutionsPerDay: 10,
     maxNodesPerDay: 100,
     maxSessionDurationMinutes: 480,
-    maxConcurrentAgents: 5,
-    maxConcurrentSessions: 3,
+    maxConcurrentAgents: 1,
+    maxConcurrentSessions: 1,
     warningThreshold: 0.8,
   },
   api_key: {

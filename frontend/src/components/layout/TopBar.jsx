@@ -9,7 +9,7 @@ import './TopBar.css';
 function TopBar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, hasConnectedAgent, user: sessionUser } = useSessionContext();
+  const { isAuthenticated, hasConnectedAgent, user: sessionUser, appState } = useSessionContext();
   const {
     activeSession,
     canvasMode,
@@ -43,6 +43,8 @@ function TopBar() {
     ? (displayEmail ? `Signed in as ${displayUsername || displayEmail}` : 'Signed in to Syn-IQ')
     : 'Anonymous Syn-IQ session — connect an agent to orchestrate. Sign up after your free requests for a saved account and higher limits.';
   const avatarLetters = isAuthenticated ? (user?.initials || '').trim() : '';
+  const isProAccount = appState?.identity?.billing === 'pro';
+  const freeAccountHasAttachedAgent = isAuthenticated && !isProAccount && hasConnectedAgent;
 
   const connectDisabled = !isAuthenticated && hasConnectedAgent;
 
@@ -113,13 +115,15 @@ function TopBar() {
           title={
             connectDisabled
               ? 'Anonymous sessions support one connected agent. Sign in to add more on a paid plan.'
+              : freeAccountHasAttachedAgent
+                ? 'Free accounts support one connected agent. Upgrade to attach another.'
               : hasConnectedAgent
                 ? (isAuthenticated ? 'Connect or manage additional agents' : 'Your agent is connected')
                 : 'Connect an agent to Syn-IQ'
           }
         >
           {hasConnectedAgent
-            ? (isAuthenticated ? 'Manage Agents' : 'Agent connected')
+            ? (isAuthenticated ? (freeAccountHasAttachedAgent ? 'Current Agent' : 'Manage Agents') : 'Agent connected')
             : 'Connect Agent'}
         </button>
 

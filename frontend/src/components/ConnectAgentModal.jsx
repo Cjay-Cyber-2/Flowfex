@@ -288,7 +288,7 @@ function LiveChannelTab({ connection, loading, onRefresh, error, limitState, isA
 
 const TAB_CONTENT = { Prompt: PromptTab, Link: LinkTab, SDK: SDKTab, 'Live Channel': LiveChannelTab };
 
-function ConnectAgentModal({ isOpen, onClose, onConnected }) {
+function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt' }) {
   const navigate = useNavigate();
   const addAgent = useStore((state) => state.addAgent);
   const addSession = useStore((state) => state.addSession);
@@ -303,6 +303,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     session,
     usage: sessionUsage,
     hasConnectedAgent,
+    appState,
   } = useSessionContext();
   const [activeTab, setActiveTab] = useState('Prompt');
   const [connections, setConnections] = useState({});
@@ -313,6 +314,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
   const fetchAttemptedRef = useRef(new Set());
   const finalizedConnectionKeysRef = useRef(new Set());
   const TabContent = TAB_CONTENT[activeTab];
+  const isPaidAccount = appState?.identity?.billing === 'pro';
 
   const requestForTab = useCallback((tab) => {
     switch (tab) {
@@ -434,8 +436,11 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     const anonymousAlreadyAttached = !isAuthenticated && hasConnectedAgent
       ? 'You already have one anonymous Syn-IQ attach today. Sign in to manage multiple agents on a paid plan.'
       : null;
+    const authenticatedSingleAgentLimit = isAuthenticated && !isPaidAccount && hasConnectedAgent
+      ? 'Your free account already has a connected agent. Upgrade to attach another agent, or keep using the current dashboard until your requests renew tomorrow.'
+      : null;
 
-    const message = reqReason || anonymousAlreadyAttached;
+    const message = reqReason || anonymousAlreadyAttached || authenticatedSingleAgentLimit;
     if (!message) {
       return undefined;
     }
@@ -454,7 +459,18 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     hasConnectedAgent,
     sessionUsage?.blockedLimit?.reason,
     sessionUsage?.connectionBlockedLimit?.reason,
+    isPaidAccount,
   ]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    if (TABS.includes(initialTab)) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab, isOpen]);
 
   const finalizeConnection = useCallback(async (tab, eventData = null) => {
     const connection = connections[tab];
@@ -530,7 +546,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
 
   useEffect(() => {
     if (!isOpen) {
-      setActiveTab('Prompt');
+      setActiveTab(initialTab && TABS.includes(initialTab) ? initialTab : 'Prompt');
       setConnections({});
       setSyncState('idle');
       setErrors({});
@@ -569,7 +585,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
     return () => {
       socket.disconnect();
     };
-  }, [activeTab, backendUrl, connections, finalizeConnection, isOpen]);
+  }, [activeTab, backendUrl, connections, finalizeConnection, initialTab, isOpen]);
 
   /** HTTP fallback: if agent:connected is missed (WS timing, proxies), poll session after an 8s grace window. */
   useEffect(() => {
@@ -643,7 +659,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected }) {
         window.clearInterval(intervalId);
       }
     };
-  }, [activeTab, backendUrl, connections, finalizeConnection, isOpen, syncState]);
+  }, [activeTab, backendUrl, connections, finalizeConnection, initialTab, isOpen, syncState]);
 
   return (
     <AnimatePresence initial={false}>

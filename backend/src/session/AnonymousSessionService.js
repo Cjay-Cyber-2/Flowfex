@@ -208,6 +208,30 @@ export class AnonymousSessionService {
     }
   }
 
+  async getSessionById(sessionId) {
+    if (!sessionId) {
+      return null;
+    }
+
+    try {
+      const data = await this.client
+        .select()
+        .from(syniqSessions)
+        .where(eq(syniqSessions.id, sessionId))
+        .limit(1);
+
+      const row = firstResult(data);
+      return row ? toDashboardSessionRecord(row) : null;
+    } catch (error) {
+      logSessionError({
+        operation: 'anonymous_session.get_by_id',
+        sessionId,
+        error,
+      });
+      throw error;
+    }
+  }
+
   async markConnectedAgent(sessionId, agent) {
     const normalizedAgent = normalizeConnectedAgent(agent);
     if (!sessionId || !normalizedAgent) {

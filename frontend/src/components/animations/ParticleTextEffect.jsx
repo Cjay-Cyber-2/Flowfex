@@ -184,6 +184,7 @@ export function ParticleTextEffect({ words = ['853 Skills', '420 Agents', '64 Mu
     if (!context) {
       return undefined;
     }
+    let cancelled = false;
 
     function resizeCanvas() {
       const container = canvas.parentElement;
@@ -261,13 +262,29 @@ export function ParticleTextEffect({ words = ['853 Skills', '420 Agents', '64 Mu
       animationRef.current = window.requestAnimationFrame(animate);
     }
 
-    resizeCanvas();
-    wordIndexRef.current = 0;
-    colorIndexRef.current = 0;
-    particlesRef.current = [];
-    morphToWord(words[0]);
-    nextSwitchAtRef.current = performance.now() + WORD_CYCLE_MS;
-    animationRef.current = window.requestAnimationFrame(animate);
+    const startAnimation = async () => {
+      if (typeof document !== 'undefined' && document.fonts?.ready) {
+        try {
+          await document.fonts.ready;
+        } catch {
+          // Ignore font readiness failures and continue with the fallback stack.
+        }
+      }
+
+      if (cancelled) {
+        return;
+      }
+
+      resizeCanvas();
+      wordIndexRef.current = 0;
+      colorIndexRef.current = 0;
+      particlesRef.current = [];
+      morphToWord(words[0]);
+      nextSwitchAtRef.current = performance.now() + WORD_CYCLE_MS;
+      animationRef.current = window.requestAnimationFrame(animate);
+    };
+
+    startAnimation();
 
     const handleResize = () => {
       resizeCanvas();
@@ -286,6 +303,7 @@ export function ParticleTextEffect({ words = ['853 Skills', '420 Agents', '64 Mu
     }
 
     return () => {
+      cancelled = true;
       if (animationRef.current) {
         window.cancelAnimationFrame(animationRef.current);
       }

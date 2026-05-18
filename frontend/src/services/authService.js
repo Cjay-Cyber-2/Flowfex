@@ -9,7 +9,7 @@ const authClient = createAuthClient({
   plugins: [jwtClient()],
 });
 
-function buildAppUrl(pathname = '/onboarding') {
+function buildAppUrl(pathname = '/app') {
   return new URL(pathname, `${getAppOrigin()}/`).toString();
 }
 
@@ -75,7 +75,7 @@ export async function signUpWithEmail(email, password, name = '') {
     password,
     name,
     syniqHandleChosen: true,
-    callbackURL: buildAppUrl('/onboarding'),
+    callbackURL: buildAppUrl('/app'),
   });
   if (error || !data) {
     throw new Error(error?.message || 'Unable to create account. Please try again.');
@@ -94,7 +94,7 @@ export async function setSyniqProfileUsername(name) {
   }
 }
 
-export async function signInWithGitHub(callbackPath = '/onboarding', errorPath = '/signin') {
+export async function signInWithGitHub(callbackPath = '/app', errorPath = '/signin') {
   const { error } = await authClient.signIn.social({
     provider: 'github',
     callbackURL: buildAppUrl(callbackPath),
@@ -103,7 +103,7 @@ export async function signInWithGitHub(callbackPath = '/onboarding', errorPath =
   if (error) throw new Error(error.message);
 }
 
-export async function signInWithGoogle(callbackPath = '/onboarding', errorPath = '/signin') {
+export async function signInWithGoogle(callbackPath = '/app', errorPath = '/signin') {
   const { error } = await authClient.signIn.social({
     provider: 'google',
     callbackURL: buildAppUrl(callbackPath),

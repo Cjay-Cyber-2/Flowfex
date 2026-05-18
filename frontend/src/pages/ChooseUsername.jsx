@@ -87,7 +87,7 @@ export default function ChooseUsername() {
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
           <SyniqLogoNew size={34} animated={false} />
         </div>
-        <h1 style={styles.title}>Choose your Syn-IQ username</h1>
+        <h1 style={styles.title}>Choose your Syniq username</h1>
         <p style={styles.subtitle}>
           This is how you appear in the app. You can use letters, numbers, dot, underscore, or hyphen.
         </p>

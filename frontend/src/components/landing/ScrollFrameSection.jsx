@@ -345,7 +345,7 @@ function ScrollFrameSection() {
         )}
         <canvas ref={canvasRef} className="landing-scroll-cinema-canvas" />
 
-        {/* Syn-IQ 3D logo centered inside the donut ring and synced to the scroll rotation */}
+        {/* Syniq 3D logo centered inside the donut ring and synced to the scroll rotation */}
         <div className="landing-scroll-cinema-logo" aria-hidden="true">
           <div className="landing-scroll-cinema-logo-orbit">
             <div className="landing-scroll-cinema-logo-stage">

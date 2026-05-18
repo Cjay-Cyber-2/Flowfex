@@ -141,7 +141,7 @@ function toPersistedActiveSession(session, graphState, currentActiveSession) {
   return {
     ...(currentActiveSession || {}),
     id: session.id,
-    name: session.name || currentActiveSession?.name || 'Syn-IQ Session',
+    name: session.name || currentActiveSession?.name || 'Syniq Session',
     task: session.task || graphState.metadata?.task || currentActiveSession?.task || 'Live orchestration',
     heartbeat: session.heartbeat || derivePersistedSessionHeartbeat(session, graphState),
     status: session.status || currentActiveSession?.status || 'active',
@@ -736,7 +736,7 @@ const useStore = create((set, get) => ({
       client.subscribe('session', 'session:limit_reached', (data) => {
         get().addNotification({
           title: 'Usage limit reached',
-          message: data?.connectionBlockedLimit?.reason || data?.blockedLimit?.reason || data?.message || 'Syn-IQ blocked the next execution because the current usage limit has been reached.',
+          message: data?.connectionBlockedLimit?.reason || data?.blockedLimit?.reason || data?.message || 'Syniq blocked the next execution because the current usage limit has been reached.',
           type: 'warning',
         });
       });

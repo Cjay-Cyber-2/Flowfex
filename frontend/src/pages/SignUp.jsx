@@ -227,7 +227,7 @@ function SignUp() {
         {errorMessage ? <p style={styles.errorText}>{errorMessage}</p> : null}
 
         <p style={styles.legalText}>
-          By continuing you agree to Syn-IQ's{' '}
+          By continuing you agree to Syniq's{' '}
           <a href="#terms" style={styles.legalLink}>Terms</a> and{' '}
           <a href="#privacy" style={styles.legalLink}>Privacy Policy</a>
         </p>

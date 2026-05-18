@@ -2,7 +2,7 @@ import { io } from 'socket.io-client';
 import { getBackendOrigin } from '../utils/runtimeConfig';
 
 /**
- * Syn-IQ WebSocket Client Singleton
+ * Syniq WebSocket Client Singleton
  *
  * Connects to the backend Socket.io server on load.
  * Exposes typed event subscriptions per namespace.

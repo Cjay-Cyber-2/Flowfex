@@ -307,7 +307,7 @@ function LeftRail() {
 
       <section className="rail-panel rail-panel--grow">
         <div className="rail-panel-head">
-          <span className="rail-panel-title">Syn-IQ library</span>
+          <span className="rail-panel-title">Syniq library</span>
           <span className="rail-panel-count" title="Total skills/tools in catalog">
             {totalSkillsInSynIQ}{isSearching ? '…' : ''}
           </span>
@@ -318,7 +318,7 @@ function LeftRail() {
           ) : (
             <div className="category-chip-grid" aria-busy={isSearching}>
               {categoryChips.map((cat) => (
-                <div key={cat.id} className="category-chip" title={`${cat.count} in Syn-IQ`}>
+                <div key={cat.id} className="category-chip" title={`${cat.count} in Syniq`}>
                   <FlowIcon name={cat.icon} size={16} className="category-chip-icon" />
                   <span className="category-chip-label">{cat.label}</span>
                   <span className="category-chip-value">{cat.count}</span>

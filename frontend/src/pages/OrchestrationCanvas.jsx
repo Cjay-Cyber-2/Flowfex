@@ -48,12 +48,12 @@ function paymentGateHeadline(blockedLimit, connectionBlockedLimit, isAuthenticat
   const tier = blockedLimit?.tier || connectionBlockedLimit?.tier;
   if (key === 'maxExecutionsPerSession' || key === 'maxExecutionsPerDay') {
     if (!isAuthenticated || tier === 'anonymous') {
-      return 'You used all 10 free Syn-IQ skill or tool requests for this session.';
+      return 'You used all 10 free Syniq skill or tool requests for this session.';
     }
-    return 'You used all of today’s free Syn-IQ skill or tool requests on this account.';
+    return 'You used all of today’s free Syniq skill or tool requests on this account.';
   }
   if (key === 'maxConnectionsPerDay') {
-    return 'You hit today\u2019s Syn-IQ attach cap.';
+    return 'You hit today\u2019s Syniq attach cap.';
   }
   if (key === 'maxSessionDurationMinutes') {
     return 'This session reached its allowed duration.';
@@ -64,7 +64,7 @@ function paymentGateHeadline(blockedLimit, connectionBlockedLimit, isAuthenticat
   if (key === 'maxConcurrentAgents') {
     return 'Too many agents are connected for this tier.';
   }
-  return 'Syn-IQ limits are blocking new work.';
+  return 'Syniq limits are blocking new work.';
 }
 
 function FreeTierPlanCard({ requestsLeft, requestLimit, onUpgrade, onDismiss }) {

@@ -1,0 +1,957 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg: #080c10;
+        --bg-deep: #0d1117;
+        --panel: rgba(17, 24, 32, 0.86);
+        --line: rgba(127, 255, 240, 0.16);
+        --accent: #00d4aa;
+        --accent-bright: #7ffff0;
+        --text: #e8edf2;
+        --muted: #8a96a3;
+        --shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 16% 18%, rgba(127, 255, 240, 0.09), transparent 26%),
+          radial-gradient(circle at 84% 16%, rgba(0, 212, 170, 0.08), transparent 22%),
+          linear-gradient(180deg, #0a0e12 0%, #080c10 52%, #0d1117 100%);
+        color: var(--text);
+        font-family: "Helvetica Neue", Arial, sans-serif;
+      }
+
+      body::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(rgba(127, 255, 240, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(127, 255, 240, 0.03) 1px, transparent 1px);
+        background-size: 96px 96px;
+        opacity: 0.24;
+        pointer-events: none;
+      }
+
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+      }
+
+      .scene {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+
+      .scene-content {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        padding: 88px 104px 84px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 28px;
+      }
+
+      .eyebrow,
+      .meta,
+      .pill,
+      .label,
+      .footer {
+        font-family: "JetBrains Mono", monospace;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .topline {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+      }
+
+      .eyebrow {
+        font-size: 18px;
+        color: var(--accent-bright);
+      }
+
+      .meta-row {
+        display: flex;
+        gap: 12px;
+      }
+
+      .meta {
+        padding: 11px 16px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(13, 17, 23, 0.7);
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      .hero-title {
+        font-size: 128px;
+        line-height: 0.92;
+        font-weight: 700;
+        letter-spacing: -0.05em;
+        max-width: 1040px;
+      }
+
+      .hero-title span {
+        color: var(--accent-bright);
+      }
+
+      .body-xl {
+        font-size: 34px;
+        line-height: 1.28;
+        color: var(--muted);
+        max-width: 880px;
+      }
+
+      .footer {
+        font-size: 15px;
+        color: rgba(232, 237, 242, 0.55);
+      }
+
+      .divider {
+        height: 1px;
+        width: 100%;
+        background: linear-gradient(90deg, rgba(127, 255, 240, 0), rgba(127, 255, 240, 0.48), rgba(127, 255, 240, 0));
+      }
+
+      .panel {
+        background: linear-gradient(180deg, rgba(17, 24, 32, 0.9), rgba(8, 12, 16, 0.88));
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 34px;
+        align-items: center;
+        flex: 1;
+      }
+
+      .copy-stack {
+        display: grid;
+        gap: 24px;
+        align-content: center;
+      }
+
+      .hero-sculpture {
+        position: relative;
+        min-height: 720px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .halo {
+        position: absolute;
+        border: 1px solid rgba(127, 255, 240, 0.18);
+        border-radius: 50%;
+      }
+
+      .halo-1 {
+        width: 540px;
+        height: 540px;
+      }
+
+      .halo-2 {
+        width: 380px;
+        height: 380px;
+      }
+
+      .hero-card {
+        width: 520px;
+        min-height: 340px;
+        padding: 34px;
+        display: grid;
+        align-content: space-between;
+        gap: 24px;
+      }
+
+      .hero-card h3 {
+        font-size: 54px;
+        line-height: 0.98;
+        letter-spacing: -0.04em;
+      }
+
+      .hero-card p {
+        font-size: 24px;
+        line-height: 1.34;
+        color: var(--muted);
+      }
+
+      .stat-row {
+        display: flex;
+        gap: 18px;
+      }
+
+      .stat {
+        flex: 1;
+        display: grid;
+        gap: 10px;
+      }
+
+      .stat strong {
+        font-size: 72px;
+        line-height: 0.92;
+        font-weight: 700;
+        letter-spacing: -0.05em;
+      }
+
+      .stat span {
+        font-size: 18px;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+
+      .modes-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .mode-card {
+        min-height: 280px;
+        padding: 28px 24px;
+        display: grid;
+        align-content: space-between;
+        gap: 18px;
+      }
+
+      .mode-card h3 {
+        font-size: 42px;
+        letter-spacing: -0.04em;
+      }
+
+      .mode-card p {
+        font-size: 22px;
+        line-height: 1.32;
+        color: var(--muted);
+      }
+
+      .label {
+        font-size: 14px;
+        color: var(--accent-bright);
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(13, 17, 23, 0.72);
+        font-size: 15px;
+      }
+
+      .pill::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 12px rgba(0, 212, 170, 0.66);
+      }
+
+      .arch-grid {
+        display: grid;
+        grid-template-columns: 440px 1fr;
+        gap: 28px;
+        flex: 1;
+      }
+
+      .repo-panel,
+      .arch-panel,
+      .board,
+      .device {
+        padding: 28px;
+      }
+
+      .repo-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .repo-item {
+        display: grid;
+        gap: 8px;
+        padding: 16px 18px;
+        border-radius: 18px;
+        background: rgba(127, 255, 240, 0.04);
+        border: 1px solid rgba(127, 255, 240, 0.08);
+      }
+
+      .repo-item strong {
+        font-size: 24px;
+        letter-spacing: -0.03em;
+      }
+
+      .repo-item span {
+        font-size: 18px;
+        line-height: 1.3;
+        color: var(--muted);
+      }
+
+      .arch-columns {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .arch-col {
+        padding: 22px 20px;
+        border-radius: 22px;
+        background: rgba(127, 255, 240, 0.04);
+        border: 1px solid rgba(127, 255, 240, 0.08);
+        display: grid;
+        gap: 16px;
+      }
+
+      .arch-col h3 {
+        font-size: 32px;
+        letter-spacing: -0.04em;
+      }
+
+      .arch-col ul {
+        list-style: none;
+        display: grid;
+        gap: 10px;
+      }
+
+      .arch-col li {
+        font-size: 18px;
+        line-height: 1.32;
+        color: var(--muted);
+      }
+
+      .board {
+        position: relative;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      .graph-node {
+        position: absolute;
+        width: 230px;
+        min-height: 108px;
+        padding: 18px 18px 16px;
+        border-radius: 22px;
+        background: rgba(13, 17, 23, 0.84);
+        border: 1px solid var(--line);
+      }
+
+      .graph-node h3 {
+        font-size: 28px;
+        line-height: 1;
+        margin-bottom: 10px;
+      }
+
+      .graph-node p {
+        font-size: 18px;
+        line-height: 1.28;
+        color: var(--muted);
+      }
+
+      .node-a { top: 92px; left: 92px; }
+      .node-b { top: 92px; left: 402px; }
+      .node-c { top: 92px; left: 712px; }
+      .node-d { top: 312px; left: 560px; }
+      .node-e { top: 546px; left: 330px; }
+      .node-f { top: 546px; left: 794px; }
+
+      .edge {
+        position: absolute;
+        height: 2px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(127, 255, 240, 0.08), rgba(127, 255, 240, 0.86));
+      }
+
+      .edge-1 { top: 144px; left: 320px; width: 112px; }
+      .edge-2 { top: 144px; left: 630px; width: 112px; }
+      .edge-3 { top: 260px; left: 820px; width: 134px; transform: rotate(52deg); transform-origin: left center; }
+      .edge-4 { top: 424px; left: 654px; width: 146px; transform: rotate(120deg); transform-origin: left center; }
+      .edge-5 { top: 426px; left: 516px; width: 136px; transform: rotate(64deg); transform-origin: left center; }
+
+      .signal {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--accent-bright);
+        box-shadow: 0 0 18px rgba(127, 255, 240, 0.86);
+      }
+
+      .signal-1 { top: 138px; left: 314px; }
+      .signal-2 { top: 138px; left: 624px; }
+      .signal-3 { top: 398px; left: 722px; }
+
+      .log {
+        position: absolute;
+        right: 28px;
+        bottom: 28px;
+        width: 360px;
+        padding: 18px 18px 16px;
+        border-radius: 18px;
+        background: rgba(13, 17, 23, 0.82);
+        border: 1px solid var(--line);
+        display: grid;
+        gap: 10px;
+      }
+
+      .log-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 15px;
+        color: var(--muted);
+      }
+
+      .log-row strong {
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      .device-frame {
+        position: relative;
+        width: 920px;
+        padding: 18px;
+        border-radius: 34px;
+        background: linear-gradient(180deg, rgba(18, 24, 31, 0.96), rgba(8, 12, 16, 0.94));
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow);
+      }
+
+      .device-top {
+        display: flex;
+        gap: 8px;
+        padding: 0 10px 10px;
+      }
+
+      .device-top span {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: rgba(232, 237, 242, 0.16);
+      }
+
+      .device img {
+        width: 100%;
+        display: block;
+        border-radius: 20px;
+      }
+
+      .callout {
+        position: absolute;
+        padding: 10px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(13, 17, 23, 0.84);
+        font-family: "JetBrains Mono", monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-size: 14px;
+      }
+
+      .callout-a { top: 94px; right: 24px; }
+      .callout-b { bottom: 150px; left: 16px; }
+      .callout-c { bottom: 74px; right: 80px; }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="33.6"
+      data-width="1920"
+      data-height="1080"
+    >
+      <section id="scene-1" class="scene clip" data-start="0" data-duration="6.2" data-track-index="1" data-layout-allow-overflow>
+        <div class="scene-content">
+          <div class="topline">
+            <div id="s1-eyebrow" class="eyebrow">Flowfex / Apple-style overview</div>
+            <div class="meta-row">
+              <div id="s1-meta-1" class="meta">visual orchestration</div>
+              <div id="s1-meta-2" class="meta">react + node + sockets</div>
+            </div>
+          </div>
+          <div class="split">
+            <div class="copy-stack">
+              <h1 id="s1-title" class="hero-title">Flowfex turns <span>agent execution</span> into a visible system.</h1>
+              <p id="s1-copy" class="body-xl">
+                The repo is built to connect agents, orchestrate requests through an execution engine, and show the
+                path back to users as a live canvas instead of a hidden backend process.
+              </p>
+              <div class="pill-row">
+                <div id="s1-pill-1" class="pill">prompt</div>
+                <div id="s1-pill-2" class="pill">sdk</div>
+                <div id="s1-pill-3" class="pill">link</div>
+                <div id="s1-pill-4" class="pill">live</div>
+              </div>
+              <div id="s1-footer" class="footer">frontend / backend / sdk / skills-md / shared</div>
+            </div>
+            <div class="hero-sculpture">
+              <div id="s1-halo-1" class="halo halo-1" data-layout-ignore></div>
+              <div id="s1-halo-2" class="halo halo-2" data-layout-ignore></div>
+              <div id="s1-card" class="hero-card panel">
+                <div class="label">system overview</div>
+                <h3>Real-time execution, shaped into product.</h3>
+                <p>Three live namespaces feed the interface. Four connection modes route work into the same orchestration core.</p>
+                <div class="stat-row">
+                  <div class="stat">
+                    <strong id="s1-stat-1">3</strong>
+                    <span>socket namespaces</span>
+                  </div>
+                  <div class="stat">
+                    <strong id="s1-stat-2">4</strong>
+                    <span>attach modes</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="s1-divider" class="divider" data-layout-ignore></div>
+        </div>
+      </section>
+
+      <section id="scene-2" class="scene clip" data-start="5.7" data-duration="6.9" data-track-index="2" data-layout-allow-overflow>
+        <div class="scene-content">
+          <div class="topline">
+            <div id="s2-eyebrow" class="eyebrow">How agents connect</div>
+            <div class="meta-row">
+              <div id="s2-meta-1" class="meta">one contract</div>
+              <div id="s2-meta-2" class="meta">multiple entry points</div>
+            </div>
+          </div>
+          <div class="copy-stack" style="gap: 18px;">
+            <h1 id="s2-title" class="hero-title" style="font-size: 110px; max-width: 1180px;">Four ways in. <span>One orchestration core.</span></h1>
+            <p id="s2-copy" class="body-xl" style="max-width: 980px;">
+              Prompt mode retrieves relevant tools, SDK and live modes keep a long-running channel attached, and link mode creates a guided attach flow.
+            </p>
+          </div>
+          <div class="modes-grid">
+            <div id="s2-card-1" class="mode-card panel">
+              <div class="label">mode 01</div>
+              <h3>Prompt</h3>
+              <p>Paste a contract and route every request through Flowfex.</p>
+            </div>
+            <div id="s2-card-2" class="mode-card panel">
+              <div class="label">mode 02</div>
+              <h3>SDK</h3>
+              <p>Attach a client and keep the agent bound to the session.</p>
+            </div>
+            <div id="s2-card-3" class="mode-card panel">
+              <div class="label">mode 03</div>
+              <h3>Link</h3>
+              <p>Create a signed connect URL for onboarding and handoff.</p>
+            </div>
+            <div id="s2-card-4" class="mode-card panel">
+              <div class="label">mode 04</div>
+              <h3>Live</h3>
+              <p>Bind a long-running channel directly to the orchestration runtime.</p>
+            </div>
+          </div>
+          <div id="s2-footer" class="footer">ConnectionService / SessionManager / transport instructions</div>
+        </div>
+      </section>
+
+      <section id="scene-3" class="scene clip" data-start="12.0" data-duration="7.1" data-track-index="3" data-layout-allow-overflow>
+        <div class="scene-content">
+          <div class="topline">
+            <div id="s3-eyebrow" class="eyebrow">Repo architecture</div>
+            <div class="meta-row">
+              <div id="s3-meta-1" class="meta">clear module boundaries</div>
+            </div>
+          </div>
+          <div class="copy-stack" style="gap: 18px;">
+            <h1 id="s3-title" class="hero-title" style="font-size: 106px; max-width: 1120px;">The repository is split by <span>product surface and runtime responsibility.</span></h1>
+          </div>
+          <div class="arch-grid">
+            <div id="s3-repo" class="repo-panel panel">
+              <div class="repo-list">
+                <div id="s3-item-1" class="repo-item">
+                  <strong>frontend/</strong>
+                  <span>Landing, dashboard, history, settings, and the live orchestration canvas.</span>
+                </div>
+                <div id="s3-item-2" class="repo-item">
+                  <strong>backend/</strong>
+                  <span>HTTP surface, auth, sessions, rate limiting, websockets, and orchestration runtime.</span>
+                </div>
+                <div id="s3-item-3" class="repo-item">
+                  <strong>sdk/</strong>
+                  <span>JavaScript and Python clients for attached agents.</span>
+                </div>
+                <div id="s3-item-4" class="repo-item">
+                  <strong>skills-md/</strong>
+                  <span>Markdown skills that can be normalized into Flowfex capabilities.</span>
+                </div>
+              </div>
+            </div>
+            <div id="s3-arch" class="arch-panel panel">
+              <div class="arch-columns">
+                <div id="s3-col-1" class="arch-col">
+                  <h3>Frontend</h3>
+                  <ul>
+                    <li>React + Vite routing</li>
+                    <li>Zustand canvas and session state</li>
+                    <li>Socket client bound to three namespaces</li>
+                  </ul>
+                </div>
+                <div id="s3-col-2" class="arch-col">
+                  <h3>Backend</h3>
+                  <ul>
+                    <li>FlowfexServer entry surface</li>
+                    <li>Better Auth and session services</li>
+                    <li>Persistence and usage tracking</li>
+                  </ul>
+                </div>
+                <div id="s3-col-3" class="arch-col">
+                  <h3>Orchestration</h3>
+                  <ul>
+                    <li>Intent planning and retrieval</li>
+                    <li>Plan selection and graph building</li>
+                    <li>Execution runner and event streaming</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="pill-row" style="margin-top: 22px;">
+                <div id="s3-pill-1" class="pill">React / Vite</div>
+                <div id="s3-pill-2" class="pill">Socket.io</div>
+                <div id="s3-pill-3" class="pill">Better Auth</div>
+                <div id="s3-pill-4" class="pill">Drizzle / PG</div>
+                <div id="s3-pill-5" class="pill">JS + Python SDKs</div>
+              </div>
+            </div>
+          </div>
+          <div id="s3-footer" class="footer">Architecture reads as product UI, runtime, and orchestration engine working together.</div>
+        </div>
+      </section>
+
+      <section id="scene-4" class="scene clip" data-start="18.7" data-duration="8.1" data-track-index="4" data-layout-allow-overflow>
+        <div class="scene-content">
+          <div class="topline">
+            <div id="s4-eyebrow" class="eyebrow">Runtime path</div>
+            <div class="meta-row">
+              <div id="s4-meta-1" class="meta">request to graph to UI</div>
+            </div>
+          </div>
+          <div class="copy-stack" style="gap: 18px;">
+            <h1 id="s4-title" class="hero-title" style="font-size: 102px; max-width: 1100px;">A request moves through the system in <span>clear, inspectable stages.</span></h1>
+          </div>
+          <div id="s4-board" class="board panel">
+            <div id="s4-node-a" class="graph-node node-a">
+              <h3>Intent planner</h3>
+              <p>Parses the request and determines orchestration shape.</p>
+            </div>
+            <div id="s4-node-b" class="graph-node node-b">
+              <h3>Capabilities</h3>
+              <p>Retrieves tools and markdown skill capabilities.</p>
+            </div>
+            <div id="s4-node-c" class="graph-node node-c">
+              <h3>Plan selector</h3>
+              <p>Chooses the best route through the execution space.</p>
+            </div>
+            <div id="s4-node-d" class="graph-node node-d">
+              <h3>Graph builder</h3>
+              <p>Converts the plan into nodes, edges, and dependencies.</p>
+            </div>
+            <div id="s4-node-e" class="graph-node node-e">
+              <h3>Runner</h3>
+              <p>Executes nodes, handles approvals, tracks state.</p>
+            </div>
+            <div id="s4-node-f" class="graph-node node-f">
+              <h3>Live delivery</h3>
+              <p>Streams the graph back to the canvas over sockets.</p>
+            </div>
+            <div id="s4-edge-1" class="edge edge-1" data-layout-ignore></div>
+            <div id="s4-edge-2" class="edge edge-2" data-layout-ignore></div>
+            <div id="s4-edge-3" class="edge edge-3" data-layout-ignore></div>
+            <div id="s4-edge-4" class="edge edge-4" data-layout-ignore></div>
+            <div id="s4-edge-5" class="edge edge-5" data-layout-ignore></div>
+            <div id="s4-signal-1" class="signal signal-1" data-layout-ignore></div>
+            <div id="s4-signal-2" class="signal signal-2" data-layout-ignore></div>
+            <div id="s4-signal-3" class="signal signal-3" data-layout-ignore></div>
+            <div id="s4-log" class="log">
+              <div class="log-row"><strong>01</strong><span>intent parsed</span></div>
+              <div class="log-row"><strong>02</strong><span>capabilities retrieved</span></div>
+              <div class="log-row"><strong>03</strong><span>plan selected</span></div>
+              <div class="log-row"><strong>04</strong><span>graph created</span></div>
+              <div class="log-row"><strong>05</strong><span>events streamed</span></div>
+            </div>
+          </div>
+          <div class="pill-row">
+            <div id="s4-pill-1" class="pill">orchestration</div>
+            <div id="s4-pill-2" class="pill">session</div>
+            <div id="s4-pill-3" class="pill">control</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-5" class="scene clip" data-start="26.3" data-duration="7.3" data-track-index="5" data-layout-allow-overflow>
+        <div class="scene-content">
+          <div class="topline">
+            <div id="s5-eyebrow" class="eyebrow">Product proof</div>
+            <div class="meta-row">
+              <div id="s5-meta-1" class="meta">real Flowfex interface</div>
+              <div id="s5-meta-2" class="meta">repo and product aligned</div>
+            </div>
+          </div>
+          <div class="split">
+            <div class="copy-stack">
+              <h1 id="s5-title" class="hero-title" style="font-size: 112px;">From backend logic to <span>visible execution.</span></h1>
+              <p id="s5-copy" class="body-xl">
+                Flowfex exists to connect agents, ingest capabilities, orchestrate execution paths, and present the live state back to users as a product surface they can understand.
+              </p>
+              <div class="pill-row">
+                <div id="s5-pill-1" class="pill">live canvas UI</div>
+                <div id="s5-pill-2" class="pill">session-aware backend</div>
+                <div id="s5-pill-3" class="pill">orchestration engine</div>
+                <div id="s5-pill-4" class="pill">sdk attach paths</div>
+              </div>
+              <div id="s5-footer" class="footer">Flowfex / visual orchestration for attached agents</div>
+            </div>
+            <div id="s5-device" class="device panel">
+              <div class="device-frame">
+                <div class="device-top"><span></span><span></span><span></span></div>
+                <img id="s5-image" src="assets/flowfex-landing.png" alt="Flowfex interface" crossorigin="anonymous" />
+                <div id="s5-callout-a" class="callout callout-a">signal-rich landing surface</div>
+                <div id="s5-callout-b" class="callout callout-b">canvas-first story</div>
+                <div id="s5-callout-c" class="callout callout-c">visual orchestration</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const hasHyperframesRuntime = Boolean(window.__hyperframes);
+      const tl = gsap.timeline({ paused: true });
+
+      tl.set(["#scene-2", "#scene-3", "#scene-4", "#scene-5"], { opacity: 0 }, 0);
+
+      const reveal = (selector, time, fromVars = {}, toVars = {}) => {
+        tl.fromTo(
+          selector,
+          {
+            x: 0,
+            y: 18,
+            scaleX: 0.96,
+            scaleY: 1.04,
+            rotation: 0,
+            transformOrigin: "center center",
+            clipPath: "inset(0 0 100% 0)",
+            ...fromVars,
+          },
+          {
+            x: 0,
+            y: 0,
+            scaleX: 1,
+            scaleY: 1,
+            rotation: 0,
+            clipPath: "inset(0 0 0 0)",
+            duration: 0.72,
+            ease: "expo.out",
+            ...toVars,
+          },
+          time,
+        );
+      };
+
+      const compressPop = (selector, time, fromVars = {}, toVars = {}) => {
+        tl.fromTo(
+          selector,
+          {
+            y: 18,
+            scaleX: 0.78,
+            scaleY: 1.34,
+            transformOrigin: "center center",
+            ...fromVars,
+          },
+          {
+            y: 0,
+            scaleX: 1,
+            scaleY: 1,
+            duration: 0.42,
+            ease: "back.out(1.35)",
+            ...toVars,
+          },
+          time,
+        );
+      };
+
+      const drawLine = (selector, time, axis = "x", duration = 0.56, ease = "power2.out") => {
+        tl.fromTo(
+          selector,
+          axis === "x" ? { scaleX: 0, transformOrigin: "left center" } : { scaleY: 0, transformOrigin: "center top" },
+          axis === "x" ? { scaleX: 1, duration, ease } : { scaleY: 1, duration, ease },
+          time,
+        );
+      };
+
+      const wipeOut = (selector, time, clipPath, extras = {}) => {
+        tl.to(
+          selector,
+          {
+            x: extras.x ?? -160,
+            y: extras.y ?? 0,
+            scaleX: extras.scaleX ?? 1.06,
+            scaleY: extras.scaleY ?? 0.92,
+            rotation: extras.rotation ?? -3,
+            clipPath,
+            duration: extras.duration ?? 0.64,
+            ease: extras.ease ?? "power3.in",
+          },
+          time,
+        );
+      };
+
+      tl.set("#scene-1", { opacity: 1 }, 0);
+      reveal("#scene-1", 0.0, { y: 24, scaleX: 0.94, scaleY: 1.08, clipPath: "polygon(0 0, 100% 0, 100% 0, 0 0)" }, { duration: 0.82 });
+      reveal("#s1-eyebrow", 0.2, { y: 28, clipPath: "inset(0 100% 0 0)" }, { duration: 0.46, ease: "power2.out" });
+      compressPop("#s1-meta-1", 0.34, { x: 44 }, { x: 0, duration: 0.4 });
+      compressPop("#s1-meta-2", 0.46, { x: 60 }, { x: 0, duration: 0.44 });
+      reveal("#s1-title", 0.34, { x: -96, scaleX: 0.88, scaleY: 1.12, letterSpacing: "0.04em" }, { duration: 0.9, letterSpacing: "-0.05em" });
+      reveal("#s1-copy", 0.96, { x: -44, y: 28 }, { duration: 0.68, ease: "power2.out" });
+      compressPop("#s1-pill-1", 1.42, {}, { duration: 0.34 });
+      compressPop("#s1-pill-2", 1.54, {}, { duration: 0.34 });
+      compressPop("#s1-pill-3", 1.66, {}, { duration: 0.34 });
+      compressPop("#s1-pill-4", 1.78, {}, { duration: 0.34 });
+      reveal("#s1-card", 0.7, { x: 112, scaleX: 0.9, scaleY: 1.08, rotation: -4, clipPath: "inset(0 0 0 100%)" }, { duration: 0.96 });
+      tl.fromTo("#s1-halo-1", { scale: 0.84 }, { scale: 1, duration: 1.4, ease: "sine.out" }, 0.86);
+      tl.fromTo("#s1-halo-2", { scale: 0.72 }, { scale: 1, duration: 1.5, ease: "sine.out" }, 1.04);
+      compressPop("#s1-stat-1", 1.26, { y: 22 }, { duration: 0.4 });
+      compressPop("#s1-stat-2", 1.42, { y: 22 }, { duration: 0.42 });
+      drawLine("#s1-divider", 2.08, "x", 0.9, "power2.out");
+      reveal("#s1-footer", 2.4, { x: -24, clipPath: "inset(0 100% 0 0)" }, { duration: 0.42, ease: "power2.out" });
+      tl.to(["#s1-halo-1", "#s1-halo-2"], { rotation: 4, duration: 2.4, yoyo: true, repeat: 1, ease: "sine.inOut" }, 2.2);
+      wipeOut("#scene-1", 5.55, "polygon(0 0, 100% 0, 84% 100%, 0 100%)", { x: -180, y: -12, rotation: -2, duration: 0.62 });
+      tl.set("#scene-1", { opacity: 0 }, 6.24);
+
+      tl.set("#scene-2", { opacity: 1 }, 5.7);
+      reveal("#scene-2", 5.7, { x: 86, scaleX: 0.95, scaleY: 1.06, clipPath: "polygon(100% 0, 100% 0, 100% 100%, 100% 100%)" }, { duration: 0.8 });
+      reveal("#s2-eyebrow", 5.9, { y: 24, clipPath: "inset(0 100% 0 0)" }, { duration: 0.44, ease: "power2.out" });
+      compressPop("#s2-meta-1", 6.04, { x: 40 }, { x: 0, duration: 0.38 });
+      compressPop("#s2-meta-2", 6.16, { x: 54 }, { x: 0, duration: 0.42 });
+      reveal("#s2-title", 6.14, { x: -82, scaleX: 0.9, scaleY: 1.1 }, { duration: 0.84 });
+      reveal("#s2-copy", 6.7, { x: -40, y: 24 }, { duration: 0.64, ease: "power2.out" });
+      reveal("#s2-card-1", 7.52, { y: 44, scaleX: 0.92, scaleY: 1.1 }, { duration: 0.68, ease: "back.out(1.08)" });
+      reveal("#s2-card-2", 7.92, { y: 44, scaleX: 0.92, scaleY: 1.1 }, { duration: 0.68, ease: "back.out(1.08)" });
+      reveal("#s2-card-3", 8.32, { y: 44, scaleX: 0.92, scaleY: 1.1 }, { duration: 0.68, ease: "back.out(1.08)" });
+      reveal("#s2-card-4", 8.72, { y: 44, scaleX: 0.92, scaleY: 1.1 }, { duration: 0.68, ease: "back.out(1.08)" });
+      reveal("#s2-footer", 10.1, { x: -20, clipPath: "inset(0 100% 0 0)" }, { duration: 0.42, ease: "power2.out" });
+      wipeOut("#scene-2", 11.92, "polygon(0 0, 100% 0, 100% 100%, 14% 100%)", { x: -150, y: 8, rotation: -2, duration: 0.64 });
+      tl.set("#scene-2", { opacity: 0 }, 12.64);
+
+      tl.set("#scene-3", { opacity: 1 }, 12.0);
+      reveal("#scene-3", 12.0, { y: 22, scaleX: 0.96, scaleY: 1.06, clipPath: "polygon(0 0, 100% 0, 100% 0, 0 14%)" }, { duration: 0.78 });
+      reveal("#s3-eyebrow", 12.2, { y: 22, clipPath: "inset(0 100% 0 0)" }, { duration: 0.44, ease: "power2.out" });
+      compressPop("#s3-meta-1", 12.34, { x: 40 }, { x: 0, duration: 0.4 });
+      reveal("#s3-title", 12.34, { x: -74, scaleX: 0.9, scaleY: 1.1 }, { duration: 0.82 });
+      reveal("#s3-repo", 13.22, { x: -66, scaleX: 0.94, clipPath: "inset(0 100% 0 0)" }, { duration: 0.84 });
+      reveal("#s3-item-1", 13.52, { x: -26, clipPath: "inset(0 100% 0 0)" }, { duration: 0.34, ease: "power2.out" });
+      reveal("#s3-item-2", 13.74, { x: -26, clipPath: "inset(0 100% 0 0)" }, { duration: 0.36, ease: "power2.out" });
+      reveal("#s3-item-3", 13.96, { x: -26, clipPath: "inset(0 100% 0 0)" }, { duration: 0.38, ease: "power2.out" });
+      reveal("#s3-item-4", 14.18, { x: -26, clipPath: "inset(0 100% 0 0)" }, { duration: 0.4, ease: "power2.out" });
+      reveal("#s3-arch", 13.56, { x: 76, scaleX: 0.94, clipPath: "inset(0 0 0 100%)" }, { duration: 0.9 });
+      reveal("#s3-col-1", 14.02, { y: 42, scaleX: 0.92, scaleY: 1.1 }, { duration: 0.6, ease: "back.out(1.06)" });
+      reveal("#s3-col-2", 14.34, { y: 42, scaleX: 0.92, scaleY: 1.1 }, { duration: 0.62, ease: "back.out(1.06)" });
+      reveal("#s3-col-3", 14.66, { y: 42, scaleX: 0.92, scaleY: 1.1 }, { duration: 0.64, ease: "back.out(1.06)" });
+      compressPop("#s3-pill-1", 15.7, {}, { duration: 0.32 });
+      compressPop("#s3-pill-2", 15.84, {}, { duration: 0.32 });
+      compressPop("#s3-pill-3", 15.98, {}, { duration: 0.32 });
+      compressPop("#s3-pill-4", 16.12, {}, { duration: 0.32 });
+      compressPop("#s3-pill-5", 16.26, {}, { duration: 0.32 });
+      reveal("#s3-footer", 16.74, { x: -20, clipPath: "inset(0 100% 0 0)" }, { duration: 0.42, ease: "power2.out" });
+      wipeOut("#scene-3", 18.56, "polygon(0 0, 100% 0, 88% 100%, 0 100%)", { x: -150, y: -8, rotation: -2, duration: 0.66 });
+      tl.set("#scene-3", { opacity: 0 }, 19.34);
+
+      tl.set("#scene-4", { opacity: 1 }, 18.7);
+      reveal("#scene-4", 18.7, { y: 34, scaleX: 0.96, scaleY: 1.06, clipPath: "polygon(0 100%, 100% 100%, 100% 100%, 0 100%)" }, { duration: 0.82 });
+      reveal("#s4-eyebrow", 18.92, { y: 22, clipPath: "inset(0 100% 0 0)" }, { duration: 0.44, ease: "power2.out" });
+      compressPop("#s4-meta-1", 19.06, { x: 42 }, { x: 0, duration: 0.4 });
+      reveal("#s4-title", 19.06, { x: -72, scaleX: 0.9, scaleY: 1.1 }, { duration: 0.82 });
+      reveal("#s4-board", 19.96, { y: 32, scaleX: 0.96, scaleY: 1.06, clipPath: "inset(100% 0 0 0)" }, { duration: 0.88 });
+      reveal("#s4-node-a", 20.78, { x: -54, y: -12, scaleX: 0.92, scaleY: 1.1, clipPath: "inset(0 100% 0 0)" }, { duration: 0.54, ease: "back.out(1.02)" });
+      drawLine("#s4-edge-1", 21.12, "x", 0.42, "power2.out");
+      reveal("#s4-node-b", 21.66, { y: -38, scaleX: 0.92, scaleY: 1.1, clipPath: "inset(0 0 100% 0)" }, { duration: 0.56, ease: "back.out(1.02)" });
+      drawLine("#s4-edge-2", 22.02, "x", 0.42, "power3.out");
+      reveal("#s4-node-c", 22.54, { x: 54, y: -12, scaleX: 0.92, scaleY: 1.1, clipPath: "inset(0 0 0 100%)" }, { duration: 0.58, ease: "back.out(1.02)" });
+      reveal("#s4-node-d", 23.36, { scaleX: 0.72, scaleY: 1.2, clipPath: "inset(30% 30% 30% 30%)" }, { duration: 0.64, ease: "back.out(1.06)" });
+      drawLine("#s4-edge-3", 23.6, "x", 0.44, "expo.out");
+      drawLine("#s4-edge-4", 23.88, "x", 0.44, "power2.out");
+      drawLine("#s4-edge-5", 24.14, "x", 0.44, "power3.out");
+      reveal("#s4-node-e", 24.18, { x: -56, y: 26, scaleX: 0.92, scaleY: 1.1, clipPath: "inset(0 100% 0 0)" }, { duration: 0.58, ease: "back.out(1.02)" });
+      reveal("#s4-node-f", 24.5, { x: 56, y: 26, scaleX: 0.92, scaleY: 1.1, clipPath: "inset(0 0 0 100%)" }, { duration: 0.6, ease: "back.out(1.02)" });
+      tl.to("#s4-signal-1", { x: 308, duration: 1.06, ease: "power1.inOut" }, 21.1);
+      tl.to("#s4-signal-2", { x: 232, y: 232, duration: 1.18, ease: "power1.inOut" }, 23.58);
+      tl.to("#s4-signal-3", { x: 238, y: 158, duration: 1.12, ease: "power1.inOut" }, 24.16);
+      reveal("#s4-log", 24.98, { x: 64, scaleX: 0.94, clipPath: "inset(0 0 0 100%)" }, { duration: 0.68 });
+      compressPop("#s4-pill-1", 25.48, {}, { duration: 0.32 });
+      compressPop("#s4-pill-2", 25.62, {}, { duration: 0.34 });
+      compressPop("#s4-pill-3", 25.76, {}, { duration: 0.36 });
+      wipeOut("#scene-4", 26.92, "polygon(0 0, 100% 0, 100% 76%, 0 100%)", { x: -132, y: -24, rotation: -3, duration: 0.68 });
+      tl.set("#scene-4", { opacity: 0 }, 27.72);
+
+      tl.set("#scene-5", { opacity: 1 }, 26.3);
+      reveal("#scene-5", 26.3, { x: 78, scaleX: 0.96, scaleY: 1.06, clipPath: "polygon(0 0, 0 0, 0 100%, 0 100%)" }, { duration: 0.82 });
+      reveal("#s5-eyebrow", 26.52, { y: 20, clipPath: "inset(0 100% 0 0)" }, { duration: 0.44, ease: "power2.out" });
+      compressPop("#s5-meta-1", 26.66, { x: 38 }, { x: 0, duration: 0.38 });
+      compressPop("#s5-meta-2", 26.78, { x: 52 }, { x: 0, duration: 0.42 });
+      reveal("#s5-title", 26.7, { x: -82, scaleX: 0.9, scaleY: 1.1 }, { duration: 0.86 });
+      reveal("#s5-copy", 27.28, { x: -38, y: 24 }, { duration: 0.66, ease: "power2.out" });
+      compressPop("#s5-pill-1", 28.0, {}, { duration: 0.32 });
+      compressPop("#s5-pill-2", 28.14, {}, { duration: 0.32 });
+      compressPop("#s5-pill-3", 28.28, {}, { duration: 0.32 });
+      compressPop("#s5-pill-4", 28.42, {}, { duration: 0.32 });
+      reveal("#s5-footer", 28.82, { x: -18, clipPath: "inset(0 100% 0 0)" }, { duration: 0.4, ease: "power2.out" });
+      reveal("#s5-device", 27.1, { x: 92, scaleX: 0.92, scaleY: 1.08, rotation: -3, clipPath: "inset(0 0 0 100%)" }, { duration: 0.96 });
+      tl.to("#s5-image", { scale: 1.03, duration: 3.4, ease: "none" }, 27.7);
+      compressPop("#s5-callout-a", 28.18, { x: 34 }, { x: 0, duration: 0.38 });
+      compressPop("#s5-callout-b", 28.42, { x: -34 }, { x: 0, duration: 0.4 });
+      compressPop("#s5-callout-c", 28.66, { y: 20 }, { y: 0, duration: 0.4 });
+      wipeOut("#scene-5", 32.92, "polygon(14% 0, 100% 0, 100% 100%, 0 100%)", { x: 90, y: -12, rotation: 2, duration: 0.68 });
+
+      window.__timelines["main"] = tl;
+
+      if (!hasHyperframesRuntime) {
+        tl.eventCallback("onComplete", () => {
+          tl.pause(0);
+          tl.play(0);
+        });
+        tl.pause(0);
+        tl.play(0);
+      }
+    </script>
+  </body>
+</html>

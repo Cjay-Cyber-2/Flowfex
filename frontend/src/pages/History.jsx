@@ -122,7 +122,7 @@ function History() {
               No sessions yet
             </h3>
             <p style={{ marginBottom: 'var(--space-4)' }}>
-              Connect an agent and run a task to see it here. Every Syn-IQ session
+              Connect an agent and run a task to see it here. Every Syniq session
               is recorded the moment your agent's first request is verified.
             </p>
             <button className="btn-primary" onClick={() => navigate('/app')}>
@@ -183,7 +183,7 @@ function History() {
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                   }}>
-                    {session.name || 'Syn-IQ session'}
+                    {session.name || 'Syniq session'}
                   </h3>
                   <p style={{
                     fontFamily: 'var(--font-inter)',

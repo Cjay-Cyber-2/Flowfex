@@ -3,11 +3,11 @@ import React from 'react';
 const bridgeCards = [
   {
     title: 'IDE side-panel agents',
-    copy: 'Connect editor agents and extensions without locking Syn-IQ to one host app.',
+    copy: 'Connect editor agents and extensions without locking Syniq to one host app.',
   },
   {
     title: 'CLI agents',
-    copy: 'Route terminal agents through Syn-IQ so resource pulls and live steps stay visible.',
+    copy: 'Route terminal agents through Syniq so resource pulls and live steps stay visible.',
   },
   {
     title: 'Website embedded agents',
@@ -19,7 +19,7 @@ const bridgeCards = [
   },
   {
     title: 'Prompt attach',
-    copy: 'Paste a short Syn-IQ prompt into an existing agent and start reporting structured steps.',
+    copy: 'Paste a short Syniq prompt into an existing agent and start reporting structured steps.',
   },
   {
     title: 'Link, SDK, or live channel',
@@ -35,10 +35,10 @@ function SocialProofSection() {
       <div className="content-container">
         <header className="section-header">
           <span className="section-kicker">CONNECT FROM ANYWHERE</span>
-          <h2 className="section-headline">Syn-IQ works with the agents you already use.</h2>
+          <h2 className="section-headline">Syniq works with the agents you already use.</h2>
           <p className="bridge-subhead">
             Connect from an IDE panel, a CLI session, a website agent, a web app agent, or a live SDK bridge.
-            Syn-IQ becomes the shared layer in the middle.
+            Syniq becomes the shared layer in the middle.
           </p>
         </header>
 

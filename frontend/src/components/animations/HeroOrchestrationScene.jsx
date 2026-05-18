@@ -20,7 +20,7 @@ const HERO_NODES = [
     kind: 'foundation',
     side: 'left',
     accent: '#00d4aa',
-    explanation: 'Syn-IQ maintains a unified registry where all skills are stored with structured schemas, making them discoverable and version-controlled.',
+    explanation: 'Syniq maintains a unified registry where all skills are stored with structured schemas, making them discoverable and version-controlled.',
   },
   {
     id: 'importer',
@@ -35,7 +35,7 @@ const HERO_NODES = [
     kind: 'foundation',
     side: 'left',
     accent: '#00e5c3',
-    explanation: 'Import hundreds of markdown-based skills at once. Syn-IQ automatically parses and structures them for immediate use.',
+    explanation: 'Import hundreds of markdown-based skills at once. Syniq automatically parses and structures them for immediate use.',
   },
   {
     id: 'category',
@@ -65,7 +65,7 @@ const HERO_NODES = [
     kind: 'intelligence',
     side: 'right',
     accent: '#7ffff0',
-    explanation: 'Syn-IQ uses AI embeddings to match tasks with the most relevant skills based on meaning, not just keywords.',
+    explanation: 'Syniq uses AI embeddings to match tasks with the most relevant skills based on meaning, not just keywords.',
   },
   {
     id: 'selection',
@@ -182,7 +182,7 @@ export default function HeroOrchestrationScene() {
   }, []);
 
   return (
-    <div className={`hero-orchestration-scene ${expandedNode ? 'has-active-node' : ''}`} aria-label="Syn-IQ orchestration overview">
+    <div className={`hero-orchestration-scene ${expandedNode ? 'has-active-node' : ''}`} aria-label="Syniq orchestration overview">
       <div className="hero-orchestration-mesh hero-orchestration-mesh-primary" />
       <div className="hero-orchestration-mesh hero-orchestration-mesh-secondary" />
       <div className="hero-orchestration-grid" />
@@ -218,7 +218,7 @@ export default function HeroOrchestrationScene() {
                   type="button"
                   className={`hero-orchestration-node hero-orchestration-node-button hero-orchestration-node-${node.kind}${expandedNode === node.id ? ' is-expanded is-active' : ''}`}
                   style={getNodePositionStyle(node, index)}
-                  aria-label={`${expandedNode === node.id ? 'Hide' : 'Show'} Syn-IQ details for ${node.label}`}
+                  aria-label={`${expandedNode === node.id ? 'Hide' : 'Show'} Syniq details for ${node.label}`}
                   aria-pressed={expandedNode === node.id}
                   onClick={() => handleNodeToggle(node.id)}
                 >
@@ -282,7 +282,7 @@ export default function HeroOrchestrationScene() {
         </div>
         <div className="hero-orchestration-core-shell" />
         <div className="hero-orchestration-core-caption">
-          <span>Syn-IQ Orchestrator</span>
+          <span>Syniq Orchestrator</span>
           <strong>Import. Rank. Route. Explain.</strong>
         </div>
         <ThreeDLogoMark className="hero-orchestration-logo-mark" depth={14} glow="soft" />

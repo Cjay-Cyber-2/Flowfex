@@ -17,27 +17,27 @@ function walk(dir) {
             let modified = false;
             
             const regexes = [
-                { match: />Syniq</g, repl: '>Syn-IQ<' },
-                { match: />Syniq\b/g, repl: '>Syn-IQ' },
-                { match: /\bSyniq</g, repl: 'Syn-IQ<' },
-                { match: / Syniq /g, repl: ' Syn-IQ ' },
-                { match: /^Syniq /gm, repl: 'Syn-IQ ' },
-                { match: / Syniq\./g, repl: ' Syn-IQ.' },
-                { match: / Syniq,/g, repl: ' Syn-IQ,' },
-                { match: /'Syniq'/g, repl: "'Syn-IQ'" },
-                { match: /"Syniq"/g, repl: '"Syn-IQ"' },
-                { match: /\(Syniq\)/g, repl: '(Syn-IQ)' },
-                { match: /Syniq Session/g, repl: 'Syn-IQ Session' },
-                { match: /Syniq session/g, repl: 'Syn-IQ session' },
-                { match: /to Syniq/g, repl: 'to Syn-IQ' },
-                { match: /with Syniq/g, repl: 'with Syn-IQ' },
-                { match: /for Syniq/g, repl: 'for Syn-IQ' },
-                { match: /Syniq orchestration/g, repl: 'Syn-IQ orchestration' },
-                { match: /Syniq account/g, repl: 'Syn-IQ account' },
-                { match: /Syniq logo/g, repl: 'Syn-IQ logo' },
-                { match: /Syniq is/g, repl: 'Syn-IQ is' },
-                { match: /Syniq provides/g, repl: 'Syn-IQ provides' },
-                { match: /Syniq Visual/gi, repl: 'Syn-IQ Visual' }
+                { match: />Syniq</g, repl: '>Syniq<' },
+                { match: />Syniq\b/g, repl: '>Syniq' },
+                { match: /\bSyniq</g, repl: 'Syniq<' },
+                { match: / Syniq /g, repl: ' Syniq ' },
+                { match: /^Syniq /gm, repl: 'Syniq ' },
+                { match: / Syniq\./g, repl: ' Syniq.' },
+                { match: / Syniq,/g, repl: ' Syniq,' },
+                { match: /'Syniq'/g, repl: "'Syniq'" },
+                { match: /"Syniq"/g, repl: '"Syniq"' },
+                { match: /\(Syniq\)/g, repl: '(Syniq)' },
+                { match: /Syniq Session/g, repl: 'Syniq Session' },
+                { match: /Syniq session/g, repl: 'Syniq session' },
+                { match: /to Syniq/g, repl: 'to Syniq' },
+                { match: /with Syniq/g, repl: 'with Syniq' },
+                { match: /for Syniq/g, repl: 'for Syniq' },
+                { match: /Syniq orchestration/g, repl: 'Syniq orchestration' },
+                { match: /Syniq account/g, repl: 'Syniq account' },
+                { match: /Syniq logo/g, repl: 'Syniq logo' },
+                { match: /Syniq is/g, repl: 'Syniq is' },
+                { match: /Syniq provides/g, repl: 'Syniq provides' },
+                { match: /Syniq Visual/gi, repl: 'Syniq Visual' }
             ];
 
             regexes.forEach(({match, repl}) => {

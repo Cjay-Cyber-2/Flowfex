@@ -142,7 +142,7 @@ function createWordTargets(word, width, height) {
   const pixels = offscreenContext.getImageData(0, 0, offscreen.width, offscreen.height).data;
   const targets = [];
   // Smaller sample step gives denser, more legible text — matches the
-  // original Syn-IQ animation density (every ~6 px) instead of the sparse
+  // original Syniq animation density (every ~6 px) instead of the sparse
   // step the section had drifted to.
   const sampleStep = Math.max(5, Math.floor(offscreen.width / 200));
 

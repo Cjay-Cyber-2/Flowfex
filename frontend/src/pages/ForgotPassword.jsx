@@ -38,8 +38,8 @@ function ForgotPassword() {
 
   const subtitle = useMemo(
     () => (isResetMode
-      ? 'Choose a new password for your Syn-IQ account.'
-      : 'Enter the account email and Syn-IQ will send a reset link.'),
+      ? 'Choose a new password for your Syniq account.'
+      : 'Enter the account email and Syniq will send a reset link.'),
     [isResetMode]
   );
 

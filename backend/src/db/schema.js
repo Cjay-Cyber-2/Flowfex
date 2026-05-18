@@ -6,7 +6,7 @@ export const user = pgTable("user", {
   email: text('email').notNull().unique(),
   emailVerified: boolean('emailVerified').notNull(),
   image: text('image'),
-  /** False until the user sets a Syn-IQ handle (required after OAuth). Email sign-up sets true immediately. */
+  /** False until the user sets a Syniq handle (required after OAuth). Email sign-up sets true immediately. */
   syniqHandleChosen: boolean('flowfexHandleChosen').notNull().default(false),
   createdAt: timestamp('createdAt').notNull(),
   updatedAt: timestamp('updatedAt').notNull()

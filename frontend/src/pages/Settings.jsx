@@ -345,7 +345,7 @@ function Settings() {
 
               {!isAuthenticated ? (
                 <p style={{ color: 'var(--color-bistre)' }}>
-                  Sign in first to create and manage Syn-IQ API keys.
+                  Sign in first to create and manage Syniq API keys.
                 </p>
               ) : (
                 <>

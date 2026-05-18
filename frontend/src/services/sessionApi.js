@@ -24,7 +24,7 @@ async function request(path, options = {}) {
   const payload = await parseResponse(response);
 
   if (!response.ok) {
-    const error = new Error(payload?.error?.message || 'Syn-IQ session request failed.');
+    const error = new Error(payload?.error?.message || 'Syniq session request failed.');
     error.statusCode = response.status;
     error.payload = payload;
     throw error;

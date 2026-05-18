@@ -40,8 +40,8 @@ function TopBar() {
     ? (displayUsername || (displayEmail ? displayEmail.split('@')[0] : '') || 'Signed in')
     : 'Anonymous';
   const accountTitle = isAuthenticated
-    ? (displayEmail ? `Signed in as ${displayUsername || displayEmail}` : 'Signed in to Syn-IQ')
-    : 'Anonymous Syn-IQ session — connect an agent to orchestrate. Sign up after your free requests for a saved account and higher limits.';
+    ? (displayEmail ? `Signed in as ${displayUsername || displayEmail}` : 'Signed in to Syniq')
+    : 'Anonymous Syniq session — connect an agent to orchestrate. Sign up after your free requests for a saved account and higher limits.';
   const avatarLetters = isAuthenticated ? (user?.initials || '').trim() : '';
   const isProAccount = appState?.identity?.billing === 'pro';
   const freeAccountHasAttachedAgent = isAuthenticated && !isProAccount && hasConnectedAgent;
@@ -119,7 +119,7 @@ function TopBar() {
                 ? 'Free accounts support one connected agent. Upgrade to attach another.'
               : hasConnectedAgent
                 ? (isAuthenticated ? 'Connect or manage additional agents' : 'Your agent is connected')
-                : 'Connect an agent to Syn-IQ'
+                : 'Connect an agent to Syniq'
           }
         >
           {hasConnectedAgent

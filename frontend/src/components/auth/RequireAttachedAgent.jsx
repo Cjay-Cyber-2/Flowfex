@@ -8,7 +8,7 @@ import { isLiveConnectedAgent } from '../../utils/agentPresence';
 /**
  * Strict route guard for /dashboard.
  *
- * The dashboard opens only when this browser's Syn-IQ session has a
+ * The dashboard opens only when this browser's Syniq session has a
  * **verified live agent** (store mirror + server session snapshot).
  * Being signed in with Better Auth is not enough: another laptop with the
  * same account must still complete attach on that device.
@@ -28,7 +28,7 @@ function GuardLoading() {
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         <SyniqLogoNew size={32} animated={false} />
-        <span>Verifying your Syn-IQ session…</span>
+        <span>Verifying your Syniq session…</span>
       </div>
     </div>
   );

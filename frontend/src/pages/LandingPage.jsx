@@ -333,13 +333,13 @@ function LandingPage() {
       {
         label: 'Skill records',
         value: formatCatalogCount(catalogStats.skillsIndexed),
-        detail: 'Live markdown skill records indexed into Syn-IQ for search, validation, and routing.',
+        detail: 'Live markdown skill records indexed into Syniq for search, validation, and routing.',
         icon: Sparkles,
       },
       {
         label: 'Agent templates',
         value: formatCatalogCount(catalogStats.agentTemplates),
-        detail: 'Single-agent templates Syn-IQ can surface across research, workflow, app, and voice use cases.',
+        detail: 'Single-agent templates Syniq can surface across research, workflow, app, and voice use cases.',
         icon: Network,
       },
       {
@@ -356,7 +356,7 @@ function LandingPage() {
       {
         label: 'Skills',
         value: formatCatalogCount(catalogStats.skillsIndexed),
-        detail: 'Real skill records currently available to the Syn-IQ routing layer.',
+        detail: 'Real skill records currently available to the Syniq routing layer.',
       },
       {
         label: 'Agents',
@@ -469,7 +469,7 @@ function LandingPage() {
 
     // Wait for SessionContext to bootstrap the anonymous token so the
     // skill catalog endpoint accepts the request (it is gated to live
-    // Syn-IQ sessions to stop bulk scraping).
+    // Syniq sessions to stop bulk scraping).
     if (backendUrl && sessionReady) {
       loadCatalogStats();
     }
@@ -537,12 +537,12 @@ function LandingPage() {
         className="landing-section statement-section"
       >
         <p className="statement-kicker">
-          What Syn-IQ does
+          What Syniq does
         </p>
-        <div className="statement-animation-wrap" aria-label="Syn-IQ live catalog coverage">
+        <div className="statement-animation-wrap" aria-label="Syniq live catalog coverage">
           <ParticleTextEffect words={particleWords} />
         </div>
-        <div className="statement-metrics" aria-label="Syn-IQ catalog facts">
+        <div className="statement-metrics" aria-label="Syniq catalog facts">
           {statementMetrics.map(({ label, value, detail, icon: Icon }) => (
             <article key={label} className="statement-metric">
               <span className="statement-metric-icon">
@@ -562,7 +562,7 @@ function LandingPage() {
           <h2>Agents need one shared place to pull the right resources.</h2>
           <p>
             Teams already have useful tools, skills, prompts, and workflows, but they live in different places.
-            Syn-IQ gives every agent one bridge into that resource layer and one live view for the user.
+            Syniq gives every agent one bridge into that resource layer and one live view for the user.
           </p>
 
           <div className="problem-card-list">
@@ -601,10 +601,10 @@ function LandingPage() {
 
       <section id="reveal" data-section-id="reveal" className="landing-section reveal-section">
         <div className="section-copy">
-          <span className="section-kicker">What Syn-IQ does</span>
-          <h2>Syn-IQ sits between the agent and the resource layer.</h2>
+          <span className="section-kicker">What Syniq does</span>
+          <h2>Syniq sits between the agent and the resource layer.</h2>
           <p>
-            The agent connects once. Syn-IQ reads the task, picks the right skills and tools, builds the flow,
+            The agent connects once. Syniq reads the task, picks the right skills and tools, builds the flow,
             and streams each step back to the dashboard and the calling agent.
           </p>
         </div>
@@ -615,7 +615,7 @@ function LandingPage() {
             <span className="section-kicker">Live bridge session</span>
             <h3>Connect. Pull. Guide. Return.</h3>
             <p>
-              Syn-IQ does not replace the agent. It gives the agent a better resource layer and gives the user
+              Syniq does not replace the agent. It gives the agent a better resource layer and gives the user
               one live place to supervise the run.
             </p>
             <ul>
@@ -665,7 +665,7 @@ function LandingPage() {
               <ShieldCheck size={18} />
             </span>
             <h3>Connect anything</h3>
-            <p>Prompt, link, SDK, or live channel. Attach the agent and Syn-IQ becomes the shared control surface.</p>
+            <p>Prompt, link, SDK, or live channel. Attach the agent and Syniq becomes the shared control surface.</p>
           </article>
         </div>
       </section>
@@ -680,7 +680,7 @@ function LandingPage() {
               <span className="section-kicker">Product preview</span>
               <h2 style={{ marginBottom: '0.75rem', fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)' }}>The dashboard shows what connected, what was pulled, and where the flow is going.</h2>
               <p style={{ maxWidth: '800px', margin: '0 auto' }}>
-                Syn-IQ is not a static graph mock. The main app is a live control surface with sessions, a graph
+                Syniq is not a static graph mock. The main app is a live control surface with sessions, a graph
                 canvas, and clear places where the user can step in.
               </p>
             </div>
@@ -734,7 +734,7 @@ function LandingPage() {
             Give <span className="final-headline-highlight">every agent</span> one place to pull the right tools and skills.
           </h2>
           <p>
-            Start a session, connect an agent, and let Syn-IQ turn scattered resources into a live flow you can understand and steer.
+            Start a session, connect an agent, and let Syniq turn scattered resources into a live flow you can understand and steer.
           </p>
           <div className="final-actions">
             <button className="btn btn-primary final-cta-enhanced" onClick={() => navigate('/app')}>

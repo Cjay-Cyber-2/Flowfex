@@ -115,7 +115,7 @@ function ConnectionLimitPanel({ isAuthenticated, message, onSignUp, onSignIn, on
 function ConnectionHeadline() {
   return (
     <p className="cam-connect-headline">
-      <strong style={{ color: 'var(--color-sinoper)' }}>→</strong> You'll be taken to your dashboard only after your agent successfully connects to Syn-IQ.
+      <strong style={{ color: 'var(--color-sinoper)' }}>→</strong> You'll be taken to your dashboard only after your agent successfully connects to Syniq.
     </p>
   );
 }
@@ -322,7 +322,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
         return {
           sessionId: activeSession?.id,
           mode: 'prompt',
-          prompt: 'Attach this agent to Syn-IQ for the full conversation and route every request through Syn-IQ before acting.',
+          prompt: 'Attach this agent to Syniq for the full conversation and route every request through Syniq before acting.',
           agent: { name: 'Prompt Agent', type: 'prompt' },
         };
       case 'Link':
@@ -434,7 +434,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
     // the modal so they cannot try to attach a second agent without
     // upgrading.
     const anonymousAlreadyAttached = !isAuthenticated && hasConnectedAgent
-      ? 'You already have one anonymous Syn-IQ attach today. Sign in to manage multiple agents on a paid plan.'
+      ? 'You already have one anonymous Syniq attach today. Sign in to manage multiple agents on a paid plan.'
       : null;
     const authenticatedSingleAgentLimit = isAuthenticated && !isPaidAccount && hasConnectedAgent
       ? 'Your free account already has a connected agent. Upgrade to attach another agent, or keep using the current dashboard until your requests renew tomorrow.'
@@ -494,7 +494,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
     const sessionRecord = {
       id: session.id,
       name: `${tab} Session`,
-      task: 'Connected through Syn-IQ',
+      task: 'Connected through Syniq',
       heartbeat: `${tab} connection synced`,
       status: 'ready',
       revision: 0,
@@ -681,7 +681,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
             <div className="cam-header">
               <div>
                 <h2 className="cam-title">Connect Your Agent</h2>
-                <p className="cam-subtitle">Choose how this agent connects to Syn-IQ.</p>
+                <p className="cam-subtitle">Choose how this agent connects to Syniq.</p>
               </div>
               <button className="cam-close" onClick={onClose}><X size={18} /></button>
             </div>

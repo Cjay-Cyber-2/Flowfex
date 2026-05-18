@@ -48,7 +48,7 @@ function FinalCTASection() {
         <div className="fcta-footer-inner">
           <div className="fcta-footer-col">
             <SyniqLogo size={24} />
-            <span className="fcta-footer-brand">Syn-IQ</span>
+            <span className="fcta-footer-brand">Syniq</span>
             <p className="fcta-footer-tagline">Visual AI orchestration for every agent.</p>
           </div>
           <div className="fcta-footer-col fcta-footer-nav">

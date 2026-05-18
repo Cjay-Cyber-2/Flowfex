@@ -129,7 +129,7 @@ function SessionDetail() {
           color: 'var(--color-velin)',
           marginBottom: 'var(--space-2)'
         }}>
-          {knownSession?.name || 'Syn-IQ session'}
+          {knownSession?.name || 'Syniq session'}
         </h1>
 
         <p style={{

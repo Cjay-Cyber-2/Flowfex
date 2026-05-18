@@ -3,7 +3,7 @@ import SyniqLogo from '../../assets/SyniqLogo';
 import './LoadingSpinner.css';
 
 /**
- * Loading Spinner using the Syn-IQ logo
+ * Loading Spinner using the Syniq logo
  * Represents the flow of intelligence through the system
  */
 function LoadingSpinner({ size = 60, message = 'Loading...' }) {

@@ -296,7 +296,7 @@ export function SessionProvider({ children }) {
           ...current,
           sessionReady: true,
           configured: isAuthClientConfigured(),
-          error: error instanceof Error ? error.message : 'Unable to initialize the Syn-IQ session.',
+          error: error instanceof Error ? error.message : 'Unable to initialize the Syniq session.',
           appState: null,
           appStateError: null,
         }));
@@ -313,7 +313,7 @@ export function SessionProvider({ children }) {
   }, [initialize]);
 
   // Better Auth has no browser push channel; re-check session when the user returns
-  // so sign-in state and Syn-IQ session stay aligned with server cookies.
+  // so sign-in state and Syniq session stay aligned with server cookies.
   useEffect(() => {
     const refreshOnReturn = () => {
       if (document.visibilityState !== 'visible') {

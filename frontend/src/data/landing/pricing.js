@@ -3,7 +3,7 @@ export const pricingTiers = [
     id: 'free',
     name: 'Free',
     price: 0,
-    description: 'For trying out Syn-IQ',
+    description: 'For trying out Syniq',
     features: [
       '100 orchestration steps/month',
       '1 connected agent',

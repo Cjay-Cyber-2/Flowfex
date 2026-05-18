@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
-import SyniqLogoNew from '../components/SyniqLogoNew';
+import FlowfexLogoNew from '../components/FlowfexLogoNew';
 import ConnectAgentModal from '../components/ConnectAgentModal';
 import PulseBeams from '../components/animations/PulseBeams';
 import useStore from '../store/useStore';
@@ -70,34 +70,7 @@ const ONBOARDING_BEAMS = [
   },
 ];
 
-const CONNECTION_MODES = [
-  {
-    tab: 'Prompt',
-    badge: 'Paste into agent',
-    title: 'Prompt-based attach',
-    body: 'Use the connection contract inside any chat-style agent. Flowfex waits for the first real attach before opening the dashboard.',
-  },
-  {
-    tab: 'Link',
-    badge: 'Secure link',
-    title: 'One-time link attach',
-    body: 'Generate a signed attach link for browser-based or hosted agents. The dashboard unlocks only after the link is actually consumed.',
-  },
-  {
-    tab: 'SDK',
-    badge: 'Code attach',
-    title: 'SDK session attach',
-    body: 'Wire the agent into Flowfex with the SDK snippet and keep every request routed through the session before acting.',
-  },
-  {
-    tab: 'Live Channel',
-    badge: 'Realtime channel',
-    title: 'Live channel attach',
-    body: 'Open a live bridge for agents that stay online. Flowfex verifies the channel first, then transitions into the dashboard.',
-  },
-];
-
-// Restored Syniq-branded spinning network Connect Agent button.
+// Restored Flowfex-branded spinning network Connect Agent button.
 function AnimatedLayerButton({ children, onClick, className = '' }) {
   return (
     <button
@@ -135,19 +108,12 @@ function AnimatedLayerButton({ children, onClick, className = '' }) {
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { sessionReady, appState, isAuthenticated } = useSessionContext();
+  const { sessionReady, appState } = useSessionContext();
   const connectedAgents = useStore((state) => state.connectedAgents);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedConnectionTab, setSelectedConnectionTab] = useState('Prompt');
   const [connectionStage, setConnectionStage] = useState('idle');
   const transitionTimersRef = useRef([]);
   const autoTransitionStartedRef = useRef(false);
-  const identityLabel = isAuthenticated ? 'Signed-in workspace' : 'Anonymous workspace';
-
-  const openConnectionMode = useCallback((tab) => {
-    setSelectedConnectionTab(tab);
-    setIsModalOpen(true);
-  }, []);
 
   const clearTransitionTimers = useCallback(() => {
     transitionTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
@@ -201,7 +167,7 @@ export default function Onboarding() {
           <ArrowLeft size={20} />
         </button>
         <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <SyniqLogoNew size={30} animated={false} />
+          <FlowfexLogoNew size={30} animated={false} />
         </div>
         <div style={{ width: '40px' }} aria-hidden="true" />
       </header>
@@ -270,7 +236,7 @@ export default function Onboarding() {
                   transition={{ duration: 1.1, ease: 'easeInOut' }}
                 />
                 <div className="ob-transition-shell">
-                  <SyniqLogoNew size={62} animated={false} />
+                  <FlowfexLogoNew size={62} animated={false} />
                 </div>
               </motion.div>
 
@@ -291,46 +257,15 @@ export default function Onboarding() {
         </AnimatePresence>
 
         {connectionStage === 'idle' ? (
-          <div className="ob-stack">
+          <div className="ob-stack ob-stack--minimal">
             <motion.div
               className="ob-circle"
               animate={{ scale: [1, 1.08, 1], opacity: [0.84, 1, 0.84] }}
               transition={{ duration: 2.1, repeat: Infinity }}
             >
-              <SyniqLogoNew size={34} animated={false} />
+              <FlowfexLogoNew size={34} animated={false} />
             </motion.div>
-            <span className="ob-mode-pill">{identityLabel}</span>
-            <h1 className="ob-headline">Choose how your agent will connect to Flowfex.</h1>
-            <p className="ob-copy-subline">
-              Your workspace is already live on this browser. The dashboard opens only after Flowfex verifies a real agent connection for the mode you choose below.
-            </p>
-            <div className="ob-mode-strip">
-              <span className="ob-mode-pill">Real attach required</span>
-              <span className="ob-mode-pill">No fake dashboard access</span>
-              <span className="ob-mode-pill">10 requests per day after connect</span>
-            </div>
-
-            <div className="ob-connection-grid">
-              {CONNECTION_MODES.map((mode) => (
-                <article key={mode.tab} className="ob-connection-card">
-                  <div className="ob-connection-card-top">
-                    <span className="ob-connection-badge">{mode.badge}</span>
-                    <span className="ob-connection-lock">Dashboard after verified connection</span>
-                  </div>
-                  <h2 className="ob-connection-title">{mode.title}</h2>
-                  <p className="ob-connection-copy">{mode.body}</p>
-                  <button
-                    type="button"
-                    className="ob-connection-action"
-                    onClick={() => openConnectionMode(mode.tab)}
-                  >
-                    Open {mode.tab}
-                  </button>
-                </article>
-              ))}
-            </div>
-
-            <AnimatedLayerButton onClick={() => openConnectionMode(selectedConnectionTab)}>
+            <AnimatedLayerButton onClick={() => setIsModalOpen(true)}>
               Connect Agent
             </AnimatedLayerButton>
           </div>
@@ -341,7 +276,6 @@ export default function Onboarding() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConnected={handleConnected}
-        initialTab={selectedConnectionTab}
       />
     </div>
   );

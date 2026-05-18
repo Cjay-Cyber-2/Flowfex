@@ -86,7 +86,7 @@ function FreeTierPlanCard({ requestsLeft, requestLimit, onUpgrade, onDismiss }) 
             Free account active
           </strong>
           <span style={{ color: 'rgba(232, 237, 242, 0.8)', fontSize: 14, lineHeight: 1.6 }}>
-            You are now signed in. This account keeps your workspace, supports one connected agent, and includes {requestLimit} Flowfex requests per day. Upgrade later for uninterrupted usage after the free quota is exhausted.
+            You are now signed in. This account keeps your workspace, supports one connected agent, and includes {requestLimit} Syniq requests per day. Upgrade later for uninterrupted usage after the free quota is exhausted.
           </span>
         </div>
         <button className="btn btn-ghost" onClick={onDismiss}>Dismiss</button>

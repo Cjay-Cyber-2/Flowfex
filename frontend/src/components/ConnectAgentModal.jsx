@@ -309,7 +309,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
   const [connections, setConnections] = useState({});
   const [errors, setErrors] = useState({});
   const [limitMessages, setLimitMessages] = useState({});
-  const [loadingTab, setLoadingTab] = useState(null);
+  const [loadingTabs, setLoadingTabs] = useState({});
   const [syncState, setSyncState] = useState('idle');
   const fetchAttemptedRef = useRef(new Set());
   const finalizedConnectionKeysRef = useRef(new Set());
@@ -356,7 +356,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
       return;
     }
 
-    setLoadingTab(tab);
+    setLoadingTabs((current) => ({ ...current, [tab]: true }));
     setErrors((current) => ({ ...current, [tab]: null }));
     setLimitMessages((current) => ({ ...current, [tab]: null }));
 
@@ -412,7 +412,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
         [tab]: error instanceof Error ? error.message : 'Connection bootstrap failed',
       }));
     } finally {
-      setLoadingTab(null);
+      setLoadingTabs((current) => ({ ...current, [tab]: false }));
     }
   }, [accessToken, backendUrl, requestForTab, session?.anonymousToken]);
 
@@ -536,13 +536,17 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
   }, [navigate, onClose]);
 
   useEffect(() => {
-    if (!isOpen || connections[activeTab] || loadingTab === activeTab || fetchAttemptedRef.current.has(activeTab)) {
+    if (!isOpen) {
       return;
     }
 
-    fetchAttemptedRef.current.add(activeTab);
-    fetchConnection(activeTab);
-  }, [activeTab, connections, fetchConnection, isOpen, loadingTab]);
+    TABS.forEach((tab) => {
+      if (!connections[tab] && !loadingTabs[tab] && !fetchAttemptedRef.current.has(tab)) {
+        fetchAttemptedRef.current.add(tab);
+        fetchConnection(tab);
+      }
+    });
+  }, [connections, fetchConnection, isOpen, loadingTabs]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -551,7 +555,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
       setSyncState('idle');
       setErrors({});
       setLimitMessages({});
-      setLoadingTab(null);
+      setLoadingTabs({});
       fetchAttemptedRef.current = new Set();
       finalizedConnectionKeysRef.current = new Set();
       return undefined;
@@ -707,7 +711,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
               >
                 <TabContent
                   connection={connections[activeTab]}
-                  loading={loadingTab === activeTab}
+                  loading={loadingTabs[activeTab]}
                   onRefresh={() => fetchConnection(activeTab)}
                   error={errors[activeTab]}
                   limitState={limitMessages[activeTab]}

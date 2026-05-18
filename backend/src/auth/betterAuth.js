@@ -11,6 +11,7 @@ neonConfig.webSocketConstructor = ws;
 
 const DEFAULT_AUTH_BASE_URL = "http://localhost:4000";
 const DEFAULT_TRUSTED_ORIGINS = [
+  "https://syniq.vercel.app",
   "https://flowfex.vercel.app",
   "http://localhost:3000",
   "http://127.0.0.1:3000",

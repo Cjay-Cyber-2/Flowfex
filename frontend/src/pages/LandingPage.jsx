@@ -334,19 +334,16 @@ function LandingPage() {
         label: 'Skill records',
         value: formatCatalogCount(catalogStats.skillsIndexed),
         detail: 'Live markdown skill records indexed into Syniq for search, validation, and routing.',
-        icon: Sparkles,
       },
       {
         label: 'Agent templates',
         value: formatCatalogCount(catalogStats.agentTemplates),
         detail: 'Single-agent templates Syniq can surface across research, workflow, app, and voice use cases.',
-        icon: Network,
       },
       {
         label: 'Multi-agent systems',
         value: formatCatalogCount(catalogStats.multiAgentSystems),
         detail: 'Coordinated multi-agent systems available for planning, execution, review, and handoff.',
-        icon: Workflow,
       },
     ],
     [catalogStats]
@@ -543,11 +540,8 @@ function LandingPage() {
           <ParticleTextEffect words={particleWords} />
         </div>
         <div className="statement-metrics" aria-label="Syniq catalog facts">
-          {statementMetrics.map(({ label, value, detail, icon: Icon }) => (
+          {statementMetrics.map(({ label, value, detail }) => (
             <article key={label} className="statement-metric">
-              <span className="statement-metric-icon">
-                <Icon size={18} />
-              </span>
               <strong>{value}</strong>
               <span>{label}</span>
               <p>{detail}</p>

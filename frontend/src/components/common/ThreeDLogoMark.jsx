@@ -1,5 +1,5 @@
 import React from 'react';
-import syniqLogo from '../../assets/syniq-logo-official.png';
+import SyniqLogoSVG from './SyniqLogoSVG';
 
 function buildLayers(depth) {
   return Array.from({ length: depth }, (_, index) => index);
@@ -25,25 +25,39 @@ export default function ThreeDLogoMark({
       {glow !== 'none' ? <div className="three-d-logo-mark-aura three-d-logo-mark-aura-secondary" /> : null}
       <div className="three-d-logo-mark-stack">
         {layers.map((layerIndex) => (
-          <img
+          <div
             key={layerIndex}
-            src={syniqLogo}
-            alt=""
             className="three-d-logo-mark-layer"
             style={{
               '--logo-layer-index': layerIndex,
               '--logo-layer-depth': `${(depth - layerIndex) * 4}px`,
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
-            draggable="false"
-          />
+          >
+            <SyniqLogoSVG size="100%" />
+          </div>
         ))}
         <div className="three-d-logo-mark-front-shell">
-          <img
-            src={syniqLogo}
-            alt={alt}
+          <div
             className="three-d-logo-mark-front"
-            draggable="false"
-          />
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <SyniqLogoSVG size="100%" />
+          </div>
         </div>
         {sheen ? <div className="three-d-logo-mark-sheen" /> : null}
       </div>

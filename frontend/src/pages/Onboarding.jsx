@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
-import FlowfexLogoNew from '../components/FlowfexLogoNew';
+import SyniqLogoNew from '../components/SyniqLogoNew';
 import ConnectAgentModal from '../components/ConnectAgentModal';
 import PulseBeams from '../components/animations/PulseBeams';
 import useStore from '../store/useStore';
@@ -70,7 +70,7 @@ const ONBOARDING_BEAMS = [
   },
 ];
 
-// Restored Flowfex-branded spinning network Connect Agent button.
+// Syniq-branded spinning network Connect Agent button.
 function AnimatedLayerButton({ children, onClick, className = '' }) {
   return (
     <button
@@ -167,7 +167,7 @@ export default function Onboarding() {
           <ArrowLeft size={20} />
         </button>
         <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <FlowfexLogoNew size={30} animated={false} />
+          <SyniqLogoNew size={30} animated={false} />
         </div>
         <div style={{ width: '40px' }} aria-hidden="true" />
       </header>
@@ -236,7 +236,7 @@ export default function Onboarding() {
                   transition={{ duration: 1.1, ease: 'easeInOut' }}
                 />
                 <div className="ob-transition-shell">
-                  <FlowfexLogoNew size={62} animated={false} />
+                  <SyniqLogoNew size={62} animated={false} />
                 </div>
               </motion.div>
 
@@ -263,7 +263,7 @@ export default function Onboarding() {
               animate={{ scale: [1, 1.08, 1], opacity: [0.84, 1, 0.84] }}
               transition={{ duration: 2.1, repeat: Infinity }}
             >
-              <FlowfexLogoNew size={34} animated={false} />
+              <SyniqLogoNew size={34} animated={false} />
             </motion.div>
             <AnimatedLayerButton onClick={() => setIsModalOpen(true)}>
               Connect Agent

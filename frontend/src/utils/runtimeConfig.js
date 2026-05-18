@@ -62,7 +62,7 @@ export function getBackendOrigin() {
     return DEFAULT_BACKEND_ORIGIN;
   }
 
-  if (location.hostname === 'flowfex.vercel.app') {
+  if (location.hostname === 'syniq.vercel.app' || location.hostname === 'flowfex.vercel.app') {
     return DEFAULT_VERCEL_PRODUCTION_BACKEND;
   }
 

@@ -8,9 +8,12 @@ const SYNIQ_COLORS = [
   { r: 0, g: 180, b: 150 },
 ];
 
-const DEVICE_PIXEL_RATIO_CAP = 1.5;
+/** Cap HiDPI cost — text stays readable on large logical canvas pixels. */
+const DEVICE_PIXEL_RATIO_CAP = 1.25;
 /** Minimum time each word stays on screen so particles can settle into readable text. */
-const WORD_CYCLE_MS = 5200;
+const WORD_CYCLE_MS = 4800;
+
+const PARTICLE_SIDE = 2.65;
 
 class Particle {
   constructor(width, height) {
@@ -19,9 +22,9 @@ class Particle {
     this.vel = { x: 0, y: 0 };
     this.acc = { x: 0, y: 0 };
     this.target = { x: spawn.x, y: spawn.y };
-    this.closeEnoughTarget = 112;
-    this.maxSpeed = Math.random() * 2.5 + 5.2;
-    this.maxForce = 0.18;
+    this.closeEnoughTarget = 104;
+    this.maxSpeed = Math.random() * 2.9 + 5.45;
+    this.maxForce = 0.26;
     this.isKilled = false;
     this.startColor = { r: 0, g: 0, b: 0 };
     this.targetColor = { r: 0, g: 0, b: 0 };
@@ -60,30 +63,26 @@ class Particle {
     this.acc.y += steer.y;
     this.vel.x += this.acc.x;
     this.vel.y += this.acc.y;
-    // Damping for smoother, more organic motion
-    this.vel.x *= 0.96;
-    this.vel.y *= 0.96;
+    // Higher damping = less oscillation when settling (reads smoother without extra frames cost)
+    this.vel.x *= 0.977;
+    this.vel.y *= 0.977;
+
+    // Color blend once per physics tick (drawing pass stays cheap batches only)
+    if (this.colorWeight < 1) {
+      this.colorWeight = Math.min(this.colorWeight + this.colorBlendRate, 1);
+    }
     this.pos.x += this.vel.x;
     this.pos.y += this.vel.y;
     this.acc.x = 0;
     this.acc.y = 0;
   }
 
-  draw(ctx) {
-    if (this.colorWeight < 1) {
-      this.colorWeight = Math.min(this.colorWeight + this.colorBlendRate, 1);
-    }
-
-    const color = {
-      r: Math.round(this.startColor.r + (this.targetColor.r - this.startColor.r) * this.colorWeight),
-      g: Math.round(this.startColor.g + (this.targetColor.g - this.startColor.g) * this.colorWeight),
-      b: Math.round(this.startColor.b + (this.targetColor.b - this.startColor.b) * this.colorWeight),
-    };
-
-    ctx.fillStyle = `rgb(${color.r},${color.g},${color.b})`;
-    ctx.beginPath();
-    ctx.arc(this.pos.x, this.pos.y, 1.6, 0, Math.PI * 2);
-    ctx.fill();
+  /** Packed RGB for batching rects with one fill operation per hue. */
+  rgbPackedKey() {
+    const r = Math.round(this.startColor.r + (this.targetColor.r - this.startColor.r) * this.colorWeight);
+    const g = Math.round(this.startColor.g + (this.targetColor.g - this.startColor.g) * this.colorWeight);
+    const b = Math.round(this.startColor.b + (this.targetColor.b - this.startColor.b) * this.colorWeight);
+    return ((r & 255) << 16) | ((g & 255) << 8) | (b & 255);
   }
 
   retarget(nextTarget, nextColor) {
@@ -149,7 +148,8 @@ function createWordTargets(word, width, height) {
   // Smaller sample step gives denser, more legible text — matches the
   // original Syniq animation density (every ~6 px) instead of the sparse
   // step the section had drifted to.
-  const sampleStep = Math.max(5, Math.floor(offscreen.width / 200));
+  // Step up slightly vs single-pixel-ish sampling → fewer sprites, smoother frame budget at large widths
+  const sampleStep = Math.max(6, Math.floor(offscreen.width / 150));
 
   for (let y = 0; y < offscreen.height; y += sampleStep) {
     for (let x = 0; x < offscreen.width; x += sampleStep) {
@@ -179,6 +179,8 @@ export function ParticleTextEffect({ words = ['853 Skills', '420 Agents', '64 Mu
   const colorIndexRef = useRef(0);
   const nextSwitchAtRef = useRef(0);
   const canvasSizeRef = useRef({ width: 0, height: 0 });
+  /** Keep simulation advancing off-screen — only skip expensive clears / fills while hidden. */
+  const visibleRef = useRef(true);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -186,7 +188,8 @@ export function ParticleTextEffect({ words = ['853 Skills', '420 Agents', '64 Mu
       return undefined;
     }
 
-    const context = canvas.getContext('2d');
+    const context = canvas.getContext('2d', { alpha: true, desynchronized: true })
+      ?? canvas.getContext('2d');
     if (!context) {
       return undefined;
     }
@@ -243,27 +246,68 @@ export function ParticleTextEffect({ words = ['853 Skills', '420 Agents', '64 Mu
       }
     }
 
+    const half = PARTICLE_SIDE / 2;
+
     function animate(now) {
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
-      context.clearRect(0, 0, width, height);
-
       const particles = particlesRef.current;
-      for (let particleIndex = particles.length - 1; particleIndex >= 0; particleIndex -= 1) {
-        const particle = particles[particleIndex];
-        particle.move();
-        particle.draw(context);
 
-        if (
+      for (let particleIndex = 0; particleIndex < particles.length; particleIndex += 1) {
+        particles[particleIndex].move();
+      }
+
+      let writeIndex = 0;
+      for (let particleIndex = 0; particleIndex < particles.length; particleIndex += 1) {
+        const particle = particles[particleIndex];
+        const outBounds =
           particle.isKilled
           && (
-            particle.pos.x < -24
-            || particle.pos.x > width + 24
-            || particle.pos.y < -24
-            || particle.pos.y > height + 24
-          )
-        ) {
-          particles.splice(particleIndex, 1);
+            particle.pos.x < -48
+            || particle.pos.x > width + 48
+            || particle.pos.y < -48
+            || particle.pos.y > height + 48
+          );
+
+        if (outBounds) {
+          continue;
+        }
+
+        particles[writeIndex] = particle;
+        writeIndex += 1;
+      }
+
+      particles.length = writeIndex;
+
+      if (visibleRef.current && width > 0 && height > 0) {
+        context.clearRect(0, 0, width, height);
+        /** @type Map<number, number[]> key = rgb packed coords flat [x,y,...] */
+        const buckets = new Map();
+
+        for (let particleIndex = 0; particleIndex < particles.length; particleIndex += 1) {
+          const particle = particles[particleIndex];
+          const packed = particle.rgbPackedKey();
+          let list = buckets.get(packed);
+          if (!list) {
+            list = [];
+            buckets.set(packed, list);
+          }
+
+          list.push(particle.pos.x, particle.pos.y);
+        }
+
+        for (const [packed, pts] of buckets.entries()) {
+          const r = (packed >>> 16) & 255;
+          const g = (packed >>> 8) & 255;
+          const b = packed & 255;
+          context.fillStyle = `rgb(${r},${g},${b})`;
+          context.beginPath();
+
+          for (let i = 0; i < pts.length; i += 2) {
+            context.rect(pts[i] - half, pts[i + 1] - half, PARTICLE_SIDE, PARTICLE_SIDE);
+          }
+
+          context.fill();
         }
       }
 
@@ -319,6 +363,19 @@ export function ParticleTextEffect({ words = ['853 Skills', '420 Agents', '64 Mu
       resizeObserver.observe(canvas.parentElement);
     }
 
+    /** Pause painting off-screen cheaply while keeping RAF + morph timing alive */
+    let visibilityObserver = null;
+    if (typeof IntersectionObserver !== 'undefined') {
+      visibilityObserver = new IntersectionObserver(
+        (entries) => {
+          const hit = entries[0];
+          visibleRef.current = hit ? hit.isIntersecting || hit.intersectionRatio > 0 : true;
+        },
+        { root: null, rootMargin: '80px', threshold: 0.04 },
+      );
+      visibilityObserver.observe(canvas);
+    }
+
     return () => {
       cancelled = true;
       if (animationRef.current) {
@@ -327,6 +384,10 @@ export function ParticleTextEffect({ words = ['853 Skills', '420 Agents', '64 Mu
       window.removeEventListener('resize', handleResize);
       if (resizeObserver) {
         resizeObserver.disconnect();
+      }
+
+      if (visibilityObserver) {
+        visibilityObserver.disconnect();
       }
     };
   }, [words]);

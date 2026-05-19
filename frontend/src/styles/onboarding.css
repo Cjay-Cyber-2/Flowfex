@@ -126,14 +126,14 @@
   align-items: center;
   gap: 8px;
   position: absolute;
-  top: calc(50% + 118px);
+  top: calc(50% + 132px);
   z-index: 5;
 }
 
 /* Pulsing circle */
 .ob-circle {
-  width: 118px;
-  height: 118px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   border: 2px solid var(--color-sinoper);
   box-shadow: 0 0 40px rgba(0,212,170,0.26);
@@ -491,8 +491,8 @@
     word-break: break-word;
   }
   .ob-circle {
-    width: 92px;
-    height: 92px;
+    width: 106px;
+    height: 106px;
   }
   .ob-connected-label {
     font-size: 13px;

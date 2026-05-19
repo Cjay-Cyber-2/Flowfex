@@ -2,10 +2,9 @@ import React from 'react';
 import syniqLogo from '../../assets/syniq-logo-v3.png';
 
 /**
- * Syniq brand mark — renders the official transparent logo asset.
- * Uses a high-resolution PNG with transparent background for the
- * glassy 3D look of the original design. The image is rendered
- * with object-fit: contain so it stays crisp at every size.
+ * Syniq brand mark — official transparent raster (syniq-logo-v3.png).
+ * Regenerate from source art with frontend/scripts/clean_syniq_logo_png.py
+ * after exports so disconnected corner blobs are stripped.
  */
 export default function SyniqLogoSVG({
   size = 32,

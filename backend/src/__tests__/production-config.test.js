@@ -1,10 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import http from 'node:http';
 
 import { getAllowedBrowserOrigins, resolveAllowedCorsOrigin } from '../config/corsOrigins.js';
 import { ConnectionService } from '../connection/ConnectionService.js';
+import { SyniqServer } from '../server/SyniqServer.js';
 
-function withEnv(overrides, fn) {
+async function withEnv(overrides, fn) {
   const previous = {};
   for (const key of Object.keys(overrides)) {
     previous[key] = process.env[key];
@@ -16,7 +18,7 @@ function withEnv(overrides, fn) {
   }
 
   try {
-    return fn();
+    return await fn();
   } finally {
     for (const key of Object.keys(overrides)) {
       if (previous[key] === undefined) {
@@ -28,8 +30,8 @@ function withEnv(overrides, fn) {
   }
 }
 
-await test('CORS origins are normalized from production env values', () => {
-  withEnv({
+await test('CORS origins are normalized from production env values', async () => {
+  await withEnv({
     ALLOWED_ORIGINS: 'https:// flowfex.vercel.app, https://flowfex.onrender.com/, *',
     FLOWFEX_APP_URL: 'https://flowfex.vercel.app/app',
     FLOWFEX_PUBLIC_ORIGIN: 'https://flowfex.onrender.com',
@@ -42,8 +44,8 @@ await test('CORS origins are normalized from production env values', () => {
   });
 });
 
-await test('Flowfex env aliases take precedence over legacy Syniq aliases', () => {
-  withEnv({
+await test('Flowfex env aliases take precedence over legacy Syniq aliases', async () => {
+  await withEnv({
     BETTER_AUTH_URL: undefined,
     FLOWFEX_PUBLIC_ORIGIN: 'https://flowfex.onrender.com',
     SYNIQ_PUBLIC_ORIGIN: 'https://syniq.onrender.com',
@@ -60,3 +62,57 @@ await test('Flowfex env aliases take precedence over legacy Syniq aliases', () =
     assert.equal(service.linkSecret, 'flowfex-secret');
   });
 });
+
+await test('auth preflight returns 204 with credentialed CORS headers', async () => {
+  await withEnv({
+    ALLOWED_ORIGINS: 'https://flowfex.vercel.app',
+  }, async () => {
+    const server = new SyniqServer({
+      host: '127.0.0.1',
+      port: 0,
+      sessionDataEnabled: false,
+      connectionService: new ConnectionService({
+        registry: { getAllTools: () => [] },
+        orchestrator: {},
+        sessionManager: {},
+      }),
+    });
+
+    const address = await server.start();
+    try {
+      const response = await requestOptions(address.port, '/api/auth/sign-in/email', {
+        origin: 'https://flowfex.vercel.app',
+        requestMethod: 'POST',
+        requestHeaders: 'content-type',
+      });
+
+      assert.equal(response.statusCode, 204);
+      assert.equal(response.headers['access-control-allow-origin'], 'https://flowfex.vercel.app');
+      assert.equal(response.headers['access-control-allow-credentials'], 'true');
+    } finally {
+      await server.stop();
+    }
+  });
+});
+
+function requestOptions(port, path, { origin, requestMethod, requestHeaders }) {
+  return new Promise((resolve, reject) => {
+    const request = http.request({
+      hostname: '127.0.0.1',
+      port,
+      path,
+      method: 'OPTIONS',
+      headers: {
+        Origin: origin,
+        'Access-Control-Request-Method': requestMethod,
+        'Access-Control-Request-Headers': requestHeaders,
+      },
+    }, (response) => {
+      response.resume();
+      response.on('end', () => resolve(response));
+    });
+
+    request.on('error', reject);
+    request.end();
+  });
+}

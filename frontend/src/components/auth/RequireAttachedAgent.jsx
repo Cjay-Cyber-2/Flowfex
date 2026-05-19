@@ -41,8 +41,8 @@ export default function RequireAttachedAgent({ children }) {
   const localHasConnectedAgent = connectedAgents.some(isLiveConnectedAgent);
   const serverAgent = appState?.gates?.agentConnectedServer === true;
   // The OAuth callback can land here while Better Auth is still hydrating
-  // the cookie/session. We only honour a 1s grace window in that case so a
-  // fresh device cannot ever see the dashboard skeleton.
+  // the cookie/session. Keep this brief so unconnected sessions return to
+  // onboarding instead of appearing stuck on the app route.
   const [graceExpired, setGraceExpired] = useState(false);
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export default function RequireAttachedAgent({ children }) {
       return undefined;
     }
 
-    const timer = window.setTimeout(() => setGraceExpired(true), 3200);
+    const timer = window.setTimeout(() => setGraceExpired(true), 900);
     return () => window.clearTimeout(timer);
   }, [sessionReady]);
 

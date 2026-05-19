@@ -211,7 +211,7 @@ function buildBlockedLimit(tier, usage, limits) {
       status: 'blocked',
       tier,
       limit: 'maxExecutionsPerSession',
-      reason: `Your connected agent has used all ${limits.maxExecutionsPerSession} free Syniq skill or tool requests for this session. Sign up to keep going, or wait until the daily reset.`,
+      reason: `Your connected agent has used all ${limits.maxExecutionsPerSession} free Syniq skill or tool requests for today. Sign up to keep going, or wait until the daily reset.`,
       currentValue: usage.executionsCount,
       limitValue: limits.maxExecutionsPerSession,
     };
@@ -418,7 +418,9 @@ export class UsageService {
         usageRows = await this.client
           .select()
           .from(usageTracking)
-          .where(eq(usageTracking.session_id, sessionId));
+          .where(
+            sql`${usageTracking.session_id} = ${sessionId} AND ${usageTracking.period_start} >= ${rollingWindowStart}`
+          );
         connectionSessionRows = session.anonymous_token
           ? await this.client
               .select({

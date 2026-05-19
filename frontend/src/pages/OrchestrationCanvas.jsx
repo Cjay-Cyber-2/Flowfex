@@ -48,7 +48,7 @@ function paymentGateHeadline(blockedLimit, connectionBlockedLimit, isAuthenticat
   const tier = blockedLimit?.tier || connectionBlockedLimit?.tier;
   if (key === 'maxExecutionsPerSession' || key === 'maxExecutionsPerDay') {
     if (!isAuthenticated || tier === 'anonymous') {
-      return 'You used all 10 free Syniq skill or tool requests for this session.';
+      return 'You used all 10 free Syniq skill or tool requests for today.';
     }
     return 'You used all of today’s free Syniq skill or tool requests on this account.';
   }

@@ -80,7 +80,7 @@ export function enforceUsageLimits(
       'maxExecutionsPerSession',
       usage.executionsCount,
       limits.maxExecutionsPerSession,
-      `Your connected agent has used all ${limits.maxExecutionsPerSession} free Syniq skill or tool requests for this session. Sign up to keep going, or wait until the daily reset.`
+      `Your connected agent has used all ${limits.maxExecutionsPerSession} free Syniq skill or tool requests for today. Sign up to keep going, or wait until the daily reset.`
     );
   }
 

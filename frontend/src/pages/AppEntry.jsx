@@ -8,10 +8,10 @@ import SyniqLogoNew from '../components/SyniqLogoNew';
  * sends users to the dashboard only when a live agent is verified; otherwise
  * onboarding to connect.
  *
- * A 5-second timeout prevents the screen from hanging forever if
+ * A short timeout prevents the screen from hanging if
  * `appState` never resolves (e.g. network issues, cold start).
  */
-const FALLBACK_TIMEOUT_MS = 5000;
+const FALLBACK_TIMEOUT_MS = 1200;
 
 export default function AppEntry() {
   const { sessionReady, appState, refreshAppState } = useSessionContext();

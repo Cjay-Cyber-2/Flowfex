@@ -173,6 +173,7 @@ export function ParticleTextEffect({ words = ['853 Skills', '420 Agents', '64 Mu
   const wordIndexRef = useRef(0);
   const colorIndexRef = useRef(0);
   const nextSwitchAtRef = useRef(0);
+  const canvasSizeRef = useRef({ width: 0, height: 0 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -195,6 +196,13 @@ export function ParticleTextEffect({ words = ['853 Skills', '420 Agents', '64 Mu
       const width = Math.max(320, Math.min(measured || 960, 1040));
       const height = Math.max(160, Math.round(width * 0.34));
       const dpr = Math.min(window.devicePixelRatio || 1, DEVICE_PIXEL_RATIO_CAP);
+      const previous = canvasSizeRef.current;
+
+      if (previous.width === width && previous.height === height) {
+        return false;
+      }
+
+      canvasSizeRef.current = { width, height };
 
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
@@ -202,6 +210,7 @@ export function ParticleTextEffect({ words = ['853 Skills', '420 Agents', '64 Mu
       canvas.style.height = `${height}px`;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
       context.clearRect(0, 0, width, height);
+      return true;
     }
 
     function morphToWord(word) {
@@ -287,7 +296,10 @@ export function ParticleTextEffect({ words = ['853 Skills', '420 Agents', '64 Mu
     startAnimation();
 
     const handleResize = () => {
-      resizeCanvas();
+      const resized = resizeCanvas();
+      if (!resized) {
+        return;
+      }
       particlesRef.current = [];
       morphToWord(words[wordIndexRef.current] || words[0]);
     };
@@ -321,6 +333,7 @@ export function ParticleTextEffect({ words = ['853 Skills', '420 Agents', '64 Mu
         display: 'block',
         width: '100%',
         height: 'auto',
+        maxWidth: '1040px',
         borderRadius: '1rem',
         background: 'transparent',
       }}

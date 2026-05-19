@@ -166,9 +166,6 @@ export default function Onboarding() {
         >
           <ArrowLeft size={20} />
         </button>
-        <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <SyniqLogoNew size={30} animated={false} />
-        </div>
         <div style={{ width: '40px' }} aria-hidden="true" />
       </header>
 
@@ -236,7 +233,7 @@ export default function Onboarding() {
                   transition={{ duration: 1.1, ease: 'easeInOut' }}
                 />
                 <div className="ob-transition-shell">
-                  <SyniqLogoNew size={62} animated={false} />
+                  <SyniqLogoNew size={84} animated={false} />
                 </div>
               </motion.div>
 
@@ -263,7 +260,7 @@ export default function Onboarding() {
               animate={{ scale: [1, 1.08, 1], opacity: [0.84, 1, 0.84] }}
               transition={{ duration: 2.1, repeat: Infinity }}
             >
-              <SyniqLogoNew size={34} animated={false} />
+              <SyniqLogoNew size={58} animated={false} />
             </motion.div>
             <AnimatedLayerButton onClick={() => setIsModalOpen(true)}>
               Connect Agent

@@ -132,8 +132,8 @@
 
 /* Pulsing circle */
 .ob-circle {
-  width: 92px;
-  height: 92px;
+  width: 118px;
+  height: 118px;
   border-radius: 50%;
   border: 2px solid var(--color-sinoper);
   box-shadow: 0 0 40px rgba(0,212,170,0.26);
@@ -389,10 +389,10 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 132px;
-  height: 132px;
-  margin-left: -66px;
-  margin-top: -66px;
+  width: 150px;
+  height: 150px;
+  margin-left: -75px;
+  margin-top: -75px;
   display: grid;
   place-items: center;
   backface-visibility: hidden;
@@ -481,8 +481,8 @@
     word-break: break-word;
   }
   .ob-circle {
-    width: 72px;
-    height: 72px;
+    width: 92px;
+    height: 92px;
   }
   .ob-connected-label {
     font-size: 13px;

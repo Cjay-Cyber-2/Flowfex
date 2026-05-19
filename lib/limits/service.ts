@@ -116,8 +116,10 @@ export function getUsageProgressValue(status: SyniqUsageStatusResponse): {
   readonly limit: number;
   readonly ratio: number;
 } {
-  const current = status.usage.connectionsCount;
-  const limit = status.limits.maxConnectionsPerDay ?? 0;
+  const current = status.usage.executionsCount;
+  const limit = status.limits.maxExecutionsPerSession
+    ?? status.limits.maxExecutionsPerDay
+    ?? 0;
   const safeLimit = Math.max(limit, 1);
 
   return {

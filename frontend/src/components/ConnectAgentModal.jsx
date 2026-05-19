@@ -115,7 +115,15 @@ function ConnectionLimitPanel({ isAuthenticated, message, onSignUp, onSignIn, on
 function ConnectionHeadline() {
   return (
     <p className="cam-connect-headline">
-      <strong style={{ color: 'var(--color-sinoper)' }}>→</strong> You'll be taken to your dashboard only after your agent successfully connects to Syniq.
+      <strong style={{ color: 'var(--color-sinoper)' }}>→</strong> Your dashboard opens only after Syniq verifies a real agent connection for this session.
+    </p>
+  );
+}
+
+function ConnectionProofNote({ mode }) {
+  return (
+    <p className="cam-security-note">
+      {mode}: this card only prepares credentials. Syniq waits for the agent to attach before routing you to the dashboard.
     </p>
   );
 }
@@ -149,6 +157,7 @@ function PromptTab({ connection, loading, onRefresh, error, limitState, isAuthen
   return (
     <div>
       <ConnectionHeadline />
+      <ConnectionProofNote mode="Prompt mode" />
       <ConcealedPayload text={promptText} title="Connection contract — copy to reveal" />
       <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
         <RefreshCw size={13} /> {loading ? 'Generating...' : 'Refresh Session'}
@@ -191,6 +200,7 @@ function LinkTab({ connection, loading, onRefresh, error, limitState, isAuthenti
   return (
     <div>
       <ConnectionHeadline />
+      <ConnectionProofNote mode="Link mode" />
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         <input readOnly value={url} className="cam-readonly-input" />
         <button className="cam-copy-btn" onClick={() => copy(url)}>
@@ -235,6 +245,7 @@ function SDKTab({ connection, loading, onRefresh, error, limitState, isAuthentic
   return (
     <div>
       <ConnectionHeadline />
+      <ConnectionProofNote mode="SDK mode" />
       <ConcealedPayload text={snippet} title="SDK attach payload hidden until copied" />
       <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
         <RefreshCw size={13} /> {loading ? 'Generating SDK Session...' : 'Refresh Session'}
@@ -273,6 +284,7 @@ function LiveChannelTab({ connection, loading, onRefresh, error, limitState, isA
   return (
     <div>
       <ConnectionHeadline />
+      <ConnectionProofNote mode="Live channel" />
       <ConcealedPayload text={endpoint} title="Live attach payload hidden until copied" />
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <span className="cam-pulse-dot" />
@@ -315,32 +327,33 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
   const finalizedConnectionKeysRef = useRef(new Set());
   const TabContent = TAB_CONTENT[activeTab];
   const isPaidAccount = appState?.identity?.billing === 'pro';
+  const workspaceSessionId = activeSession?.id || session?.id || null;
 
   const requestForTab = useCallback((tab) => {
     switch (tab) {
       case 'Prompt':
         return {
-          sessionId: activeSession?.id,
+          sessionId: workspaceSessionId,
           mode: 'prompt',
           prompt: 'Attach this agent to Syniq for the full conversation and route every request through Syniq before acting.',
           agent: { name: 'Prompt Agent', type: 'prompt' },
         };
       case 'Link':
         return {
-          sessionId: activeSession?.id,
+          sessionId: workspaceSessionId,
           mode: 'link',
           singleUse: true,
           agent: { name: 'Link Agent', type: 'link' },
         };
       case 'SDK':
         return {
-          sessionId: activeSession?.id,
+          sessionId: workspaceSessionId,
           mode: 'sdk',
           agent: { name: 'SDK Agent', type: 'sdk' },
         };
       case 'Live Channel':
         return {
-          sessionId: activeSession?.id,
+          sessionId: workspaceSessionId,
           mode: 'live',
           protocol: 'socket.io',
           agent: { name: 'Live Channel Agent', type: 'live' },
@@ -348,7 +361,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
       default:
         return null;
     }
-  }, [activeSession?.id]);
+  }, [workspaceSessionId]);
 
   const fetchConnection = useCallback(async (tab) => {
     const request = requestForTab(tab);
@@ -540,13 +553,11 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
       return;
     }
 
-    TABS.forEach((tab) => {
-      if (!connections[tab] && !loadingTabs[tab] && !fetchAttemptedRef.current.has(tab)) {
-        fetchAttemptedRef.current.add(tab);
-        fetchConnection(tab);
-      }
-    });
-  }, [connections, fetchConnection, isOpen, loadingTabs]);
+    if (!connections[activeTab] && !loadingTabs[activeTab] && !fetchAttemptedRef.current.has(activeTab)) {
+      fetchAttemptedRef.current.add(activeTab);
+      fetchConnection(activeTab);
+    }
+  }, [activeTab, connections, fetchConnection, isOpen, loadingTabs]);
 
   useEffect(() => {
     if (!isOpen) {

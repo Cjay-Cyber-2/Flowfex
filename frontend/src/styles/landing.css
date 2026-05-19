@@ -590,8 +590,8 @@
 }
 
 .landing-scroll-cinema-logo-mark {
-  width: clamp(172px, 13.8vw, 238px);
-  height: clamp(172px, 13.8vw, 238px);
+  width: clamp(198px, 15.2vw, 268px);
+  height: clamp(198px, 15.2vw, 268px);
   transform:
     rotateX(16deg)
     translateY(-2px)
@@ -1618,8 +1618,8 @@
 }
 
 .hero-orchestration-logo-mark {
-  width: clamp(170px, 13vw, 226px);
-  height: clamp(170px, 13vw, 226px);
+  width: clamp(198px, 14.6vw, 258px);
+  height: clamp(198px, 14.6vw, 258px);
   transform:
     rotateX(22deg)
     translateY(12px)

@@ -15,8 +15,9 @@
   gap: 80px;
   max-width: 1440px;
   margin: 0 auto;
-  padding: 0 120px;
-  align-items: center;
+  padding: clamp(88px, 12vh, 128px) 120px clamp(48px, 8vh, 88px);
+  align-items: start;
+  box-sizing: border-box;
 }
 
 .developer-left {
@@ -122,6 +123,7 @@
 .developer-right {
   min-width: 0;
   align-self: start;
+  padding-top: 12px;
 }
 
 .animated-code-block {
@@ -133,6 +135,7 @@
   width: 100%;
   max-width: 560px;
   margin-left: auto;
+  min-height: 0;
 }
 
 .code-header {
@@ -273,7 +276,7 @@
 /* Responsive */
 @media (max-width: 1280px) {
   .developer-container {
-    padding: 0 80px;
+    padding: 80px 80px 48px;
     gap: 60px;
   }
   
@@ -292,7 +295,8 @@
     position: static;
     height: auto;
     grid-template-columns: 1fr;
-    gap: 60px;
+    gap: 44px;
+    padding: 0 56px;
   }
   
   .developer-left .section-headline {

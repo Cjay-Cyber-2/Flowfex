@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, Suspense } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { ArrowRight, ChevronRight, Network, Play, ShieldCheck, Sparkles, Workflow } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SyniqLogoNew from '../components/SyniqLogoNew';
@@ -11,9 +11,9 @@ import { buildDemoWorkspace } from '../store/demoData';
 import useStore from '../store/useStore';
 import { ContainerScroll } from '../components/animations/ContainerScroll';
 import { ParticleTextEffect } from '../components/animations/ParticleTextEffect';
+import SocialProofSection from '../components/landing/SocialProofSection';
 
 // Lazy load heavier sections
-const SocialProofSection = React.lazy(() => import('../components/landing/SocialProofSection'));
 const DeveloperSection = React.lazy(() => import('../components/landing/DeveloperSection'));
 const ModernPricingSection = React.lazy(() => import('../components/landing/ModernPricingSection'));
 const FAQSection = React.lazy(() => import('../components/landing/FAQSection'));
@@ -407,38 +407,68 @@ function LandingPage() {
     }, 1200);
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (window.history.scrollRestoration) {
       window.history.scrollRestoration = 'manual';
     }
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    setActiveSection('hero');
+  }, []);
 
-    const sections = document.querySelectorAll('[data-section-id]');
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (clickLockRef.current) return;
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.getAttribute('data-section-id'));
+  useEffect(() => {
+    const syncActiveSection = () => {
+      const sections = Array.from(document.querySelectorAll('[data-section-id]'));
+      if (clickLockRef.current || sections.length === 0) return;
+
+      const viewportAnchor = Math.min(window.innerHeight * 0.34, 280);
+      let nextSectionId = 'hero';
+      let bestDistance = Number.POSITIVE_INFINITY;
+
+      sections.forEach((section) => {
+        const rect = section.getBoundingClientRect();
+        const sectionId = section.getAttribute('data-section-id');
+        if (!sectionId) return;
+
+        const containsAnchor = rect.top <= viewportAnchor && rect.bottom >= viewportAnchor;
+        if (containsAnchor) {
+          nextSectionId = sectionId;
+          bestDistance = -1;
+          return;
+        }
+
+        if (bestDistance !== -1) {
+          const distance = Math.abs(rect.top - viewportAnchor);
+          if (distance < bestDistance) {
+            bestDistance = distance;
+            nextSectionId = sectionId;
           }
-        });
-      },
-      { threshold: 0.3 }
-    );
+        }
+      });
 
-    sections.forEach((section) => observer.observe(section));
+      setActiveSection((current) => (current === nextSectionId ? current : nextSectionId));
+    };
 
     const handleScroll = () => {
       if (!scrollProgressRef.current) return;
       const scrollTop = window.scrollY;
       const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      scrollProgressRef.current.style.width = `${(scrollTop / docHeight) * 100}%`;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      scrollProgressRef.current.style.width = `${progress}%`;
+      syncActiveSection();
     };
 
+    const rafId = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(syncActiveSection);
+    });
+
     window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', syncActiveSection);
     return () => {
-      observer.disconnect();
+      window.cancelAnimationFrame(rafId);
       window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', syncActiveSection);
     };
   }, []);
 
@@ -710,9 +740,7 @@ function LandingPage() {
       </section>
 
       {/* New GODMODE Sections */}
-      <Suspense fallback={null}>
-        <SocialProofSection />
-      </Suspense>
+      <SocialProofSection />
 
       <Suspense fallback={null}>
         <DeveloperSection />

@@ -1,5 +1,5 @@
 import React from 'react';
-import syniqLogo from '../../assets/syniq-logo.png';
+import syniqLogo from '../../assets/syniq-logo-official.png';
 
 /**
  * Syniq brand mark — renders the official transparent logo asset.

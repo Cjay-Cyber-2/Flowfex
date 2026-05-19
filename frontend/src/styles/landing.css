@@ -1527,9 +1527,9 @@
 .hero-orchestration-core {
   position: absolute;
   left: 50%;
-  top: 43%;
-  width: clamp(256px, 18vw, 320px);
-  height: clamp(256px, 18vw, 320px);
+  top: 40%;
+  width: clamp(300px, 21vw, 372px);
+  height: clamp(300px, 21vw, 372px);
   display: grid;
   place-items: center;
   z-index: 2;
@@ -1581,9 +1581,9 @@
   background:
     radial-gradient(circle, rgba(14, 22, 28, 0.96) 0%, rgba(8, 12, 16, 0.88) 42%, rgba(8, 12, 16, 0.28) 72%, transparent 86%);
   box-shadow:
-    inset 0 0 0 1px rgba(127, 255, 240, 0.14),
+    inset 0 0 0 1px rgba(127, 255, 240, 0.18),
     0 32px 80px rgba(0, 0, 0, 0.42),
-    0 0 80px rgba(0, 212, 170, 0.16);
+    0 0 112px rgba(0, 212, 170, 0.22);
   animation: heroCoreBreath 6.4s ease-in-out infinite;
 }
 
@@ -1618,13 +1618,14 @@
 }
 
 .hero-orchestration-logo-mark {
-  width: clamp(320px, 26vw, 420px);
-  height: clamp(320px, 26vw, 420px);
-  filter: drop-shadow(0 0 24px rgba(0, 212, 170, 0.4)) contrast(1.15) brightness(1.1);
+  width: clamp(372px, 30vw, 468px);
+  height: clamp(372px, 30vw, 468px);
+  opacity: 0.98;
+  filter: drop-shadow(0 0 32px rgba(0, 212, 170, 0.52)) contrast(1.28) brightness(1.18) saturate(1.06);
   transform:
     rotateX(22deg)
-    translateY(12px)
-    translateZ(26px)
+    translateY(14px)
+    translateZ(30px)
     rotateZ(-5deg);
 }
 
@@ -2579,13 +2580,13 @@
 
   .hero-orchestration-core {
     top: 42%;
-    width: clamp(300px, 55vw, 380px);
-    height: clamp(300px, 55vw, 380px);
+    width: clamp(330px, 58vw, 404px);
+    height: clamp(330px, 58vw, 404px);
   }
 
   .hero-orchestration-logo-mark {
-    width: clamp(280px, 50vw, 360px);
-    height: clamp(280px, 50vw, 360px);
+    width: clamp(320px, 56vw, 392px);
+    height: clamp(320px, 56vw, 392px);
   }
 
   .hero-orchestration-core-caption {

@@ -306,6 +306,26 @@
   isolation: isolate;
 }
 
+.three-d-logo-mark--image {
+  transform-style: flat;
+}
+
+.three-d-logo-mark--image::before,
+.three-d-logo-mark--image::after,
+.three-d-logo-mark--image .three-d-logo-mark-aura,
+.three-d-logo-mark--image .three-d-logo-mark-sheen,
+.three-d-logo-mark--image .three-d-logo-mark-front-shell::before,
+.three-d-logo-mark--image .three-d-logo-mark-front-shell::after {
+  display: none;
+}
+
+.three-d-logo-mark--image .three-d-logo-mark-stack,
+.three-d-logo-mark--image .three-d-logo-mark-front-shell,
+.three-d-logo-mark--image .three-d-logo-mark-front {
+  transform: none;
+  filter: none;
+}
+
 .three-d-logo-mark::before,
 .three-d-logo-mark::after {
   content: '';

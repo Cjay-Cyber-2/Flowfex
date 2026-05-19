@@ -99,15 +99,21 @@
   min-width: 0;
 }
 
-.landing-nav-links a {
+.landing-nav-links a,
+.landing-nav-links button {
   color: var(--color-bistre);
   text-decoration: none;
   font-family: var(--font-inter);
   font-size: 0.88rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
   transition: color var(--duration-base) var(--ease-expo-out);
 }
 
-.landing-nav-links a:hover {
+.landing-nav-links a:hover,
+.landing-nav-links button:hover {
   color: var(--color-velin);
 }
 
@@ -1527,9 +1533,9 @@
 .hero-orchestration-core {
   position: absolute;
   left: 50%;
-  top: 40%;
-  width: clamp(300px, 21vw, 372px);
-  height: clamp(300px, 21vw, 372px);
+  top: 43%;
+  width: clamp(340px, 26vw, 440px);
+  height: clamp(340px, 26vw, 440px);
   display: grid;
   place-items: center;
   z-index: 2;

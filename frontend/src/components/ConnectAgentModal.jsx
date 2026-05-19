@@ -553,10 +553,12 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
       return;
     }
 
-    if (!connections[activeTab] && !loadingTabs[activeTab] && !fetchAttemptedRef.current.has(activeTab)) {
-      fetchAttemptedRef.current.add(activeTab);
-      fetchConnection(activeTab);
-    }
+    TABS.forEach((tab) => {
+      if (!connections[tab] && !loadingTabs[tab] && !fetchAttemptedRef.current.has(tab)) {
+        fetchAttemptedRef.current.add(tab);
+        fetchConnection(tab);
+      }
+    });
   }, [activeTab, connections, fetchConnection, isOpen, loadingTabs]);
 
   useEffect(() => {

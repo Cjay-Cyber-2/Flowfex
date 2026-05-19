@@ -408,6 +408,10 @@ function LandingPage() {
   };
 
   useLayoutEffect(() => {
+    // Clear any URL hash (e.g. #bridge) that the browser would auto-scroll to
+    if (window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
     if (window.history.scrollRestoration) {
       window.history.scrollRestoration = 'manual';
     }
@@ -418,7 +422,13 @@ function LandingPage() {
   }, []);
 
   useEffect(() => {
+    // Guard: don't let syncActiveSection override hero until user actually scrolls
+    let userHasScrolled = false;
+    const markScrolled = () => { userHasScrolled = true; };
+    window.addEventListener('scroll', markScrolled, { once: true, passive: true });
+
     const syncActiveSection = () => {
+      if (!userHasScrolled) return;
       const sections = Array.from(document.querySelectorAll('[data-section-id]'));
       if (clickLockRef.current || sections.length === 0) return;
 
@@ -459,14 +469,10 @@ function LandingPage() {
       syncActiveSection();
     };
 
-    const rafId = window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(syncActiveSection);
-    });
-
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', syncActiveSection);
     return () => {
-      window.cancelAnimationFrame(rafId);
+      window.removeEventListener('scroll', markScrolled);
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', syncActiveSection);
     };
@@ -521,11 +527,11 @@ function LandingPage() {
         </button>
 
         <div className="landing-nav-links">
-          <a href="#problem">What It Is</a>
-          <a href="#reveal">How It Works</a>
-          <a href="#bridge">Connect</a>
-          <a href="#developer">For Developers</a>
-          <a href="#pricing">Pricing</a>
+          <button onClick={() => handleSectionChange('problem')}>What It Is</button>
+          <button onClick={() => handleSectionChange('reveal')}>How It Works</button>
+          <button onClick={() => handleSectionChange('bridge')}>Connect</button>
+          <button onClick={() => handleSectionChange('developer')}>For Developers</button>
+          <button onClick={() => handleSectionChange('pricing')}>Pricing</button>
         </div>
 
         <button className="btn btn-primary landing-nav-cta" onClick={() => navigate('/app')}>

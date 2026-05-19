@@ -408,6 +408,11 @@ function LandingPage() {
   };
 
   useEffect(() => {
+    if (window.history.scrollRestoration) {
+      window.history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+
     const sections = document.querySelectorAll('[data-section-id]');
     const observer = new IntersectionObserver(
       (entries) => {

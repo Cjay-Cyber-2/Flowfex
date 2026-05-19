@@ -1618,8 +1618,9 @@
 }
 
 .hero-orchestration-logo-mark {
-  width: clamp(250px, 18.6vw, 320px);
-  height: clamp(250px, 18.6vw, 320px);
+  width: clamp(320px, 26vw, 420px);
+  height: clamp(320px, 26vw, 420px);
+  filter: drop-shadow(0 0 24px rgba(0, 212, 170, 0.4)) contrast(1.15) brightness(1.1);
   transform:
     rotateX(22deg)
     translateY(12px)
@@ -2578,13 +2579,13 @@
 
   .hero-orchestration-core {
     top: 42%;
-    width: clamp(220px, 42vw, 280px);
-    height: clamp(220px, 42vw, 280px);
+    width: clamp(300px, 55vw, 380px);
+    height: clamp(300px, 55vw, 380px);
   }
 
   .hero-orchestration-logo-mark {
-    width: clamp(210px, 40vw, 260px);
-    height: clamp(210px, 40vw, 260px);
+    width: clamp(280px, 50vw, 360px);
+    height: clamp(280px, 50vw, 360px);
   }
 
   .hero-orchestration-core-caption {

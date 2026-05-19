@@ -9,7 +9,7 @@ import {
 
 const TARGET_ASPECT_RATIO = scrollFrameAspectRatio || 2.39
 const SCROLL_PIXELS_PER_FRAME = 18
-const FRAME_EASE = 0.25
+const FRAME_EASE = 0.18
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)

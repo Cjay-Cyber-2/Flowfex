@@ -1,5 +1,45 @@
 @import './tokens.css';
 
+/* ─── Syniq logo glass styling ─── */
+.syniq-logo-svg-wrap {
+  transition: filter 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.syniq-logo-svg-wrap:hover {
+  filter: drop-shadow(0 4px 16px rgba(0, 212, 170, 0.45)) brightness(1.08);
+  transform: scale(1.04);
+}
+
+.syniq-logo-svg-wrap--animated {
+  animation: syniqLogoIdlePulse 3.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+.syniq-logo-svg-wrap--animated .syniq-logo-glass-sheen {
+  animation: syniqLogoSheenSweep 4.8s ease-in-out infinite;
+}
+
+@keyframes syniqLogoIdlePulse {
+  0%, 100% {
+    filter: drop-shadow(0 2px 8px rgba(0, 212, 170, 0.3));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 4px 16px rgba(0, 212, 170, 0.5));
+    transform: scale(1.03);
+  }
+}
+
+@keyframes syniqLogoSheenSweep {
+  0%, 100% {
+    opacity: 0.5;
+    transform: translateX(-10%) rotate(0deg);
+  }
+  50% {
+    opacity: 0.85;
+    transform: translateX(10%) rotate(2deg);
+  }
+}
+
 .section-loading {
   display: flex;
   align-items: center;
@@ -761,9 +801,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 28px;
-  background:
-    radial-gradient(circle at center, rgba(0, 212, 170, 0.14), transparent 58%),
-    linear-gradient(180deg, rgba(10, 16, 22, 0.72), rgba(7, 11, 15, 0.3));
+  background: transparent;
   border: none;
   box-shadow: none;
 }
@@ -1527,7 +1565,7 @@
   filter: drop-shadow(0 0 10px color-mix(in srgb, var(--line-accent) 50%, transparent));
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  animation: heroBranchDraw 2.25s cubic-bezier(0.17, 0.78, 0.16, 1) var(--branch-delay, 0s) forwards;
+  animation: heroBranchDraw 2.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) var(--branch-delay, 0s) forwards;
 }
 
 .hero-orchestration-core {
@@ -1567,7 +1605,8 @@
     rgba(0, 212, 170, 0.08)
   );
   filter: blur(1px);
-  animation: heroHaloSpin 14s linear infinite;
+  animation: heroHaloSpin 18s linear infinite;
+  will-change: transform;
 }
 
 .hero-orchestration-core-ring-outer {
@@ -1590,7 +1629,8 @@
     inset 0 0 0 1px rgba(127, 255, 240, 0.18),
     0 32px 80px rgba(0, 0, 0, 0.42),
     0 0 112px rgba(0, 212, 170, 0.22);
-  animation: heroCoreBreath 6.4s ease-in-out infinite;
+  animation: heroCoreBreath 8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  will-change: transform, box-shadow;
 }
 
 .hero-orchestration-core-caption {
@@ -1658,7 +1698,7 @@
     transform: rotate(0deg) scale(1);
   }
   50% {
-    transform: rotate(180deg) scale(1.02);
+    transform: rotate(180deg) scale(1.015);
   }
   100% {
     transform: rotate(360deg) scale(1);
@@ -1680,14 +1720,17 @@
     opacity: 0;
     stroke-dashoffset: 1;
   }
-  14% {
-    opacity: 0.18;
+  10% {
+    opacity: 0.12;
   }
-  38% {
-    opacity: 0.58;
+  30% {
+    opacity: 0.4;
   }
-  72% {
-    opacity: 0.82;
+  60% {
+    opacity: 0.7;
+  }
+  85% {
+    opacity: 0.85;
   }
   100% {
     opacity: 0.92;

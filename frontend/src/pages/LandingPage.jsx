@@ -519,7 +519,7 @@ function LandingPage() {
 
       <nav className="landing-nav">
         <button className="landing-nav-brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <SyniqLogoNew size={48} animated={false} />
+          <SyniqLogoNew size={56} animated={false} />
         </button>
 
         <div className="landing-nav-links">

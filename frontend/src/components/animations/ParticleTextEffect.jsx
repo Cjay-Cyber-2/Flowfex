@@ -20,13 +20,13 @@ class Particle {
     this.acc = { x: 0, y: 0 };
     this.target = { x: spawn.x, y: spawn.y };
     this.closeEnoughTarget = 112;
-    this.maxSpeed = Math.random() * 3 + 4.4;
-    this.maxForce = 0.14;
+    this.maxSpeed = Math.random() * 2.5 + 5.2;
+    this.maxForce = 0.18;
     this.isKilled = false;
     this.startColor = { r: 0, g: 0, b: 0 };
     this.targetColor = { r: 0, g: 0, b: 0 };
     this.colorWeight = 0;
-    this.colorBlendRate = Math.random() * 0.03 + 0.015;
+    this.colorBlendRate = Math.random() * 0.025 + 0.02;
   }
 
   move() {
@@ -60,6 +60,9 @@ class Particle {
     this.acc.y += steer.y;
     this.vel.x += this.acc.x;
     this.vel.y += this.acc.y;
+    // Damping for smoother, more organic motion
+    this.vel.x *= 0.96;
+    this.vel.y *= 0.96;
     this.pos.x += this.vel.x;
     this.pos.y += this.vel.y;
     this.acc.x = 0;
@@ -78,7 +81,9 @@ class Particle {
     };
 
     ctx.fillStyle = `rgb(${color.r},${color.g},${color.b})`;
-    ctx.fillRect(this.pos.x, this.pos.y, 2.5, 2.5);
+    ctx.beginPath();
+    ctx.arc(this.pos.x, this.pos.y, 1.6, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   retarget(nextTarget, nextColor) {

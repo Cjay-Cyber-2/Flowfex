@@ -192,12 +192,12 @@ export default function Onboarding() {
               <motion.div
                 className="ob-transition-panel ob-transition-panel-left"
                 animate={connectionStage === 'splitting' ? { x: '-58%' } : { x: 0 }}
-                transition={{ duration: 0.78, ease: [0.2, 0.9, 0.2, 1] }}
+                transition={{ duration: 0.95, ease: [0.25, 0.46, 0.45, 0.94] }}
               />
               <motion.div
                 className="ob-transition-panel ob-transition-panel-right"
                 animate={connectionStage === 'splitting' ? { x: '58%' } : { x: 0 }}
-                transition={{ duration: 0.78, ease: [0.2, 0.9, 0.2, 1] }}
+                transition={{ duration: 0.95, ease: [0.25, 0.46, 0.45, 0.94] }}
               />
               <motion.div
                 className="ob-transition-seam"
@@ -214,7 +214,7 @@ export default function Onboarding() {
                   ? { scale: 13.5, opacity: 0.96 }
                   : { scale: 1.18, opacity: 1 }
                 }
-                transition={{ duration: 0.82, ease: [0.22, 0.61, 0.36, 1] }}
+                transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
               >
                 <motion.div
                   className="ob-transition-spiral ob-transition-spiral-primary"
@@ -257,8 +257,8 @@ export default function Onboarding() {
           <div className="ob-stack ob-stack--minimal">
             <motion.div
               className="ob-circle"
-              animate={{ scale: [1, 1.08, 1], opacity: [0.84, 1, 0.84] }}
-              transition={{ duration: 2.1, repeat: Infinity }}
+              animate={{ scale: [1, 1.06, 1], opacity: [0.88, 1, 0.88] }}
+              transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
             >
               <SyniqLogoNew size={58} animated={false} />
             </motion.div>

@@ -37,5 +37,9 @@
     "@types/pg": "^8.20.0",
     "drizzle-kit": "^0.31.10",
     "esbuild": "^0.28.0"
+  },
+  "overrides": {
+    "esbuild": "^0.28.0",
+    "ws": "8.20.1"
   }
 }

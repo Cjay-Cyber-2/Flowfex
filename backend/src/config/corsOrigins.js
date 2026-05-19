@@ -15,8 +15,30 @@ const DEFAULT_ORIGINS = [
   'https://syniq.onrender.com',
 ];
 
-function parseEnvOrigins() {
-  const raw = process.env.ALLOWED_ORIGINS;
+function normalizeOrigin(value) {
+  if (!value || typeof value !== 'string') {
+    return null;
+  }
+
+  const compact = value.trim().replace(/\s+/g, '');
+  if (!compact || compact === '*') {
+    return null;
+  }
+
+  const candidate = compact.includes('://')
+    ? compact
+    : compact.startsWith('localhost') || compact.startsWith('127.0.0.1')
+      ? `http://${compact}`
+      : `https://${compact}`;
+
+  try {
+    return new URL(candidate).origin;
+  } catch {
+    return null;
+  }
+}
+
+function parseOriginList(raw) {
   if (!raw || typeof raw !== 'string' || !raw.trim()) {
     return [];
   }
@@ -24,8 +46,25 @@ function parseEnvOrigins() {
   return raw
     .split(',')
     .map((entry) => entry.trim())
-    .filter(Boolean)
-    .filter((entry) => entry !== '*');
+    .map(normalizeOrigin)
+    .filter(Boolean);
+}
+
+function collectEnvOriginCandidates() {
+  return [
+    process.env.FLOWFEX_APP_URL,
+    process.env.SYNIQ_APP_URL,
+    process.env.FRONTEND_URL,
+    process.env.FRONTEND_ORIGIN,
+    process.env.APP_URL,
+    process.env.VITE_APP_URL,
+    process.env.BETTER_AUTH_URL,
+    process.env.FLOWFEX_PUBLIC_ORIGIN,
+    process.env.SYNIQ_PUBLIC_ORIGIN,
+    process.env.RENDER_EXTERNAL_URL,
+  ]
+    .map(normalizeOrigin)
+    .filter(Boolean);
 }
 
 /**
@@ -33,8 +72,14 @@ function parseEnvOrigins() {
  * @returns {string[]}
  */
 export function getAllowedBrowserOrigins() {
-  const parsed = parseEnvOrigins();
-  return parsed.length > 0 ? parsed : [...DEFAULT_ORIGINS];
+  const origins = new Set(DEFAULT_ORIGINS.map(normalizeOrigin).filter(Boolean));
+  for (const origin of parseOriginList(process.env.ALLOWED_ORIGINS)) {
+    origins.add(origin);
+  }
+  for (const origin of collectEnvOriginCandidates()) {
+    origins.add(origin);
+  }
+  return Array.from(origins);
 }
 
 /**

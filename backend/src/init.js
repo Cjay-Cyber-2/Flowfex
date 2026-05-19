@@ -67,14 +67,15 @@ function loadEnvFile(envPath) {
   try {
     const content = readFileSync(envPath, 'utf8');
     for (const line of content.split('\n')) {
-      const trimmed = line.trim();
+      const trimmed = line.trim().replace(/^\uFEFF/, '');
       if (!trimmed || trimmed.startsWith('#')) continue;
 
-      const eqIndex = trimmed.indexOf('=');
+      const assignment = trimmed.startsWith('export ') ? trimmed.slice(7).trim() : trimmed;
+      const eqIndex = assignment.indexOf('=');
       if (eqIndex < 0) continue;
 
-      const key = trimmed.substring(0, eqIndex).trim();
-      const value = trimmed.substring(eqIndex + 1).trim();
+      const key = assignment.substring(0, eqIndex).trim();
+      const value = parseEnvValue(assignment.substring(eqIndex + 1).trim());
 
       if (key && !process.env[key]) {
         process.env[key] = value;
@@ -83,4 +84,20 @@ function loadEnvFile(envPath) {
   } catch {
     // .env file is optional
   }
+}
+
+function parseEnvValue(value) {
+  if (!value) {
+    return '';
+  }
+
+  const quote = value[0];
+  if ((quote === '"' || quote === "'") && value[value.length - 1] === quote) {
+    const inner = value.slice(1, -1);
+    return quote === '"'
+      ? inner.replace(/\\n/g, '\n').replace(/\\r/g, '\r').replace(/\\t/g, '\t').replace(/\\"/g, '"').replace(/\\\\/g, '\\')
+      : inner.replace(/\\'/g, "'");
+  }
+
+  return value;
 }

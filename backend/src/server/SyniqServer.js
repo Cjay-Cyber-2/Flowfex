@@ -24,6 +24,7 @@ import { connectRequestSchema } from '../../../shared/connection-contracts.js';
 import { getAllowedBrowserOrigins, resolveAllowedCorsOrigin } from '../config/corsOrigins.js';
 
 const authHandler = toNodeHandler(auth);
+const DEBUG_REQUEST_LOGS = /^(1|true|yes)$/i.test(String(process.env.SYNIQ_DEBUG_REQUESTS || process.env.FLOWFEX_DEBUG_REQUESTS || '').trim());
 
 /**
  * Minimal HTTP surface for external agent connections.
@@ -70,7 +71,9 @@ export class SyniqServer {
     const host = overrides.host || this.host;
     const port = Number(overrides.port ?? this.port);
     this.server = http.createServer((request, response) => {
-      console.log("[SYNIQ ENTRY HIT]", request.url);
+      if (DEBUG_REQUEST_LOGS) {
+        console.log("[SYNIQ ENTRY HIT]", request.url);
+      }
       // Health check MUST respond immediately for Render
       if (request.url === '/health' || request.url === '/') {
         response.writeHead(200, { 'Content-Type': 'text/plain' });
@@ -91,7 +94,10 @@ export class SyniqServer {
           console.error('[AUTH OPTIONS]', err);
           if (!response.headersSent) {
             response.writeHead(500, { 'Content-Type': 'application/json' });
-            response.end(JSON.stringify({ ok: false, error: String(err?.message || err) }));
+            response.end(JSON.stringify({
+              ok: false,
+              error: this._isProduction() ? 'Authentication preflight failed.' : String(err?.message || err),
+            }));
           }
         });
         return;
@@ -186,7 +192,9 @@ export class SyniqServer {
         ? `anon:${anonymousToken}`
         : String(ip);
 
-    console.log("[SYNIQ ROUTER HIT]", url.pathname);
+    if (DEBUG_REQUEST_LOGS) {
+      console.log("[SYNIQ ROUTER HIT]", url.pathname);
+    }
 
     // ─── Identity-Aware Rate Limiting ──────────────────────────────────
     if (authUser) {
@@ -262,7 +270,11 @@ export class SyniqServer {
       } catch (err) {
         console.error("[AUTH HANDLER ERROR]", err);
         response.writeHead(500, { 'Content-Type': 'application/json' });
-        response.end(JSON.stringify({ ok: false, error: err.message, stack: err.stack }));
+        response.end(JSON.stringify({
+          ok: false,
+          error: this._isProduction() ? 'Authentication request failed.' : err.message,
+          ...(this._isProduction() ? {} : { stack: err.stack }),
+        }));
       }
       return;
     }
@@ -1384,16 +1396,23 @@ export class SyniqServer {
       });
     }
 
-    this._writeJson(response, error.statusCode || 500, {
+    const statusCode = error.statusCode || 500;
+    const hideInternalDetails = this._isProduction() && statusCode >= 500;
+
+    this._writeJson(response, statusCode, {
       error: {
         code: error.code || 'internal_error',
-        message: error.message,
-        type: error.constructor.name,
-        statusCode: error.statusCode || 500,
+        message: hideInternalDetails ? 'Internal server error' : error.message,
+        type: hideInternalDetails ? 'Error' : error.constructor.name,
+        statusCode,
         retryable: error.retryable === true,
-        details: error.details || undefined,
+        details: hideInternalDetails ? undefined : error.details || undefined,
       }
     });
+  }
+
+  _isProduction() {
+    return String(process.env.NODE_ENV || '').toLowerCase() === 'production';
   }
 
   _setCorsHeaders(response, request) {
@@ -1442,7 +1461,7 @@ export class SyniqServer {
   }
 
   _buildBaseUrl(request) {
-    const configuredOrigin = process.env.BETTER_AUTH_URL || process.env.SYNIQ_PUBLIC_ORIGIN || process.env.FLOWFEX_PUBLIC_ORIGIN || this.connectionService?.publicBaseUrl || null;
+    const configuredOrigin = process.env.BETTER_AUTH_URL || process.env.FLOWFEX_PUBLIC_ORIGIN || process.env.SYNIQ_PUBLIC_ORIGIN || this.connectionService?.publicBaseUrl || null;
     if (configuredOrigin) {
       return configuredOrigin.replace(/\/+$/, '');
     }

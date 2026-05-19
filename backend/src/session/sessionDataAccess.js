@@ -4,7 +4,7 @@ import { db } from '../auth/betterAuth.js';
 import { user } from '../db/schema.js';
 
 export function isSessionDataConfigured() {
-  return !!process.env.DATABASE_URL;
+  return typeof process.env.DATABASE_URL === 'string' && process.env.DATABASE_URL.trim().length > 0;
 }
 
 export function createSessionDataClient() {

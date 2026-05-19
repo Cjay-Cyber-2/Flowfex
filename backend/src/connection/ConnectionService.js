@@ -32,20 +32,20 @@ export class ConnectionService {
     this.registry = config.registry || defaultRegistry;
     this.orchestrator = config.orchestrator || defaultOrchestrator;
     this.sessionManager = config.sessionManager || defaultSessionManager;
-    this.connectionApiKey = config.connectionApiKey || process.env.SYNIQ_CONNECTION_API_KEY || process.env.FLOWFEX_CONNECTION_API_KEY || null;
+    this.connectionApiKey = config.connectionApiKey || process.env.FLOWFEX_CONNECTION_API_KEY || process.env.SYNIQ_CONNECTION_API_KEY || null;
     this.promptSessionTtlSeconds = config.promptSessionTtlSeconds || 60 * 15;
     this.apiSessionTtlSeconds = config.apiSessionTtlSeconds || 60 * 60;
     this.linkSessionTtlSeconds = config.linkSessionTtlSeconds || 60 * 60 * 24;
     this.promptToolLimit = config.promptToolLimit || 5;
     this.publicBaseUrl = normalizeBaseUrl(
-      config.publicBaseUrl
+        config.publicBaseUrl
         || process.env.BETTER_AUTH_URL
-        || process.env.SYNIQ_PUBLIC_ORIGIN
         || process.env.FLOWFEX_PUBLIC_ORIGIN
+        || process.env.SYNIQ_PUBLIC_ORIGIN
         || 'http://127.0.0.1:4000'
     );
     this.linkSessions = config.linkSessions || new Map();
-    this.linkSecret = config.linkSecret || process.env.SYNIQ_LINK_SECRET || process.env.FLOWFEX_LINK_SECRET || randomToken(32);
+    this.linkSecret = config.linkSecret || process.env.FLOWFEX_LINK_SECRET || process.env.SYNIQ_LINK_SECRET || randomToken(32);
   }
 
   async connect(payload, authContext = {}) {

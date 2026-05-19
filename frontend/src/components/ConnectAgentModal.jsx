@@ -142,7 +142,7 @@ function PromptTab({ connection, loading, onRefresh, error, limitState, isAuthen
     );
   }
 
-  if (loading || !connection?.connection?.instructions?.prompt) {
+  if (!connection?.connection?.instructions?.prompt && loading) {
     return (
       <div>
         <p className="cam-tab-desc">Preparing a secure connection prompt for your agent...</p>
@@ -183,7 +183,7 @@ function LinkTab({ connection, loading, onRefresh, error, limitState, isAuthenti
     );
   }
 
-  if (loading || !connection?.connection?.link?.url) {
+  if (!connection?.connection?.link?.url && loading) {
     return (
       <div>
         <p className="cam-tab-desc">Generating a secure one-time connection link...</p>
@@ -230,7 +230,7 @@ function SDKTab({ connection, loading, onRefresh, error, limitState, isAuthentic
     );
   }
 
-  if (loading || !connection?.connection?.instructions?.sdkSnippet) {
+  if (!connection?.connection?.instructions?.sdkSnippet && loading) {
     return (
       <div>
         <p className="cam-tab-desc">Preparing SDK connection snippet...</p>
@@ -269,7 +269,7 @@ function LiveChannelTab({ connection, loading, onRefresh, error, limitState, isA
     );
   }
 
-  if (loading || !connection?.connection?.instructions?.endpointPayload) {
+  if (!connection?.connection?.instructions?.endpointPayload && loading) {
     return (
       <div>
         <p className="cam-tab-desc">Preparing Live Channel connection payload...</p>

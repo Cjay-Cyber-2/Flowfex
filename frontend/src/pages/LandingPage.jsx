@@ -15,15 +15,12 @@ import SocialProofSection from '../components/landing/SocialProofSection';
 
 // Lazy load heavier sections
 const DeveloperSection = React.lazy(() => import('../components/landing/DeveloperSection'));
-const ModernPricingSection = React.lazy(() => import('../components/landing/ModernPricingSection'));
 const FAQSection = React.lazy(() => import('../components/landing/FAQSection'));
 
 import '../styles/landing.css';
 import '../styles/landing/social-proof.css';
 import '../styles/landing/developer.css';
-import '../styles/landing/pricing.css';
 import '../styles/landing/faq.css';
-import '../styles/landing/modern-pricing.css';
 import '../styles/DotNavigation.css';
 
 function getNodeDimensions(node) {
@@ -390,7 +387,6 @@ function LandingPage() {
     { id: 'demo', label: 'Preview' },
     { id: 'bridge', label: 'Connect' },
     { id: 'developer', label: 'Developers' },
-    { id: 'pricing', label: 'Pricing' },
     { id: 'faq', label: 'FAQ' },
     { id: 'final', label: 'Start' },
   ];
@@ -523,7 +519,7 @@ function LandingPage() {
 
       <nav className="landing-nav">
         <button className="landing-nav-brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <SyniqLogoNew size={32} animated={false} />
+          <SyniqLogoNew size={48} animated={false} />
         </button>
 
         <div className="landing-nav-links">
@@ -531,7 +527,6 @@ function LandingPage() {
           <button onClick={() => handleSectionChange('reveal')}>How It Works</button>
           <button onClick={() => handleSectionChange('bridge')}>Connect</button>
           <button onClick={() => handleSectionChange('developer')}>For Developers</button>
-          <button onClick={() => handleSectionChange('pricing')}>Pricing</button>
         </div>
 
         <button className="btn btn-primary landing-nav-cta" onClick={() => navigate('/app')}>
@@ -750,10 +745,6 @@ function LandingPage() {
 
       <Suspense fallback={null}>
         <DeveloperSection />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <ModernPricingSection />
       </Suspense>
 
       <Suspense fallback={null}>

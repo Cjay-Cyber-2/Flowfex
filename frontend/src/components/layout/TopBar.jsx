@@ -52,7 +52,7 @@ function TopBar() {
     <header className="top-bar">
       <div className="top-bar-left">
         <button className="top-bar-brand" onClick={() => navigate('/')}>
-          <SyniqLogoNew size={32} animated={false} />
+          <SyniqLogoNew size={48} animated={false} />
         </button>
 
         <div className="session-editor">

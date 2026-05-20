@@ -280,4 +280,32 @@ export class AnonymousSessionService {
       throw error;
     }
   }
+
+  async clearConnectedAgents(sessionId) {
+    if (!sessionId) {
+      return null;
+    }
+
+    try {
+      const data = await this.client
+        .update(syniqSessions)
+        .set({
+          connected_agents: [],
+          last_active_at: new Date(),
+          updated_at: new Date(),
+        })
+        .where(eq(syniqSessions.id, sessionId))
+        .returning();
+
+      const row = firstResult(data);
+      return row ? toDashboardSessionRecord(row) : null;
+    } catch (error) {
+      logSessionError({
+        operation: 'anonymous_session.clear_connected_agents',
+        sessionId,
+        error,
+      });
+      throw error;
+    }
+  }
 }

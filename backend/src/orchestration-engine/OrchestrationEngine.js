@@ -86,6 +86,8 @@ export class OrchestrationEngine {
         const selection = this.selector.selectPlan(planning.intent, retrieval, {
             sessionId: context.sessionId,
             executionId,
+            maxSkills: context.maxGraphSkills ?? 16,
+            minimumSelectionScore: context.minimumSelectionScore ?? 0.12,
         });
         const buildResult = this.graphBuilder.buildGraph(selection, {
             sessionId: context.sessionId,

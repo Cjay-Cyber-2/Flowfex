@@ -6,7 +6,8 @@ export class ExecutionPlanSelector {
     }
     selectPlan(intent, retrieval, options) {
         const maxSkills = options.maxSkills ?? 16;
-        const minimumSelectionScore = options.minimumSelectionScore ?? 0.22;
+        const minimumSelectionScore = options.minimumSelectionScore ?? 0.12;
+        const supplementFromRetrieval = options.supplementFromRetrieval !== false;
         const steps = intent.suggestedExecutionSteps.slice(0, maxSkills);
         const selectedSteps = [];
         const rankings = [];
@@ -48,7 +49,7 @@ export class ExecutionPlanSelector {
             selectedSteps.push({
                 id: stableId('plan', step.id, selected.candidate.toolId),
                 stepId: step.id,
-                title: step.title,
+                title: resolveStepTitle(step.title, selected.candidate.toolName),
                 objective: step.objective,
                 capabilityCategory: step.capabilityCategory,
                 requiresApproval: resolveApprovalRequirement(step.requiresApproval, selected.candidate),
@@ -58,6 +59,9 @@ export class ExecutionPlanSelector {
                 reasoning: buildSelectionReason(step, selected.candidate, selected.score),
                 alternatives: alternatives.slice(1),
             });
+        }
+        if (supplementFromRetrieval) {
+            supplementSelectedStepsFromRetrieval(selectedSteps, retrieval, intent, maxSkills, minimumSelectionScore);
         }
         const decisionNodes = resolveDecisionNodes(intent, selectedSteps);
         this.logger.info({
@@ -121,6 +125,47 @@ function resolveApprovalRequirement(stepRequiresApproval, candidate) {
     const tags = Array.isArray(metadata.tags) ? metadata.tags.join(' ') : '';
     return /approval|review|manual|human/.test(tags.toLowerCase());
 }
+function resolveStepTitle(stepTitle, toolName) {
+    const genericPattern = /^resolve\s+.+\s+path$/i;
+    if (toolName && (!stepTitle || genericPattern.test(stepTitle))) {
+        return truncate(toolName, 28);
+    }
+    return truncate(stepTitle || toolName || 'Syniq skill', 28);
+}
+
+function supplementSelectedStepsFromRetrieval(selectedSteps, retrieval, intent, maxSkills, minimumSelectionScore) {
+    const selectedToolIds = new Set(selectedSteps.map((step) => step.toolId));
+    const pool = Array.isArray(retrieval.merged) ? retrieval.merged : [];
+    const supplementalFloor = Math.max(0.1, minimumSelectionScore - 0.04);
+
+    for (const candidate of pool) {
+        if (selectedSteps.length >= maxSkills) {
+            break;
+        }
+        if (selectedToolIds.has(candidate.toolId)) {
+            continue;
+        }
+        if (candidate.score < supplementalFloor) {
+            continue;
+        }
+
+        selectedToolIds.add(candidate.toolId);
+        selectedSteps.push({
+            id: stableId('plan', 'supplement', candidate.toolId),
+            stepId: stableId('step', 'supplement', candidate.toolId),
+            title: truncate(candidate.toolName, 28),
+            objective: truncate(intent.goal || candidate.description, 180),
+            capabilityCategory: candidate.category || candidate.matchedCategory || 'general',
+            requiresApproval: false,
+            tool: candidate.tool,
+            toolId: candidate.toolId,
+            score: candidate.score,
+            reasoning: truncate(`${candidate.toolName} was included in the live graph because Syniq ranked it for this task via ${candidate.strategy}.`, 220),
+            alternatives: [],
+        });
+    }
+}
+
 function buildSelectionReason(step, candidate, score) {
     return truncate(`${candidate.toolName} scored ${score.toFixed(2)} for ${step.capabilityCategory} because it aligns with "${step.objective}" and carries ${candidate.strategy} retrieval support.`, 220);
 }

@@ -108,8 +108,9 @@ function AnimatedLayerButton({ children, onClick, className = '' }) {
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { sessionReady, appState } = useSessionContext();
+  const { sessionReady, appState, refreshAppState } = useSessionContext();
   const connectedAgents = useStore((state) => state.connectedAgents);
+  const clearAgentAttachment = useStore((state) => state.clearAgentAttachment);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [connectionStage, setConnectionStage] = useState('idle');
   const transitionTimersRef = useRef([]);
@@ -143,15 +144,17 @@ export default function Onboarding() {
       return;
     }
 
-    const serverAgent = appState?.gates?.agentConnectedServer === true;
-    const hasLiveAgent = serverAgent
-      || (Array.isArray(connectedAgents)
-        && connectedAgents.some((agent) => isLiveConnectedAgent(agent)));
+    const hasLiveAgent = Array.isArray(connectedAgents)
+      && connectedAgents.some((agent) => isLiveConnectedAgent(agent));
 
     if (hasLiveAgent) {
       handleConnected();
     }
-  }, [appState, connectedAgents, handleConnected, sessionReady]);
+  }, [connectedAgents, handleConnected, sessionReady]);
+
+  const hasStaleAttachment = sessionReady
+    && !connectedAgents.some(isLiveConnectedAgent)
+    && (connectedAgents.length > 0 || appState?.gates?.agentConnectedServer === true);
 
   return (
     <div className="ob-root">
@@ -255,6 +258,24 @@ export default function Onboarding() {
 
         {connectionStage === 'idle' ? (
           <div className="ob-stack ob-stack--minimal">
+            {hasStaleAttachment ? (
+              <div className="ob-stale-agent-banner">
+                <p>
+                  Your previous agent is no longer connected, but this workspace still remembers it.
+                  Clear the old attach, then connect your new agent.
+                </p>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={async () => {
+                    await clearAgentAttachment();
+                    await refreshAppState();
+                  }}
+                >
+                  Clear and reconnect
+                </button>
+              </div>
+            ) : null}
             <motion.div
               className="ob-circle"
               animate={{ scale: [1, 1.06, 1], opacity: [0.88, 1, 0.88] }}

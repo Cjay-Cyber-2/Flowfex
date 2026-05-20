@@ -179,10 +179,17 @@ function detectCategories(task, availableCategories) {
     return uniqueStrings(inferred).slice(0, 6);
 }
 function buildFallbackTitle(category, index) {
+    const label = formatCategoryLabel(category);
     if (index === 0) {
-        return `Resolve ${category} path`;
+        return `${label} capability`;
     }
-    return `Advance ${category} execution`;
+    return `${label} follow-up`;
+}
+
+function formatCategoryLabel(category) {
+    return String(category || 'general')
+        .replace(/[-_]+/g, ' ')
+        .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 function buildFallbackObjective(category, task) {
     return `Use a ${category} capability to move this task forward: ${task.trim()}`;

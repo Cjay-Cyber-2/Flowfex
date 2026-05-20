@@ -116,7 +116,7 @@ function FreeTierPlanCard({ requestsLeft, requestLimit, onUpgrade, onDismiss }) 
 function OrchestrationCanvas() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, sessionReady, usage, appState } = useSessionContext();
+  const { isAuthenticated, sessionReady, usage, appState, refreshUsage } = useSessionContext();
   const {
     activeSession,
     approvalQueue,
@@ -145,6 +145,24 @@ function OrchestrationCanvas() {
 
     hydrateSessionState(activeSession.id);
   }, [activeSession?.id, hydrateSessionState, sessionReady]);
+
+  useEffect(() => {
+    if (!sessionReady || !activeSession?.id) {
+      return undefined;
+    }
+
+    refreshUsage(activeSession.id).catch(() => {
+      return;
+    });
+
+    const intervalId = window.setInterval(() => {
+      refreshUsage(activeSession.id).catch(() => {
+        return;
+      });
+    }, 2000);
+
+    return () => window.clearInterval(intervalId);
+  }, [activeSession?.id, refreshUsage, sessionReady]);
 
   const liveConnectedAgents = useMemo(
     () => filterLiveConnectedAgents(connectedAgents),
@@ -247,8 +265,8 @@ function OrchestrationCanvas() {
           </div>
 
           <div className="canvas-footer-strip">
-            <span>{activeSession?.task || 'Live orchestration'}</span>
             <span>{activeSession?.heartbeat || 'Ready'}</span>
+            <span>{liveConnectedAgents.length} agent{liveConnectedAgents.length === 1 ? '' : 's'} · {nodes.length} graph nodes</span>
           </div>
         </main>
 

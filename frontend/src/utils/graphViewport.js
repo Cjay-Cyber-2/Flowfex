@@ -95,7 +95,7 @@ export function fitTransformToGraph(nodes, viewport, options = {}) {
   };
 }
 
-/** Trackpad: pinch (ctrl/meta + wheel) zooms; two-finger scroll pans. */
+/** Legacy helper — canvas uses vertical wheel to zoom (trackpad two-finger scroll). */
 export function isPinchZoomWheelEvent(event) {
-  return event.ctrlKey || event.metaKey;
+  return false;
 }

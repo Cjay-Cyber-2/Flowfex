@@ -12,16 +12,14 @@ import { isLiveConnectedAgent } from '../../utils/agentPresence';
  */
 export default function RequireAttachedAgent({ children }) {
   const location = useLocation();
-  const { sessionReady, hasConnectedAgent, appState } = useSessionContext();
+  const { sessionReady, hasConnectedAgent } = useSessionContext();
   const connectedAgents = useStore((state) => state.connectedAgents);
   const localHasConnectedAgent = connectedAgents.some(isLiveConnectedAgent);
-  const serverAgent = appState?.gates?.agentConnectedServer === true;
-
   if (!sessionReady) {
     return <Navigate to="/onboarding" replace />;
   }
 
-  const verifiedAgent = serverAgent || hasConnectedAgent || localHasConnectedAgent;
+  const verifiedAgent = hasConnectedAgent || localHasConnectedAgent;
   if (verifiedAgent) {
     return children;
   }

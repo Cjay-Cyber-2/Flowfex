@@ -48,6 +48,25 @@ export class CapabilityRetriever {
                 }
             }
         }
+        const globalQuery = stringifyForSearch(intent.goal);
+        if (globalQuery) {
+            const globalRetrieval = this.safeSemanticRetrieval(globalQuery, {
+                category: 'general',
+                allowedToolIds: options.allowedToolIds,
+                topK: Math.max(topKPerCategory, 12),
+                minScore,
+            });
+            for (const match of globalRetrieval.matches) {
+                const normalized = normalizeCandidate(match.tool, match.score, match.strategy, 'general', globalQuery);
+                const existing = mergedByToolId.get(normalized.toolId);
+                if (!existing || normalized.score > existing.score) {
+                    mergedByToolId.set(normalized.toolId, normalized);
+                }
+            }
+            usedSemantic = usedSemantic || globalRetrieval.matches.length > 0;
+            usedFallback = usedFallback || globalRetrieval.fallbackUsed;
+        }
+
         const merged = Array.from(mergedByToolId.values()).sort((left, right) => {
             if (right.score !== left.score) {
                 return right.score - left.score;

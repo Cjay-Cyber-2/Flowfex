@@ -3,8 +3,10 @@ import { buildApprovalQueue } from './demoData';
 import { CONTROL_EVENTS } from '../../../shared/control-contracts.js';
 import { getBackendOrigin, resolveApiFetchBase } from '../utils/runtimeConfig';
 import { resolveRehydratedGraphState } from '../../../lib/session/rehydrate';
+import { sanitizeWorkspaceSessionFields } from '../utils/sessionDisplay';
 import { filterLiveConnectedAgents } from '../utils/agentPresence';
 import { buildWorkspaceAuthRequestInit } from '../services/sessionRequestAuth';
+import { requestUsageRefresh } from '../utils/usageRefreshBridge';
 
 function parseAgentPresenceMs(agent) {
   const raw = agent?.lastSeen || agent?.syncedAt || agent?.connectedAt || agent?.lastSeenAt;
@@ -138,11 +140,19 @@ function derivePersistedSessionHeartbeat(session, graphState) {
 }
 
 function toPersistedActiveSession(session, graphState, currentActiveSession) {
+  const sanitized = sanitizeWorkspaceSessionFields({
+    ...(currentActiveSession || {}),
+    ...session,
+    task: session.task || graphState.metadata?.task || currentActiveSession?.task,
+    name: session.name || currentActiveSession?.name,
+  });
+
   return {
     ...(currentActiveSession || {}),
+    ...sanitized,
     id: session.id,
-    name: session.name || currentActiveSession?.name || 'Syniq Session',
-    task: session.task || graphState.metadata?.task || currentActiveSession?.task || 'Live orchestration',
+    name: sanitized.name || 'Syniq Session',
+    task: sanitized.task || 'Live orchestration',
     heartbeat: session.heartbeat || derivePersistedSessionHeartbeat(session, graphState),
     status: session.status || currentActiveSession?.status || 'active',
     elapsed: 'Just now',
@@ -161,7 +171,7 @@ function applySessionSnapshotToState(state, snapshot) {
     ...(state.activeSession || {}),
     id: snapshot.sessionId,
     executionId: snapshot.executionId,
-    task: snapshot.task,
+    task: sanitizeWorkspaceSessionFields({ task: snapshot.task }).task,
     status: snapshot.status,
     revision: snapshot.revision,
     currentNodeId: snapshot.currentNodeId,
@@ -350,7 +360,10 @@ const useStore = create((set, get) => ({
   updateSessionName: (name) =>
     set((state) => {
       if (!state.activeSession) return {};
-      const activeSession = { ...state.activeSession, name };
+      const activeSession = sanitizeWorkspaceSessionFields({
+        ...state.activeSession,
+        name,
+      });
       return {
         activeSession,
         sessions: syncSessions(state.sessions, activeSession),
@@ -527,6 +540,59 @@ const useStore = create((set, get) => ({
       canvasMode: 'flow',
       isExecuting: false,
     }),
+
+  clearAgentAttachment: async () => {
+    const sessionId = get().activeSession?.id;
+    if (!sessionId) {
+      return false;
+    }
+
+    try {
+      const init = await buildWorkspaceAuthRequestInit();
+      const response = await fetch(`${get().backendUrl}/api/session/reset-agents`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          ...init.headers,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sessionId }),
+      });
+
+      if (!response.ok) {
+        return false;
+      }
+
+      set((state) => ({
+        connectedAgents: [],
+        isExecuting: false,
+        nodes: [],
+        edges: [],
+        approvalQueue: [],
+        selectedNode: null,
+        rightDrawerOpen: false,
+        activeSession: state.activeSession
+          ? {
+              ...state.activeSession,
+              status: 'waiting',
+              heartbeat: 'Waiting for agent',
+            }
+          : null,
+        sessions: state.activeSession
+          ? syncSessions(state.sessions, {
+              ...state.activeSession,
+              status: 'waiting',
+              heartbeat: 'Waiting for agent',
+            })
+          : state.sessions,
+      }));
+
+      requestUsageRefresh(sessionId);
+      return true;
+    } catch {
+      return false;
+    }
+  },
 
   usage: {
     steps: 0,
@@ -741,11 +807,27 @@ const useStore = create((set, get) => ({
         }));
       });
 
+      const handleUsageSocketEvent = (data) => {
+        const activeId = get().activeSession?.id;
+        const eventSessionId = data?.sessionId || activeId;
+        if (!eventSessionId || (activeId && eventSessionId !== activeId)) {
+          return;
+        }
+        requestUsageRefresh(eventSessionId);
+      };
+
+      client.subscribe('session', 'limit:usage_updated', handleUsageSocketEvent);
+      client.subscribe('orchestration', 'limit:usage_updated', handleUsageSocketEvent);
+
+      client.subscribe('orchestration', 'execution.completed', handleUsageSocketEvent);
+      client.subscribe('orchestration', 'execution.failed', handleUsageSocketEvent);
+
       client.subscribe('session', 'agent:connected', (data) => {
         const activeId = get().activeSession?.id;
         if (!activeId || data?.sessionId !== activeId) {
           return;
         }
+        get().replaceConnectedAgents([]);
         const agentData = {
           id: data.agentId || `agent-${Date.now()}`,
           name: data.agentName || 'Connected Agent',
@@ -754,6 +836,19 @@ const useStore = create((set, get) => ({
           lastSeen: new Date().toISOString(),
         };
         get().addAgent(agentData);
+        requestUsageRefresh(activeId);
+      });
+
+      client.subscribe('session', 'agent:disconnected', (data) => {
+        const activeId = get().activeSession?.id;
+        if (!activeId || data?.sessionId !== activeId) {
+          return;
+        }
+        if (data?.agentId) {
+          get().removeAgent(data.agentId);
+        } else {
+          get().replaceConnectedAgents([]);
+        }
       });
 
       client.subscribe('session', 'session:limit_reached', (data) => {

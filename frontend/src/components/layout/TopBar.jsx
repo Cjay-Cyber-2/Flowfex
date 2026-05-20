@@ -4,6 +4,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import SyniqLogoNew from '../SyniqLogoNew';
 import useStore from '../../store/useStore';
 import { useSessionContext } from '../../context/SessionContext';
+import { sanitizeWorkspaceTaskText } from '../../utils/sessionDisplay';
+import { filterLiveConnectedAgents } from '../../utils/agentPresence';
 import './TopBar.css';
 
 function TopBar() {
@@ -21,6 +23,8 @@ function TopBar() {
     setConnectModalOpen,
     updateSessionName,
     user,
+    connectedAgents,
+    clearAgentAttachment,
   } = useStore();
 
   const currentNode =
@@ -44,9 +48,19 @@ function TopBar() {
     : 'Anonymous Syniq session — connect an agent to orchestrate. Sign up after your free requests for a saved account and higher limits.';
   const avatarLetters = isAuthenticated ? (user?.initials || '').trim() : '';
   const isProAccount = appState?.identity?.billing === 'pro';
-  const freeAccountHasAttachedAgent = isAuthenticated && !isProAccount && hasConnectedAgent;
+  const freeAccountHasAttachedAgent = isAuthenticated && !isProAccount && hasLiveAgent;
 
-  const connectDisabled = !isAuthenticated && hasConnectedAgent;
+  const liveAgents = filterLiveConnectedAgents(connectedAgents);
+  const hasLiveAgent = liveAgents.length > 0;
+  const hasStaleAgent = connectedAgents.length > 0 && !hasLiveAgent;
+  const connectDisabled = !isAuthenticated && hasLiveAgent;
+
+  const openConnectFlow = async () => {
+    if (hasStaleAgent) {
+      await clearAgentAttachment();
+    }
+    setConnectModalOpen(true);
+  };
 
   return (
     <header className="top-bar">
@@ -60,8 +74,8 @@ function TopBar() {
           <input
             aria-label="Session name"
             className="session-editor-input"
-            value={activeSession?.name || 'Untitled Session'}
-            onChange={(event) => updateSessionName(event.target.value)}
+            value={sanitizeWorkspaceTaskText(activeSession?.name) || 'Syniq Session'}
+            onChange={(event) => updateSessionName(sanitizeWorkspaceTaskText(event.target.value) || 'Syniq Session')}
           />
         </div>
       </div>
@@ -109,22 +123,26 @@ function TopBar() {
           disabled={connectDisabled}
           onClick={() => {
             if (!connectDisabled) {
-              setConnectModalOpen(true);
+              openConnectFlow();
             }
           }}
           title={
             connectDisabled
               ? 'Anonymous sessions support one connected agent. Sign in to add more on a paid plan.'
+              : hasStaleAgent
+                ? 'Clear the old agent and connect a new one'
               : freeAccountHasAttachedAgent
                 ? 'Free accounts support one connected agent. Upgrade to attach another.'
-              : hasConnectedAgent
+              : hasLiveAgent
                 ? (isAuthenticated ? 'Connect or manage additional agents' : 'Your agent is connected')
                 : 'Connect an agent to Syniq'
           }
         >
-          {hasConnectedAgent
-            ? (isAuthenticated ? (freeAccountHasAttachedAgent ? 'Current Agent' : 'Manage Agents') : 'Agent connected')
-            : 'Connect Agent'}
+          {hasStaleAgent
+            ? 'Reconnect agent'
+            : hasLiveAgent
+              ? (isAuthenticated ? (freeAccountHasAttachedAgent ? 'Current Agent' : 'Manage Agents') : 'Agent connected')
+              : 'Connect Agent'}
         </button>
 
         <span

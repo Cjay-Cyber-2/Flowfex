@@ -250,6 +250,7 @@ export class SyniqServer {
     const recentSessionMatch = request.method === 'GET' && url.pathname === '/api/session/recent';
     const sessionUsageMatch = request.method === 'GET' && url.pathname === '/api/session/usage';
     const sessionResolveMatch = request.method === 'GET' && url.pathname === '/api/session/resolve-state';
+    const sessionResetAgentsMatch = request.method === 'POST' && url.pathname === '/api/session/reset-agents';
     const apiKeysMatch = url.pathname === '/api/api-keys';
     const apiKeyRevokeMatch = url.pathname.match(/^\/api\/api-keys\/([^/]+)$/);
 
@@ -435,6 +436,51 @@ export class SyniqServer {
       }
 
       return this._writeJson(response, 200, resolved);
+    }
+
+    if (sessionResetAgentsMatch) {
+      this._assertSessionDataEnabled();
+      const body = await this._readAndValidateJsonBody(request, emptySchema);
+      const sessionId = String(body?.sessionId || url.searchParams.get('sessionId') || '').trim();
+      if (!sessionId) {
+        return this._writeJson(response, 400, {
+          error: { message: 'sessionId is required to reset agent attachment.' },
+        });
+      }
+
+      let authorized = false;
+      const anonymousToken = this._extractAnonymousSessionToken(request);
+      if (anonymousToken) {
+        try {
+          const anonSession = await this.anonymousSessionService.validateAnonymousSession(anonymousToken);
+          authorized = anonSession?.id === sessionId;
+        } catch {
+          authorized = false;
+        }
+      }
+
+      if (!authorized && authUser?.id) {
+        const owned = await this.anonymousSessionService.getMostRecentSessionForUser(authUser.id);
+        authorized = owned?.id === sessionId;
+      }
+
+      if (!authorized) {
+        return this._writeJson(response, 403, {
+          error: { message: 'You do not have access to reset this workspace session.' },
+        });
+      }
+
+      await this.anonymousSessionService.clearConnectedAgents(sessionId);
+
+      if (this.socketServer) {
+        this.socketServer.emitAgentDisconnected(sessionId, null);
+      }
+
+      return this._writeJson(response, 200, {
+        ok: true,
+        sessionId,
+        message: 'Agent attachment cleared. You can connect a new agent from onboarding.',
+      });
     }
 
     if (request.method === 'GET' && apiKeysMatch) {
@@ -1146,6 +1192,13 @@ export class SyniqServer {
     const nodesProcessed = Array.isArray(graphNodes) ? graphNodes.length : 0;
 
     await this.usageService.recordExecution({ sessionId, nodesProcessed });
+
+    if (this.socketServer) {
+      this.socketServer.broadcastToSession(sessionId, 'execution.completed', {
+        sessionId,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 
   async _isSkillCatalogCallerAllowed(request, authUser, anonymousToken) {

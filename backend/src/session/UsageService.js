@@ -636,6 +636,7 @@ export class UsageService {
           limits: updatedStatus.limits,
           blockedLimit: updatedStatus.blockedLimit,
           warningLimit: updatedStatus.warningLimit,
+          resetAt: updatedStatus.resetAt ?? null,
         });
       }
 

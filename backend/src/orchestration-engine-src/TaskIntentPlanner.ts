@@ -243,11 +243,18 @@ function detectCategories(task: string, availableCategories: string[]): string[]
 }
 
 function buildFallbackTitle(category: string, index: number): string {
+  const label = formatCategoryLabel(category);
   if (index === 0) {
-    return `Resolve ${category} path`;
+    return `${label} capability`;
   }
 
-  return `Advance ${category} execution`;
+  return `${label} follow-up`;
+}
+
+function formatCategoryLabel(category: string): string {
+  return String(category || 'general')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function buildFallbackObjective(category: string, task: string): string {

@@ -26,6 +26,7 @@ import {
 } from '../services/authService';
 import useStore from '../store/useStore';
 import { filterLiveConnectedAgents, isLiveConnectedAgent } from '../utils/agentPresence';
+import { registerUsageRefreshHandler } from '../utils/usageRefreshBridge';
 
 const SessionContext = createContext(undefined);
 
@@ -153,13 +154,11 @@ export function SessionProvider({ children }) {
         apiBaseUrl: apiFetchBase,
         anonymousToken: state.session?.anonymousToken || readAnonymousToken(),
       });
-      startTransition(() => {
-        setState((current) => ({
-          ...current,
-          usage,
-          usageError: null,
-        }));
-      });
+      setState((current) => ({
+        ...current,
+        usage,
+        usageError: null,
+      }));
       return usage;
     } catch (error) {
       startTransition(() => {
@@ -350,6 +349,14 @@ export function SessionProvider({ children }) {
   }, [refreshUsage, state.accessToken, state.session?.id]);
 
   useEffect(() => {
+    return registerUsageRefreshHandler((sessionId) => {
+      refreshUsage(sessionId || state.session?.id, state.accessToken).catch(() => {
+        return;
+      });
+    });
+  }, [refreshUsage, state.accessToken, state.session?.id]);
+
+  useEffect(() => {
     const sessionId = state.session?.id;
     if (!sessionId || !state.sessionReady) {
       return undefined;
@@ -363,25 +370,23 @@ export function SessionProvider({ children }) {
         return;
       }
 
-      startTransition(() => {
-        setState((current) => ({
-          ...current,
-          usage: {
-            ok: true,
-            tier: payload.tier ?? current.usage?.tier ?? 'anonymous',
-            sessionId: payload.sessionId ?? sessionId,
-            authId: current.usage?.authId ?? null,
-            anonymousToken: current.usage?.anonymousToken ?? null,
-            usage: payload.usage,
-            limits: payload.limits,
-            blockedLimit: payload.blockedLimit ?? null,
-            connectionBlockedLimit: current.usage?.connectionBlockedLimit ?? null,
-            warningLimit: payload.warningLimit ?? current.usage?.warningLimit ?? null,
-            resetAt: current.usage?.resetAt ?? null,
-          },
-          usageError: null,
-        }));
-      });
+      setState((current) => ({
+        ...current,
+        usage: {
+          ok: true,
+          tier: payload.tier ?? current.usage?.tier ?? 'anonymous',
+          sessionId: payload.sessionId ?? sessionId,
+          authId: current.usage?.authId ?? null,
+          anonymousToken: current.usage?.anonymousToken ?? null,
+          usage: payload.usage,
+          limits: payload.limits,
+          blockedLimit: payload.blockedLimit ?? null,
+          connectionBlockedLimit: payload.connectionBlockedLimit ?? current.usage?.connectionBlockedLimit ?? null,
+          warningLimit: payload.warningLimit ?? current.usage?.warningLimit ?? null,
+          resetAt: payload.resetAt ?? current.usage?.resetAt ?? null,
+        },
+        usageError: null,
+      }));
     };
 
     import('../services/socketClient.js')
@@ -448,9 +453,6 @@ export function SessionProvider({ children }) {
   }, [backendOrigin]);
 
   const hasConnectedAgent = useMemo(() => {
-    if (state.appState?.gates?.agentConnectedServer === true) {
-      return true;
-    }
     if (connectedAgents.some(isLiveConnectedAgent)) {
       return true;
     }
@@ -460,7 +462,7 @@ export function SessionProvider({ children }) {
       ...(state.session?.graphState?.connectedAgents || []),
     ];
     return filterLiveConnectedAgents(fromSession).length > 0;
-  }, [connectedAgents, state.appState, state.session]);
+  }, [connectedAgents, state.session]);
 
   const value = useMemo(() => ({
     ...state,

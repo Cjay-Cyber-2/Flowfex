@@ -1,5 +1,6 @@
 /** Agents hydrated from the API can be stale (another device, old tab). Only treat as "present" if recently seen or explicitly connected without a timestamp yet. */
-export const LIVE_AGENT_PRESENCE_MS = 3 * 60 * 1000;
+/** How long since lastSeen before we treat a connected agent as gone (closed app / lost socket). */
+export const LIVE_AGENT_PRESENCE_MS = 90 * 1000;
 
 export function isLiveConnectedAgent(agent) {
   if (!agent) return false;
@@ -7,7 +8,7 @@ export function isLiveConnectedAgent(agent) {
   const raw = agent.lastSeen || agent.syncedAt || agent.connectedAt || agent.lastSeenAt;
   const t = Date.parse(raw || '');
   if (Number.isNaN(t)) {
-    return agent.status === 'connected';
+    return false;
   }
   return Date.now() - t < LIVE_AGENT_PRESENCE_MS;
 }

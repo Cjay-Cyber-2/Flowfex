@@ -2,10 +2,12 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Hand,
   Maximize,
-  MessageSquarePlus,
-  Move,
+  Pause,
+  Play,
   Scan,
+  ShieldCheck,
   Target,
+  XCircle,
   ZoomIn,
   ZoomOut,
 } from 'lucide-react';
@@ -15,7 +17,6 @@ import {
   fitTransformToGraph,
   getGraphBounds,
   getNodeBox,
-  isPinchZoomWheelEvent,
 } from '../../utils/graphViewport';
 import './CanvasRenderer.css';
 
@@ -122,6 +123,11 @@ function CanvasRenderer() {
   const containerRef = useRef(null);
   const autoFitRef = useRef(false);
   const {
+    apiApproveNode,
+    apiPauseSession,
+    apiRejectNode,
+    apiResumeSession,
+    approvalQueue,
     canvasMode,
     edges,
     isExecuting,
@@ -146,6 +152,35 @@ function CanvasRenderer() {
       }, {}),
     [nodes]
   );
+
+  const primaryActionableNode = useMemo(() => {
+    if (selectedNode && ['approval', 'active', 'paused', 'queued'].includes(selectedNode.state)) {
+      return selectedNode;
+    }
+    return (
+      nodes.find((node) => node.state === 'approval')
+      || nodes.find((node) => node.state === 'active')
+      || nodes.find((node) => node.state === 'paused')
+      || nodes.find((node) => node.state === 'queued')
+      || null
+    );
+  }, [nodes, selectedNode]);
+
+  const showGraphDock = nodes.length > 0 && (isExecuting || approvalQueue.length > 0 || primaryActionableNode);
+  const dockFocusNode = primaryActionableNode
+    || nodes.find((node) => node.state === 'active')
+    || nodes.find((node) => node.state === 'approval')
+    || nodes[0]
+    || null;
+
+  useEffect(() => {
+    if (!primaryActionableNode || selectedNode?.id === primaryActionableNode.id) {
+      return;
+    }
+    if (primaryActionableNode.state === 'approval' && !selectedNode) {
+      selectNode(primaryActionableNode.id);
+    }
+  }, [primaryActionableNode, selectNode, selectedNode]);
 
   useEffect(() => {
     const updateViewport = () => {
@@ -228,34 +263,33 @@ function CanvasRenderer() {
     event.preventDefault();
     if (!containerRef.current) return;
 
-    const isPinch = isPinchZoomWheelEvent(event);
-    const isMouseWheel =
-      !isPinch
-      && Math.abs(event.deltaX) < 2
-      && (event.deltaMode === 1 || Math.abs(event.deltaY) >= 4);
+    const rect = containerRef.current.getBoundingClientRect();
 
-    if (isPinch || isMouseWheel) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const cursorX = event.clientX - rect.left;
-      const cursorY = event.clientY - rect.top;
-      const zoomFactor = event.deltaY < 0 ? 1.1 : 0.9;
-      const nextScale = clamp(transform.scale * zoomFactor, MIN_SCALE, MAX_SCALE);
-      const worldX = (cursorX - transform.x) / transform.scale;
-      const worldY = (cursorY - transform.y) / transform.scale;
-
-      setTransform({
-        scale: nextScale,
-        x: cursorX - worldX * nextScale,
-        y: cursorY - worldY * nextScale,
-      });
+    if (Math.abs(event.deltaX) > Math.abs(event.deltaY) && Math.abs(event.deltaX) > 2) {
+      setTransform((current) => ({
+        ...current,
+        x: current.x - event.deltaX,
+        y: current.y - event.deltaY,
+      }));
       return;
     }
 
-    setTransform((current) => ({
-      ...current,
-      x: current.x - event.deltaX,
-      y: current.y - event.deltaY,
-    }));
+    if (Math.abs(event.deltaY) < 1) {
+      return;
+    }
+
+    const cursorX = event.clientX - rect.left;
+    const cursorY = event.clientY - rect.top;
+    const zoomFactor = event.deltaY < 0 ? 1.08 : 0.92;
+    const nextScale = clamp(transform.scale * zoomFactor, MIN_SCALE, MAX_SCALE);
+    const worldX = (cursorX - transform.x) / transform.scale;
+    const worldY = (cursorY - transform.y) / transform.scale;
+
+    setTransform({
+      scale: nextScale,
+      x: cursorX - worldX * nextScale,
+      y: cursorY - worldY * nextScale,
+    });
   };
 
   const handleMouseDown = (event) => {
@@ -459,13 +493,81 @@ function CanvasRenderer() {
                 {node.state === 'approval' ? (
                   <circle className="graph-node-badge" cx={node.x + width - 18} cy={node.y + 18} r="8" />
                 ) : null}
+
+                {primaryActionableNode?.id === node.id && node.state === 'approval' ? (
+                  <foreignObject
+                    x={node.x + width / 2 - 108}
+                    y={node.y + height + 10}
+                    width="216"
+                    height="40"
+                  >
+                    <div className="graph-node-action-chip" xmlns="http://www.w3.org/1999/xhtml">
+                      <button
+                        type="button"
+                        className="graph-node-action-btn graph-node-action-btn--approve"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          apiApproveNode(node.id);
+                        }}
+                      >
+                        Approve
+                      </button>
+                      <button
+                        type="button"
+                        className="graph-node-action-btn"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          apiRejectNode(node.id);
+                        }}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </foreignObject>
+                ) : null}
               </g>
             );
           })}
         </g>
       </svg>
 
-      <div className="canvas-zoom-controls">
+      {showGraphDock && dockFocusNode ? (
+        <div className="graph-orchestration-dock" data-tour="graph-controls">
+          <div className="graph-orchestration-dock-copy">
+            <strong>{dockFocusNode.title || 'Orchestration step'}</strong>
+            <span>{formatNodeCaption(dockFocusNode)}</span>
+          </div>
+          <div className="graph-orchestration-dock-actions">
+            {dockFocusNode.state === 'approval' ? (
+              <>
+                <button type="button" className="btn btn-primary" onClick={() => apiApproveNode(dockFocusNode.id)}>
+                  <ShieldCheck size={14} />
+                  Approve
+                </button>
+                <button type="button" className="btn btn-ghost" onClick={() => apiRejectNode(dockFocusNode.id)}>
+                  <XCircle size={14} />
+                  Reject
+                </button>
+              </>
+            ) : null}
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => (isExecuting ? apiPauseSession() : apiResumeSession())}
+            >
+              {isExecuting ? <Pause size={14} /> : <Play size={14} />}
+              {isExecuting ? 'Pause run' : 'Resume run'}
+            </button>
+          </div>
+          {approvalQueue.length > 0 ? (
+            <span className="graph-orchestration-dock-meta">{approvalQueue.length} approval{approvalQueue.length === 1 ? '' : 's'} queued</span>
+          ) : (
+            <span className="graph-orchestration-dock-meta">Controls stay on the graph — no need to open the side panel first</span>
+          )}
+        </div>
+      ) : null}
+
+      <div className="canvas-zoom-controls" data-tour="graph-zoom">
         <button className="canvas-control-button" onClick={() => setTransform((current) => ({ ...current, scale: clamp(current.scale * 1.12, MIN_SCALE, MAX_SCALE) }))}>
           <ZoomIn size={16} />
         </button>
@@ -477,29 +579,29 @@ function CanvasRenderer() {
         </button>
       </div>
 
-      <div className="canvas-bottom-toolbar">
+      <div className="canvas-bottom-toolbar" data-tour="graph-toolbar">
         <button
+          type="button"
+          title="Select nodes"
+          aria-label="Select nodes"
           className={`canvas-toolbar-button ${toolMode === 'select' ? 'is-active' : ''}`}
           onClick={() => setToolMode('select')}
         >
           <Target size={16} />
         </button>
         <button
+          type="button"
+          title="Pan canvas (or hold Space)"
+          aria-label="Pan canvas"
           className={`canvas-toolbar-button ${toolMode === 'pan' ? 'is-active' : ''}`}
           onClick={() => setToolMode('pan')}
         >
           <Hand size={16} />
         </button>
-        <button className="canvas-toolbar-button">
-          <Move size={16} />
-        </button>
-        <button className="canvas-toolbar-button">
-          <MessageSquarePlus size={16} />
-        </button>
-        <button className="canvas-toolbar-button" onClick={fitView}>
+        <button type="button" title="Fit graph to view" aria-label="Fit graph to view" className="canvas-toolbar-button" onClick={fitView}>
           <Scan size={16} />
         </button>
-        <button className="canvas-toolbar-button" onClick={handleFullscreen}>
+        <button type="button" title="Fullscreen canvas" aria-label="Fullscreen canvas" className="canvas-toolbar-button" onClick={handleFullscreen}>
           <Maximize size={16} />
         </button>
       </div>

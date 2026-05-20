@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import useStore from '../../store/useStore';
 import './DashboardTour.css';
 
-const STORAGE_KEY = 'syniq_dashboard_tour_v1';
+const STORAGE_KEY = 'syniq_dashboard_tour_v2';
 
 const STEPS = [
   {
@@ -41,8 +41,26 @@ const STEPS = [
   {
     id: 'graph',
     title: 'Orchestration graph',
-    body: 'The graph is rendered from Syniq execution data — node positions, edges, and states match the backend plan. Pinch with two fingers to zoom; scroll with two fingers to pan.',
+    body: 'Each node is a real Syniq skill or decision step from the live plan. Scroll with two fingers to zoom the canvas; use the hand tool or hold Space to pan.',
     target: 'graph',
+  },
+  {
+    id: 'graph-controls',
+    title: 'Approve, pause, and resume',
+    body: 'When a step needs attention, controls appear on the graph dock and on approval nodes. You do not need to hunt in the side panel — approve, reject, pause, or resume from here.',
+    target: 'graph-controls',
+  },
+  {
+    id: 'graph-toolbar',
+    title: 'Canvas tools',
+    body: 'Target selects nodes, Hand pans the canvas (Space also pans), Fit reframes the whole graph, and Fullscreen expands the orchestration view. The +/− buttons on the right zoom in and out.',
+    target: 'graph-toolbar',
+  },
+  {
+    id: 'graph-zoom',
+    title: 'Zoom controls',
+    body: 'Use the vertical + and − buttons when you want precise zoom steps. Two-finger scroll on a trackpad also zooms the graph without triggering browser pinch-zoom.',
+    target: 'graph-zoom',
   },
 ];
 

@@ -1,13 +1,18 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import CanvasRenderer from '../components/canvas/CanvasRenderer';
 import LeftRail from '../components/layout/LeftRail';
 import RightDrawer from '../components/layout/RightDrawer';
 import TopBar from '../components/layout/TopBar';
 import ConnectAgentModal from '../components/ConnectAgentModal';
-import QuotaPricingOverlay from '../components/billing/QuotaPricingOverlay';
 import useStore from '../store/useStore';
 import { useSessionContext } from '../context/SessionContext';
+import {
+  hasSeenPricingWall,
+  isExecutionQuotaExhausted,
+  markPricingWallSeen,
+  quotaCycleKey,
+} from '../utils/quotaNavigation';
 import '../styles/canvas.css';
 
 function UsageGateBanner({ isAuthenticated, title, message, onSignIn, onSignUp }) {
@@ -35,10 +40,14 @@ function UsageGateBanner({ isAuthenticated, title, message, onSignIn, onSignUp }
 
       {!isAuthenticated ? (
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <button className="btn btn-primary" onClick={onSignUp}>Sign Up</button>
-          <button className="btn btn-ghost" onClick={onSignIn}>Sign In</button>
+          <button type="button" className="btn btn-primary" onClick={onSignUp}>Sign Up</button>
+          <button type="button" className="btn btn-ghost" onClick={onSignIn}>Sign In</button>
         </div>
-      ) : null}
+      ) : (
+        <button type="button" className="btn btn-primary" onClick={() => window.location.assign('/pricing')}>
+          View plans
+        </button>
+      )}
     </div>
   );
 }
@@ -48,9 +57,9 @@ function paymentGateHeadline(blockedLimit, connectionBlockedLimit, isAuthenticat
   const tier = blockedLimit?.tier || connectionBlockedLimit?.tier;
   if (key === 'maxExecutionsPerSession' || key === 'maxExecutionsPerDay') {
     if (!isAuthenticated || tier === 'anonymous') {
-      return 'You used all 10 free Syniq skill or tool requests for today.';
+      return 'You used all 6 free Syniq skill or tool requests for this window.';
     }
-    return 'You used all of today’s free Syniq skill or tool requests on this account.';
+    return 'You used all free Syniq skill or tool requests for this account window.';
   }
   if (key === 'maxConnectionsPerDay') {
     return 'You hit today\u2019s Syniq attach cap.';
@@ -86,16 +95,17 @@ function FreeTierPlanCard({ requestsLeft, requestLimit, onUpgrade, onDismiss }) 
             Free account active
           </strong>
           <span style={{ color: 'rgba(232, 237, 242, 0.8)', fontSize: 14, lineHeight: 1.6 }}>
-            You are now signed in. This account keeps your workspace, supports one connected agent, and includes {requestLimit} Syniq requests per day. Upgrade later for uninterrupted usage after the free quota is exhausted.
+            You are signed in. This tier includes {requestLimit} Syniq requests per 5-hour window. Upgrade for
+            uninterrupted pulls after the quota is exhausted.
           </span>
         </div>
-        <button className="btn btn-ghost" onClick={onDismiss}>Dismiss</button>
+        <button type="button" className="btn btn-ghost" onClick={onDismiss}>Dismiss</button>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
         <span style={{ color: 'var(--color-bistre)', fontSize: 14 }}>
-          Requests remaining today: <strong style={{ color: 'var(--color-velin)' }}>{Math.max(0, requestsLeft)}</strong>
+          Requests remaining: <strong style={{ color: 'var(--color-velin)' }}>{Math.max(0, requestsLeft)}</strong>
         </span>
-        <button className="btn btn-primary" onClick={onUpgrade}>View plans</button>
+        <button type="button" className="btn btn-primary" onClick={onUpgrade}>View plans</button>
       </div>
     </div>
   );
@@ -103,6 +113,7 @@ function FreeTierPlanCard({ requestsLeft, requestLimit, onUpgrade, onDismiss }) 
 
 function OrchestrationCanvas() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, sessionReady, usage, appState } = useSessionContext();
   const {
     activeSession,
@@ -113,8 +124,8 @@ function OrchestrationCanvas() {
     nodes,
     setConnectModalOpen,
   } = useStore();
-  const [paymentGateDismissed, setPaymentGateDismissed] = useState(false);
   const [freeTierCardDismissed, setFreeTierCardDismissed] = useState(false);
+  const quotaRedirectedRef = useRef(false);
 
   useEffect(() => {
     if (!sessionReady) {
@@ -136,25 +147,56 @@ function OrchestrationCanvas() {
   const blockedLimit = usage?.blockedLimit || null;
   const connectionBlockedLimit = usage?.connectionBlockedLimit || null;
   const anyBlockReason = blockedLimit?.reason || connectionBlockedLimit?.reason || null;
+  const executionQuotaExhausted = isExecutionQuotaExhausted(usage);
   const gateHeadline = paymentGateHeadline(blockedLimit, connectionBlockedLimit, isAuthenticated);
-  // Anonymous: full-screen pricing + sign up after free tier is exhausted.
-  // Authenticated: same pricing wall until pay or daily reset; dismiss shows inline banner.
-  const showAnonymousGate = !isAuthenticated && Boolean(anyBlockReason);
-  const showPaymentGate = isAuthenticated && Boolean(anyBlockReason) && !paymentGateDismissed;
-  const showAuthenticatedBanner = isAuthenticated && Boolean(anyBlockReason) && paymentGateDismissed;
+  const cycleKey = quotaCycleKey(usage);
+  const isPro = appState?.identity?.billing === 'pro';
+
+  const showAuthenticatedBanner = isAuthenticated && Boolean(anyBlockReason) && !isPro;
   const showFreeTierCard = isAuthenticated
     && appState?.identity?.billing === 'free'
     && !freeTierCardDismissed
-    && !showPaymentGate;
+    && !executionQuotaExhausted;
 
   useEffect(() => {
-    setPaymentGateDismissed(false);
+    quotaRedirectedRef.current = false;
+  }, [cycleKey, activeSession?.id]);
+
+  useEffect(() => {
+    if (!sessionReady || isPro || !executionQuotaExhausted) {
+      return;
+    }
+
+    if (location.pathname === '/settings') {
+      return;
+    }
+
+    if (quotaRedirectedRef.current) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      quotaRedirectedRef.current = true;
+      navigate('/signup', {
+        replace: true,
+        state: { from: location.pathname, reason: 'anonymous_quota' },
+      });
+      return;
+    }
+
+    if (!hasSeenPricingWall(cycleKey)) {
+      quotaRedirectedRef.current = true;
+      markPricingWallSeen(cycleKey);
+      navigate('/pricing', { replace: true, state: { from: location.pathname } });
+    }
   }, [
-    blockedLimit?.currentValue,
-    blockedLimit?.limit,
-    connectionBlockedLimit?.currentValue,
-    connectionBlockedLimit?.limit,
-    activeSession?.id,
+    cycleKey,
+    executionQuotaExhausted,
+    isAuthenticated,
+    isPro,
+    location.pathname,
+    navigate,
+    sessionReady,
   ]);
 
   useEffect(() => {
@@ -174,17 +216,17 @@ function OrchestrationCanvas() {
               isAuthenticated
               title={gateHeadline}
               message={anyBlockReason}
-              onSignIn={() => {}}
-              onSignUp={() => {}}
+              onSignIn={() => navigate('/signin')}
+              onSignUp={() => navigate('/signup')}
             />
           ) : null}
 
           {showFreeTierCard ? (
             <FreeTierPlanCard
               requestsLeft={requestsLeft}
-              requestLimit={requestLimit || 10}
+              requestLimit={requestLimit || 6}
               onDismiss={() => setFreeTierCardDismissed(true)}
-              onUpgrade={() => window.location.assign('/#pricing')}
+              onUpgrade={() => navigate('/pricing')}
             />
           ) : null}
 
@@ -223,25 +265,6 @@ function OrchestrationCanvas() {
       </div>
 
       <ConnectAgentModal isOpen={connectModalOpen} onClose={() => setConnectModalOpen(false)} />
-      {showAnonymousGate ? (
-        <QuotaPricingOverlay
-          variant="anonymous"
-          headline={gateHeadline}
-          message={anyBlockReason}
-          resetAt={usage?.resetAt}
-          onSignIn={() => navigate('/signin')}
-          onSignUp={() => navigate('/signup')}
-        />
-      ) : null}
-      {showPaymentGate ? (
-        <QuotaPricingOverlay
-          variant="authenticated"
-          headline={gateHeadline}
-          message={anyBlockReason}
-          resetAt={usage?.resetAt}
-          onDismiss={() => setPaymentGateDismissed(true)}
-        />
-      ) : null}
     </div>
   );
 }

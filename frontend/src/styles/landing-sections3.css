@@ -370,6 +370,31 @@
   padding: 0;
 }
 
+.cam-agent-hint {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 212, 170, 0.14);
+  background: rgba(8, 32, 28, 0.35);
+  font-family: Inter, sans-serif;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(232, 237, 242, 0.82);
+}
+
+.cam-agent-hint strong {
+  color: var(--color-sinoper, #00d4aa);
+  font-weight: 600;
+}
+
+.cam-agent-hint__sep {
+  opacity: 0.45;
+}
+
+.cam-security-note--error {
+  color: #ff8d8d !important;
+}
+
 .cam-security-note {
   font-family: Inter, sans-serif;
   font-size: 12px;

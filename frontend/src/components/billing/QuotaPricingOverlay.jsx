@@ -1,18 +1,12 @@
 import React, { Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formatResetCountdown } from '../../utils/formatQuotaReset';
 import './QuotaPricingOverlay.css';
 
 const ModernPricingSection = lazy(() => import('../landing/ModernPricingSection'));
 
 function formatResetLine(resetAt) {
-  if (!resetAt) {
-    return 'Your free Syniq requests renew on the next daily reset (UTC).';
-  }
-  try {
-    return `Quota renews after ${new Date(resetAt).toLocaleString()}.`;
-  } catch {
-    return 'Your free Syniq requests renew on the next daily reset.';
-  }
+  return formatResetCountdown(resetAt);
 }
 
 /**
@@ -70,7 +64,7 @@ export default function QuotaPricingOverlay({
             <ModernPricingSection
               embedMode
               embeddedCta={(planName) => {
-                if (planName === 'Free') {
+                if (planName === 'Starter' || planName === 'Free') {
                   navigate('/signup');
                   return;
                 }

@@ -7,8 +7,8 @@ const AUTH_PATHS = new Set(['/choose-username', '/signin', '/signup', '/reset-pa
 
 function resolveInternalReturnPath(from) {
   if (typeof from !== 'string' || !from.startsWith('/') || from.startsWith('//')) {
-    return '/app';
-  }
+  return '/pricing';
+}
   return from;
 }
 

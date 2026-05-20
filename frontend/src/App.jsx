@@ -11,6 +11,7 @@ import OrchestrationCanvas from './pages/OrchestrationCanvas';
 import SessionDetail from './pages/SessionDetail';
 import History from './pages/History';
 import Settings from './pages/Settings';
+import PricingPage from './pages/PricingPage';
 import Toast from './components/common/Toast';
 import SyniqUsernameGate from './components/auth/SyniqUsernameGate';
 import RequireAttachedAgent from './components/auth/RequireAttachedAgent';
@@ -54,6 +55,7 @@ function App() {
         <Route path="/session/:id" element={<SessionDetail />} />
         <Route path="/history" element={<History />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/pricing" element={<PricingPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Toast />

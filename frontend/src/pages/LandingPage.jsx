@@ -519,7 +519,7 @@ function LandingPage() {
 
       <nav className="landing-nav">
         <button className="landing-nav-brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <SyniqLogoNew size={72} animated={false} />
+          <SyniqLogoNew size={88} animated={false} />
         </button>
 
         <div className="landing-nav-links">
@@ -529,7 +529,7 @@ function LandingPage() {
           <button onClick={() => handleSectionChange('developer')}>For Developers</button>
         </div>
 
-        <button className="btn btn-primary landing-nav-cta" onClick={() => navigate('/app')}>
+        <button className="btn btn-primary landing-nav-cta" onClick={() => navigate('/onboarding')}>
           Start Free
         </button>
       </nav>
@@ -553,10 +553,10 @@ function LandingPage() {
           </p>
 
           <div className="hero-actions">
-            <button className="btn btn-primary hero-primary-cta" onClick={() => navigate('/app')}>
+            <button className="btn btn-primary hero-primary-cta" onClick={() => navigate('/onboarding')}>
               Start Building Free
             </button>
-            <button className="btn btn-ghost" onClick={() => navigate('/app')}>
+            <button className="btn btn-ghost" onClick={() => navigate('/onboarding')}>
               <Play size={16} />
               Watch Live Demo
             </button>
@@ -654,10 +654,10 @@ function LandingPage() {
               <li>User controls: pause, approve, reject, or reroute</li>
             </ul>
             <div className="reveal-stage-buttons">
-              <button className="btn btn-primary" onClick={() => navigate('/app')}>
+              <button className="btn btn-primary" onClick={() => navigate('/onboarding')}>
                 Connect Agent
               </button>
-              <button className="btn btn-ghost" onClick={() => navigate('/app')}>
+              <button className="btn btn-ghost" onClick={() => navigate('/onboarding')}>
                 See the Dashboard
               </button>
             </div>
@@ -761,10 +761,10 @@ function LandingPage() {
             Start a session, connect an agent, and let Syniq turn scattered resources into a live flow you can understand and steer.
           </p>
           <div className="final-actions">
-            <button className="btn btn-primary final-cta-enhanced" onClick={() => navigate('/app')}>
+            <button className="btn btn-primary final-cta-enhanced" onClick={() => navigate('/onboarding')}>
               Start Building Free
             </button>
-            <button className="btn btn-ghost" onClick={() => navigate('/app')}>
+            <button className="btn btn-ghost" onClick={() => navigate('/onboarding')}>
               See the Dashboard
               <ArrowRight size={16} />
             </button>

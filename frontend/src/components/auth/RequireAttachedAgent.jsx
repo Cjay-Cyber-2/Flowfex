@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSessionContext } from '../../context/SessionContext';
 import useStore from '../../store/useStore';
-import SyniqLogoNew from '../SyniqLogoNew';
 import { isLiveConnectedAgent } from '../../utils/agentPresence';
 
 /**
@@ -10,61 +9,21 @@ import { isLiveConnectedAgent } from '../../utils/agentPresence';
  *
  * The dashboard opens only when this browser's Syniq session has a
  * **verified live agent** (store mirror + server session snapshot).
- * Being signed in with Better Auth is not enough: another laptop with the
- * same account must still complete attach on that device.
  */
-function GuardLoading() {
-  return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--color-eigengrau)',
-        color: 'var(--color-bistre)',
-        fontFamily: 'Inter, sans-serif',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <SyniqLogoNew size={32} animated={false} />
-        <span>Verifying your Syniq session…</span>
-      </div>
-    </div>
-  );
-}
-
 export default function RequireAttachedAgent({ children }) {
   const location = useLocation();
   const { sessionReady, hasConnectedAgent, appState } = useSessionContext();
   const connectedAgents = useStore((state) => state.connectedAgents);
   const localHasConnectedAgent = connectedAgents.some(isLiveConnectedAgent);
   const serverAgent = appState?.gates?.agentConnectedServer === true;
-  // The OAuth callback can land here while Better Auth is still hydrating
-  // the cookie/session. Keep this brief so unconnected sessions return to
-  // onboarding instead of appearing stuck on the app route.
-  const [graceExpired, setGraceExpired] = useState(false);
-
-  useEffect(() => {
-    if (!sessionReady) {
-      return undefined;
-    }
-
-    const timer = window.setTimeout(() => setGraceExpired(true), 900);
-    return () => window.clearTimeout(timer);
-  }, [sessionReady]);
 
   if (!sessionReady) {
-    return <GuardLoading />;
+    return <Navigate to="/onboarding" replace />;
   }
 
   const verifiedAgent = serverAgent || hasConnectedAgent || localHasConnectedAgent;
   if (verifiedAgent) {
     return children;
-  }
-
-  if (!graceExpired) {
-    return <GuardLoading />;
   }
 
   return <Navigate to="/onboarding" replace state={{ from: location }} />;

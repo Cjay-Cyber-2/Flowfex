@@ -1,10 +1,9 @@
 /**
- * ModernPricingSection — glassmorphic pricing cards with full-bleed WebGL background.
+ * ModernPricingSection — Syniq-themed pricing with optional monthly/yearly toggle.
  */
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-// ─── WebGL Shader Background (full section, historical look) ────────────────
+import '../../styles/landing/modern-pricing.css';
 
 function ShaderCanvas() {
   const canvasRef = useRef(null);
@@ -109,8 +108,6 @@ function ShaderCanvas() {
   return <canvas ref={canvasRef} className="mps-shader-canvas-full" aria-hidden="true" />;
 }
 
-// ─── Check icon ───────────────────────────────────────────────────────────────
-
 function CheckIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -119,26 +116,54 @@ function CheckIcon() {
   );
 }
 
-// ─── Pricing Card ─────────────────────────────────────────────────────────────
+function BillingToggle({ isYearly, onChange }) {
+  return (
+    <div className="mps-billing-toggle" role="group" aria-label="Billing period">
+      <button
+        type="button"
+        className={`mps-billing-toggle__btn ${!isYearly ? 'is-active' : ''}`}
+        onClick={() => onChange(false)}
+      >
+        Monthly
+      </button>
+      <button
+        type="button"
+        className={`mps-billing-toggle__btn ${isYearly ? 'is-active' : ''}`}
+        onClick={() => onChange(true)}
+      >
+        Yearly
+      </button>
+    </div>
+  );
+}
 
-function ModernPricingCard({ planName, description, price, features, buttonText, isPopular = false, onCta }) {
+function ModernPricingCard({
+  planName,
+  description,
+  price,
+  periodLabel,
+  features,
+  buttonText,
+  isPopular = false,
+  onCta,
+}) {
   return (
     <div className={`mpc-card ${isPopular ? 'mpc-card-popular' : ''}`}>
-      {isPopular && <div className="mpc-badge">Most Popular</div>}
+      {isPopular ? <div className="mpc-badge">Most Popular</div> : null}
       <div className="mpc-header">
         <h2 className="mpc-plan-name">{planName}</h2>
         <p className="mpc-description">{description}</p>
       </div>
       <div className="mpc-price">
         <span className="mpc-price-amount">${price}</span>
-        <span className="mpc-price-period">/mo</span>
+        <span className="mpc-price-period">{periodLabel}</span>
       </div>
       <div className="mpc-divider" />
       <ul className="mpc-features">
-        {features.map((f, i) => (
-          <li key={i} className="mpc-feature-item">
+        {features.map((feature) => (
+          <li key={feature} className="mpc-feature-item">
             <span className="mpc-check"><CheckIcon /></span>
-            {f}
+            {feature}
           </li>
         ))}
       </ul>
@@ -153,64 +178,70 @@ function ModernPricingCard({ planName, description, price, features, buttonText,
   );
 }
 
-// ─── Main Section ─────────────────────────────────────────────────────────────
-
 const PLANS = [
   {
-    planName: 'Free',
-    description: 'Perfect for exploring Syniq and running your first live sessions.',
-    price: '0',
+    planName: 'Starter',
+    description: 'Try Syniq with a connected agent and a rolling free quota (6 skill or tool pulls per window).',
+    monthlyPrice: 0,
+    yearlyPrice: 0,
     features: [
-      '1 active session',
-      '3 connected agents',
-      '100 execution steps/day',
-      'Skill library (basic)',
+      '6 Syniq skill or tool requests per 5-hour window',
+      '1 connected agent',
+      'Prompt, link, SDK, and live attach',
+      'Map and Flow supervision',
       'Community support',
     ],
-    buttonText: 'Start Free',
+    buttonText: 'Continue on free tier',
     isPopular: false,
   },
   {
-    planName: 'Pro',
-    description: 'For teams running production orchestration with full control.',
-    price: '29',
+    planName: 'Business',
+    description: 'Production orchestration for builders who need uninterrupted Syniq pulls and more agents.',
+    monthlyPrice: 48,
+    yearlyPrice: 399,
     features: [
-      'Unlimited sessions',
-      '20 connected agents',
-      '10,000 execution steps/day',
-      'Full skill library + custom skills',
-      'Approval workflows',
+      'Unlimited Syniq skill and tool requests',
+      'Multiple connected agents',
+      'Full skill library and custom skills',
+      'Approval workflows and live reroutes',
       'Priority support',
     ],
-    buttonText: 'Get Pro',
+    buttonText: 'Upgrade to Pro',
     isPopular: true,
   },
   {
-    planName: 'Teams',
-    description: 'Shared control surfaces, audit logs, and multi-user approval queues.',
-    price: '99',
+    planName: 'Enterprise',
+    description: 'Shared control surfaces, auditability, and security for larger teams.',
+    monthlyPrice: 96,
+    yearlyPrice: 899,
     features: [
-      'Everything in Pro',
-      'Unlimited agents',
+      'Everything in Business',
       'Team approval queues',
-      'Audit logs & session replay',
-      'SSO + RBAC',
-      'Dedicated support',
+      'Audit logs and session replay',
+      'SSO and role-based access',
+      'Dedicated support and SLA options',
     ],
-    buttonText: 'Contact Sales',
+    buttonText: 'Contact sales',
     isPopular: false,
   },
 ];
 
-function ModernPricingSection({ embedMode = false, embeddedCta }) {
+function ModernPricingSection({
+  embedMode = false,
+  embeddedCta,
+  showBillingToggle = false,
+}) {
   const navigate = useNavigate();
+  const [isYearly, setIsYearly] = useState(false);
+
   const handlePlanCta = (planName) => {
     if (typeof embeddedCta === 'function') {
       embeddedCta(planName);
       return;
     }
-    navigate('/app');
+    navigate('/onboarding');
   };
+
   return (
     <section
       id={embedMode ? undefined : 'pricing'}
@@ -223,20 +254,35 @@ function ModernPricingSection({ embedMode = false, embeddedCta }) {
       <div className="mps-inner">
         {!embedMode ? (
           <div className="mps-heading">
-            <h2 className="mps-title">Start free. Scale when you&apos;re ready.</h2>
-            <p className="mps-subtitle">No forced sign-up. No credit card for trial access. Just orchestration.</p>
+            <h2 className="mps-title">Plans that work best for your agents</h2>
+            <p className="mps-subtitle">
+              Trusted by teams orchestrating IDE, CLI, and web agents through one Syniq bridge.
+            </p>
           </div>
         ) : (
           <div className="mps-heading mps-heading--embed">
             <h2 className="mps-title mps-title--embed">Choose a plan</h2>
-            <p className="mps-subtitle">Upgrade to keep orchestrating today, or wait for your free quota to renew.</p>
+            <p className="mps-subtitle">
+              Upgrade for uninterrupted usage, or wait for your free quota to renew every 5 hours.
+            </p>
           </div>
         )}
+
+        {showBillingToggle || !embedMode ? (
+          <BillingToggle isYearly={isYearly} onChange={setIsYearly} />
+        ) : null}
+
         <div className="mps-cards">
           {PLANS.map((plan) => (
             <ModernPricingCard
               key={plan.planName}
-              {...plan}
+              planName={plan.planName}
+              description={plan.description}
+              price={isYearly ? plan.yearlyPrice : plan.monthlyPrice}
+              periodLabel={isYearly ? '/year' : '/month'}
+              features={plan.features}
+              buttonText={plan.buttonText}
+              isPopular={plan.isPopular}
               onCta={() => handlePlanCta(plan.planName)}
             />
           ))}

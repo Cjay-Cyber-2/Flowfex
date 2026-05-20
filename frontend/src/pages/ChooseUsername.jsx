@@ -12,7 +12,7 @@ function resolveReturnPath(location) {
   if (typeof from === 'string' && from.startsWith('/') && !from.startsWith('//')) {
     return from;
   }
-  return '/app';
+  return '/pricing';
 }
 
 export default function ChooseUsername() {

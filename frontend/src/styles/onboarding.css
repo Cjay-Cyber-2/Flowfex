@@ -132,8 +132,8 @@
 
 /* Pulsing circle */
 .ob-circle {
-  width: 140px;
-  height: 140px;
+  width: 155px;
+  height: 155px;
   border-radius: 50%;
   border: 2px solid var(--color-sinoper);
   box-shadow: 0 0 40px rgba(0,212,170,0.26);
@@ -399,10 +399,10 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 150px;
-  height: 150px;
-  margin-left: -75px;
-  margin-top: -75px;
+  width: 168px;
+  height: 168px;
+  margin-left: -84px;
+  margin-top: -84px;
   display: grid;
   place-items: center;
   backface-visibility: hidden;

@@ -6,10 +6,30 @@ import { useNavigate } from 'react-router-dom';
 import { CONNECT_LINK, CONNECT_LIVE_SNIPPET, CONNECT_PROMPT, CONNECT_SDK_SNIPPET } from '../store/demoData';
 import useStore from '../store/useStore';
 import { useSessionContext } from '../context/SessionContext';
-import { normalizeSessionConnectUrl, rewriteConnectPrompt } from '../utils/runtimeConfig';
+import { getBackendOrigin, normalizeSessionConnectUrl, rewriteConnectPrompt } from '../utils/runtimeConfig';
 import '../styles/landing-sections3.css';
 
 const TABS = ['Prompt', 'Link', 'SDK', 'Live Channel'];
+
+/** Accurate agent-surface guidance per attach mode (from product FAQ + connection contracts). */
+const TAB_AGENT_HINTS = {
+  Prompt: {
+    bestFor: 'IDE & chat agents (Cursor, Claude Code, Windsurf, Copilot chat)',
+    howTo: 'Paste the contract into the agent’s system or project instructions, then send one attach ping to Syniq.',
+  },
+  Link: {
+    bestFor: 'Web agents & quick handoffs (browser assistants, shareable attach URLs)',
+    howTo: 'Open the one-time link in the agent environment so it can register this Syniq session.',
+  },
+  SDK: {
+    bestFor: 'CLI, backend services, and custom app agents (Node, Python, terminal runners)',
+    howTo: 'Drop the snippet into your agent process so every user turn is posted to Syniq before acting.',
+  },
+  'Live Channel': {
+    bestFor: 'Side-panel & always-on agents (persistent socket/SSE clients)',
+    howTo: 'Point your streaming client at the live endpoint and keep the session open for the full run.',
+  },
+};
 const SOCKET_OPTIONS = {
   reconnection: true,
   reconnectionDelay: 1000,
@@ -128,6 +148,21 @@ function ConnectionProofNote({ mode }) {
   );
 }
 
+function ConnectionAgentHint({ tab }) {
+  const hint = TAB_AGENT_HINTS[tab];
+  if (!hint) {
+    return null;
+  }
+
+  return (
+    <p className="cam-agent-hint">
+      <strong>Best for:</strong> {hint.bestFor}
+      <span className="cam-agent-hint__sep"> · </span>
+      {hint.howTo}
+    </p>
+  );
+}
+
 function PromptTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose, onViewPricing }) {
   if (limitState) {
     return (
@@ -153,16 +188,20 @@ function PromptTab({ connection, loading, onRefresh, error, limitState, isAuthen
     );
   }
 
-  const promptText = connection?.connection?.instructions?.prompt || CONNECT_PROMPT;
+  const rawPrompt = connection?.connection?.instructions?.prompt || CONNECT_PROMPT;
+  const sessionUrl = connection?.connection?.instructions?.sessionUrl
+    || connection?.connection?.link?.url;
+  const promptText = rewriteConnectPrompt(rawPrompt, sessionUrl);
   return (
     <div>
       <ConnectionHeadline />
+      <ConnectionAgentHint tab="Prompt" />
       <ConnectionProofNote mode="Prompt mode" />
       <ConcealedPayload text={promptText} title="Connection contract — copy to reveal" />
       <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
         <RefreshCw size={13} /> {loading ? 'Generating...' : 'Refresh Session'}
       </button>
-      {error ? <p className="cam-security-note" style={{ color: '#ff6b6b' }}>Error: {error}</p> : null}
+      {error ? <p className="cam-security-note cam-security-note--error">{error}</p> : null}
     </div>
   );
 }
@@ -200,6 +239,7 @@ function LinkTab({ connection, loading, onRefresh, error, limitState, isAuthenti
   return (
     <div>
       <ConnectionHeadline />
+      <ConnectionAgentHint tab="Link" />
       <ConnectionProofNote mode="Link mode" />
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         <input readOnly value={url} className="cam-readonly-input" />
@@ -211,7 +251,7 @@ function LinkTab({ connection, loading, onRefresh, error, limitState, isAuthenti
         <RefreshCw size={13} /> {loading ? 'Generating Link...' : 'Regenerate Link'}
       </button>
       <p className="cam-security-note">{hint}</p>
-      {error ? <p className="cam-security-note">Backend error: {error}</p> : null}
+      {error ? <p className="cam-security-note cam-security-note--error">{error}</p> : null}
     </div>
   );
 }
@@ -245,12 +285,13 @@ function SDKTab({ connection, loading, onRefresh, error, limitState, isAuthentic
   return (
     <div>
       <ConnectionHeadline />
+      <ConnectionAgentHint tab="SDK" />
       <ConnectionProofNote mode="SDK mode" />
       <ConcealedPayload text={snippet} title="SDK attach payload hidden until copied" />
       <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
         <RefreshCw size={13} /> {loading ? 'Generating SDK Session...' : 'Refresh Session'}
       </button>
-      {error ? <p className="cam-security-note">Backend error: {error}</p> : null}
+      {error ? <p className="cam-security-note cam-security-note--error">{error}</p> : null}
     </div>
   );
 }
@@ -284,6 +325,7 @@ function LiveChannelTab({ connection, loading, onRefresh, error, limitState, isA
   return (
     <div>
       <ConnectionHeadline />
+      <ConnectionAgentHint tab="Live Channel" />
       <ConnectionProofNote mode="Live channel" />
       <ConcealedPayload text={endpoint} title="Live attach payload hidden until copied" />
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -293,7 +335,7 @@ function LiveChannelTab({ connection, loading, onRefresh, error, limitState, isA
       <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
         <RefreshCw size={13} /> {loading ? 'Preparing Live Channel...' : 'Refresh Live Channel'}
       </button>
-      {error ? <p className="cam-security-note">Backend error: {error}</p> : null}
+      {error ? <p className="cam-security-note cam-security-note--error">{error}</p> : null}
     </div>
   );
 }
@@ -306,7 +348,8 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
   const addSession = useStore((state) => state.addSession);
   const setActiveSession = useStore((state) => state.setActiveSession);
   const activeSession = useStore((state) => state.activeSession);
-  const backendUrl = useStore((state) => state.backendUrl);
+  const storeBackendUrl = useStore((state) => state.backendUrl);
+  const backendUrl = storeBackendUrl || getBackendOrigin();
   const {
     accessToken,
     isAuthenticated,
@@ -373,11 +416,15 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
     setErrors((current) => ({ ...current, [tab]: null }));
     setLimitMessages((current) => ({ ...current, [tab]: null }));
 
+    const apiBase = (backendUrl || getBackendOrigin()).replace(/\/+$/, '');
+
     try {
-      const response = await fetch(`${backendUrl}/connect`, {
+      const response = await fetch(`${apiBase}/connect`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
+          Accept: 'application/json',
           ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
           ...(!accessToken && session?.anonymousToken ? { 'X-Syniq-Anonymous-Token': session.anonymousToken } : {}),
         },
@@ -420,9 +467,14 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
         }));
       }
 
+      let message = error instanceof Error ? error.message : 'Connection bootstrap failed';
+      if (error instanceof TypeError || /NetworkError|Failed to fetch|fetch resource/i.test(message)) {
+        message = `Cannot reach Syniq at ${apiBase}. Confirm the API is running (default port 4000) or set VITE_BACKEND_URL in your frontend env.`;
+      }
+
       setErrors((current) => ({
         ...current,
-        [tab]: error instanceof Error ? error.message : 'Connection bootstrap failed',
+        [tab]: message,
       }));
     } finally {
       setLoadingTabs((current) => ({ ...current, [tab]: false }));
@@ -542,10 +594,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
 
   const handleViewPricing = useCallback(() => {
     onClose();
-    navigate('/#pricing');
-    if (typeof window !== 'undefined') {
-      window.location.hash = '#pricing';
-    }
+    navigate('/pricing');
   }, [navigate, onClose]);
 
   useEffect(() => {

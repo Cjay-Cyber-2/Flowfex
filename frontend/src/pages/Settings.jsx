@@ -8,31 +8,7 @@ import {
   listApiKeys,
   revokeApiKey,
 } from '../services/sessionApi';
-
-function formatResetCountdown(resetAt) {
-  if (!resetAt) {
-    return 'Resets at the next daily window';
-  }
-  const target = Date.parse(resetAt);
-  if (Number.isNaN(target)) {
-    return 'Resets at the next daily window';
-  }
-  const deltaMs = target - Date.now();
-  if (deltaMs <= 0) {
-    return 'Renewing now';
-  }
-  const minutes = Math.floor(deltaMs / 60000);
-  if (minutes < 60) {
-    return `Resets in ${Math.max(1, minutes)} minute${minutes === 1 ? '' : 's'}`;
-  }
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) {
-    const remMin = minutes % 60;
-    return `Resets in ${hours} hour${hours === 1 ? '' : 's'}${remMin ? ` ${remMin} min` : ''}`;
-  }
-  const days = Math.floor(hours / 24);
-  return `Resets in ${days} day${days === 1 ? '' : 's'}`;
-}
+import { formatResetCountdown } from '../utils/formatQuotaReset';
 
 function UsageBar({ label, current, limit }) {
   const safeLimit = Math.max(limit || 0, 1);
@@ -440,7 +416,7 @@ function Settings() {
           )}
 
           {activeSection === 'usage' && (
-            <UsageSection usage={usage} isAuthenticated={isAuthenticated} onUpgrade={() => navigate('/#pricing')} />
+            <UsageSection usage={usage} isAuthenticated={isAuthenticated} onUpgrade={() => navigate('/pricing')} />
           )}
         </div>
       </div>

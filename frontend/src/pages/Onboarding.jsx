@@ -233,7 +233,7 @@ export default function Onboarding() {
                   transition={{ duration: 1.1, ease: 'easeInOut' }}
                 />
                 <div className="ob-transition-shell">
-                  <SyniqLogoNew size={102} animated={false} />
+                  <SyniqLogoNew size={118} animated={false} />
                 </div>
               </motion.div>
 
@@ -260,7 +260,7 @@ export default function Onboarding() {
               animate={{ scale: [1, 1.06, 1], opacity: [0.88, 1, 0.88] }}
               transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
             >
-              <SyniqLogoNew size={76} animated={false} />
+              <SyniqLogoNew size={92} animated={false} />
             </motion.div>
             <AnimatedLayerButton onClick={() => setIsModalOpen(true)}>
               Connect Agent

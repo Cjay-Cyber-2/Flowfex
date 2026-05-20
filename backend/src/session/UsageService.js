@@ -10,12 +10,12 @@ import { isLiveConnectedAgentServer } from './agentPresenceServer.js';
 
 export const SYNIQ_LIMITS = {
   anonymous: {
-    // The user-visible quota for an anonymous Syniq session is "10 requests
-    // per day after a verified attach". We keep maxConnectionsPerDay loose
+    // The user-visible quota for an anonymous Syniq session is "6 requests
+    // per 5-hour window after a verified attach". We keep maxConnectionsPerDay loose
     // so a real agent can re-attach across the day while the request quota
     // is the actual cap that drives the sign-up wall.
     maxConnectionsPerDay: 20,
-    maxExecutionsPerSession: 10,
+    maxExecutionsPerSession: 6,
     maxNodesPerSession: 50,
     maxSessionDurationMinutes: 60,
     maxConcurrentAgents: 1,
@@ -23,13 +23,13 @@ export const SYNIQ_LIMITS = {
     warningThreshold: 0.8,
   },
   authenticated: {
-    // Free authenticated tier gets 10 requests per day. After they finish,
+    // Free authenticated tier gets 6 requests per 5-hour window. After they finish,
     // the dashboard pops the pricing card; payment unlocks the paid plan
     // (handled separately) — otherwise the quota renews the next day.
     // Keep the free tier to one active agent/session so multi-agent usage
     // stays a paid capability instead of an auth bypass.
     maxConnectionsPerDay: 20,
-    maxExecutionsPerDay: 10,
+    maxExecutionsPerDay: 6,
     maxNodesPerDay: 100,
     maxSessionDurationMinutes: 480,
     maxConcurrentAgents: 1,
@@ -56,7 +56,7 @@ export const SYNIQ_LIMITS = {
   },
 };
 
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const QUOTA_WINDOW_MS = 5 * 60 * 60 * 1000;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -211,7 +211,7 @@ function buildBlockedLimit(tier, usage, limits) {
       status: 'blocked',
       tier,
       limit: 'maxExecutionsPerSession',
-      reason: `Your connected agent has used all ${limits.maxExecutionsPerSession} free Syniq skill or tool requests for today. Sign up to keep going, or wait until the daily reset.`,
+      reason: `Your connected agent has used all ${limits.maxExecutionsPerSession} free Syniq skill or tool requests for this window. Sign up to keep going, or wait about 5 hours for your quota to renew.`,
       currentValue: usage.executionsCount,
       limitValue: limits.maxExecutionsPerSession,
     };
@@ -221,7 +221,7 @@ function buildBlockedLimit(tier, usage, limits) {
       status: 'blocked',
       tier,
       limit: 'maxExecutionsPerDay',
-      reason: 'You have reached the 24-hour Syniq skill and tool request allowance for this account.',
+      reason: 'You have reached the 5-hour Syniq skill and tool request allowance for this account. Upgrade to Pro or wait for the quota window to renew.',
       currentValue: usage.executionsCount,
       limitValue: limits.maxExecutionsPerDay,
     };
@@ -482,9 +482,7 @@ export class UsageService {
         return lowest;
       }, null) ?? sessionCreatedAtMs;
 
-      const resetWindowMs = tier === 'anonymous'
-        ? ONE_DAY_MS
-        : ONE_DAY_MS;
+      const resetWindowMs = QUOTA_WINDOW_MS;
 
       const blockedLimit = buildBlockedLimit(tier, usage, limits);
       const connectionBlockedLimit = buildConnectionBlockedLimit(tier, usage, limits);

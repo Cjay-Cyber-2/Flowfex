@@ -50,6 +50,44 @@ export function getAppOrigin() {
   return DEFAULT_APP_ORIGIN;
 }
 
+const VERCEL_APP_HOSTS = new Set(['syniq.vercel.app', 'flowfex.vercel.app']);
+
+function isLocalDevHost(hostname) {
+  return LOCAL_HOSTNAMES.has(hostname);
+}
+
+function isVercelAppHost(hostname) {
+  return VERCEL_APP_HOSTS.has(hostname);
+}
+
+/**
+ * Base URL for browser `fetch()` calls.
+ * Prefer same-origin paths so Vite (dev) or Vercel rewrites proxy to the API — avoids
+ * cross-origin failures that surface as "NetworkError when attempting to fetch resource".
+ */
+export function resolveApiFetchBase() {
+  const location = getBrowserLocation();
+
+  if (import.meta.env.DEV && location && isLocalDevHost(location.hostname)) {
+    return '';
+  }
+
+  if (location && isVercelAppHost(location.hostname)) {
+    return '';
+  }
+
+  const rawEnv = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL;
+  const configuredOrigin = normalizeOrigin(rawEnv);
+  if (configuredOrigin) {
+    return (toHttpOrigin(configuredOrigin) || configuredOrigin).replace(/\/+$/, '');
+  }
+
+  return getBackendOrigin().replace(/\/+$/, '');
+}
+
+/**
+ * Public API origin for prompts, sockets, and absolute URLs shown to agents.
+ */
 export function getBackendOrigin() {
   const rawEnv = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL;
   const configuredOrigin = normalizeOrigin(rawEnv);
@@ -62,12 +100,15 @@ export function getBackendOrigin() {
     return DEFAULT_BACKEND_ORIGIN;
   }
 
-  if (location.hostname === 'syniq.vercel.app' || location.hostname === 'flowfex.vercel.app') {
+  if (isVercelAppHost(location.hostname)) {
     return DEFAULT_VERCEL_PRODUCTION_BACKEND;
   }
 
-  if (LOCAL_HOSTNAMES.has(location.hostname) && location.port === '3000') {
-    return `${location.protocol}//${location.hostname}:4000`;
+  if (isLocalDevHost(location.hostname)) {
+    if (location.port === '3000' || location.port === '5173') {
+      return `${location.protocol}//${location.hostname}:4000`;
+    }
+    return DEFAULT_BACKEND_ORIGIN;
   }
 
   return location.origin;

@@ -1,4 +1,4 @@
-import { getBackendOrigin } from '../utils/runtimeConfig';
+import { resolveApiFetchBase } from '../utils/runtimeConfig';
 
 export const ANONYMOUS_TOKEN_STORAGE_KEY = 'syniq_anonymous_token';
 
@@ -13,7 +13,7 @@ async function parseResponse(response) {
 }
 
 async function request(path, options = {}) {
-  const response = await fetch(`${getBackendOrigin()}${path}`, {
+  const response = await fetch(`${resolveApiFetchBase()}${path}`, {
     credentials: 'include',
     ...options,
     headers: {

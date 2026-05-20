@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { buildApprovalQueue } from './demoData';
 import { CONTROL_EVENTS } from '../../../shared/control-contracts.js';
-import { getBackendOrigin } from '../utils/runtimeConfig';
+import { getBackendOrigin, resolveApiFetchBase } from '../utils/runtimeConfig';
 import { resolveRehydratedGraphState } from '../../../lib/session/rehydrate';
 import { filterLiveConnectedAgents } from '../utils/agentPresence';
 import { buildWorkspaceAuthRequestInit } from '../services/sessionRequestAuth';
@@ -540,7 +540,7 @@ const useStore = create((set, get) => ({
       },
     })),
 
-  backendUrl: getBackendOrigin(),
+  backendUrl: resolveApiFetchBase(),
   applySessionSnapshot: (snapshot) =>
     set((state) => applySessionSnapshotToState(state, snapshot)),
 

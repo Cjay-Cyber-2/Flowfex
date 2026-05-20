@@ -18,7 +18,7 @@ import {
 import { upgradeAnonymousSession } from '../../../lib/session/upgrade';
 import { fetchSyniqUsageStatus } from '../../../lib/limits/service';
 import { fetchResolveAppState } from '../../../lib/session/resolveAppState';
-import { getBackendOrigin } from '../utils/runtimeConfig';
+import { getBackendOrigin, resolveApiFetchBase } from '../utils/runtimeConfig';
 import {
   getCurrentAuthSession,
   isAuthClientConfigured,
@@ -103,6 +103,7 @@ export function SessionProvider({ children }) {
   const resetWorkspace = useStore((store) => store.resetWorkspace);
   const connectedAgents = useStore((store) => store.connectedAgents);
   const backendOrigin = getBackendOrigin();
+  const apiFetchBase = resolveApiFetchBase();
   const [state, setState] = useState({
     session: null,
     user: null,
@@ -149,7 +150,7 @@ export function SessionProvider({ children }) {
 
     try {
       const usage = await fetchSyniqUsageStatus(sessionId, accessToken, {
-        apiBaseUrl: backendOrigin,
+        apiBaseUrl: apiFetchBase,
         anonymousToken: state.session?.anonymousToken || readAnonymousToken(),
       });
       startTransition(() => {
@@ -191,7 +192,7 @@ export function SessionProvider({ children }) {
       if (auth.user && auth.accessToken && storedAnonymousToken) {
         try {
           const upgraded = await upgradeAnonymousSession(auth.accessToken, storedAnonymousToken, {
-            apiBaseUrl: backendOrigin,
+            apiBaseUrl: apiFetchBase,
           });
           backendSession = upgraded.session || null;
           if (backendSession) {
@@ -208,7 +209,7 @@ export function SessionProvider({ children }) {
       if (auth.user && auth.accessToken && !backendSession) {
         try {
           const recent = await fetchRecentAuthenticatedSession(auth.accessToken, {
-            apiBaseUrl: backendOrigin,
+            apiBaseUrl: apiFetchBase,
           });
           backendSession = recent.session || null;
         } catch {
@@ -218,11 +219,11 @@ export function SessionProvider({ children }) {
 
       if (auth.user && auth.accessToken && !backendSession) {
         const created = await createAnonymousSession({
-          apiBaseUrl: backendOrigin,
+          apiBaseUrl: apiFetchBase,
         });
         if (created?.anonymousToken) {
           const upgraded = await upgradeAnonymousSession(auth.accessToken, created.anonymousToken, {
-            apiBaseUrl: backendOrigin,
+            apiBaseUrl: apiFetchBase,
           });
           backendSession = upgraded.session || created.session || null;
         } else {
@@ -232,7 +233,7 @@ export function SessionProvider({ children }) {
 
       if (!backendSession) {
         const initialized = await initializeSyniqSession({
-          apiBaseUrl: backendOrigin,
+          apiBaseUrl: apiFetchBase,
         });
         backendSession = initialized.session || null;
       }
@@ -252,7 +253,7 @@ export function SessionProvider({ children }) {
       let usageFromResolve = null;
       try {
         resolvedAppState = await fetchResolveAppState({
-          apiBaseUrl: backendOrigin,
+          apiBaseUrl: apiFetchBase,
           accessToken: auth.accessToken,
         });
         if (resolvedAppState?.ok && resolvedAppState.usage) {
@@ -361,7 +362,7 @@ export function SessionProvider({ children }) {
   const refreshAppState = useCallback(async () => {
     try {
       const resolved = await fetchResolveAppState({
-        apiBaseUrl: backendOrigin,
+        apiBaseUrl: apiFetchBase,
         accessToken: accessTokenRef.current,
       });
       startTransition(() => {

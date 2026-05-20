@@ -6,7 +6,12 @@ import { useNavigate } from 'react-router-dom';
 import { CONNECT_LINK, CONNECT_LIVE_SNIPPET, CONNECT_PROMPT, CONNECT_SDK_SNIPPET } from '../store/demoData';
 import useStore from '../store/useStore';
 import { useSessionContext } from '../context/SessionContext';
-import { getBackendOrigin, normalizeSessionConnectUrl, rewriteConnectPrompt } from '../utils/runtimeConfig';
+import {
+  getBackendOrigin,
+  normalizeSessionConnectUrl,
+  resolveApiFetchBase,
+  rewriteConnectPrompt,
+} from '../utils/runtimeConfig';
 import '../styles/landing-sections3.css';
 
 const TABS = ['Prompt', 'Link', 'SDK', 'Live Channel'];
@@ -348,8 +353,8 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
   const addSession = useStore((state) => state.addSession);
   const setActiveSession = useStore((state) => state.setActiveSession);
   const activeSession = useStore((state) => state.activeSession);
-  const storeBackendUrl = useStore((state) => state.backendUrl);
-  const backendUrl = storeBackendUrl || getBackendOrigin();
+  const apiFetchBase = resolveApiFetchBase();
+  const socketBase = getBackendOrigin().replace(/\/+$/, '');
   const {
     accessToken,
     isAuthenticated,
@@ -416,7 +421,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
     setErrors((current) => ({ ...current, [tab]: null }));
     setLimitMessages((current) => ({ ...current, [tab]: null }));
 
-    const apiBase = (backendUrl || getBackendOrigin()).replace(/\/+$/, '');
+    const apiBase = resolveApiFetchBase();
 
     try {
       const response = await fetch(`${apiBase}/connect`, {
@@ -467,19 +472,14 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
         }));
       }
 
-      let message = error instanceof Error ? error.message : 'Connection bootstrap failed';
-      if (error instanceof TypeError || /NetworkError|Failed to fetch|fetch resource/i.test(message)) {
-        message = `Cannot reach Syniq at ${apiBase}. Confirm the API is running (default port 4000) or set VITE_BACKEND_URL in your frontend env.`;
-      }
-
       setErrors((current) => ({
         ...current,
-        [tab]: message,
+        [tab]: error instanceof Error ? error.message : 'Connection bootstrap failed',
       }));
     } finally {
       setLoadingTabs((current) => ({ ...current, [tab]: false }));
     }
-  }, [accessToken, backendUrl, requestForTab, session?.anonymousToken]);
+  }, [accessToken, apiFetchBase, requestForTab, session?.anonymousToken]);
 
   // Surface session-level request/attach exhaustion in the modal too so the
   // user sees the same sign-up wall whether they hit the cap from the
@@ -624,13 +624,13 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
     }
 
     const session = connections[activeTab]?.connection?.session;
-    if (!session?.id || !backendUrl) {
+    if (!session?.id || !socketBase) {
       setSyncState('idle');
       return undefined;
     }
 
     setSyncState('waiting');
-    const socket = io(`${backendUrl}/session`, {
+    const socket = io(`${socketBase}/session`, {
       ...SOCKET_OPTIONS,
       query: { sessionId: session.id },
     });
@@ -651,7 +651,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
     return () => {
       socket.disconnect();
     };
-  }, [activeTab, backendUrl, connections, finalizeConnection, initialTab, isOpen]);
+  }, [activeTab, socketBase, connections, finalizeConnection, initialTab, isOpen]);
 
   /** HTTP fallback: if agent:connected is missed (WS timing, proxies), poll session after an 8s grace window. */
   useEffect(() => {
@@ -661,13 +661,13 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
 
     const sess = connections[activeTab]?.connection?.session;
     const token = sess?.token;
-    if (!sess?.id || !token || !backendUrl) {
+    if (!sess?.id || !token) {
       return undefined;
     }
 
     let cancelled = false;
     let intervalId = null;
-    const baseUrl = backendUrl.replace(/\/+$/, '');
+    const baseUrl = apiFetchBase;
     const maxAttempts = 80;
 
     const tick = async () => {
@@ -725,7 +725,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
         window.clearInterval(intervalId);
       }
     };
-  }, [activeTab, backendUrl, connections, finalizeConnection, initialTab, isOpen, syncState]);
+  }, [activeTab, apiFetchBase, connections, finalizeConnection, initialTab, isOpen, syncState]);
 
   return (
     <AnimatePresence initial={false}>

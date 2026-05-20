@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { X, Play, RefreshCw } from 'lucide-react';
 import useStore from '../store/useStore';
-import { getBackendOrigin } from '../utils/runtimeConfig';
+import { resolveApiFetchBase } from '../utils/runtimeConfig';
 import { buildWorkspaceAuthRequestInit } from '../services/sessionRequestAuth';
 
 function SessionDetail() {
@@ -23,8 +23,8 @@ function SessionDetail() {
 
   useEffect(() => {
     let cancelled = false;
-    const backendOrigin = getBackendOrigin();
-    if (!id || !backendOrigin) {
+    const backendOrigin = resolveApiFetchBase();
+    if (!id) {
       setLoading(false);
       return () => undefined;
     }

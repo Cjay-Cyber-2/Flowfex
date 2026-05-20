@@ -220,6 +220,100 @@
   color: var(--color-velin);
 }
 
+.library-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.library-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(0, 212, 170, 0.08);
+  border: 1px solid rgba(0, 212, 170, 0.14);
+}
+
+.library-stat-value {
+  font-family: var(--font-geist);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-velin);
+  line-height: 1.1;
+}
+
+.library-stat-label {
+  font-family: var(--font-space-grotesk);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-bistre);
+}
+
+.library-group-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.library-group-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  min-height: 88px;
+  border-radius: 14px;
+  background: rgba(8, 12, 16, 0.65);
+  border: 1px solid rgba(0, 212, 170, 0.1);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.library-group-card:hover {
+  border-color: rgba(0, 212, 170, 0.28);
+  background: rgba(0, 212, 170, 0.06);
+}
+
+.library-group-card-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.library-group-card-icon {
+  flex-shrink: 0;
+  color: var(--color-sinoper);
+}
+
+.library-group-card-label {
+  font-family: var(--font-inter);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-velin);
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.library-group-card-count {
+  font-family: var(--font-geist);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-sinoper);
+  line-height: 1;
+}
+
+.library-group-card-meta {
+  font-family: var(--font-inter);
+  font-size: 0.62rem;
+  color: var(--color-bistre);
+  letter-spacing: 0.04em;
+}
+
 .category-chip-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

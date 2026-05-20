@@ -4,6 +4,7 @@ import useStore from '../../store/useStore';
 import { useSessionContext } from '../../context/SessionContext';
 import { DEMO_SKILL_LIBRARY } from '../../store/demoData';
 import FlowIcon from '../common/FlowIcon';
+import { filterLiveConnectedAgents } from '../../utils/agentPresence';
 import './LeftRail.css';
 
 const CATEGORY_ICON_MAP = {
@@ -258,6 +259,22 @@ function LeftRail() {
     [categoryChips]
   );
 
+  const liveConnectedAgents = useMemo(
+    () => filterLiveConnectedAgents(connectedAgents),
+    [connectedAgents]
+  );
+
+  const librarySummary = useMemo(() => {
+    const categoryCount = categoryChips.length;
+    const topGroup = categoryChips[0] || null;
+    return {
+      totalSkills: totalSkillsInSynIQ,
+      categoryCount,
+      topGroupLabel: topGroup?.label || '—',
+      topGroupCount: topGroup?.count || 0,
+    };
+  }, [categoryChips, totalSkillsInSynIQ]);
+
   return (
     <aside className="left-rail">
       <div className="left-rail-session-switcher">
@@ -277,14 +294,17 @@ function LeftRail() {
         />
       </label>
 
-      <section className="rail-panel">
+      <section className="rail-panel" data-tour="agents">
         <div className="rail-panel-head">
           <span className="rail-panel-title">Connected agents</span>
-          <span className="rail-panel-count">{connectedAgents.length}</span>
+          <span className="rail-panel-count">{liveConnectedAgents.length}</span>
         </div>
         <div className="rail-panel-body">
           <div className="agent-stack agent-stack--compact">
-            {connectedAgents.map((agent) => (
+            {liveConnectedAgents.length === 0 ? (
+              <p className="rail-empty-hint">No agent connected yet. Use Connect agent to attach one.</p>
+            ) : null}
+            {liveConnectedAgents.map((agent) => (
               <div
                 key={agent.id}
                 className={`agent-row ${agent.status === 'connected' ? 'is-connected' : ''}`}
@@ -305,7 +325,7 @@ function LeftRail() {
         </div>
       </section>
 
-      <section className="rail-panel rail-panel--grow">
+      <section className="rail-panel rail-panel--grow" data-tour="library">
         <div className="rail-panel-head">
           <span className="rail-panel-title">Syniq library</span>
           <span className="rail-panel-count" title="Total skills/tools in catalog">
@@ -313,15 +333,28 @@ function LeftRail() {
           </span>
         </div>
         <div className="rail-panel-body rail-panel-body--chips">
+          <div className="library-summary-grid" aria-label="Syniq library totals">
+            <div className="library-stat-card">
+              <strong className="library-stat-value">{librarySummary.totalSkills}</strong>
+              <span className="library-stat-label">Skills indexed</span>
+            </div>
+            <div className="library-stat-card">
+              <strong className="library-stat-value">{librarySummary.categoryCount}</strong>
+              <span className="library-stat-label">Groups</span>
+            </div>
+          </div>
           {categoryChips.length === 0 ? (
             <p className="rail-empty-hint">No categories match this search.</p>
           ) : (
-            <div className="category-chip-grid" aria-busy={isSearching}>
+            <div className="library-group-grid" aria-busy={isSearching}>
               {categoryChips.map((cat) => (
-                <div key={cat.id} className="category-chip" title={`${cat.count} in Syniq`}>
-                  <FlowIcon name={cat.icon} size={16} className="category-chip-icon" />
-                  <span className="category-chip-label">{cat.label}</span>
-                  <span className="category-chip-value">{cat.count}</span>
+                <div key={cat.id} className="library-group-card" title={`${cat.count} skills in ${cat.label}`}>
+                  <div className="library-group-card-head">
+                    <FlowIcon name={cat.icon} size={18} className="library-group-card-icon" />
+                    <span className="library-group-card-label">{cat.label}</span>
+                  </div>
+                  <strong className="library-group-card-count">{cat.count}</strong>
+                  <span className="library-group-card-meta">skills in group</span>
                 </div>
               ))}
             </div>

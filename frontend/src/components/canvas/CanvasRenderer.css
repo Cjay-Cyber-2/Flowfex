@@ -3,6 +3,7 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
+  touch-action: none;
   background:
     radial-gradient(circle at top left, rgba(0, 212, 170, 0.09), transparent 26%),
     radial-gradient(circle at bottom right, rgba(0, 212, 170, 0.06), transparent 28%),

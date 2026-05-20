@@ -11,12 +11,16 @@ import {
 } from 'lucide-react';
 import useStore from '../../store/useStore';
 import FlowIcon from '../common/FlowIcon';
+import {
+  fitTransformToGraph,
+  getGraphBounds,
+  getNodeBox,
+  isPinchZoomWheelEvent,
+} from '../../utils/graphViewport';
 import './CanvasRenderer.css';
 
-const GRAPH_WIDTH = 2480;
-const GRAPH_HEIGHT = 820;
-const MIN_SCALE = 0.35;
-const MAX_SCALE = 1.25;
+const MIN_SCALE = 0.2;
+const MAX_SCALE = 2.5;
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -158,28 +162,24 @@ function CanvasRenderer() {
   }, []);
 
   const fitView = useCallback(() => {
-    const padding = 80;
-    const scale = clamp(
-      Math.min(
-        (viewportSize.width - padding * 2) / GRAPH_WIDTH,
-        (viewportSize.height - padding * 2) / GRAPH_HEIGHT
-      ),
-      MIN_SCALE,
-      MAX_SCALE
+    if (!nodes.length) return;
+    setTransform(
+      fitTransformToGraph(nodes, viewportSize, {
+        minScale: MIN_SCALE,
+        maxScale: MAX_SCALE,
+        padding: 72,
+      })
     );
-
-    setTransform({
-      scale,
-      x: (viewportSize.width - GRAPH_WIDTH * scale) / 2,
-      y: (viewportSize.height - GRAPH_HEIGHT * scale) / 2,
-    });
-  }, [viewportSize.height, viewportSize.width]);
+  }, [nodes, viewportSize.height, viewportSize.width]);
 
   useEffect(() => {
-    if (!nodes.length || autoFitRef.current || viewportSize.width === 0 || viewportSize.height === 0) return;
+    if (!nodes.length || viewportSize.width === 0 || viewportSize.height === 0) return;
+    const bounds = getGraphBounds(nodes);
+    const signature = `${nodes.length}:${bounds.width}:${bounds.height}:${nodes.map((n) => `${n.id}@${n.x},${n.y}`).join('|')}`;
+    if (autoFitRef.current === signature) return;
     fitView();
-    autoFitRef.current = true;
-  }, [fitView, nodes.length, viewportSize.width, viewportSize.height]);
+    autoFitRef.current = signature;
+  }, [fitView, nodes, viewportSize.width, viewportSize.height]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -228,18 +228,34 @@ function CanvasRenderer() {
     event.preventDefault();
     if (!containerRef.current) return;
 
-    const rect = containerRef.current.getBoundingClientRect();
-    const cursorX = event.clientX - rect.left;
-    const cursorY = event.clientY - rect.top;
-    const nextScale = clamp(transform.scale * (event.deltaY < 0 ? 1.08 : 0.92), MIN_SCALE, MAX_SCALE);
-    const worldX = (cursorX - transform.x) / transform.scale;
-    const worldY = (cursorY - transform.y) / transform.scale;
+    const isPinch = isPinchZoomWheelEvent(event);
+    const isMouseWheel =
+      !isPinch
+      && Math.abs(event.deltaX) < 2
+      && (event.deltaMode === 1 || Math.abs(event.deltaY) >= 4);
 
-    setTransform({
-      scale: nextScale,
-      x: cursorX - worldX * nextScale,
-      y: cursorY - worldY * nextScale,
-    });
+    if (isPinch || isMouseWheel) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const cursorX = event.clientX - rect.left;
+      const cursorY = event.clientY - rect.top;
+      const zoomFactor = event.deltaY < 0 ? 1.1 : 0.9;
+      const nextScale = clamp(transform.scale * zoomFactor, MIN_SCALE, MAX_SCALE);
+      const worldX = (cursorX - transform.x) / transform.scale;
+      const worldY = (cursorY - transform.y) / transform.scale;
+
+      setTransform({
+        scale: nextScale,
+        x: cursorX - worldX * nextScale,
+        y: cursorY - worldY * nextScale,
+      });
+      return;
+    }
+
+    setTransform((current) => ({
+      ...current,
+      x: current.x - event.deltaX,
+      y: current.y - event.deltaY,
+    }));
   };
 
   const handleMouseDown = (event) => {
@@ -302,6 +318,7 @@ function CanvasRenderer() {
   return (
     <div
       ref={containerRef}
+      data-tour="graph"
       className={`canvas-renderer canvas-mode-${canvasMode} ${
         toolMode === 'pan' || spacePressed ? 'is-pan-ready' : ''
       } ${dragState ? 'is-panning' : ''}`}

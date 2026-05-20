@@ -5,8 +5,10 @@ import LeftRail from '../components/layout/LeftRail';
 import RightDrawer from '../components/layout/RightDrawer';
 import TopBar from '../components/layout/TopBar';
 import ConnectAgentModal from '../components/ConnectAgentModal';
+import DashboardTour from '../components/dashboard/DashboardTour';
 import useStore from '../store/useStore';
 import { useSessionContext } from '../context/SessionContext';
+import { filterLiveConnectedAgents } from '../utils/agentPresence';
 import {
   hasSeenPricingWall,
   isExecutionQuotaExhausted,
@@ -121,6 +123,7 @@ function OrchestrationCanvas() {
     bootstrapWorkspace,
     connectModalOpen,
     connectedAgents,
+    hydrateSessionState,
     nodes,
     setConnectModalOpen,
   } = useStore();
@@ -134,6 +137,19 @@ function OrchestrationCanvas() {
 
     bootstrapWorkspace();
   }, [bootstrapWorkspace, sessionReady]);
+
+  useEffect(() => {
+    if (!sessionReady || !activeSession?.id) {
+      return;
+    }
+
+    hydrateSessionState(activeSession.id);
+  }, [activeSession?.id, hydrateSessionState, sessionReady]);
+
+  const liveConnectedAgents = useMemo(
+    () => filterLiveConnectedAgents(connectedAgents),
+    [connectedAgents]
+  );
 
   const currentNode = useMemo(
     () => nodes.find((node) => node.state === 'approval') || nodes.find((node) => node.state === 'active'),
@@ -241,7 +257,7 @@ function OrchestrationCanvas() {
             </div>
             <div className="canvas-surface-pill">
               <span className="canvas-surface-pill-label">Connected agents</span>
-              <strong>{connectedAgents.length}</strong>
+              <strong>{liveConnectedAgents.length}</strong>
             </div>
             {requestLimit ? (
               <div className="canvas-surface-pill">
@@ -265,6 +281,7 @@ function OrchestrationCanvas() {
       </div>
 
       <ConnectAgentModal isOpen={connectModalOpen} onClose={() => setConnectModalOpen(false)} />
+      <DashboardTour sessionReady={sessionReady} />
     </div>
   );
 }

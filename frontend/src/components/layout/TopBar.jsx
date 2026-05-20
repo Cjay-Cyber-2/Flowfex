@@ -82,7 +82,7 @@ function TopBar() {
       </div>
 
       <div className="top-bar-right">
-        <div className="mode-toggle">
+        <div className="mode-toggle" data-tour="canvas-modes">
           {modes.map((mode) => (
             <button
               key={mode.id}

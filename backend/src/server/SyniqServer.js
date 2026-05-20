@@ -1379,6 +1379,8 @@ export class SyniqServer {
       });
     }
 
+    console.error("[SyniqServer] Unhandled Error in request:", error);
+
     if (this.socketServer && error?.details?.actionType) {
       this.socketServer.emitControlError(error.details.sessionId || null, {
         action: 'error',

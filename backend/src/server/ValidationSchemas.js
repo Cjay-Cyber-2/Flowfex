@@ -70,7 +70,8 @@ export const constrainSchema = z.object({
 // ─── Helper for Error Formatting ──────────────────────────────────────────────
 
 export function formatZodError(error) {
-  return error.errors.map(err => {
+  const issues = error.issues || error.errors || [];
+  return issues.map(err => {
     const path = err.path.join('.');
     return path ? `${path}: ${err.message}` : err.message;
   });

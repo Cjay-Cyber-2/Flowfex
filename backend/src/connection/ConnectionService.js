@@ -85,7 +85,7 @@ export class ConnectionService {
       minScore: payload.minScore ?? 0.18,
       allowKeywordFallback: false
     });
-    const recommendedToolIds = retrieval.matches.map(match => match.tool.id);
+    const recommendedToolIds = (retrieval?.matches || []).map(match => match.tool.id);
     const { session, token } = this.sessionManager.createSession({
       id: payload.sessionId,
       mode: 'prompt',
@@ -445,11 +445,11 @@ export class ConnectionService {
 
   _serializeRetrieval(retrieval) {
     return {
-      strategy: retrieval.strategy,
-      query: retrieval.query,
-      fallbackUsed: retrieval.fallbackUsed,
-      fallbackReason: retrieval.fallbackReason,
-      matches: retrieval.matches.map(match => ({
+      strategy: retrieval?.strategy || 'unknown',
+      query: retrieval?.query || '',
+      fallbackUsed: retrieval?.fallbackUsed || false,
+      fallbackReason: retrieval?.fallbackReason || null,
+      matches: (retrieval?.matches || []).map(match => ({
         tool: {
           id: match.tool.id,
           name: match.tool.name,

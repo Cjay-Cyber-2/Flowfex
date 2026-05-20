@@ -3,8 +3,15 @@ import { createAuthClient } from 'better-auth/client';
 import { jwtClient } from 'better-auth/client/plugins';
 import { getAppOrigin, getBackendOrigin } from '../utils/runtimeConfig';
 
+function getAuthBaseUrl() {
+  if (import.meta.env.VITE_API_DIRECT === '1' || import.meta.env.VITE_API_DIRECT === 'true') {
+    return getBackendOrigin();
+  }
+  return getAppOrigin();
+}
+
 const authClient = createAuthClient({
-  baseURL: getBackendOrigin(),
+  baseURL: getAuthBaseUrl(),
   basePath: '/api/auth',
   plugins: [jwtClient()],
 });

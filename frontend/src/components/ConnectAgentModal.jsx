@@ -55,6 +55,23 @@ function useCopy() {
   return [copied, copy];
 }
 
+function formatConnectFetchError(error) {
+  const message = error instanceof Error ? error.message : String(error || '');
+  const isNetworkFailure =
+    error instanceof TypeError
+    || /NetworkError|Failed to fetch|fetch resource|ECONNREFUSED|load failed/i.test(message);
+
+  if (!isNetworkFailure) {
+    return message || 'Connection bootstrap failed';
+  }
+
+  if (import.meta.env.DEV) {
+    return 'Cannot reach the local Syniq API. Start the backend on port 4000 (`cd backend && npm start`), then try again.';
+  }
+
+  return 'Cannot reach the Syniq API right now. Please try again in a moment.';
+}
+
 async function readConnectResponse(response) {
   const rawText = await response.text();
   const trimmed = rawText.trim();
@@ -474,7 +491,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
 
       setErrors((current) => ({
         ...current,
-        [tab]: error instanceof Error ? error.message : 'Connection bootstrap failed',
+        [tab]: formatConnectFetchError(error),
       }));
     } finally {
       setLoadingTabs((current) => ({ ...current, [tab]: false }));

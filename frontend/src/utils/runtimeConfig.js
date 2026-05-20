@@ -62,27 +62,26 @@ function isVercelAppHost(hostname) {
 
 /**
  * Base URL for browser `fetch()` calls.
- * Prefer same-origin paths so Vite (dev) or Vercel rewrites proxy to the API — avoids
- * cross-origin failures that surface as "NetworkError when attempting to fetch resource".
+ * Default: same-origin (`''`) so Vite dev proxy and Vercel rewrites handle `/connect`, `/api`, etc.
+ * Cross-origin fetch only when VITE_API_DIRECT=1 (split-host deployments without rewrites).
  */
 export function resolveApiFetchBase() {
   const location = getBrowserLocation();
 
-  if (import.meta.env.DEV && location && isLocalDevHost(location.hostname)) {
-    return '';
+  if (!location) {
+    const rawEnv = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL;
+    const configuredOrigin = normalizeOrigin(rawEnv);
+    if (configuredOrigin) {
+      return (toHttpOrigin(configuredOrigin) || configuredOrigin).replace(/\/+$/, '');
+    }
+    return DEFAULT_BACKEND_ORIGIN;
   }
 
-  if (location && isVercelAppHost(location.hostname)) {
-    return '';
+  if (import.meta.env.VITE_API_DIRECT === '1' || import.meta.env.VITE_API_DIRECT === 'true') {
+    return getBackendOrigin().replace(/\/+$/, '');
   }
 
-  const rawEnv = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL;
-  const configuredOrigin = normalizeOrigin(rawEnv);
-  if (configuredOrigin) {
-    return (toHttpOrigin(configuredOrigin) || configuredOrigin).replace(/\/+$/, '');
-  }
-
-  return getBackendOrigin().replace(/\/+$/, '');
+  return '';
 }
 
 /**

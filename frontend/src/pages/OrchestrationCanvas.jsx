@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CanvasRenderer from '../components/canvas/CanvasRenderer';
 import LeftRail from '../components/layout/LeftRail';
@@ -6,11 +6,11 @@ import RightDrawer from '../components/layout/RightDrawer';
 import TopBar from '../components/layout/TopBar';
 import ConnectAgentModal from '../components/ConnectAgentModal';
 import DashboardTour from '../components/dashboard/DashboardTour';
+import QuotaPricingOverlay from '../components/billing/QuotaPricingOverlay';
 import useStore from '../store/useStore';
 import { useSessionContext } from '../context/SessionContext';
 import { filterLiveConnectedAgents } from '../utils/agentPresence';
 import {
-  hasSeenPricingWall,
   isExecutionQuotaExhausted,
   markPricingWallSeen,
   quotaCycleKey,
@@ -59,9 +59,9 @@ function paymentGateHeadline(blockedLimit, connectionBlockedLimit, isAuthenticat
   const tier = blockedLimit?.tier || connectionBlockedLimit?.tier;
   if (key === 'maxExecutionsPerSession' || key === 'maxExecutionsPerDay') {
     if (!isAuthenticated || tier === 'anonymous') {
-      return 'You used all 6 free Syniq skill or tool requests for this window.';
+      return 'You used all 6 free Syniq tools requests for this window.';
     }
-    return 'You used all free Syniq skill or tool requests for this account window.';
+    return 'You used all free Syniq tools requests for this account window.';
   }
   if (key === 'maxConnectionsPerDay') {
     return 'You hit today\u2019s Syniq attach cap.';
@@ -128,7 +128,7 @@ function OrchestrationCanvas() {
     setConnectModalOpen,
   } = useStore();
   const [freeTierCardDismissed, setFreeTierCardDismissed] = useState(false);
-  const quotaRedirectedRef = useRef(false);
+  const [pricingWallDismissed, setPricingWallDismissed] = useState(false);
 
   useEffect(() => {
     if (!sessionReady) {
@@ -168,56 +168,21 @@ function OrchestrationCanvas() {
   const cycleKey = quotaCycleKey(usage);
   const isPro = appState?.identity?.billing === 'pro';
 
-  const showAuthenticatedBanner = isAuthenticated && Boolean(anyBlockReason) && !isPro;
+  const showAnonymousQuotaGate = !isAuthenticated && executionQuotaExhausted;
+  const showAuthenticatedBanner = isAuthenticated && Boolean(anyBlockReason) && !isPro && !executionQuotaExhausted;
+  const showAuthenticatedPricingWall = isAuthenticated
+    && executionQuotaExhausted
+    && !isPro
+    && !pricingWallDismissed;
   const showFreeTierCard = isAuthenticated
     && appState?.identity?.billing === 'free'
     && !freeTierCardDismissed
     && !executionQuotaExhausted;
 
   useEffect(() => {
-    quotaRedirectedRef.current = false;
-  }, [cycleKey, activeSession?.id]);
-
-  useEffect(() => {
-    if (!sessionReady || isPro || !executionQuotaExhausted) {
-      return;
-    }
-
-    if (location.pathname === '/settings') {
-      return;
-    }
-
-    if (quotaRedirectedRef.current) {
-      return;
-    }
-
-    if (!isAuthenticated) {
-      quotaRedirectedRef.current = true;
-      navigate('/signup', {
-        replace: true,
-        state: { from: location.pathname, reason: 'anonymous_quota' },
-      });
-      return;
-    }
-
-    if (!hasSeenPricingWall(cycleKey)) {
-      quotaRedirectedRef.current = true;
-      markPricingWallSeen(cycleKey);
-      navigate('/pricing', { replace: true, state: { from: location.pathname } });
-    }
-  }, [
-    cycleKey,
-    executionQuotaExhausted,
-    isAuthenticated,
-    isPro,
-    location.pathname,
-    navigate,
-    sessionReady,
-  ]);
-
-  useEffect(() => {
     setFreeTierCardDismissed(false);
-  }, [activeSession?.id, appState?.identity?.billing]);
+    setPricingWallDismissed(false);
+  }, [activeSession?.id, appState?.identity?.billing, cycleKey]);
 
   return (
     <div className="orchestration-canvas-page">
@@ -227,6 +192,16 @@ function OrchestrationCanvas() {
         <LeftRail />
 
         <main className="canvas-main-shell">
+          {showAnonymousQuotaGate ? (
+            <UsageGateBanner
+              isAuthenticated={false}
+              title="You used all 6 free tools requests for this window"
+              message={blockedLimit?.reason || 'Create a free account to keep orchestrating, or wait for your quota to renew.'}
+              onSignIn={() => navigate('/signin', { state: { from: location.pathname } })}
+              onSignUp={() => navigate('/signup', { state: { from: location.pathname, reason: 'anonymous_quota' } })}
+            />
+          ) : null}
+
           {showAuthenticatedBanner ? (
             <UsageGateBanner
               isAuthenticated
@@ -261,7 +236,7 @@ function OrchestrationCanvas() {
             </div>
             {requestLimit ? (
               <div className="canvas-surface-pill">
-                <span className="canvas-surface-pill-label">Skill / tool pulls</span>
+                <span className="canvas-surface-pill-label">Tools request</span>
                 <strong>{requestsToday} / {requestLimit}</strong>
               </div>
             ) : null}
@@ -282,6 +257,18 @@ function OrchestrationCanvas() {
 
       <ConnectAgentModal isOpen={connectModalOpen} onClose={() => setConnectModalOpen(false)} />
       <DashboardTour sessionReady={sessionReady} />
+      {showAuthenticatedPricingWall ? (
+        <QuotaPricingOverlay
+          variant="authenticated"
+          headline={gateHeadline}
+          message={blockedLimit?.reason || anyBlockReason || 'Upgrade for uninterrupted Syniq tools requests, or wait for your quota window to renew.'}
+          resetAt={usage?.resetAt}
+          onDismiss={() => {
+            markPricingWallSeen(cycleKey);
+            setPricingWallDismissed(true);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

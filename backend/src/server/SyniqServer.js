@@ -667,7 +667,6 @@ export class SyniqServer {
 
       const registry = this.connectionService?.orchestrator?.registry || this.connectionService?.registry;
       if (!registry) {
-        await this._recordSkillToolQuotaIfAgent(request);
         return this._writeJson(response, 200, { tools: [] });
       }
       const tools = registry.getCanonicalSkillRecords();
@@ -704,7 +703,6 @@ export class SyniqServer {
         }
       };
 
-      await this._recordSkillToolQuotaIfAgent(request);
       return this._writeJson(response, 200, payload);
     }
 
@@ -727,12 +725,10 @@ export class SyniqServer {
 
       const registry = this.connectionService?.orchestrator?.registry || this.connectionService?.registry;
       if (!registry) {
-        await this._recordSkillToolQuotaIfAgent(request);
         return this._writeJson(response, 200, { categories: {} });
       }
 
       const categories = registry.getIndex('category');
-      await this._recordSkillToolQuotaIfAgent(request);
       return this._writeJson(response, 200, { categories });
     }
 
@@ -759,7 +755,6 @@ export class SyniqServer {
         || this.connectionService?.registry;
 
       if (!registry) {
-        await this._recordSkillToolQuotaIfAgent(request);
         return this._writeJson(response, 200, { results: [], query });
       }
 
@@ -770,7 +765,6 @@ export class SyniqServer {
         strategy: match.strategy,
       }));
 
-      await this._recordSkillToolQuotaIfAgent(request);
       return this._writeJson(response, 200, { results, query, strategy: retrieval.strategy });
     }
 
@@ -792,6 +786,7 @@ export class SyniqServer {
       }
 
       try {
+        await this._assertToolsRequestQuota(executionPayload.sessionId);
         if (this._wantsEventStream(request, url, body)) {
           this._emitAgentConnectedForSessionId(executionPayload.sessionId, 'prompt');
           return this._writeEventStream(response, executionPayload);
@@ -799,10 +794,14 @@ export class SyniqServer {
 
         this._emitAgentConnectedForSessionId(executionPayload.sessionId, 'prompt');
         const payload = await this.connectionService.execute(executionPayload);
+        await this._recordToolsRequest(executionPayload.sessionId, payload);
         return this._writeJson(response, 200, {
           ...payload,
           sessionId: executionPayload.sessionId,
         });
+      } catch (error) {
+        this._writeError(response, error);
+        return;
       } finally {
         this.sessionLockManager.release(executionPayload.sessionId);
       }
@@ -830,6 +829,7 @@ export class SyniqServer {
       }
 
       try {
+        await this._assertToolsRequestQuota(executionPayload.sessionId);
         if (this._wantsEventStream(request, url, body)) {
           this._emitAgentConnectedForSessionId(executionPayload.sessionId, null);
           return this._writeEventStream(response, executionPayload);
@@ -837,7 +837,11 @@ export class SyniqServer {
 
         this._emitAgentConnectedForSessionId(executionPayload.sessionId, null);
         const payload = await this.connectionService.execute(executionPayload);
+        await this._recordToolsRequest(executionPayload.sessionId, payload);
         return this._writeJson(response, 200, payload);
+      } catch (error) {
+        this._writeError(response, error);
+        return;
       } finally {
         this.sessionLockManager.release(executionPayload.sessionId);
       }
@@ -1094,9 +1098,10 @@ export class SyniqServer {
   }
 
   /**
-   * Anonymous free-tier quota applies only when the agent calls Syniq using
-   * the live attach token (`ffx_...`). Browser catalog loads use Better Auth
-   * JWT or anonymous cookies and do not increment usage.
+   * Agent tools-request quota is enforced on ingest/execute (one completed
+   * agent task = one tools request). Catalog reads assert limits for `ffx_`
+   * tokens but do not increment usage. Browser catalog loads use Better Auth
+   * JWT or anonymous cookies and do not touch agent quota.
    */
   _resolveAgentSkillUsageSessionId(request) {
     const bearer = this._extractBearerToken(request);
@@ -1122,13 +1127,25 @@ export class SyniqServer {
     await this.usageService.assertExecutionAllowed({ sessionId });
   }
 
-  async _recordSkillToolQuotaIfAgent(request) {
-    const sessionId = this._resolveAgentSkillUsageSessionId(request);
+  async _assertToolsRequestQuota(sessionId) {
     if (!sessionId || !this.usageService) {
       return;
     }
 
-    await this.usageService.recordExecution({ sessionId, nodesProcessed: 0 });
+    await this.usageService.assertExecutionAllowed({ sessionId });
+  }
+
+  async _recordToolsRequest(sessionId, executionPayload = null) {
+    if (!sessionId || !this.usageService) {
+      return;
+    }
+
+    const graphNodes = executionPayload?.graph?.nodes
+      || executionPayload?.snapshot?.graph?.nodes
+      || [];
+    const nodesProcessed = Array.isArray(graphNodes) ? graphNodes.length : 0;
+
+    await this.usageService.recordExecution({ sessionId, nodesProcessed });
   }
 
   async _isSkillCatalogCallerAllowed(request, authUser, anonymousToken) {
@@ -1305,9 +1322,10 @@ export class SyniqServer {
     };
 
     try {
-      await this.connectionService.execute(executionPayload, {
+      const payload = await this.connectionService.execute(executionPayload, {
         eventSink: sendEvent
       });
+      await this._recordToolsRequest(executionPayload.sessionId, payload);
     } catch (error) {
       sendEvent({
         sequence: 0,

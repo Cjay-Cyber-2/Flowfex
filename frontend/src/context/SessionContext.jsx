@@ -349,6 +349,70 @@ export function SessionProvider({ children }) {
     };
   }, [refreshUsage, state.accessToken, state.session?.id]);
 
+  useEffect(() => {
+    const sessionId = state.session?.id;
+    if (!sessionId || !state.sessionReady) {
+      return undefined;
+    }
+
+    let cancelled = false;
+    const unsubscribers = [];
+
+    const applyUsagePayload = (payload) => {
+      if (!payload?.usage || !payload?.limits) {
+        return;
+      }
+
+      startTransition(() => {
+        setState((current) => ({
+          ...current,
+          usage: {
+            ok: true,
+            tier: payload.tier ?? current.usage?.tier ?? 'anonymous',
+            sessionId: payload.sessionId ?? sessionId,
+            authId: current.usage?.authId ?? null,
+            anonymousToken: current.usage?.anonymousToken ?? null,
+            usage: payload.usage,
+            limits: payload.limits,
+            blockedLimit: payload.blockedLimit ?? null,
+            connectionBlockedLimit: current.usage?.connectionBlockedLimit ?? null,
+            warningLimit: payload.warningLimit ?? current.usage?.warningLimit ?? null,
+            resetAt: current.usage?.resetAt ?? null,
+          },
+          usageError: null,
+        }));
+      });
+    };
+
+    import('../services/socketClient.js')
+      .then(({ default: client }) => {
+        if (cancelled) {
+          return;
+        }
+
+        if (client.sessionId !== sessionId) {
+          client.connect(sessionId);
+        }
+
+        unsubscribers.push(
+          client.subscribe('session', 'limit:usage_updated', applyUsagePayload),
+          client.subscribe('orchestration', 'limit:usage_updated', applyUsagePayload)
+        );
+      })
+      .catch(() => {
+        return;
+      });
+
+    return () => {
+      cancelled = true;
+      unsubscribers.forEach((unsubscribe) => {
+        if (typeof unsubscribe === 'function') {
+          unsubscribe();
+        }
+      });
+    };
+  }, [state.session?.id, state.sessionReady]);
+
   const signOut = useCallback(async () => {
     wasAuthenticatedRef.current = false;
     if (isAuthClientConfigured()) {

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import useStore from '../../store/useStore';
 import './DashboardTour.css';
 
@@ -10,23 +10,26 @@ const STEPS = [
     title: 'Map view',
     body: 'Map shows the full orchestration graph — every node, branch, and edge. Use it when you want the whole picture of how Syniq routed your session.',
     mode: 'map',
+    target: 'canvas-modes',
   },
   {
     id: 'flow',
     title: 'Flow view',
     body: 'Flow highlights the active path: running, queued, and approval nodes stay bright while the rest fade back. Use it to focus on what is executing right now.',
     mode: 'flow',
+    target: 'canvas-modes',
   },
   {
     id: 'live',
     title: 'Live view',
     body: 'Live keeps the canvas fully visible for real-time updates as your connected agent posts work through Syniq. Use it while an agent is actively orchestrating.',
     mode: 'live',
+    target: 'canvas-modes',
   },
   {
     id: 'library',
     title: 'Syniq library',
-    body: 'Grouped skill cards show how many tools and skills Syniq has indexed per category. Search filters categories; counts reflect the live catalog.',
+    body: 'Skills, agents, and multi-agent totals match the live catalog. Expand a group to browse every indexed skill in that category.',
     target: 'library',
   },
   {
@@ -59,10 +62,77 @@ function writeSeen() {
   }
 }
 
+function resolveTargetRect(target) {
+  if (!target || typeof document === 'undefined') {
+    return null;
+  }
+
+  const element = document.querySelector(`[data-tour="${target}"]`);
+  if (!element) {
+    return null;
+  }
+
+  element.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+  const rect = element.getBoundingClientRect();
+  const padding = 10;
+
+  return {
+    top: Math.max(8, rect.top - padding),
+    left: Math.max(8, rect.left - padding),
+    width: Math.min(window.innerWidth - 16, rect.width + padding * 2),
+    height: Math.min(window.innerHeight - 16, rect.height + padding * 2),
+  };
+}
+
+function pickCardPlacement(rect) {
+  if (!rect) {
+    return { className: 'dashboard-tour-card--centered', style: {} };
+  }
+
+  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
+  const spaceBelow = viewportHeight - (rect.top + rect.height);
+  const spaceAbove = rect.top;
+  const cardMaxWidth = Math.min(480, viewportWidth - 32);
+
+  if (spaceBelow >= 220) {
+    return {
+      className: 'dashboard-tour-card--below',
+      style: {
+        top: rect.top + rect.height + 16,
+        left: Math.max(16, Math.min(rect.left, viewportWidth - cardMaxWidth - 16)),
+        width: cardMaxWidth,
+      },
+    };
+  }
+
+  if (spaceAbove >= 220) {
+    return {
+      className: 'dashboard-tour-card--above',
+      style: {
+        bottom: viewportHeight - rect.top + 16,
+        left: Math.max(16, Math.min(rect.left, viewportWidth - cardMaxWidth - 16)),
+        width: cardMaxWidth,
+      },
+    };
+  }
+
+  return {
+    className: 'dashboard-tour-card--side',
+    style: {
+      top: Math.max(16, rect.top),
+      left: Math.min(viewportWidth - cardMaxWidth - 16, rect.left + rect.width + 16),
+      width: cardMaxWidth,
+    },
+  };
+}
+
 export default function DashboardTour({ sessionReady }) {
   const setCanvasMode = useStore((s) => s.setCanvasMode);
   const [open, setOpen] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
+  const [spotlight, setSpotlight] = useState(null);
+  const [cardPlacement, setCardPlacement] = useState({ className: 'dashboard-tour-card--centered', style: {} });
 
   useEffect(() => {
     if (!sessionReady) return;
@@ -79,6 +149,37 @@ export default function DashboardTour({ sessionReady }) {
     if (!open || !step?.mode) return;
     setCanvasMode(step.mode);
   }, [open, step?.mode, setCanvasMode]);
+
+  const updateSpotlight = useCallback(() => {
+    if (!open || !step) {
+      return;
+    }
+
+    const rect = resolveTargetRect(step.target);
+    setSpotlight(rect);
+    setCardPlacement(pickCardPlacement(rect));
+  }, [open, step]);
+
+  useLayoutEffect(() => {
+    updateSpotlight();
+  }, [updateSpotlight, stepIndex]);
+
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+
+    const onResize = () => updateSpotlight();
+    window.addEventListener('resize', onResize);
+    window.addEventListener('scroll', onResize, true);
+    const timer = window.setTimeout(updateSpotlight, 120);
+
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('scroll', onResize, true);
+    };
+  }, [open, updateSpotlight]);
 
   const close = useCallback(() => {
     writeSeen();
@@ -103,8 +204,23 @@ export default function DashboardTour({ sessionReady }) {
 
   return (
     <div className="dashboard-tour-root" role="dialog" aria-modal="true" aria-labelledby="dashboard-tour-title">
-      <div className="dashboard-tour-backdrop" aria-hidden="true" />
-      <div className={`dashboard-tour-card dashboard-tour-card--${step.target || step.id}`}>
+      <div className="dashboard-tour-backdrop" aria-hidden="true">
+        {spotlight ? (
+          <div
+            className="dashboard-tour-spotlight"
+            style={{
+              top: spotlight.top,
+              left: spotlight.left,
+              width: spotlight.width,
+              height: spotlight.height,
+            }}
+          />
+        ) : null}
+      </div>
+      <div
+        className={`dashboard-tour-card ${cardPlacement.className} dashboard-tour-card--${step.target || step.id}`}
+        style={cardPlacement.style}
+      >
         <span className="dashboard-tour-kicker">
           Dashboard guide · {stepIndex + 1} / {STEPS.length}
         </span>

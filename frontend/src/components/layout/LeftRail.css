@@ -227,6 +227,10 @@
   margin-bottom: 10px;
 }
 
+.library-summary-grid--triple {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .library-stat-card {
   display: flex;
   flex-direction: column;
@@ -253,34 +257,35 @@
   color: var(--color-bistre);
 }
 
-.library-group-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.library-group-list {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
 .library-group-card {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 10px 12px;
-  min-height: 88px;
   border-radius: 14px;
   background: rgba(8, 12, 16, 0.65);
   border: 1px solid rgba(0, 212, 170, 0.1);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  overflow: hidden;
 }
 
-.library-group-card:hover {
-  border-color: rgba(0, 212, 170, 0.28);
-  background: rgba(0, 212, 170, 0.06);
-}
-
-.library-group-card-head {
-  display: flex;
+.library-group-card-toggle {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 6px;
-  min-width: 0;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  color: var(--color-velin);
+  cursor: pointer;
+  text-align: left;
+}
+
+.library-group-card-toggle:hover {
+  background: rgba(0, 212, 170, 0.06);
 }
 
 .library-group-card-icon {
@@ -300,18 +305,48 @@
 }
 
 .library-group-card-count {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 212, 170, 0.12);
   font-family: var(--font-geist);
-  font-size: 1.5rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: var(--color-sinoper);
   line-height: 1;
 }
 
-.library-group-card-meta {
+.skill-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 0 10px 10px;
+}
+
+.skill-tile {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px;
+  min-height: 52px;
+  border-radius: 10px;
+  background: rgba(4, 8, 12, 0.55);
+  border: 1px solid rgba(0, 212, 170, 0.06);
+  color: rgba(232, 237, 242, 0.88);
+}
+
+.skill-tile span {
   font-family: var(--font-inter);
   font-size: 0.62rem;
-  color: var(--color-bistre);
-  letter-spacing: 0.04em;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.skill-tile svg {
+  flex-shrink: 0;
+  color: var(--color-sinoper);
 }
 
 .category-chip-grid {

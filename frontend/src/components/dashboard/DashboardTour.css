@@ -2,30 +2,48 @@
   position: fixed;
   inset: 0;
   z-index: 1200;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 24px;
   pointer-events: none;
 }
 
 .dashboard-tour-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(4, 8, 12, 0.52);
+  background: rgba(4, 8, 12, 0.62);
   pointer-events: auto;
 }
 
+.dashboard-tour-spotlight {
+  position: fixed;
+  border-radius: 16px;
+  box-shadow: 0 0 0 9999px rgba(4, 8, 12, 0.62);
+  border: 2px solid rgba(0, 212, 170, 0.55);
+  background: transparent;
+  pointer-events: none;
+  transition: top 0.2s ease, left 0.2s ease, width 0.2s ease, height 0.2s ease;
+}
+
 .dashboard-tour-card {
-  position: relative;
-  z-index: 1;
-  width: min(480px, calc(100vw - 32px));
+  position: fixed;
+  z-index: 2;
   padding: 22px 24px;
   border-radius: 20px;
   border: 1px solid rgba(0, 212, 170, 0.22);
   background: linear-gradient(180deg, rgba(12, 20, 28, 0.98), rgba(8, 12, 16, 0.96));
   box-shadow: 0 28px 64px rgba(0, 0, 0, 0.45);
   pointer-events: auto;
+}
+
+.dashboard-tour-card--centered {
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  width: min(480px, calc(100vw - 32px));
+}
+
+.dashboard-tour-card--below,
+.dashboard-tour-card--above,
+.dashboard-tour-card--side {
+  max-width: min(480px, calc(100vw - 32px));
 }
 
 .dashboard-tour-kicker {

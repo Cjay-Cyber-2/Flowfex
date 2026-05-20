@@ -559,22 +559,45 @@ const useStore = create((set, get) => ({
       const state = get();
 
       // ─── Orchestration Events ─────────────────────────────────────
-      client.subscribe('orchestration', 'graph:created', (data) => {
-        if (data.nodes && data.edges) {
-          set({
-            nodes: data.nodes,
-            edges: data.edges,
-            approvalQueue: buildApprovalQueue(data.nodes),
-          });
+      const mergeGraphPayload = (incomingNodes, incomingEdges) => {
+        if (!Array.isArray(incomingNodes) || incomingNodes.length === 0) {
+          return null;
         }
+
+        set((state) => {
+          const nodeMap = new Map(state.nodes.map((node) => [node.id, node]));
+          for (const node of incomingNodes) {
+            nodeMap.set(node.id, node);
+          }
+
+          const edgeMap = new Map(state.edges.map((edge) => [edge.id, edge]));
+          if (Array.isArray(incomingEdges)) {
+            for (const edge of incomingEdges) {
+              edgeMap.set(edge.id, edge);
+            }
+          }
+
+          const nodes = Array.from(nodeMap.values());
+          const edges = Array.from(edgeMap.values());
+          return {
+            nodes,
+            edges,
+            approvalQueue: buildApprovalQueue(nodes),
+            isExecuting: nodes.some((node) => node.state === 'active' || node.state === 'queued'),
+          };
+        });
+        return null;
+      };
+
+      client.subscribe('orchestration', 'graph:created', (data) => {
+        const incomingNodes = data?.nodes || data?.graph?.nodes;
+        const incomingEdges = data?.edges || data?.graph?.edges;
+        mergeGraphPayload(incomingNodes, incomingEdges);
       });
 
       client.subscribe('orchestration', 'node:created', (data) => {
-        if (data.node) {
-          set((s) => {
-            const nodes = [...s.nodes, data.node];
-            return { nodes, approvalQueue: buildApprovalQueue(nodes) };
-          });
+        if (data?.node) {
+          mergeGraphPayload([data.node], data.edge ? [data.edge] : []);
         }
       });
 

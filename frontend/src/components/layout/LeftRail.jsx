@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Search } from 'lucide-react';
 import useStore from '../../store/useStore';
 import { useSessionContext } from '../../context/SessionContext';
 import { DEMO_SKILL_LIBRARY } from '../../store/demoData';
 import FlowIcon from '../common/FlowIcon';
 import { filterLiveConnectedAgents } from '../../utils/agentPresence';
+import { deriveCatalogStats, formatCatalogCount } from '../../utils/catalogStats';
 import './LeftRail.css';
 
 const CATEGORY_ICON_MAP = {
@@ -123,7 +124,9 @@ function LeftRail() {
   const [searchValue, setSearchValue] = useState('');
   const [liveResults, setLiveResults] = useState(null);
   const [liveSkills, setLiveSkills] = useState([]);
-  const [categoryIndexStats, setCategoryIndexStats] = useState(null);
+  const [catalogTools, setCatalogTools] = useState([]);
+  const [catalogSummary, setCatalogSummary] = useState(null);
+  const [expandedCategories, setExpandedCategories] = useState({});
   const [isSearching, setIsSearching] = useState(false);
   const debounceRef = useRef(null);
 
@@ -174,7 +177,10 @@ function LeftRail() {
         if (!res.ok) return;
         const data = await res.json();
         if (!cancelled) {
-          setLiveSkills(Array.isArray(data.tools) ? data.tools.map(toCompactSkillRecord) : []);
+          const tools = Array.isArray(data.tools) ? data.tools : [];
+          setCatalogTools(tools);
+          setCatalogSummary(data.summary || null);
+          setLiveSkills(tools.map(toCompactSkillRecord));
         }
       } catch {
         if (!cancelled) {
@@ -189,91 +195,64 @@ function LeftRail() {
     };
   }, [backendUrl, buildSessionHeaders]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadCategories = async () => {
-      try {
-        const res = await fetch(`${backendUrl}/skills/categories`, {
-          headers: buildSessionHeaders(),
-          credentials: 'include',
-        });
-        if (!res.ok) {
-          throw new Error('categories unavailable');
-        }
-        const data = await res.json();
-        if (!cancelled) {
-          setCategoryIndexStats(categoriesFromIndexPayload(data.categories));
-        }
-      } catch {
-        if (!cancelled) {
-          setCategoryIndexStats(null);
-        }
-      }
-    };
-
-    loadCategories();
-    return () => {
-      cancelled = true;
-    };
-  }, [backendUrl, buildSessionHeaders]);
+  const catalogStats = useMemo(
+    () => deriveCatalogStats({ tools: catalogTools, summary: catalogSummary }),
+    [catalogSummary, catalogTools]
+  );
 
   const fallbackGrouped = useMemo(() => {
     const groupedLive = groupSkillsByCategory(liveSkills);
     return groupedLive.length > 0 ? groupedLive : DEMO_SKILL_LIBRARY;
   }, [liveSkills]);
 
-  const categoryChips = useMemo(() => {
-    if (liveResults && liveResults.length > 0) {
-      return groupSkillsByCategory(liveResults).map((cat) => ({
-        id: cat.id,
-        label: cat.label,
-        icon: resolveCategoryIcon(cat.id),
-        count: cat.items.length,
-      }));
-    }
-
+  const libraryGroups = useMemo(() => {
     const query = searchValue.trim().toLowerCase();
-    if (categoryIndexStats && categoryIndexStats.length > 0) {
-      if (!query) {
-        return categoryIndexStats;
-      }
-      return categoryIndexStats.filter(
-        (c) => c.label.toLowerCase().includes(query) || c.id.toLowerCase().includes(query)
-      );
+
+    if (liveResults && liveResults.length > 0) {
+      return groupSkillsByCategory(liveResults).filter((category) => {
+        if (!query) return true;
+        return category.label.toLowerCase().includes(query)
+          || category.id.toLowerCase().includes(query)
+          || category.items.some((item) => item.label.toLowerCase().includes(query));
+      });
     }
 
-    return fallbackGrouped.map((cat) => ({
-      id: cat.id,
-      label: cat.label,
-      icon: resolveCategoryIcon(cat.id),
-      count: cat.items.length,
-    })).filter((c) => {
-      if (!query) return true;
-      return c.label.toLowerCase().includes(query) || c.id.toLowerCase().includes(query);
-    });
-  }, [liveResults, searchValue, categoryIndexStats, fallbackGrouped]);
+    return fallbackGrouped
+      .map((category) => ({
+        ...category,
+        icon: resolveCategoryIcon(category.id),
+        items: category.items.filter((item) => {
+          if (!query) return true;
+          return item.label.toLowerCase().includes(query)
+            || category.label.toLowerCase().includes(query)
+            || category.id.toLowerCase().includes(query);
+        }),
+      }))
+      .filter((category) => category.items.length > 0);
+  }, [fallbackGrouped, liveResults, searchValue]);
 
-  const totalSkillsInSynIQ = useMemo(
-    () => categoryChips.reduce((sum, c) => sum + c.count, 0),
-    [categoryChips]
-  );
+  const totalSkillsInSynIQ = catalogStats.skillsIndexed;
 
   const liveConnectedAgents = useMemo(
     () => filterLiveConnectedAgents(connectedAgents),
     [connectedAgents]
   );
 
-  const librarySummary = useMemo(() => {
-    const categoryCount = categoryChips.length;
-    const topGroup = categoryChips[0] || null;
-    return {
-      totalSkills: totalSkillsInSynIQ,
-      categoryCount,
-      topGroupLabel: topGroup?.label || '—',
-      topGroupCount: topGroup?.count || 0,
-    };
-  }, [categoryChips, totalSkillsInSynIQ]);
+  const catalogMiniCards = useMemo(
+    () => [
+      { id: 'skills', label: 'Skills', value: formatCatalogCount(catalogStats.skillsIndexed) },
+      { id: 'agents', label: 'Agents', value: formatCatalogCount(catalogStats.agentTemplates) },
+      { id: 'multi', label: 'Multi Agents', value: formatCatalogCount(catalogStats.multiAgentSystems) },
+    ],
+    [catalogStats]
+  );
+
+  const toggleCategory = useCallback((categoryId) => {
+    setExpandedCategories((current) => ({
+      ...current,
+      [categoryId]: !current[categoryId],
+    }));
+  }, []);
 
   return (
     <aside className="left-rail">
@@ -333,30 +312,46 @@ function LeftRail() {
           </span>
         </div>
         <div className="rail-panel-body rail-panel-body--chips">
-          <div className="library-summary-grid" aria-label="Syniq library totals">
-            <div className="library-stat-card">
-              <strong className="library-stat-value">{librarySummary.totalSkills}</strong>
-              <span className="library-stat-label">Skills indexed</span>
-            </div>
-            <div className="library-stat-card">
-              <strong className="library-stat-value">{librarySummary.categoryCount}</strong>
-              <span className="library-stat-label">Groups</span>
-            </div>
+          <div className="library-summary-grid library-summary-grid--triple" aria-label="Syniq catalog totals">
+            {catalogMiniCards.map((card) => (
+              <div key={card.id} className="library-stat-card library-stat-card--mini">
+                <strong className="library-stat-value">{card.value}</strong>
+                <span className="library-stat-label">{card.label}</span>
+              </div>
+            ))}
           </div>
-          {categoryChips.length === 0 ? (
+          {libraryGroups.length === 0 ? (
             <p className="rail-empty-hint">No categories match this search.</p>
           ) : (
-            <div className="library-group-grid" aria-busy={isSearching}>
-              {categoryChips.map((cat) => (
-                <div key={cat.id} className="library-group-card" title={`${cat.count} skills in ${cat.label}`}>
-                  <div className="library-group-card-head">
-                    <FlowIcon name={cat.icon} size={18} className="library-group-card-icon" />
-                    <span className="library-group-card-label">{cat.label}</span>
+            <div className="library-group-list" aria-busy={isSearching}>
+              {libraryGroups.map((category) => {
+                const isExpanded = expandedCategories[category.id] ?? false;
+                return (
+                  <div key={category.id} className="library-group-card">
+                    <button
+                      type="button"
+                      className="library-group-card-toggle"
+                      onClick={() => toggleCategory(category.id)}
+                      aria-expanded={isExpanded}
+                    >
+                      {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                      <FlowIcon name={category.icon} size={16} className="library-group-card-icon" />
+                      <span className="library-group-card-label">{category.label}</span>
+                      <span className="library-group-card-count">{category.items.length}</span>
+                    </button>
+                    {isExpanded ? (
+                      <div className="skill-tile-grid">
+                        {category.items.map((item) => (
+                          <div key={item.id} className="skill-tile" title={item.description || item.label}>
+                            <FlowIcon name={item.icon} size={16} />
+                            <span>{item.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
-                  <strong className="library-group-card-count">{cat.count}</strong>
-                  <span className="library-group-card-meta">skills in group</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

@@ -71,7 +71,7 @@ function UsageSection({ usage, isAuthenticated, onUpgrade }) {
         </p>
 
         {requestLimit ? (
-          <UsageBar label="Skill / tool requests (rolling)" current={requestsCount} limit={requestLimit} />
+          <UsageBar label="Tools requests (rolling)" current={requestsCount} limit={requestLimit} />
         ) : null}
         {attachLimit ? (
           <UsageBar label="Verified attaches today" current={attachesCount} limit={attachLimit} />

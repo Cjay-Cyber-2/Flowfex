@@ -410,7 +410,7 @@ export class UsageService {
       const tier = this.resolveTier({ authId: session.auth_id, apiKeyId });
       const limits = SYNIQ_LIMITS[tier];
       const nowMs = Date.now();
-      const rollingWindowStart = new Date(nowMs - ONE_DAY_MS);
+      const rollingWindowStart = new Date(nowMs - QUOTA_WINDOW_MS);
       let connectionSessionRows;
 
       let usageRows;

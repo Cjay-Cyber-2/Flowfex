@@ -165,8 +165,18 @@ export class SyniqServer {
     };
   }
 
+  _normalizePathname(pathname) {
+    if (!pathname || pathname === '/') {
+      return pathname || '/';
+    }
+    return pathname.length > 1 && pathname.endsWith('/')
+      ? pathname.slice(0, -1)
+      : pathname;
+  }
+
   async _handleRequest(request, response) {
     const url = new URL(request.url, 'http://syniq.local');
+    url.pathname = this._normalizePathname(url.pathname);
     const ip = request.headers['x-forwarded-for'] || request.socket?.remoteAddress || 'unknown';
     const accessToken = this._extractBearerToken(request);
     const authUser = accessToken && this.sessionDataEnabled

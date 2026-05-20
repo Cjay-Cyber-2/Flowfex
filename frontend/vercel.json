@@ -1,8 +1,8 @@
 {
   "rewrites": [
     { "source": "/api/:path*", "destination": "https://flowfex.onrender.com/api/:path*" },
-    { "source": "/connect/:path*", "destination": "https://flowfex.onrender.com/connect/:path*" },
-    { "source": "/connect", "destination": "https://flowfex.onrender.com/connect" },
+    { "source": "/connect/:path*", "destination": "https://flowfex.onrender.com/api/connect/:path*" },
+    { "source": "/connect", "destination": "https://flowfex.onrender.com/api/connect" },
     { "source": "/ingest", "destination": "https://flowfex.onrender.com/ingest" },
     { "source": "/sessions/:path*", "destination": "https://flowfex.onrender.com/sessions/:path*" },
     { "source": "/session/:path*", "destination": "https://flowfex.onrender.com/session/:path*" },

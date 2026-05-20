@@ -8,6 +8,7 @@ import useStore from '../store/useStore';
 import { useSessionContext } from '../context/SessionContext';
 import {
   getBackendOrigin,
+  getConnectEndpointPath,
   normalizeSessionConnectUrl,
   resolveApiFetchBase,
   rewriteConnectPrompt,
@@ -441,7 +442,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
     const apiBase = resolveApiFetchBase();
 
     try {
-      const response = await fetch(`${apiBase}/connect`, {
+      const response = await fetch(`${apiBase}${getConnectEndpointPath()}`, {
         method: 'POST',
         credentials: 'include',
         headers: {

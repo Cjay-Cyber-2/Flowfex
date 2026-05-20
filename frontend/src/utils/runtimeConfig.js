@@ -60,6 +60,11 @@ function isVercelAppHost(hostname) {
   return VERCEL_APP_HOSTS.has(hostname);
 }
 
+/** Browser POST target for connection bootstrap (must use /api/connect on Vercel rewrites). */
+export function getConnectEndpointPath() {
+  return '/api/connect';
+}
+
 /**
  * Base URL for browser `fetch()` calls.
  * Default: same-origin (`''`) so Vite dev proxy and Vercel rewrites handle `/connect`, `/api`, etc.

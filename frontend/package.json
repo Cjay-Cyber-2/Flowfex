@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "prepare:frames": "node ./scripts/prepare-scroll-frames.mjs",
-    "predev": "npm run prepare:frames",
-    "prebuild": "npm run prepare:frames",
+    "favicons": "node ./scripts/generate-favicons.mjs",
+    "predev": "npm run prepare:frames && npm run favicons",
+    "prebuild": "npm run prepare:frames && npm run favicons",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",

@@ -190,19 +190,19 @@ export class SyniqServer {
     const tier = authUser?.id ? 'authenticated' : 'anonymous';
 
     const isExecutionEndpoint = (request.method === 'POST' && (
-      url.pathname === '/connect' || 
-      url.pathname === '/ingest' || 
-      url.pathname.match(/^\/sessions\/([^/]+)\/execute$/)
+      url.pathname === '/connect' || url.pathname === '/api/connect' ||
+      url.pathname === '/ingest' || url.pathname === '/api/ingest' ||
+      url.pathname.match(/^(?:\/api)?\/sessions\/([^/]+)\/execute$/)
     ));
     const isControlEndpoint = (request.method === 'POST' && (
-      url.pathname.match(/^\/session\/([^/]+)\/(pause|resume|constrain)$/) ||
-      url.pathname.match(/^\/node\/([^/]+)\/(approve|reject|reroute)$/)
+      url.pathname.match(/^(?:\/api)?\/session\/([^/]+)\/(pause|resume|constrain)$/) ||
+      url.pathname.match(/^(?:\/api)?\/node\/([^/]+)\/(approve|reject|reroute)$/)
     ));
-    const isConnectEndpoint = (request.method === 'POST' && url.pathname === '/connect');
+    const isConnectEndpoint = (request.method === 'POST' && (url.pathname === '/connect' || url.pathname === '/api/connect'));
 
     if (isExecutionEndpoint && !executionRateLimiter.check(rateLimitIdentity, tier)) {
       if (this.socketServer) {
-        const sessionId = url.pathname.match(/^\/sessions\/([^/]+)\/execute$/)?.[1] || null;
+        const sessionId = url.pathname.match(/^(?:\/api)?\/sessions\/([^/]+)\/execute$/)?.[1] || null;
         if (sessionId) {
           this.socketServer.emitLimitEvent(sessionId, 'limit:rate_limited', {
             sessionId, tier, endpoint: 'execution',
@@ -219,21 +219,21 @@ export class SyniqServer {
       return this._writeJson(response, 429, { error: { message: 'Too many connection requests. Please wait.' } });
     }
 
-    const sessionMatch = url.pathname.match(/^\/sessions\/([^/]+)$/);
-    const executionMatch = url.pathname.match(/^\/sessions\/([^/]+)\/execute$/);
-    const connectLiveMatch = url.pathname.match(/^\/connect\/live\/([^/]+)$/);
-    const sessionStateMatch = url.pathname.match(/^\/session\/([^/]+)\/state$/);
-    const pauseMatch = url.pathname.match(/^\/session\/([^/]+)\/pause$/);
-    const resumeMatch = url.pathname.match(/^\/session\/([^/]+)\/resume$/);
-    const approveMatch = url.pathname.match(/^\/node\/([^/]+)\/approve$/);
-    const rejectMatch = url.pathname.match(/^\/node\/([^/]+)\/reject$/);
-    const rerouteMatch = url.pathname.match(/^\/node\/([^/]+)\/reroute$/);
-    const constrainMatch = url.pathname.match(/^\/session\/([^/]+)\/constrain$/);
-    const skillsMatch = url.pathname === '/skills';
-    const skillsSearchMatch = url.pathname === '/skills/search';
-    const skillsCategoriesMatch = url.pathname === '/skills/categories';
-    const ingestMatch = url.pathname === '/ingest';
-    const sseStreamMatch = url.pathname.match(/^\/session\/([^/]+)\/stream$/);
+    const sessionMatch = url.pathname.match(/^(?:\/api)?\/sessions\/([^/]+)$/);
+    const executionMatch = url.pathname.match(/^(?:\/api)?\/sessions\/([^/]+)\/execute$/);
+    const connectLiveMatch = url.pathname.match(/^(?:\/api)?\/connect\/live\/([^/]+)$/);
+    const sessionStateMatch = url.pathname.match(/^(?:\/api)?\/session\/([^/]+)\/state$/);
+    const pauseMatch = url.pathname.match(/^(?:\/api)?\/session\/([^/]+)\/pause$/);
+    const resumeMatch = url.pathname.match(/^(?:\/api)?\/session\/([^/]+)\/resume$/);
+    const approveMatch = url.pathname.match(/^(?:\/api)?\/node\/([^/]+)\/approve$/);
+    const rejectMatch = url.pathname.match(/^(?:\/api)?\/node\/([^/]+)\/reject$/);
+    const rerouteMatch = url.pathname.match(/^(?:\/api)?\/node\/([^/]+)\/reroute$/);
+    const constrainMatch = url.pathname.match(/^(?:\/api)?\/session\/([^/]+)\/constrain$/);
+    const skillsMatch = url.pathname === '/skills' || url.pathname === '/api/skills';
+    const skillsSearchMatch = url.pathname === '/skills/search' || url.pathname === '/api/skills/search';
+    const skillsCategoriesMatch = url.pathname === '/skills/categories' || url.pathname === '/api/skills/categories';
+    const ingestMatch = url.pathname === '/ingest' || url.pathname === '/api/ingest';
+    const sseStreamMatch = url.pathname.match(/^(?:\/api)?\/session\/([^/]+)\/stream$/);
     const anonymousSessionCreateMatch = request.method === 'POST' && url.pathname === '/api/session/create-anonymous';
     const anonymousSessionValidateMatch = request.method === 'POST' && url.pathname === '/api/session/validate-anonymous';
     const sessionUpgradeMatch = request.method === 'POST' && url.pathname === '/api/session/upgrade';
@@ -481,7 +481,7 @@ export class SyniqServer {
       });
     }
 
-    if (request.method === 'POST' && url.pathname === '/connect') {
+    if (request.method === 'POST' && (url.pathname === '/connect' || url.pathname === '/api/connect')) {
       const body = await this._readAndValidateJsonBody(request, connectRequestSchema);
       const validatedApiKey = this.apiKeyService
         ? await this.apiKeyService.validateApiKey(this._extractApiKey(request))

@@ -1,6 +1,6 @@
 /**
  * Build tab favicons from syniq-logo-v3.png (same asset as landing/nav).
- * Dark square backing + ~94% logo fill so the mark reads at 16–48px.
+ * Center-zooms the mark then fills the canvas so it reads large at 16–32px.
  */
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -12,11 +12,14 @@ const root = join(__dirname, '..');
 const src = join(root, 'src/assets/syniq-logo-v3.png');
 const outDir = join(root, 'public');
 
-/** Syniq app shell (#0d1117) — visible on light and dark browser chrome */
+/** Syniq app shell (#0d1117) — visible on light browser chrome */
 const BG = { r: 13, g: 17, b: 23, alpha: 1 };
 
-/** Logo occupies this fraction of the canvas (higher = larger in tab) */
-const LOGO_FILL = 0.97;
+/**
+ * How much of the trimmed logo to keep before scaling (lower = more zoom).
+ * ~0.62 crops to the inner emblem so the tab icon is not a tiny hex outline.
+ */
+const CENTER_CROP_RATIO = 0.54;
 
 const SIZES = [
   { size: 16, name: 'syniq-favicon-16.png' },
@@ -27,20 +30,37 @@ const SIZES = [
   { size: 512, name: 'syniq-favicon-512.png' },
 ];
 
-function loadLogo() {
+async function loadZoomedLogo() {
   if (!existsSync(src)) {
     throw new Error(`Missing logo source: ${src}`);
   }
 
-  return sharp(src).ensureAlpha().trim({ threshold: 12 });
+  const trimmed = sharp(src).ensureAlpha().trim({ threshold: 12 });
+  const { width, height } = await trimmed.metadata();
+  if (!width || !height) {
+    throw new Error('Could not read logo dimensions');
+  }
+
+  const cropW = Math.max(1, Math.round(width * CENTER_CROP_RATIO));
+  const cropH = Math.max(1, Math.round(height * CENTER_CROP_RATIO));
+  const left = Math.floor((width - cropW) / 2);
+  const top = Math.floor((height - cropH) / 2);
+
+  return trimmed.extract({ left, top, width: cropW, height: cropH });
 }
 
 async function renderSize(logo, size, dest) {
-  const logoPx = Math.max(12, Math.round(size * LOGO_FILL));
-  const mark = await logo
-    .clone()
-    .resize(logoPx, logoPx, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
-    .toBuffer();
+  let mark = logo.clone().resize(size, size, {
+    fit: 'cover',
+    position: 'centre',
+    background: { r: 0, g: 0, b: 0, alpha: 0 },
+  });
+
+  if (size <= 32) {
+    mark = mark.sharpen({ sigma: 0.8, m1: 0.5, m2: 0.35 });
+  }
+
+  const markBuffer = await mark.png().toBuffer();
 
   await sharp({
     create: {
@@ -50,20 +70,19 @@ async function renderSize(logo, size, dest) {
       background: BG,
     },
   })
-    .composite([{ input: mark, gravity: 'center' }])
+    .composite([{ input: markBuffer, gravity: 'center' }])
     .png({ compressionLevel: 9, adaptiveFiltering: true })
     .toFile(dest);
 }
 
 async function main() {
-  const logo = loadLogo();
+  const logo = await loadZoomedLogo();
 
   for (const { size, name } of SIZES) {
     await renderSize(logo, size, join(outDir, name));
     console.log('wrote', name);
   }
 
-  // Multi-size .ico for browsers that still request /favicon.ico
   const { execSync } = await import('node:child_process');
   execSync(
     `python3 -c "

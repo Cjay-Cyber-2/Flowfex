@@ -75,7 +75,45 @@ async function renderSize(logo, size, dest) {
     .toFile(dest);
 }
 
+/**
+ * Build a minimal ICO file from an array of PNG buffers.
+ * ICO format: 6-byte header, then one 16-byte directory entry per image,
+ * followed by the raw PNG data for each image.
+ */
+function buildIco(pngBuffers, sizes) {
+  const count = pngBuffers.length;
+  const headerSize = 6;
+  const dirEntrySize = 16;
+  const dirSize = dirEntrySize * count;
+  let dataOffset = headerSize + dirSize;
+
+  // ICO header: reserved(2) + type 1=icon(2) + count(2)
+  const header = Buffer.alloc(headerSize);
+  header.writeUInt16LE(0, 0);       // reserved
+  header.writeUInt16LE(1, 2);       // type: icon
+  header.writeUInt16LE(count, 4);   // image count
+
+  const dirEntries = [];
+  for (let i = 0; i < count; i++) {
+    const entry = Buffer.alloc(dirEntrySize);
+    const s = sizes[i];
+    entry.writeUInt8(s >= 256 ? 0 : s, 0);          // width  (0 = 256)
+    entry.writeUInt8(s >= 256 ? 0 : s, 1);          // height (0 = 256)
+    entry.writeUInt8(0, 2);                           // color palette
+    entry.writeUInt8(0, 3);                           // reserved
+    entry.writeUInt16LE(1, 4);                        // color planes
+    entry.writeUInt16LE(32, 6);                       // bits per pixel
+    entry.writeUInt32LE(pngBuffers[i].length, 8);    // image data size
+    entry.writeUInt32LE(dataOffset, 12);              // offset to image data
+    dirEntries.push(entry);
+    dataOffset += pngBuffers[i].length;
+  }
+
+  return Buffer.concat([header, ...dirEntries, ...pngBuffers]);
+}
+
 async function main() {
+  const { writeFileSync } = await import('node:fs');
   const logo = await loadZoomedLogo();
 
   for (const { size, name } of SIZES) {
@@ -83,18 +121,16 @@ async function main() {
     console.log('wrote', name);
   }
 
-  const { execSync } = await import('node:child_process');
-  execSync(
-    `python3 -c "
-from PIL import Image
-from pathlib import Path
-p = Path('${outDir}')
-layers = [Image.open(p / f'syniq-favicon-{s}.png').convert('RGBA') for s in (16, 32, 48)]
-layers[0].save(p / 'favicon.ico', format='ICO', sizes=[(16,16),(32,32),(48,48)], append_images=layers[1:])
-print('wrote favicon.ico')
-"`,
-    { stdio: 'inherit' }
-  );
+  // Build favicon.ico from the 16, 32, 48 px PNGs (pure Node.js — no Python needed)
+  const icoSizes = [16, 32, 48];
+  const pngBuffers = [];
+  for (const s of icoSizes) {
+    const { readFileSync } = await import('node:fs');
+    pngBuffers.push(readFileSync(join(outDir, `syniq-favicon-${s}.png`)));
+  }
+  const icoBuffer = buildIco(pngBuffers, icoSizes);
+  writeFileSync(join(outDir, 'favicon.ico'), icoBuffer);
+  console.log('wrote favicon.ico');
 }
 
 main().catch((err) => {

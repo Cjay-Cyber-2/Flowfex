@@ -1,3 +1,4 @@
+import { injectMandatoryIntoRetrieval } from '../skills/mandatorySkills.js';
 import { overlapScore, stringifyForSearch, truncate, uniqueStrings } from './utils.js';
 export class CapabilityRetriever {
     registry;
@@ -67,12 +68,19 @@ export class CapabilityRetriever {
             usedFallback = usedFallback || globalRetrieval.fallbackUsed;
         }
 
-        const merged = Array.from(mergedByToolId.values()).sort((left, right) => {
+        let merged = Array.from(mergedByToolId.values()).sort((left, right) => {
             if (right.score !== left.score) {
                 return right.score - left.score;
             }
             return left.toolId.localeCompare(right.toolId);
         });
+        const retrievalWithMandatory = injectMandatoryIntoRetrieval({
+            byCategory,
+            merged,
+            strategy: usedSemantic && usedFallback ? 'mixed' : usedSemantic ? 'semantic' : usedFallback ? 'keyword-fallback' : 'empty',
+            fallbackUsed: usedFallback,
+        }, this.registry);
+        merged = retrievalWithMandatory.merged;
         this.logger.info({
             event: 'orchestration.capabilities.retrieved',
             message: 'Capability retrieval completed',

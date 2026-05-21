@@ -18,9 +18,15 @@ import {
   getGraphBounds,
   getNodeBox,
 } from '../../utils/graphViewport';
+import {
+  getBaselineHullBounds,
+  getMinimapViewportRect,
+  isCompactGraphScale,
+  partitionGraphNodes,
+} from '../../utils/graphLayout';
 import './CanvasRenderer.css';
 
-const MIN_SCALE = 0.2;
+const MIN_SCALE = 0.06;
 const MAX_SCALE = 2.5;
 
 function clamp(value, min, max) {
@@ -152,6 +158,25 @@ function CanvasRenderer() {
       }, {}),
     [nodes]
   );
+
+  const { baseline: baselineNodes, task: taskNodes } = useMemo(
+    () => partitionGraphNodes(nodes),
+    [nodes]
+  );
+
+  const baselineHull = useMemo(
+    () => getBaselineHullBounds(baselineNodes),
+    [baselineNodes]
+  );
+
+  const graphBounds = useMemo(() => getGraphBounds(nodes), [nodes]);
+
+  const minimap = useMemo(
+    () => getMinimapViewportRect(transform, viewportSize, graphBounds),
+    [transform, viewportSize, graphBounds]
+  );
+
+  const compactView = isCompactGraphScale(transform.scale);
 
   const primaryActionableNode = useMemo(() => {
     if (selectedNode && ['approval', 'active', 'paused', 'queued'].includes(selectedNode.state)) {
@@ -364,6 +389,24 @@ function CanvasRenderer() {
       onClick={handleCanvasClick}
     >
       <svg className="graph-svg" viewBox={`0 0 ${viewportSize.width} ${viewportSize.height}`} preserveAspectRatio="none">
+        {baselineHull ? (
+          <g className="graph-baseline-hull" transform={`translate(${transform.x} ${transform.y}) scale(${transform.scale})`}>
+            <rect
+              x={baselineHull.minX}
+              y={baselineHull.minY}
+              width={baselineHull.width}
+              height={baselineHull.height}
+              rx={18}
+            />
+            <text
+              x={baselineHull.minX + 16}
+              y={baselineHull.minY + 22}
+              className="graph-baseline-hull-label"
+            >
+              Syniq baseline ({baselineNodes.length})
+            </text>
+          </g>
+        ) : null}
         <defs>
           <filter id="nodeGlow">
             <feGaussianBlur stdDeviation="9" result="glow" />
@@ -454,7 +497,9 @@ function CanvasRenderer() {
                 data-node-interactive="true"
                 className={`graph-node graph-node-${node.state} graph-node-${node.shape} ${
                   emphasized ? '' : 'is-dim'
-                } ${isSelected ? 'is-selected' : ''} ${transform.scale < 0.5 ? 'is-compact' : ''}`}
+                } ${isSelected ? 'is-selected' : ''} ${compactView || node.config?.compact ? 'is-compact' : ''} ${
+                  node.config?.group === 'baseline' ? 'is-baseline' : ''
+                }`}
                 onClick={() => selectNode(node.id)}
               >
                 {node.shape === 'diamond' ? (
@@ -483,12 +528,16 @@ function CanvasRenderer() {
                 <text className="graph-node-title" x={node.x + 56} y={node.y + 34}>
                   {node.title}
                 </text>
-                <text className="graph-node-subtitle" x={node.x + 56} y={node.y + 58}>
-                  {node.subtitle}
-                </text>
-                <text className="graph-node-caption" x={node.x + 18} y={node.y + height - 14}>
-                  {formatNodeCaption(node)}
-                </text>
+                {!compactView && !node.config?.compact ? (
+                  <text className="graph-node-subtitle" x={node.x + 56} y={node.y + 58}>
+                    {node.subtitle}
+                  </text>
+                ) : null}
+                {!compactView && !node.config?.compact ? (
+                  <text className="graph-node-caption" x={node.x + 18} y={node.y + height - 14}>
+                    {formatNodeCaption(node)}
+                  </text>
+                ) : null}
 
                 {node.state === 'approval' ? (
                   <circle className="graph-node-badge" cx={node.x + width - 18} cy={node.y + 18} r="8" />
@@ -564,6 +613,40 @@ function CanvasRenderer() {
           ) : (
             <span className="graph-orchestration-dock-meta">Controls stay on the graph — no need to open the side panel first</span>
           )}
+        </div>
+      ) : null}
+
+      {minimap && nodes.length > 4 ? (
+        <div className="graph-minimap" aria-hidden="true">
+          <svg width={minimap.mapW} height={minimap.mapH} viewBox={`0 0 ${minimap.mapW} ${minimap.mapH}`}>
+            <rect
+              className="graph-minimap-bounds"
+              x={0}
+              y={0}
+              width={minimap.bounds.width * minimap.scale}
+              height={minimap.bounds.height * minimap.scale}
+            />
+            {nodes.map((node) => {
+              const box = getNodeBox(node);
+              return (
+                <rect
+                  key={`mini-${node.id}`}
+                  className={`graph-minimap-node ${node.config?.group === 'baseline' ? 'is-baseline' : ''}`}
+                  x={(box.left - minimap.bounds.minX) * minimap.scale}
+                  y={(box.top - minimap.bounds.minY) * minimap.scale}
+                  width={Math.max(2, box.width * minimap.scale * 0.35)}
+                  height={Math.max(2, box.height * minimap.scale * 0.35)}
+                />
+              );
+            })}
+            <rect
+              className="graph-minimap-viewport"
+              x={minimap.viewX}
+              y={minimap.viewY}
+              width={minimap.viewW}
+              height={minimap.viewH}
+            />
+          </svg>
         </div>
       ) : null}
 

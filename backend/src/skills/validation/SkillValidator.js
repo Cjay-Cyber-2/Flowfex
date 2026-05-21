@@ -1,3 +1,5 @@
+import { neutralizeAgentBranding, shouldPreserveVendorAgentNames } from '../normalization/agentNeutralCopy.js';
+
 const BLOCKING_PATTERNS = [
   {
     type: 'prompt-injection',
@@ -99,7 +101,12 @@ export function validateNormalizedSkill(skill, context = {}) {
     }
   }
 
-  const sanitizedPrompt = sanitizePrompt(rawPrompt);
+  const relativePath = skill.sourcePath || skill.relativePath || context.relativePath || '';
+  const preserveVendorNames = shouldPreserveVendorAgentNames(relativePath);
+  let sanitizedPrompt = sanitizePrompt(rawPrompt);
+  if (!preserveVendorNames) {
+    sanitizedPrompt = neutralizeAgentBranding(sanitizedPrompt, { relativePath });
+  }
   if (sanitizedPrompt !== rawPrompt) {
     pushFinding(findings, seenFindings, {
       type: 'sanitization',

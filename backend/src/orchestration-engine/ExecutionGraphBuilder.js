@@ -2,11 +2,18 @@ import { ExecutionGraphSchema } from './schemas.js';
 import { stableId, truncate } from './utils.js';
 const NODE_WIDTH = 196;
 const NODE_HEIGHT = 96;
+const COMPACT_NODE_WIDTH = 152;
+const COMPACT_NODE_HEIGHT = 72;
 const DECISION_SIZE = 118;
-const GRAPH_PADDING_X = 180;
+const GRAPH_PADDING_X = 120;
 const GRAPH_PADDING_Y = 280;
-const NODE_SPACING_X = 280;
-const BRANCH_SPACING_Y = 200;
+const NODE_SPACING_X = 240;
+const COMPACT_SPACING_X = 164;
+const COMPACT_SPACING_Y = 84;
+const BRANCH_SPACING_Y = 180;
+const BASELINE_BAND_Y = 96;
+const MAIN_FLOW_Y = 300;
+const MAX_NODES_PER_ROW = 8;
 const CATEGORY_ICON_MAP = {
     api: 'globe',
     code: 'layers',
@@ -52,6 +59,7 @@ export class ExecutionGraphBuilder {
                 reasoning: step.reasoning,
                 alternatives: step.alternatives,
                 branchLane: alternateTargets.has(step.stepId) ? 1 : 0,
+                mandatory: Boolean(step.mandatory),
             });
             const stepDecisions = decisionsBySourceStepId.get(step.stepId) || [];
             for (const decision of stepDecisions) {
@@ -67,15 +75,30 @@ export class ExecutionGraphBuilder {
                 });
             }
         }
+        const layoutByNodeId = computeGraphLayout(selection.selectedSteps, stepNodeIdByStepId);
         const graphNodes = orderedNodes.map((node, index) => {
-            const x = GRAPH_PADDING_X + index * NODE_SPACING_X;
+            const layout = layoutByNodeId.get(node.graphNodeId) || {
+                x: GRAPH_PADDING_X + index * NODE_SPACING_X,
+                y: MAIN_FLOW_Y,
+                width: NODE_WIDTH,
+                height: NODE_HEIGHT,
+                compact: false,
+                group: 'task',
+            };
+            const x = layout.x;
+            const y = layout.y;
             if (node.kind === 'decision') {
+                const sourceLayout = layoutByNodeId.get(stableId('node', node.sourceStepId));
+                const decisionX = sourceLayout
+                    ? sourceLayout.x + (sourceLayout.width || NODE_WIDTH) * 0.45
+                    : x;
+                const decisionY = sourceLayout ? sourceLayout.y - 48 : layout.y;
                 return {
                     id: node.graphNodeId,
                     type: 'decision',
                     shape: 'diamond',
-                    x,
-                    y: GRAPH_PADDING_Y,
+                    x: decisionX,
+                    y: decisionY,
                     width: DECISION_SIZE,
                     height: DECISION_SIZE,
                     title: truncate(node.title, 24),
@@ -96,16 +119,18 @@ export class ExecutionGraphBuilder {
                     },
                 };
             }
+            const nodeWidth = layout.width || NODE_WIDTH;
+            const nodeHeight = layout.height || NODE_HEIGHT;
             return {
                 id: node.graphNodeId,
                 type: node.capabilityCategory,
                 shape: 'rect',
                 x,
-                y: GRAPH_PADDING_Y + node.branchLane * BRANCH_SPACING_Y,
-                width: NODE_WIDTH,
-                height: NODE_HEIGHT,
-                title: truncate(node.title, 28),
-                subtitle: truncate(node.tool.name, 34),
+                y: y + node.branchLane * BRANCH_SPACING_Y,
+                width: nodeWidth,
+                height: nodeHeight,
+                title: truncate(node.title, layout.compact ? 22 : 28),
+                subtitle: truncate(node.tool.name, layout.compact ? 26 : 34),
                 state: 'queued',
                 icon: CATEGORY_ICON_MAP[node.capabilityCategory] || 'sparkles',
                 confidence: Number(node.score.toFixed(4)),
@@ -116,6 +141,9 @@ export class ExecutionGraphBuilder {
                 },
                 config: {
                     lane: node.branchLane,
+                    group: layout.group || (node.mandatory ? 'baseline' : 'task'),
+                    mandatory: Boolean(node.mandatory),
+                    compact: Boolean(layout.compact),
                 },
                 owner: node.tool.metadata?.source
                     ? String(node.tool.metadata.source)
@@ -276,6 +304,64 @@ function addEdge(edges, outgoingEdges, incomingEdgeIdByNode, edge) {
     outgoingEdges[edge.from]?.push(edge);
     incomingEdgeIdByNode[edge.to] = incomingEdgeIdByNode[edge.to] || edge.id;
 }
+function computeGraphLayout(selectedSteps, stepNodeIdByStepId) {
+    const layoutByNodeId = new Map();
+    const mandatory = selectedSteps.filter((step) => step.mandatory);
+    const task = selectedSteps.filter((step) => !step.mandatory);
+    const baselineCols = Math.min(MAX_NODES_PER_ROW, Math.max(4, Math.ceil(Math.sqrt(Math.max(mandatory.length, 1)))));
+
+    mandatory.forEach((step, index) => {
+        const col = index % baselineCols;
+        const row = Math.floor(index / baselineCols);
+        const graphNodeId = stepNodeIdByStepId.get(step.stepId) || stableId('node', step.stepId);
+        layoutByNodeId.set(graphNodeId, {
+            x: GRAPH_PADDING_X + col * COMPACT_SPACING_X,
+            y: BASELINE_BAND_Y + row * COMPACT_SPACING_Y,
+            width: COMPACT_NODE_WIDTH,
+            height: COMPACT_NODE_HEIGHT,
+            compact: true,
+            group: 'baseline',
+        });
+    });
+
+    const baselineRows = Math.max(1, Math.ceil(mandatory.length / baselineCols));
+    const taskStartY = BASELINE_BAND_Y + baselineRows * COMPACT_SPACING_Y + 96;
+    const taskCols = Math.min(MAX_NODES_PER_ROW, Math.max(4, Math.ceil(Math.sqrt(Math.max(task.length, 1)))));
+    const taskSpacingX = task.length > 10 ? 200 : NODE_SPACING_X;
+
+    task.forEach((step, index) => {
+        const row = Math.floor(index / taskCols);
+        const col = index % taskCols;
+        const serpentineCol = row % 2 === 1 ? taskCols - 1 - col : col;
+        const graphNodeId = stepNodeIdByStepId.get(step.stepId) || stableId('node', step.stepId);
+        layoutByNodeId.set(graphNodeId, {
+            x: GRAPH_PADDING_X + serpentineCol * taskSpacingX,
+            y: taskStartY + row * (NODE_HEIGHT + 72),
+            width: NODE_WIDTH,
+            height: NODE_HEIGHT,
+            compact: false,
+            group: 'task',
+        });
+    });
+
+    for (const step of selectedSteps) {
+        const graphNodeId = stepNodeIdByStepId.get(step.stepId);
+        if (!graphNodeId || layoutByNodeId.has(graphNodeId)) {
+            continue;
+        }
+        layoutByNodeId.set(graphNodeId, {
+            x: GRAPH_PADDING_X,
+            y: MAIN_FLOW_Y,
+            width: NODE_WIDTH,
+            height: NODE_HEIGHT,
+            compact: false,
+            group: 'task',
+        });
+    }
+
+    return layoutByNodeId;
+}
+
 function findNextVisibleSkillNodeId(selectedSteps, stepNodeIdByStepId, exclusiveAlternateStepIds, currentStepIndex) {
     for (let index = currentStepIndex + 1; index < selectedSteps.length; index += 1) {
         const nextStep = selectedSteps[index];

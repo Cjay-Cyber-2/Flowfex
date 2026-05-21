@@ -29,6 +29,7 @@ import { apiBuilderTool } from './tools/APIBuilderTool.js';
 import { weatherTool, calculatorTool, defaultTool } from './tools/systemTools.js';
 import { allProductionTools } from './tools/ProductionTools.js';
 import { registerMarkdownSkills, logSkillRegistrationReport } from './skills/index.js';
+import { assertMandatorySkillsRegistered, clearMandatorySkillCache } from './skills/mandatorySkills.js';
 
 // ─── Register core tools ────────────────────────────────────────────────
 
@@ -52,9 +53,11 @@ for (const tool of allProductionTools) {
 
 // ─── Register markdown-imported skills ──────────────────────────────────
 
+clearMandatorySkillCache();
 export const defaultSkillLoadReport = registerMarkdownSkills(defaultRegistry);
 logSkillRegistrationReport(defaultSkillLoadReport);
 export const markdownSkillReport = defaultSkillLoadReport;
+assertMandatorySkillsRegistered(defaultRegistry);
 
 const totalTools = defaultRegistry.getAllTools().length;
 console.log(`[Syniq] Registry initialized with ${totalTools} tools (3 core + 3 system + ${allProductionTools.length} production + ${defaultSkillLoadReport.registeredTools?.length || 0} markdown)`);

@@ -5,7 +5,11 @@ import { useSessionContext } from '../../context/SessionContext';
 import { DEMO_SKILL_LIBRARY } from '../../store/demoData';
 import FlowIcon from '../common/FlowIcon';
 import { filterLiveConnectedAgents } from '../../utils/agentPresence';
-import { deriveCatalogStats, formatCatalogCount } from '../../utils/catalogStats';
+import {
+  deriveCatalogStats,
+  fetchCatalogStats,
+  formatCatalogCount,
+} from '../../utils/catalogStats';
 import './LeftRail.css';
 
 const CATEGORY_ICON_MAP = {
@@ -126,6 +130,7 @@ function LeftRail() {
   const [liveSkills, setLiveSkills] = useState([]);
   const [catalogTools, setCatalogTools] = useState([]);
   const [catalogSummary, setCatalogSummary] = useState(null);
+  const [publicCatalogStats, setPublicCatalogStats] = useState(null);
   const [expandedCategories, setExpandedCategories] = useState({});
   const [isSearching, setIsSearching] = useState(false);
   const debounceRef = useRef(null);
@@ -168,6 +173,28 @@ function LeftRail() {
   useEffect(() => {
     let cancelled = false;
 
+    const loadPublicStats = async () => {
+      try {
+        const stats = await fetchCatalogStats(backendUrl);
+        if (!cancelled) {
+          setPublicCatalogStats(stats);
+        }
+      } catch {
+        if (!cancelled) {
+          setPublicCatalogStats(null);
+        }
+      }
+    };
+
+    loadPublicStats();
+    return () => {
+      cancelled = true;
+    };
+  }, [backendUrl]);
+
+  useEffect(() => {
+    let cancelled = false;
+
     const loadSkills = async () => {
       try {
         const res = await fetch(`${backendUrl}/skills`, {
@@ -195,10 +222,12 @@ function LeftRail() {
     };
   }, [backendUrl, buildSessionHeaders]);
 
-  const catalogStats = useMemo(
-    () => deriveCatalogStats({ tools: catalogTools, summary: catalogSummary }),
-    [catalogSummary, catalogTools]
-  );
+  const catalogStats = useMemo(() => {
+    if (catalogTools.length > 0 || catalogSummary?.markdownTools || catalogSummary?.totalTools) {
+      return deriveCatalogStats({ tools: catalogTools, summary: catalogSummary });
+    }
+    return publicCatalogStats || deriveCatalogStats({ tools: [], summary: null });
+  }, [catalogSummary, catalogTools, publicCatalogStats]);
 
   const fallbackGrouped = useMemo(() => {
     const groupedLive = groupSkillsByCategory(liveSkills);

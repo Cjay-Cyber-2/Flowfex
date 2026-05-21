@@ -20,20 +20,20 @@ const TABS = ['Prompt', 'Link', 'SDK', 'Live Channel'];
 /** Accurate agent-surface guidance per attach mode (from product FAQ + connection contracts). */
 const TAB_AGENT_HINTS = {
   Prompt: {
-    bestFor: 'IDE & chat agents (Cursor, Claude Code, Windsurf, Copilot chat)',
-    howTo: 'Paste the contract into the agent’s system or project instructions, then send one attach ping to Syniq.',
+    bestFor: 'Any AI that accepts system or project instructions (IDE, chat, or custom harness)',
+    howTo: 'Paste the Syniq contract into the connected assistant’s instructions, then send one attach ping.',
   },
   Link: {
-    bestFor: 'Web agents & quick handoffs (browser assistants, shareable attach URLs)',
-    howTo: 'Open the one-time link in the agent environment so it can register this Syniq session.',
+    bestFor: 'Browser-based or shareable attach flows (one-time handoff URL)',
+    howTo: 'Open the link in the environment where the connected assistant runs so it registers this Syniq session.',
   },
   SDK: {
-    bestFor: 'CLI, backend services, and custom app agents (Node, Python, terminal runners)',
-    howTo: 'Drop the snippet into your agent process so every user turn is posted to Syniq before acting.',
+    bestFor: 'Backend services, CLIs, and custom apps that call Syniq programmatically',
+    howTo: 'Run the snippet in your process so every user turn is posted to Syniq before the assistant acts.',
   },
   'Live Channel': {
-    bestFor: 'Side-panel & always-on agents (persistent socket/SSE clients)',
-    howTo: 'Point your streaming client at the live endpoint and keep the session open for the full run.',
+    bestFor: 'Always-on clients using socket or SSE (side panel, daemon, embedded runner)',
+    howTo: 'Point the streaming client at the live endpoint and keep the Syniq session open for the full run.',
   },
 };
 const SOCKET_OPTIONS = {

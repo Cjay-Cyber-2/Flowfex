@@ -15,6 +15,7 @@ import SocialProofSection from '../components/landing/SocialProofSection';
 import {
   deriveCatalogStats,
   FALLBACK_CATALOG_STATS,
+  fetchCatalogStats,
   formatCatalogCount,
 } from '../utils/catalogStats';
 
@@ -338,9 +339,36 @@ function LandingPage() {
   }, []);
 
   useEffect(() => {
+    if (!backendUrl) return undefined;
+
     let cancelled = false;
 
-    async function loadCatalogStats() {
+    async function loadPublicCatalogStats() {
+      try {
+        const stats = await fetchCatalogStats(backendUrl);
+        if (!cancelled) {
+          setCatalogStats(stats);
+        }
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.warn('Landing catalog stats fallback in use:', error);
+        }
+      }
+    }
+
+    loadPublicCatalogStats();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [backendUrl]);
+
+  useEffect(() => {
+    if (!backendUrl || !sessionReady) return undefined;
+
+    let cancelled = false;
+
+    async function refreshCatalogStatsFromSession() {
       try {
         const headers = {};
         if (accessToken) {
@@ -357,19 +385,12 @@ function LandingPage() {
         if (!cancelled) {
           setCatalogStats(deriveCatalogStats(payload));
         }
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.warn('Landing catalog stats fallback in use:', error);
-        }
+      } catch {
+        // Public /api/catalog/stats already populated the hero metrics.
       }
     }
 
-    // Wait for SessionContext to bootstrap the anonymous token so the
-    // skill catalog endpoint accepts the request (it is gated to live
-    // Syniq sessions to stop bulk scraping).
-    if (backendUrl && sessionReady) {
-      loadCatalogStats();
-    }
+    refreshCatalogStatsFromSession();
 
     return () => {
       cancelled = true;

@@ -22,6 +22,7 @@ import {
 } from './ValidationSchemas.js';
 import { connectRequestSchema } from '../../../shared/connection-contracts.js';
 import { getAllowedBrowserOrigins, resolveAllowedCorsOrigin } from '../config/corsOrigins.js';
+import { buildCatalogStats } from '../skills/catalogStatsBuilder.js';
 
 const authHandler = toNodeHandler(auth);
 const DEBUG_REQUEST_LOGS = /^(1|true|yes)$/i.test(String(process.env.SYNIQ_DEBUG_REQUESTS || process.env.FLOWFEX_DEBUG_REQUESTS || '').trim());
@@ -239,6 +240,7 @@ export class SyniqServer {
     const rejectMatch = url.pathname.match(/^(?:\/api)?\/node\/([^/]+)\/reject$/);
     const rerouteMatch = url.pathname.match(/^(?:\/api)?\/node\/([^/]+)\/reroute$/);
     const constrainMatch = url.pathname.match(/^(?:\/api)?\/session\/([^/]+)\/constrain$/);
+    const catalogStatsMatch = url.pathname === '/catalog/stats' || url.pathname === '/api/catalog/stats';
     const skillsMatch = url.pathname === '/skills' || url.pathname === '/api/skills';
     const skillsSearchMatch = url.pathname === '/skills/search' || url.pathname === '/api/skills/search';
     const skillsCategoriesMatch = url.pathname === '/skills/categories' || url.pathname === '/api/skills/categories';
@@ -691,6 +693,18 @@ export class SyniqServer {
         blockedSkillIds: body.blockedSkillIds || body.skillIds || [],
       });
       return this._writeJson(response, 200, payload);
+    }
+
+    // ─── Public catalog stats (marketing + dashboard headers) ─────────
+    if (request.method === 'GET' && catalogStatsMatch) {
+      const registry = this.connectionService?.orchestrator?.registry || this.connectionService?.registry;
+      if (!registry) {
+        return this._writeJson(response, 200, { ok: true, stats: buildCatalogStats({ getCanonicalSkillRecords: () => [] }) });
+      }
+      return this._writeJson(response, 200, {
+        ok: true,
+        stats: buildCatalogStats(registry),
+      });
     }
 
     // ─── Skills API ───────────────────────────────────────────────────

@@ -75,7 +75,10 @@ export function clampScale(scale, minScale, maxScale) {
 }
 
 export function fitTransformToGraph(nodes, viewport, options = {}) {
-  const { minScale = 0.2, maxScale = 2.5, padding = FIT_PADDING } = options;
+  const nodeCount = Array.isArray(nodes) ? nodes.length : 0;
+  const adaptiveMinScale = nodeCount > 18 ? 0.06 : nodeCount > 10 ? 0.1 : 0.2;
+  const adaptivePadding = nodeCount > 14 ? 48 : FIT_PADDING;
+  const { minScale = adaptiveMinScale, maxScale = 2.5, padding = adaptivePadding } = options;
   const bounds = getGraphBounds(nodes, padding);
 
   if (!viewport.width || !viewport.height || bounds.width <= 0 || bounds.height <= 0) {

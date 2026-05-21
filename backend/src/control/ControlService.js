@@ -20,6 +20,7 @@ import {
 import { defaultSessionLockManager } from './SessionLockManager.js';
 import { createControlError, toControlError } from './errors.js';
 import { defaultSessionStateRepository } from '../persistence/defaultSessionStateRepository.js';
+import { stripMandatoryFromBlockedIds } from '../skills/mandatorySkills.js';
 
 const FALLBACK_NODE_PATTERN = /\b(manual|review|fallback|reject|alternate|rerout|human)\b/i;
 
@@ -669,7 +670,7 @@ export class ControlService {
   }
 
   _applyConstraints(snapshot, blockedSkillIds) {
-    const blocked = new Set(blockedSkillIds);
+    const blocked = new Set(stripMandatoryFromBlockedIds(blockedSkillIds));
     const updatedNodeIds = [];
     const nextRankings = snapshot.selection.rankings.map((ranking) => ({ ...ranking }));
     const nextSteps = snapshot.selection.selectedSteps.map((step) => {

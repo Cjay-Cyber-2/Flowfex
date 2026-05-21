@@ -96,6 +96,66 @@
   filter: drop-shadow(0 0 10px rgba(127, 255, 240, 0.9));
 }
 
+.graph-baseline-hull rect {
+  fill: rgba(0, 212, 170, 0.04);
+  stroke: rgba(0, 212, 170, 0.18);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 5;
+}
+
+.graph-baseline-hull-label {
+  fill: rgba(121, 255, 223, 0.72);
+  font-family: var(--font-space-grotesk);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.graph-node.is-baseline rect {
+  stroke: rgba(0, 212, 170, 0.42);
+}
+
+.graph-node.is-compact .graph-node-title {
+  font-size: 12px;
+}
+
+.graph-node.is-compact .graph-node-icon-backdrop {
+  opacity: 0.85;
+}
+
+.graph-minimap {
+  position: absolute;
+  right: 16px;
+  bottom: 88px;
+  z-index: 12;
+  padding: 8px;
+  border-radius: 12px;
+  background: rgba(8, 12, 16, 0.82);
+  border: 1px solid rgba(0, 212, 170, 0.14);
+  backdrop-filter: blur(10px);
+  pointer-events: none;
+}
+
+.graph-minimap-bounds {
+  fill: rgba(0, 212, 170, 0.03);
+  stroke: rgba(73, 88, 104, 0.35);
+  stroke-width: 1;
+}
+
+.graph-minimap-node {
+  fill: rgba(0, 212, 170, 0.45);
+}
+
+.graph-minimap-node.is-baseline {
+  fill: rgba(121, 255, 223, 0.55);
+}
+
+.graph-minimap-viewport {
+  fill: rgba(0, 212, 170, 0.08);
+  stroke: rgba(121, 255, 223, 0.85);
+  stroke-width: 1.2;
+}
+
 .graph-node {
   cursor: pointer;
   transition: opacity var(--duration-base) var(--ease-expo-out);

@@ -1,3 +1,4 @@
+import { injectMandatoryIntoSelection } from '../skills/mandatorySkills.js';
 import { includesLoosePhrase, overlapScore, stableId, truncate } from './utils.js';
 export class ExecutionPlanSelector {
     logger;
@@ -62,6 +63,18 @@ export class ExecutionPlanSelector {
         }
         if (supplementFromRetrieval) {
             supplementSelectedStepsFromRetrieval(selectedSteps, retrieval, intent, maxSkills, minimumSelectionScore);
+        }
+        const mandatorySteps = injectMandatoryIntoSelection(
+            selectedSteps,
+            retrieval,
+            intent,
+            options.registry,
+            { maxSkills }
+        );
+        if (mandatorySteps !== selectedSteps) {
+            selectedSteps.length = 0;
+            selectedSteps.push(...mandatorySteps);
+            fallbackUsed = true;
         }
         const decisionNodes = resolveDecisionNodes(intent, selectedSteps);
         this.logger.info({

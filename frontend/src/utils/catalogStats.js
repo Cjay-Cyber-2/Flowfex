@@ -1,9 +1,11 @@
 export const FALLBACK_CATALOG_STATS = {
-  skillsIndexed: 853,
-  agentTemplates: 420,
+  skillsIndexed: 907,
+  agentTemplates: 423,
   multiAgentSystems: 64,
   mcpAgentSkills: 20,
-  categories: 25,
+  categories: 26,
+  totalRegistryTools: 928,
+  compulsoryBaseline: 23,
 };
 
 export function formatCatalogCount(value) {
@@ -108,12 +110,44 @@ function countUniqueProjects(tools, predicate) {
   return uniqueProjects.size;
 }
 
+/** Merge API stats payload with fallbacks for any missing fields. */
+export function normalizeCatalogStats(payload) {
+  const stats = payload?.stats;
+  if (stats && typeof stats === 'object') {
+    return {
+      ...FALLBACK_CATALOG_STATS,
+      ...stats,
+    };
+  }
+  return deriveCatalogStats(payload);
+}
+
+/** Fetch public catalog totals (no session required). */
+export async function fetchCatalogStats(backendUrl, options = {}) {
+  const base = String(backendUrl || '').replace(/\/$/, '');
+  if (!base) {
+    return FALLBACK_CATALOG_STATS;
+  }
+
+  const response = await fetch(`${base}/api/catalog/stats`, {
+    credentials: 'include',
+    headers: options.headers || {},
+  });
+
+  if (!response.ok) {
+    throw new Error(`catalog_stats_${response.status}`);
+  }
+
+  const payload = await response.json();
+  return normalizeCatalogStats(payload);
+}
+
 /** Same totals as the landing page statement cards. */
 export function deriveCatalogStats(payload) {
   const tools = Array.isArray(payload?.tools) ? payload.tools : [];
   const summary = payload?.summary || {};
 
-  if (tools.length === 0 && !summary.totalTools) {
+  if (tools.length === 0 && !summary.totalTools && !summary.markdownTools) {
     return FALLBACK_CATALOG_STATS;
   }
 
@@ -139,5 +173,9 @@ export function deriveCatalogStats(payload) {
     multiAgentSystems: multiAgentSystems || FALLBACK_CATALOG_STATS.multiAgentSystems,
     mcpAgentSkills: mcpAgentSkills || FALLBACK_CATALOG_STATS.mcpAgentSkills,
     categories: categories || FALLBACK_CATALOG_STATS.categories,
+    totalRegistryTools: Number(summary.totalRegistryTools)
+      || FALLBACK_CATALOG_STATS.totalRegistryTools,
+    compulsoryBaseline: Number(summary.compulsoryBaseline)
+      || FALLBACK_CATALOG_STATS.compulsoryBaseline,
   };
 }

@@ -171,7 +171,7 @@ function createWordTargets(word, width, height) {
   return targets;
 }
 
-export function ParticleTextEffect({ words = ['853 Skills', '420 Agents', '64 Multi-Agents'] }) {
+export function ParticleTextEffect({ words = ['907 Skills', '423 Agents', '64 Multi-Agents'] }) {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
   const particlesRef = useRef([]);

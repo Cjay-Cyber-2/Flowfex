@@ -50,7 +50,6 @@ function deriveDisplayName(user) {
   return user.email?.split('@')[0] || '';
 }
 
-/** First two letters of the username string (signup / OAuth name), then email local part. */
 function deriveAccountMonogram(user) {
   if (!user) {
     return '';
@@ -105,7 +104,6 @@ export function SessionProvider({ children }) {
   const hydratePersistedSession = useStore((store) => store.hydratePersistedSession);
   const resetWorkspace = useStore((store) => store.resetWorkspace);
   const connectedAgents = useStore((store) => store.connectedAgents);
-  const backendOrigin = getBackendOrigin();
   const apiFetchBase = resolveApiFetchBase();
   const [state, setState] = useState({
     session: null,
@@ -123,12 +121,18 @@ export function SessionProvider({ children }) {
   const initializeRequestIdRef = useRef(0);
   const wasAuthenticatedRef = useRef(false);
   const accessTokenRef = useRef(null);
+  const initialLoadDoneRef = useRef(false);
+  const focusRefreshTimerRef = useRef(0);
+  const sessionRef = useRef(null);
+  const stateRef = useRef(state);
 
   useEffect(() => {
     accessTokenRef.current = state.accessToken;
-  }, [state.accessToken]);
+    sessionRef.current = state.session;
+    stateRef.current = state;
+  }, [state]);
 
-  const syncStore = useCallback((session, user) => {
+  const syncStore = useCallback((session, user, { forceReset = false } = {}) => {
     setUser(toStoreUser(user));
 
     if (session) {
@@ -136,11 +140,16 @@ export function SessionProvider({ children }) {
       return;
     }
 
-    resetWorkspace();
+    if (forceReset) {
+      resetWorkspace();
+    }
   }, [hydratePersistedSession, resetWorkspace, setUser]);
 
-  const refreshUsage = useCallback(async (sessionId = state.session?.id || null, accessToken = state.accessToken || null) => {
-    if (!sessionId) {
+  const refreshUsage = useCallback(async (sessionId = null, accessToken = null) => {
+    const resolvedSessionId = sessionId || stateRef.current.session?.id || null;
+    const resolvedAccessToken = accessToken ?? stateRef.current.accessToken ?? null;
+
+    if (!resolvedSessionId) {
       startTransition(() => {
         setState((current) => ({
           ...current,
@@ -152,9 +161,9 @@ export function SessionProvider({ children }) {
     }
 
     try {
-      const usage = await fetchSyniqUsageStatus(sessionId, accessToken, {
+      const usage = await fetchSyniqUsageStatus(resolvedSessionId, resolvedAccessToken, {
         apiBaseUrl: apiFetchBase,
-        anonymousToken: state.session?.anonymousToken || readAnonymousToken(),
+        anonymousToken: stateRef.current.session?.anonymousToken || readAnonymousToken(),
       });
       setState((current) => ({
         ...current,
@@ -171,7 +180,12 @@ export function SessionProvider({ children }) {
       });
       return null;
     }
-  }, [backendOrigin, state.accessToken, state.session?.anonymousToken, state.session?.id]);
+  }, [apiFetchBase]);
+
+  const refreshUsageRef = useRef(refreshUsage);
+  useEffect(() => {
+    refreshUsageRef.current = refreshUsage;
+  }, [refreshUsage]);
 
   const initialize = useCallback(async (options = {}) => {
     const requestId = initializeRequestIdRef.current + 1;
@@ -268,7 +282,8 @@ export function SessionProvider({ children }) {
       }
 
       startTransition(() => {
-        setState({
+        setState((current) => ({
+          ...current,
           session: backendSession,
           user: auth.user,
           sessionReady: true,
@@ -278,14 +293,14 @@ export function SessionProvider({ children }) {
           error: null,
           usage: usageFromResolve,
           usageError: null,
-          appState: resolvedAppState?.ok ? resolvedAppState : null,
+          appState: resolvedAppState?.ok ? resolvedAppState : current.appState,
           appStateError: resolvedAppStateError,
-        });
+        }));
         syncStore(backendSession, auth.user);
       });
 
       if (!usageFromResolve && backendSession?.id) {
-        await refreshUsage(backendSession?.id || null, auth.accessToken);
+        await refreshUsageRef.current(backendSession.id, auth.accessToken);
       }
 
       initialLoadDoneRef.current = true;
@@ -311,23 +326,26 @@ export function SessionProvider({ children }) {
       initialLoadDoneRef.current = true;
       return null;
     }
-  }, [backendOrigin, refreshUsage, syncStore]);
+  }, [apiFetchBase, syncStore]);
 
+  const initializeRef = useRef(initialize);
   useEffect(() => {
-    initialize().catch(() => {
-      return;
-    });
+    initializeRef.current = initialize;
   }, [initialize]);
 
-  // Better Auth has no browser push channel; re-check session when the user returns
-  // so sign-in state and Syniq session stay aligned with server cookies.
+  useEffect(() => {
+    initializeRef.current().catch(() => {
+      return;
+    });
+  }, []);
+
   useEffect(() => {
     const refreshOnReturn = () => {
       if (document.visibilityState !== 'visible' || !initialLoadDoneRef.current) {
         return;
       }
 
-      const sessionId = state.session?.id;
+      const sessionId = sessionRef.current?.id;
       const agents = useStore.getState().connectedAgents;
       if (sessionId && agents.length > 0) {
         useStore.getState().refreshConnectedAgentsPresence();
@@ -338,22 +356,19 @@ export function SessionProvider({ children }) {
 
       window.clearTimeout(focusRefreshTimerRef.current);
       focusRefreshTimerRef.current = window.setTimeout(() => {
-        initialize().catch(() => {
+        initializeRef.current().catch(() => {
           return;
         });
       }, 250);
     };
 
     document.addEventListener('visibilitychange', refreshOnReturn);
-    window.addEventListener('focus', refreshOnReturn);
     return () => {
       document.removeEventListener('visibilitychange', refreshOnReturn);
-      window.removeEventListener('focus', refreshOnReturn);
       window.clearTimeout(focusRefreshTimerRef.current);
     };
-  }, [initialize, state.session?.id]);
+  }, []);
 
-  // Keep server-side agent presence fresh while the workspace tab is open.
   useEffect(() => {
     const sessionId = state.session?.id;
     if (!sessionId) {
@@ -389,7 +404,7 @@ export function SessionProvider({ children }) {
     }
 
     const intervalId = window.setInterval(() => {
-      refreshUsage(state.session?.id, state.accessToken).catch(() => {
+      refreshUsageRef.current(state.session?.id, state.accessToken).catch(() => {
         return;
       });
     }, 30000);
@@ -397,15 +412,15 @@ export function SessionProvider({ children }) {
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [refreshUsage, state.accessToken, state.session?.id]);
+  }, [state.accessToken, state.session?.id]);
 
   useEffect(() => {
     return registerUsageRefreshHandler((sessionId) => {
-      refreshUsage(sessionId || state.session?.id, state.accessToken).catch(() => {
+      refreshUsageRef.current(sessionId || stateRef.current.session?.id, stateRef.current.accessToken).catch(() => {
         return;
       });
     });
-  }, [refreshUsage, state.accessToken, state.session?.id]);
+  }, []);
 
   useEffect(() => {
     const sessionId = state.session?.id;
@@ -476,8 +491,10 @@ export function SessionProvider({ children }) {
     }
 
     writeAnonymousToken(null);
+    resetWorkspace();
+    setUser(null);
     await initialize({ forceAnonymous: true });
-  }, [initialize]);
+  }, [initialize, resetWorkspace, setUser]);
 
   const refreshAppState = useCallback(async () => {
     try {
@@ -501,7 +518,7 @@ export function SessionProvider({ children }) {
         }));
       });
     }
-  }, [backendOrigin]);
+  }, [apiFetchBase]);
 
   const hasConnectedAgent = useMemo(() => {
     if (connectedAgents.some(isLiveConnectedAgent)) {
@@ -518,7 +535,7 @@ export function SessionProvider({ children }) {
   const value = useMemo(() => ({
     ...state,
     hasConnectedAgent,
-    refreshSession: () => initialize(),
+    refreshSession: () => initializeRef.current(),
     refreshUsage: (sessionId = null) => refreshUsage(sessionId, state.accessToken),
     refreshAppState,
     signOut,

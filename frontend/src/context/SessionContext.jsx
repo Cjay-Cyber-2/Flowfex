@@ -319,6 +319,16 @@ export function SessionProvider({ children }) {
       if (document.visibilityState !== 'visible') {
         return;
       }
+
+      const sessionId = state.session?.id;
+      const agents = useStore.getState().connectedAgents;
+      if (sessionId && agents.length > 0) {
+        useStore.getState().refreshConnectedAgentsPresence();
+        touchAgentPresence(sessionId).catch(() => {
+          return;
+        });
+      }
+
       initialize().catch(() => {
         return;
       });
@@ -330,7 +340,33 @@ export function SessionProvider({ children }) {
       document.removeEventListener('visibilitychange', refreshOnReturn);
       window.removeEventListener('focus', refreshOnReturn);
     };
-  }, [initialize]);
+  }, [initialize, state.session?.id]);
+
+  // Keep server-side agent presence fresh while the workspace tab is open.
+  useEffect(() => {
+    const sessionId = state.session?.id;
+    if (!sessionId) {
+      return undefined;
+    }
+
+    const tick = () => {
+      const agents = useStore.getState().connectedAgents;
+      if (!agents.some(isLiveConnectedAgent)) {
+        return;
+      }
+
+      useStore.getState().refreshConnectedAgentsPresence();
+      touchAgentPresence(sessionId).catch(() => {
+        return;
+      });
+    };
+
+    tick();
+    const intervalId = window.setInterval(tick, AGENT_PRESENCE_HEARTBEAT_MS);
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [state.session?.id]);
 
   useEffect(() => {
     if (!state.session?.id) {

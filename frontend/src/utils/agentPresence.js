@@ -1,6 +1,8 @@
-/** Agents hydrated from the API can be stale (another device, old tab). Only treat as "present" if recently seen or explicitly connected without a timestamp yet. */
-/** How long since lastSeen before we treat a connected agent as gone (closed app / lost socket). */
-export const LIVE_AGENT_PRESENCE_MS = 90 * 1000;
+import { LIVE_AGENT_PRESENCE_MS } from '../../../shared/agentPresence.js';
+
+export { LIVE_AGENT_PRESENCE_MS };
+
+/** Agents hydrated from the API can be stale (another device, old tab). Only treat as "present" if recently seen. */
 
 export function isLiveConnectedAgent(agent) {
   if (!agent) return false;

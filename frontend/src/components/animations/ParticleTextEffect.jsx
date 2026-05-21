@@ -320,15 +320,7 @@ export function ParticleTextEffect({ words = ['907 Skills', '423 Agents', '64 Mu
       animationRef.current = window.requestAnimationFrame(animate);
     }
 
-    const startAnimation = async () => {
-      if (typeof document !== 'undefined' && document.fonts?.ready) {
-        try {
-          await document.fonts.ready;
-        } catch {
-          // Ignore font readiness failures and continue with the fallback stack.
-        }
-      }
-
+    const bootAnimation = () => {
       if (cancelled) {
         return;
       }
@@ -339,10 +331,23 @@ export function ParticleTextEffect({ words = ['907 Skills', '423 Agents', '64 Mu
       particlesRef.current = [];
       morphToWord(words[0]);
       nextSwitchAtRef.current = performance.now() + WORD_CYCLE_MS;
-      animationRef.current = window.requestAnimationFrame(animate);
+
+      if (!animationRef.current) {
+        animationRef.current = window.requestAnimationFrame(animate);
+      }
     };
 
-    startAnimation();
+    bootAnimation();
+
+    if (typeof document !== 'undefined' && document.fonts?.load) {
+      document.fonts.load('700 1em "Space Grotesk"').then(() => {
+        if (!cancelled) {
+          morphToWord(words[wordIndexRef.current] || words[0]);
+        }
+      }).catch(() => {
+        return;
+      });
+    }
 
     const handleResize = () => {
       const resized = resizeCanvas();

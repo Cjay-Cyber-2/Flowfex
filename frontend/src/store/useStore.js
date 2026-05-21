@@ -340,6 +340,21 @@ const useStore = create((set, get) => ({
     set({
       connectedAgents: Array.isArray(connectedAgents) ? connectedAgents : [],
     }),
+  refreshConnectedAgentsPresence: () =>
+    set((state) => {
+      if (!Array.isArray(state.connectedAgents) || state.connectedAgents.length === 0) {
+        return state;
+      }
+
+      const now = new Date().toISOString();
+      return {
+        connectedAgents: state.connectedAgents.map((agent) => ({
+          ...agent,
+          status: agent.status || 'connected',
+          lastSeen: now,
+        })),
+      };
+    }),
 
   sessions: [],
   activeSession: null,

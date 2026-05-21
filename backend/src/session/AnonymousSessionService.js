@@ -281,6 +281,65 @@ export class AnonymousSessionService {
     }
   }
 
+  async touchConnectedAgentsPresence(sessionId) {
+    if (!sessionId) {
+      return null;
+    }
+
+    try {
+      const existingRows = await this.client
+        .select({
+          connected_agents: syniqSessions.connected_agents,
+        })
+        .from(syniqSessions)
+        .where(eq(syniqSessions.id, sessionId))
+        .limit(1);
+
+      const existingRow = firstResult(existingRows);
+      const existingAgents = Array.isArray(existingRow?.connected_agents)
+        ? existingRow.connected_agents
+        : [];
+
+      if (existingAgents.length === 0) {
+        return null;
+      }
+
+      const now = new Date().toISOString();
+      const nextAgents = existingAgents.map((entry) => {
+        if (!entry || typeof entry !== 'object') {
+          return entry;
+        }
+        if (entry.status && entry.status !== 'connected') {
+          return entry;
+        }
+        return {
+          ...entry,
+          lastSeen: now,
+        };
+      });
+
+      const data = await this.client
+        .update(syniqSessions)
+        .set({
+          connected_agents: nextAgents,
+          last_active_at: new Date(),
+          updated_at: new Date(),
+        })
+        .where(eq(syniqSessions.id, sessionId))
+        .returning();
+
+      const row = firstResult(data);
+      return row ? toDashboardSessionRecord(row) : null;
+    } catch (error) {
+      logSessionError({
+        operation: 'anonymous_session.touch_connected_agents_presence',
+        sessionId,
+        error,
+      });
+      throw error;
+    }
+  }
+
   async clearConnectedAgents(sessionId) {
     if (!sessionId) {
       return null;

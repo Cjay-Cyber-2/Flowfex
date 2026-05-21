@@ -1,8 +1,11 @@
+import { LIVE_AGENT_PRESENCE_MS } from '../../../shared/agentPresence.js';
+
+export { LIVE_AGENT_PRESENCE_MS };
+
 /**
- * Server-side agent presence — mirrors frontend `agentPresence.js` so
- * dashboard gating and app-state resolution use the same recency rules.
+ * Server-side agent presence — mirrors frontend rules so
+ * dashboard gating and app-state resolution stay aligned.
  */
-export const LIVE_AGENT_PRESENCE_MS = 90 * 1000;
 
 export function isLiveConnectedAgentServer(agent) {
   if (!agent || typeof agent !== 'object') {

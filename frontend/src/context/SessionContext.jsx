@@ -25,7 +25,9 @@ import {
   signOut as signOutFromAuth,
 } from '../services/authService';
 import useStore from '../store/useStore';
+import { AGENT_PRESENCE_HEARTBEAT_MS } from '../../../shared/agentPresence.js';
 import { filterLiveConnectedAgents, isLiveConnectedAgent } from '../utils/agentPresence';
+import { touchAgentPresence } from '../services/agentPresenceApi';
 import { registerUsageRefreshHandler } from '../utils/usageRefreshBridge';
 
 const SessionContext = createContext(undefined);
@@ -285,6 +287,8 @@ export function SessionProvider({ children }) {
       if (!usageFromResolve && backendSession?.id) {
         await refreshUsage(backendSession?.id || null, auth.accessToken);
       }
+
+      initialLoadDoneRef.current = true;
       return backendSession;
     } catch (error) {
       if (requestId !== initializeRequestIdRef.current) {
@@ -297,11 +301,14 @@ export function SessionProvider({ children }) {
           sessionReady: true,
           configured: isAuthClientConfigured(),
           error: error instanceof Error ? error.message : 'Unable to initialize the Syniq session.',
-          appState: null,
-          appStateError: null,
+          appState: current.appState,
+          appStateError: current.appStateError,
         }));
-        syncStore(null, null);
+        if (!current.session?.id) {
+          syncStore(null, null);
+        }
       });
+      initialLoadDoneRef.current = true;
       return null;
     }
   }, [backendOrigin, refreshUsage, syncStore]);
@@ -316,7 +323,7 @@ export function SessionProvider({ children }) {
   // so sign-in state and Syniq session stay aligned with server cookies.
   useEffect(() => {
     const refreshOnReturn = () => {
-      if (document.visibilityState !== 'visible') {
+      if (document.visibilityState !== 'visible' || !initialLoadDoneRef.current) {
         return;
       }
 
@@ -329,9 +336,12 @@ export function SessionProvider({ children }) {
         });
       }
 
-      initialize().catch(() => {
-        return;
-      });
+      window.clearTimeout(focusRefreshTimerRef.current);
+      focusRefreshTimerRef.current = window.setTimeout(() => {
+        initialize().catch(() => {
+          return;
+        });
+      }, 250);
     };
 
     document.addEventListener('visibilitychange', refreshOnReturn);
@@ -339,6 +349,7 @@ export function SessionProvider({ children }) {
     return () => {
       document.removeEventListener('visibilitychange', refreshOnReturn);
       window.removeEventListener('focus', refreshOnReturn);
+      window.clearTimeout(focusRefreshTimerRef.current);
     };
   }, [initialize, state.session?.id]);
 
@@ -350,6 +361,10 @@ export function SessionProvider({ children }) {
     }
 
     const tick = () => {
+      if (document.visibilityState === 'hidden') {
+        return;
+      }
+
       const agents = useStore.getState().connectedAgents;
       if (!agents.some(isLiveConnectedAgent)) {
         return;

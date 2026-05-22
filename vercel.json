@@ -11,6 +11,9 @@
     { "source": "/control/:path*", "destination": "https://flowfex.onrender.com/control/:path*" },
     { "source": "/orchestration/:path*", "destination": "https://flowfex.onrender.com/orchestration/:path*" },
     { "source": "/node/:path*", "destination": "https://flowfex.onrender.com/node/:path*" },
+    { "source": "/skills", "destination": "https://flowfex.onrender.com/skills" },
+    { "source": "/skills/:path*", "destination": "https://flowfex.onrender.com/skills/:path*" },
+    { "source": "/catalog/:path*", "destination": "https://flowfex.onrender.com/catalog/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

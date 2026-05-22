@@ -25,7 +25,12 @@ import {
   signOut as signOutFromAuth,
 } from '../services/authService';
 import useStore from '../store/useStore';
-import { filterLiveConnectedAgents, isLiveConnectedAgent } from '../utils/agentPresence';
+import { touchAgentPresence } from '../services/agentPresenceApi';
+import {
+  AGENT_PRESENCE_HEARTBEAT_MS,
+  filterLiveConnectedAgents,
+  isLiveConnectedAgent,
+} from '../utils/agentPresence';
 import { registerUsageRefreshHandler } from '../utils/usageRefreshBridge';
 
 const SessionContext = createContext(undefined);

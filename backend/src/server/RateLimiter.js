@@ -93,10 +93,10 @@ export const controlRateLimiter = new RateLimiter({
 // Protects the initial WebSocket/live connection endpoint
 export const connectRateLimiter = new RateLimiter({
   windowMs: 60 * 1000,
-  defaultMax: 5,
+  defaultMax: 8,
   tiers: {
-    anonymous: 5,
-    authenticated: 10,
+    anonymous: 8,
+    authenticated: 15,
     api_key: 20,
   }
 });

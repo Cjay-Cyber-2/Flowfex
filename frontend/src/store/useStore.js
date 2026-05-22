@@ -869,7 +869,11 @@ const useStore = create((set, get) => ({
 
       client.subscribe('session', 'agent:connected', (data) => {
         const activeId = get().activeSession?.id;
-        if (!activeId || data?.sessionId !== activeId) {
+        if (!activeId || !data) {
+          return;
+        }
+        const matchesSession = data.sessionId === activeId || data.connectionSessionId === activeId;
+        if (!matchesSession) {
           return;
         }
         get().replaceConnectedAgents([]);

@@ -3,6 +3,10 @@ import { z } from 'zod';
 // ─── Shared Base Schemas ──────────────────────────────────────────────────────
 
 const sessionIdSchema = z.string().uuid({ message: "Invalid session ID format." });
+const connectionSessionIdSchema = z.union([
+  sessionIdSchema,
+  z.string().regex(/^sess_[a-f0-9]+$/i, { message: "Invalid connection session ID format." }),
+]);
 const nodeIdSchema = z.string().min(1, { message: "Node ID is required." }).max(128);
 
 // ─── API Schemas ──────────────────────────────────────────────────────────────
@@ -23,7 +27,7 @@ export const connectSchema = z.object({
 export const ingestSchema = z.object({
   task: z.string().min(1, { message: "Task is required." }).max(8192),
   token: z.string().optional(),
-  sessionId: sessionIdSchema.optional()
+  sessionId: connectionSessionIdSchema.optional(),
 });
 
 export const createApiKeySchema = z.object({

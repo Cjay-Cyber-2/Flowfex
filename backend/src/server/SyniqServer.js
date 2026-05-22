@@ -615,6 +615,7 @@ export class SyniqServer {
 
     if (request.method === 'POST' && (url.pathname === '/connect' || url.pathname === '/api/connect')) {
       const body = await this._readAndValidateJsonBody(request, connectRequestSchema);
+      await this._resolveConnectWorkspaceSessionId(body, request);
       const validatedApiKey = this.apiKeyService
         ? await this.apiKeyService.validateApiKey(this._extractApiKey(request))
         : null;
@@ -1528,6 +1529,40 @@ export class SyniqServer {
     this._emitAgentConnectedForSession(session, connectionType);
   }
 
+  _resolveWorkspaceSessionIdForConnection(session) {
+    const workspaceSessionId = session?.metadata?.workspaceSessionId || session?.id || null;
+    if (!workspaceSessionId) {
+      return null;
+    }
+
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(workspaceSessionId))) {
+      return workspaceSessionId;
+    }
+
+    return null;
+  }
+
+  async _resolveConnectWorkspaceSessionId(body, request) {
+    if (body?.sessionId || !this.anonymousSessionService) {
+      return body;
+    }
+
+    const anonymousToken = this._extractAnonymousSessionToken(request);
+    if (!anonymousToken) {
+      return body;
+    }
+
+    const workspaceSession = await this.anonymousSessionService
+      .validateAnonymousSession(anonymousToken)
+      .catch(() => null);
+
+    if (workspaceSession?.id && !workspaceSession.authId) {
+      body.sessionId = workspaceSession.id;
+    }
+
+    return body;
+  }
+
   _emitAgentConnectedForSession(session, connectionType) {
     if (!this.socketServer || !session?.id) {
       return;
@@ -1535,6 +1570,7 @@ export class SyniqServer {
 
     const markResult = this.connectionService?.sessionManager?.markConnected?.(session.id);
     const liveSession = markResult?.session || session;
+    const workspaceSessionId = this._resolveWorkspaceSessionIdForConnection(liveSession) || liveSession.id;
 
     const agentPayload = {
       connectionId: liveSession.connectionId || null,
@@ -1543,20 +1579,29 @@ export class SyniqServer {
       connectionType: connectionType || liveSession.mode || 'prompt',
       status: 'connected',
       syncedAt: new Date().toISOString(),
+      connectionSessionId: liveSession.id,
     };
 
     // Always broadcast so clients that join the Socket.IO room late still receive
     // agent:connected (prompt ingest may run before the browser finishes subscribing).
-    this.socketServer.emitAgentConnected(liveSession.id, agentPayload);
+    this.socketServer.emitAgentConnected(workspaceSessionId, agentPayload);
+    if (workspaceSessionId !== liveSession.id) {
+      this.socketServer.emitAgentConnected(liveSession.id, agentPayload);
+    }
+
+    const persistSessionId = this._resolveWorkspaceSessionIdForConnection(liveSession);
+    if (!persistSessionId) {
+      return;
+    }
 
     if (!markResult?.alreadyConnected) {
-      this.anonymousSessionService?.markConnectedAgent?.(liveSession.id, agentPayload).catch(() => {
+      this.anonymousSessionService?.markConnectedAgent?.(persistSessionId, agentPayload).catch(() => {
         return;
       });
       return;
     }
 
-    this.anonymousSessionService?.touchConnectedAgentsPresence?.(liveSession.id).catch(() => {
+    this.anonymousSessionService?.touchConnectedAgentsPresence?.(persistSessionId).catch(() => {
       return;
     });
   }
@@ -1565,7 +1610,11 @@ export class SyniqServer {
     if (!sessionId) {
       return;
     }
-    this.anonymousSessionService?.touchConnectedAgentsPresence?.(sessionId).catch(() => {
+
+    const connectionSession = this.connectionService?.sessionManager?.getSession?.(sessionId);
+    const workspaceSessionId = this._resolveWorkspaceSessionIdForConnection(connectionSession) || sessionId;
+
+    this.anonymousSessionService?.touchConnectedAgentsPresence?.(workspaceSessionId).catch(() => {
       return;
     });
   }

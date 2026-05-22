@@ -368,8 +368,6 @@ const TAB_CONTENT = { Prompt: PromptTab, Link: LinkTab, SDK: SDKTab, 'Live Chann
 function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt' }) {
   const navigate = useNavigate();
   const addAgent = useStore((state) => state.addAgent);
-  const addSession = useStore((state) => state.addSession);
-  const setActiveSession = useStore((state) => state.setActiveSession);
   const activeSession = useStore((state) => state.activeSession);
   const apiFetchBase = resolveApiFetchBase();
   const socketBase = getBackendOrigin().replace(/\/+$/, '');
@@ -557,9 +555,11 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
 
   const finalizeConnection = useCallback(async (tab, eventData = null) => {
     const connection = connections[tab];
-    const session = connection?.connection?.session;
-    const connectionKey = session ? `${session.id}:${session.token || session.connectionId || tab}` : null;
-    if (!session || !connectionKey || finalizedConnectionKeysRef.current.has(connectionKey)) {
+    const connectionSession = connection?.connection?.session;
+    const connectionKey = connectionSession
+      ? `${connectionSession.id}:${connectionSession.token || connectionSession.connectionId || tab}`
+      : null;
+    if (!connectionSession || !connectionKey || finalizedConnectionKeysRef.current.has(connectionKey)) {
       return;
     }
 
@@ -568,37 +568,25 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
     setSyncState('connected');
 
     addAgent({
-      id: eventData?.agentId || session.agent?.id || `agent-${session.id}`,
-      name: eventData?.agentName || session.agent?.name || `${tab} Agent`,
+      id: eventData?.agentId || connectionSession.agent?.id || `agent-${connectionSession.id}`,
+      name: eventData?.agentName || connectionSession.agent?.name || `${tab} Agent`,
       type: eventData?.connectionType || tab,
       status: 'connected',
       lastSeen: new Date().toISOString(),
     });
-    const sessionRecord = {
-      id: session.id,
-      name: `${tab} Session`,
-      task: 'Connected through Syniq',
-      heartbeat: `${tab} connection synced`,
-      status: 'ready',
-      revision: 0,
-      token: session.token,
-      executionId: null,
-    };
-    addSession(sessionRecord);
-    setActiveSession(sessionRecord);
 
-    // Run the onboarding transition immediately so it is not skipped by a
-    // re-render between zustand updates and refreshUsage (global agent:connected
-    // can populate the store before this async call resolves).
+    // Keep the persisted workspace session as active — do not swap in the ephemeral
+    // connection bootstrap id or refresh/navigation will drop the verified attach.
     if (onConnected) {
       onConnected();
     } else {
       onClose();
     }
 
-    await refreshUsage(session.id).catch(() => null);
+    const usageSessionId = workspaceSessionId || connectionSession.id;
+    await refreshUsage(usageSessionId).catch(() => null);
     await refreshAppState().catch(() => null);
-  }, [addAgent, addSession, connections, onClose, onConnected, refreshAppState, refreshUsage, setActiveSession]);
+  }, [addAgent, connections, onClose, onConnected, refreshAppState, refreshUsage, workspaceSessionId]);
 
   const handleSignUp = useCallback(() => {
     onClose();
@@ -616,17 +604,22 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
   }, [navigate, onClose]);
 
   useEffect(() => {
-    if (!isOpen) {
+    if (!isOpen || !workspaceSessionId) {
       return;
     }
 
-    TABS.forEach((tab) => {
-      if (!connections[tab] && !loadingTabs[tab] && !fetchAttemptedRef.current.has(tab)) {
-        fetchAttemptedRef.current.add(tab);
-        fetchConnection(tab);
-      }
-    });
-  }, [activeTab, connections, fetchConnection, isOpen, loadingTabs]);
+    if (!connections[activeTab] && !loadingTabs[activeTab] && !fetchAttemptedRef.current.has(activeTab)) {
+      fetchAttemptedRef.current.add(activeTab);
+      fetchConnection(activeTab);
+    }
+  }, [activeTab, connections, fetchConnection, isOpen, loadingTabs, workspaceSessionId]);
+
+  useEffect(() => {
+    if (workspaceSessionId) {
+      return;
+    }
+    fetchAttemptedRef.current = new Set();
+  }, [workspaceSessionId]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -641,8 +634,9 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
       return undefined;
     }
 
-    const session = connections[activeTab]?.connection?.session;
-    if (!session?.id || !socketBase) {
+    const connectionSession = connections[activeTab]?.connection?.session;
+    const socketSessionId = workspaceSessionId || connectionSession?.id;
+    if (!socketSessionId || !socketBase) {
       setSyncState('idle');
       return undefined;
     }
@@ -650,11 +644,18 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
     setSyncState('waiting');
     const socket = io(`${socketBase}/session`, {
       ...SOCKET_OPTIONS,
-      query: { sessionId: session.id },
+      query: { sessionId: socketSessionId },
     });
 
     socket.on('agent:connected', (eventData) => {
-      if (!eventData || eventData.sessionId !== session.id) {
+      if (!eventData) {
+        return;
+      }
+
+      const eventSessionId = eventData.sessionId;
+      const matchesWorkspace = workspaceSessionId && eventSessionId === workspaceSessionId;
+      const matchesConnection = connectionSession?.id && eventSessionId === connectionSession.id;
+      if (!matchesWorkspace && !matchesConnection) {
         return;
       }
 
@@ -669,7 +670,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
     return () => {
       socket.disconnect();
     };
-  }, [activeTab, socketBase, connections, finalizeConnection, initialTab, isOpen]);
+  }, [activeTab, socketBase, connections, finalizeConnection, initialTab, isOpen, workspaceSessionId]);
 
   /** HTTP fallback: if agent:connected is missed (WS timing, proxies), poll session after an 8s grace window. */
   useEffect(() => {

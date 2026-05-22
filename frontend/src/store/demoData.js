@@ -75,7 +75,7 @@ const SYNIQ_AGENT_RULE_LINES = [
   'If Syniq has nothing relevant, say so clearly instead of inventing a substitute.',
   'Syniq always includes mandatory self-improvement on each orchestration; briefly reflect after routed tasks.',
   'Keep the same Syniq session and token for the full conversation unless the user asks to disconnect.',
-  'After each routed task, add a short footer with what Syniq returned (for example: "Syniq usage: 2 skills, 1 tool, 0 workflows, 0 memory files").',
+  'After each routed task, copy the exact syniqUsage.footer from the Syniq API JSON (includes compulsory baseline counts). Do not guess.',
 ];
 
 export function buildConnectPrompt(sessionId = DEMO_SESSION_ID) {

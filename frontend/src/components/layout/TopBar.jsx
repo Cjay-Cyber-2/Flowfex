@@ -109,12 +109,14 @@ function TopBar() {
         </div>
 
         <button
-          className={`top-bar-icon-button ${isExecuting ? 'is-active' : ''}`}
+          type="button"
+          className={`top-bar-run-control ${isExecuting ? 'is-active' : ''}`}
           onClick={() => (isExecuting ? apiPauseSession() : apiResumeSession())}
-          aria-label={isExecuting ? 'Pause execution' : 'Resume execution'}
-          title={isExecuting ? 'Pause execution' : 'Resume execution'}
+          aria-label={isExecuting ? 'Pause orchestration run' : 'Resume orchestration run'}
+          title={isExecuting ? 'Pause the current orchestration run' : 'Resume the paused orchestration run'}
         >
-          {isExecuting ? <Pause size={16} /> : <Play size={16} />}
+          {isExecuting ? <Pause size={16} aria-hidden /> : <Play size={16} aria-hidden />}
+          <span>{isExecuting ? 'Pause' : 'Resume'}</span>
         </button>
 
         <button

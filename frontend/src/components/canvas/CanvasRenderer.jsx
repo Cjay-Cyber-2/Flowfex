@@ -115,13 +115,23 @@ function getLabelPosition(fromNode, toNode) {
 
 function isNodeEmphasized(node, canvasMode) {
   if (canvasMode === 'map') return true;
-  if (canvasMode === 'flow') return ['completed', 'active', 'approval', 'queued'].includes(node.state);
+  if (canvasMode === 'flow') {
+    return ['completed', 'active', 'approval', 'queued'].includes(node.state);
+  }
+  if (canvasMode === 'live') {
+    return ['active', 'approval', 'queued', 'paused'].includes(node.state);
+  }
   return true;
 }
 
 function isEdgeEmphasized(edge, canvasMode) {
   if (canvasMode === 'map') return true;
-  if (canvasMode === 'flow') return ['completed', 'active', 'queued', 'rerouted'].includes(edge.state);
+  if (canvasMode === 'flow') {
+    return ['completed', 'active', 'queued', 'rerouted'].includes(edge.state);
+  }
+  if (canvasMode === 'live') {
+    return ['active', 'queued'].includes(edge.state);
+  }
   return true;
 }
 

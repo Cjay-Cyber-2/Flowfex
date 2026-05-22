@@ -85,6 +85,14 @@
   min-height: 0;
 }
 
+.rail-panel-agents {
+  flex-shrink: 0;
+}
+
+.rail-panel-agents .rail-panel-body {
+  max-height: none;
+}
+
 .rail-panel--grow {
   flex: 1 1 auto;
   min-height: 0;
@@ -111,9 +119,13 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-bistre);
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .rail-panel-count {
+  flex-shrink: 0;
+  margin-left: auto;
   padding: 3px 8px;
   border-radius: 999px;
   background: rgba(0, 212, 170, 0.1);
@@ -179,11 +191,17 @@
 .agent-row-copy strong {
   font-size: 0.8rem;
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .agent-row-copy span {
   color: var(--color-bistre);
   font-size: 0.68rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .agent-row-badge {

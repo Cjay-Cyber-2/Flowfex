@@ -91,8 +91,9 @@ export class CapabilityRetriever {
             fallbackUsed: usedFallback,
         });
         return {
-            byCategory,
+            byCategory: retrievalWithMandatory.byCategory ?? byCategory,
             merged,
+            mandatorySkillIds: retrievalWithMandatory.mandatorySkillIds,
             strategy: usedSemantic && usedFallback
                 ? 'mixed'
                 : usedSemantic

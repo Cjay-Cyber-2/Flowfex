@@ -205,7 +205,31 @@
   width: 42px;
 }
 
-.top-bar-icon-button.is-active {
+.top-bar-run-control {
+  height: 42px;
+  min-width: 42px;
+  padding: 0 14px 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(17, 24, 32, 0.82);
+  border: 1px solid rgba(0, 212, 170, 0.08);
+  color: var(--color-velin);
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: var(--font-inter);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: all var(--duration-base) var(--ease-expo-out);
+}
+
+.top-bar-run-control span {
+  letter-spacing: 0.02em;
+}
+
+.top-bar-icon-button.is-active,
+.top-bar-run-control.is-active {
   color: #031014;
   background: var(--color-sinoper);
   border-color: transparent;
@@ -235,7 +259,8 @@
 
 .top-bar-connect:hover:not(:disabled),
 .top-bar-account:hover,
-.top-bar-icon-button:hover {
+.top-bar-icon-button:hover,
+.top-bar-run-control:hover {
   transform: translateY(-1px);
 }
 

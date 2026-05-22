@@ -69,6 +69,35 @@
   opacity: 0.2;
 }
 
+.canvas-mode-live .graph-node-active,
+.canvas-mode-live .graph-node-approval,
+.canvas-mode-live .graph-node-queued,
+.canvas-mode-live .graph-node-paused {
+  opacity: 1;
+}
+
+.canvas-mode-live .graph-node-active polygon,
+.canvas-mode-live .graph-node-active rect,
+.canvas-mode-live .graph-node-approval polygon,
+.canvas-mode-live .graph-node-approval rect {
+  animation: liveNodePulse 2.4s ease-in-out infinite;
+}
+
+.canvas-mode-live .graph-edge-active path {
+  stroke-width: 3.2;
+  filter: drop-shadow(0 0 14px rgba(0, 212, 170, 0.35));
+}
+
+@keyframes liveNodePulse {
+  0%,
+  100% {
+    filter: url(#nodeGlow);
+  }
+  50% {
+    filter: url(#nodeGlow) drop-shadow(0 0 18px rgba(0, 212, 170, 0.42));
+  }
+}
+
 .graph-edge.is-hovered {
   opacity: 1;
 }

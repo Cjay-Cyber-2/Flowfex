@@ -5,6 +5,7 @@ import { useSessionContext } from '../../context/SessionContext';
 import { DEMO_SKILL_LIBRARY } from '../../store/demoData';
 import FlowIcon from '../common/FlowIcon';
 import { filterLiveConnectedAgents } from '../../utils/agentPresence';
+import { formatAgentLastSeen } from '../../utils/formatAgentLastSeen';
 import {
   deriveCatalogStats,
   fetchCatalogStats,
@@ -302,7 +303,7 @@ function LeftRail() {
         />
       </label>
 
-      <section className="rail-panel" data-tour="agents">
+      <section className="rail-panel rail-panel-agents" data-tour="agents">
         <div className="rail-panel-head">
           <span className="rail-panel-title">Connected agents</span>
           <span className="rail-panel-count">{liveConnectedAgents.length}</span>
@@ -320,7 +321,7 @@ function LeftRail() {
                 <span className={`status-dot status-dot-${agent.status}`} />
                 <div className="agent-row-copy">
                   <strong>{agent.name}</strong>
-                  <span>{agent.lastSeen}</span>
+                  <span>{formatAgentLastSeen(agent.lastSeen)}</span>
                 </div>
                 <span className="agent-row-badge">{agent.type}</span>
               </div>

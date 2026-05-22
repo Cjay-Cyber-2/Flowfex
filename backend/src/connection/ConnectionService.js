@@ -26,8 +26,9 @@ const SYNIQ_AGENT_RULES = [
   'Use the skills, tools, memory, and workflows Syniq returns when they are relevant to the task.',
   'If Syniq returns nothing relevant, say so clearly instead of inventing a substitute resource.',
   'Keep using the same Syniq session and token for the full conversation unless the user asks to disconnect.',
-  'Syniq always includes the mandatory self-improving-agent skill on every orchestration. After each routed task, briefly reflect on quality and how you used Syniq; apply one concrete improvement on the next reply.',
-  'After each routed task, add a short footer with what Syniq returned (for example: "Syniq usage: 2 skills, 1 tool, 0 workflows, 0 memory files").',
+  'Syniq always injects the full compulsory baseline (23 skills) on every orchestration, plus any task-specific skills Syniq selects.',
+  'After each routed task, copy the exact syniqUsage.footer string from the Syniq API JSON response — do not guess counts. If syniqUsage is missing, say Syniq returned no usage summary.',
+  'Briefly reflect on quality and how you applied Syniq resources; apply one concrete improvement on the next reply when useful.',
 ];
 
 /**
@@ -558,8 +559,8 @@ export class ConnectionService {
       '',
       '4. Keep this same session and token for the full conversation unless the user asks to disconnect.',
       '',
-      '5. End each routed reply with a short usage footer, for example:',
-      '   Syniq usage: 2 skills, 1 tool, 0 workflows, 0 memory files',
+      '5. End each routed reply with the exact syniqUsage.footer from the Syniq JSON response (includes compulsory baseline counts).',
+      '   Example shape: Syniq usage: 24 skills (23 compulsory baseline + 1 task), 0 tools, 0 workflows, 3 memory files',
       '',
       `Workspace note: ${prompt}`,
       '',

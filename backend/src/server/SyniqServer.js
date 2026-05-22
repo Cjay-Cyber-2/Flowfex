@@ -260,6 +260,7 @@ export class SyniqServer {
     const sessionUsageMatch = request.method === 'GET' && url.pathname === '/api/session/usage';
     const sessionResolveMatch = request.method === 'GET' && url.pathname === '/api/session/resolve-state';
     const sessionResetAgentsMatch = request.method === 'POST' && url.pathname === '/api/session/reset-agents';
+    const sessionTouchAgentPresenceMatch = request.method === 'POST' && url.pathname === '/api/session/touch-agent-presence';
     const apiKeysMatch = url.pathname === '/api/api-keys';
     const apiKeyRevokeMatch = url.pathname.match(/^\/api\/api-keys\/([^/]+)$/);
 
@@ -491,6 +492,47 @@ export class SyniqServer {
         message: 'Agent attachment cleared. You can connect a new agent from onboarding.',
       });
     }
+
+    if (sessionTouchAgentPresenceMatch) {
+      this._assertSessionDataEnabled();
+      const touchBody = await this._readAndValidateJsonBody(request, emptySchema);
+      const touchSessionId = String(touchBody?.sessionId || url.searchParams.get('sessionId') || '').trim();
+      if (!touchSessionId) {
+        return this._writeJson(response, 400, {
+          error: { message: 'sessionId is required to refresh agent presence.' },
+        });
+      }
+
+      let touchAuthorized = false;
+      const touchAnonymousToken = this._extractAnonymousSessionToken(request);
+      if (touchAnonymousToken) {
+        try {
+          const anonSession = await this.anonymousSessionService.validateAnonymousSession(touchAnonymousToken);
+          touchAuthorized = anonSession?.id === touchSessionId;
+        } catch {
+          touchAuthorized = false;
+        }
+      }
+
+      if (!touchAuthorized && authUser?.id) {
+        const owned = await this.anonymousSessionService.getMostRecentSessionForUser(authUser.id);
+        touchAuthorized = owned?.id === touchSessionId;
+      }
+
+      if (!touchAuthorized) {
+        return this._writeJson(response, 403, {
+          error: { message: 'You do not have access to update this workspace session.' },
+        });
+      }
+
+      const touched = await this.anonymousSessionService.touchConnectedAgentsPresence(touchSessionId);
+      return this._writeJson(response, 200, {
+        ok: true,
+        sessionId: touchSessionId,
+        touched: Boolean(touched),
+      });
+    }
+
 
     if (request.method === 'GET' && apiKeysMatch) {
       this._assertSessionDataEnabled();
@@ -876,12 +918,15 @@ export class SyniqServer {
         await this._assertToolsRequestQuota(executionPayload.sessionId);
         if (this._wantsEventStream(request, url, body)) {
           this._emitAgentConnectedForSessionId(executionPayload.sessionId, 'prompt');
+          this._touchAgentPresenceForExecution(executionPayload.sessionId);
           return this._writeEventStream(response, executionPayload);
         }
 
         this._emitAgentConnectedForSessionId(executionPayload.sessionId, 'prompt');
+        this._touchAgentPresenceForExecution(executionPayload.sessionId);
         const payload = await this.connectionService.execute(executionPayload);
         await this._recordToolsRequest(executionPayload.sessionId, payload);
+        this._touchAgentPresenceForExecution(executionPayload.sessionId);
         return this._writeJson(response, 200, {
           ...payload,
           sessionId: executionPayload.sessionId,
@@ -919,12 +964,15 @@ export class SyniqServer {
         await this._assertToolsRequestQuota(executionPayload.sessionId);
         if (this._wantsEventStream(request, url, body)) {
           this._emitAgentConnectedForSessionId(executionPayload.sessionId, null);
+          this._touchAgentPresenceForExecution(executionPayload.sessionId);
           return this._writeEventStream(response, executionPayload);
         }
 
         this._emitAgentConnectedForSessionId(executionPayload.sessionId, null);
+        this._touchAgentPresenceForExecution(executionPayload.sessionId);
         const payload = await this.connectionService.execute(executionPayload);
         await this._recordToolsRequest(executionPayload.sessionId, payload);
+        this._touchAgentPresenceForExecution(executionPayload.sessionId);
         return this._writeJson(response, 200, payload);
       } catch (error) {
         this._writeError(response, error);
@@ -1497,7 +1545,21 @@ export class SyniqServer {
       this.anonymousSessionService?.markConnectedAgent?.(liveSession.id, agentPayload).catch(() => {
         return;
       });
+      return;
     }
+
+    this.anonymousSessionService?.touchConnectedAgentsPresence?.(liveSession.id).catch(() => {
+      return;
+    });
+  }
+
+  _touchAgentPresenceForExecution(sessionId) {
+    if (!sessionId) {
+      return;
+    }
+    this.anonymousSessionService?.touchConnectedAgentsPresence?.(sessionId).catch(() => {
+      return;
+    });
   }
 
   _writeError(response, error) {

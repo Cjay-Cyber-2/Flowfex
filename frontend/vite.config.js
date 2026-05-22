@@ -1,67 +1,38 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+const backendTarget = 'http://localhost:4000';
+
+/** Dev/preview proxies — use path prefixes that never match /node_modules. */
+const devProxy = {
+  '/api': { target: backendTarget, changeOrigin: true },
+  '/connect': { target: backendTarget, changeOrigin: true },
+  '/ingest': { target: backendTarget, changeOrigin: true },
+  '/sessions': { target: backendTarget, changeOrigin: true },
+  '/session': { target: backendTarget, changeOrigin: true },
+  '/control': { target: backendTarget, changeOrigin: true },
+  '/orchestration': { target: backendTarget, changeOrigin: true },
+  '/skills': { target: backendTarget, changeOrigin: true },
+  '/catalog': { target: backendTarget, changeOrigin: true },
+  // Control API only: /node/:id/approve — must not match /node_modules/*
+  '^/node/': { target: backendTarget, changeOrigin: true },
+  '/ws': { target: backendTarget, ws: true },
+};
+
 export default defineConfig({
   envDir: '..',
   envPrefix: ['VITE_'],
   plugins: [react()],
   preview: {
     port: 3000,
-    proxy: {
-      '/api': { target: 'http://localhost:4000', changeOrigin: true },
-      '/connect': { target: 'http://localhost:4000', changeOrigin: true },
-      '/ingest': { target: 'http://localhost:4000', changeOrigin: true },
-      '/sessions': { target: 'http://localhost:4000', changeOrigin: true },
-      '/session': { target: 'http://localhost:4000', changeOrigin: true },
-      '/control': { target: 'http://localhost:4000', changeOrigin: true },
-      '/orchestration': { target: 'http://localhost:4000', changeOrigin: true },
-      '/node': { target: 'http://localhost:4000', changeOrigin: true },
-      '/ws': { target: 'ws://localhost:4000', ws: true },
-    },
+    proxy: devProxy,
   },
   server: {
     port: 3000,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:4000',
-        changeOrigin: true,
-      },
-      '/connect': {
-        target: 'http://localhost:4000',
-        changeOrigin: true,
-      },
-      '/ingest': {
-        target: 'http://localhost:4000',
-        changeOrigin: true,
-      },
-      '/sessions': {
-        target: 'http://localhost:4000',
-        changeOrigin: true,
-      },
-      '/session': {
-        target: 'http://localhost:4000',
-        changeOrigin: true,
-      },
-      '/control': {
-        target: 'http://localhost:4000',
-        changeOrigin: true,
-      },
-      '/orchestration': {
-        target: 'http://localhost:4000',
-        changeOrigin: true,
-      },
-      '/node': {
-        target: 'http://localhost:4000',
-        changeOrigin: true,
-      },
-      '/ws': {
-        target: 'ws://localhost:4000',
-        ws: true,
-      },
-    },
+    proxy: devProxy,
   },
   build: {
     outDir: 'dist',
-    sourcemap: true
-  }
+    sourcemap: true,
+  },
 });

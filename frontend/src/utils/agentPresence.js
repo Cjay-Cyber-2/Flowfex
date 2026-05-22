@@ -1,6 +1,9 @@
-import { LIVE_AGENT_PRESENCE_MS } from '../../../shared/agentPresence.js';
+import {
+  AGENT_PRESENCE_HEARTBEAT_MS,
+  LIVE_AGENT_PRESENCE_MS,
+} from '../../../shared/agentPresence.js';
 
-export { LIVE_AGENT_PRESENCE_MS };
+export { AGENT_PRESENCE_HEARTBEAT_MS, LIVE_AGENT_PRESENCE_MS };
 
 /** Agents hydrated from the API can be stale (another device, old tab). Only treat as "present" if recently seen. */
 

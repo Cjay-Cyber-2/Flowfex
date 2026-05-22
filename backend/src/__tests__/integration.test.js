@@ -953,6 +953,98 @@ await test('SyniqServer ingests token-prefixed prompt tasks without separate aut
   }
 });
 
+await test('Syniq ingest validation accepts sess_* connection session ids', async () => {
+  const { isSyniqSessionId } = await import('../../../shared/sessionIds.js');
+  assert(isSyniqSessionId('sess_083d11df487f228019e5c0f4'), 'sess_* ids should pass ingest validation');
+  assert(isSyniqSessionId('d6a83897-05bf-4140-9142-6b85e0a8d131'), 'UUID workspace ids should pass ingest validation');
+});
+
+await test('SyniqServer ingest accepts sess_* sessionId in attach body', async () => {
+  const registry = new ToolRegistry();
+  const promptTool = new Tool({
+    id: 'server.prompt-ingest-sess',
+    name: 'Prompt Ingest Sess Tool',
+    description: 'Processes prompt-ingested tasks for sess_* session ids',
+    prompt: 'Execute the connected task.',
+    keywords: ['prompt', 'ingest', 'sess'],
+    metadata: { category: 'text' },
+    run: async (input) => ({
+      success: true,
+      task: input.task,
+      session: input.session,
+    }),
+  });
+
+  registry.registerTool(promptTool);
+
+  const plannerLLM = {
+    async generate(systemPrompt) {
+      if (systemPrompt.includes('Syniq orchestration planner')) {
+        return JSON.stringify({
+          goal: 'Handle a prompt-ingested task',
+          capabilityCategories: ['text'],
+          suggestedExecutionSteps: [
+            {
+              id: 'step-prompt-ingest-sess',
+              title: 'Handle prompt task',
+              objective: 'Process the connected prompt task',
+              capabilityCategory: 'text',
+              requiresApproval: false,
+            },
+          ],
+          branchPoints: [],
+          confidence: 0.96,
+          constraints: [],
+        });
+      }
+      return 'LLM:ok';
+    },
+  };
+
+  const orchestrator = new Orchestrator({ registry, llm: plannerLLM });
+  const connectionService = new ConnectionService({
+    registry,
+    orchestrator,
+    sessionManager: new SessionManager(),
+  });
+  const server = new SyniqServer({ connectionService, host: '127.0.0.1', port: 0 });
+
+  try {
+    const address = await server.start();
+    const connectResponse = await requestJson({
+      host: address.host,
+      port: address.port,
+      path: '/connect',
+      method: 'POST',
+      body: {
+        mode: 'prompt',
+        prompt: 'Attach with a sess_* connection id from the setup block.',
+        agent: { name: 'Sess Prompt Agent', type: 'cli' },
+      },
+    });
+
+    assert(connectResponse.statusCode === 200, 'Prompt connect should return 200');
+    const session = connectResponse.body.connection.session;
+    assert(/^sess_[a-f0-9]{24}$/i.test(session.id), 'Connection session id should use sess_* format');
+    const task = `SYNIQ_SESSION_TOKEN: ${session.token}\nsyniq.attach`;
+    const ingestResponse = await requestJson({
+      host: address.host,
+      port: address.port,
+      path: '/ingest',
+      method: 'POST',
+      body: {
+        sessionId: session.id,
+        task,
+      },
+    });
+
+    assert(ingestResponse.statusCode === 200, `Prompt ingest with sess_* id should return 200, got ${ingestResponse.statusCode}`);
+    assert(ingestResponse.body.status === 'success', 'Prompt ingest attach should execute successfully');
+  } finally {
+    await server.stop();
+  }
+});
+
 await test('SyniqServer streams execution events over SSE for live clients', async () => {
   const registry = new ToolRegistry();
   const streamingTool = new Tool({

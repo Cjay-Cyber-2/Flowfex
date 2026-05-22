@@ -7,7 +7,7 @@ import { ControlController } from '../control/ControlController.js';
 import { executionRateLimiter, controlRateLimiter, connectRateLimiter } from './RateLimiter.js';
 import { sessionLockManager } from '../session/SessionLockManager.js';
 import { defaultSessionStateRepository } from '../persistence/defaultSessionStateRepository.js';
-import { isSessionDataConfigured, resolveAuthenticatedUser } from '../session/sessionDataAccess.js';
+import { createSessionDataClient, isSessionDataConfigured, resolveAuthenticatedUser } from '../session/sessionDataAccess.js';
 import { AnonymousSessionService } from '../session/AnonymousSessionService.js';
 import { ApiKeyService } from '../session/ApiKeyService.js';
 import { UsageService } from '../session/UsageService.js';
@@ -23,6 +23,13 @@ import {
 import { connectRequestSchema } from '../../../shared/connection-contracts.js';
 import { getAllowedBrowserOrigins, resolveAllowedCorsOrigin } from '../config/corsOrigins.js';
 import { buildCatalogStats } from '../skills/catalogStatsBuilder.js';
+import { isWorkspaceUuidSessionId } from '../../../shared/sessionIds.js';
+import {
+  buildHandshakePayload,
+  findConnectionHandshakeByToken,
+  persistConnectionHandshake,
+  restoreConnectionSessionFromHandshake,
+} from '../connection/connectionSessionPersistence.js';
 
 const authHandler = toNodeHandler(auth);
 const DEBUG_REQUEST_LOGS = /^(1|true|yes)$/i.test(String(process.env.SYNIQ_DEBUG_REQUESTS || process.env.FLOWFEX_DEBUG_REQUESTS || '').trim());
@@ -253,7 +260,6 @@ export class SyniqServer {
     const sessionUsageMatch = request.method === 'GET' && url.pathname === '/api/session/usage';
     const sessionResolveMatch = request.method === 'GET' && url.pathname === '/api/session/resolve-state';
     const sessionResetAgentsMatch = request.method === 'POST' && url.pathname === '/api/session/reset-agents';
-    const sessionTouchAgentPresenceMatch = request.method === 'POST' && url.pathname === '/api/session/touch-agent-presence';
     const apiKeysMatch = url.pathname === '/api/api-keys';
     const apiKeyRevokeMatch = url.pathname.match(/^\/api\/api-keys\/([^/]+)$/);
 
@@ -486,47 +492,6 @@ export class SyniqServer {
       });
     }
 
-    if (sessionTouchAgentPresenceMatch) {
-      this._assertSessionDataEnabled();
-      const touchBody = await this._readAndValidateJsonBody(request, emptySchema);
-      const touchSessionId = String(touchBody?.sessionId || url.searchParams.get('sessionId') || '').trim();
-      if (!touchSessionId) {
-        return this._writeJson(response, 400, {
-          error: { message: 'sessionId is required to refresh agent presence.' },
-        });
-      }
-
-      let touchAuthorized = false;
-      const touchAnonymousToken = this._extractAnonymousSessionToken(request);
-      if (touchAnonymousToken) {
-        try {
-          const anonSession = await this.anonymousSessionService.validateAnonymousSession(touchAnonymousToken);
-          touchAuthorized = anonSession?.id === touchSessionId;
-        } catch {
-          touchAuthorized = false;
-        }
-      }
-
-      if (!touchAuthorized && authUser?.id) {
-        const owned = await this.anonymousSessionService.getMostRecentSessionForUser(authUser.id);
-        touchAuthorized = owned?.id === touchSessionId;
-      }
-
-      if (!touchAuthorized) {
-        return this._writeJson(response, 403, {
-          error: { message: 'You do not have access to update this workspace session.' },
-        });
-      }
-
-      const touched = await this.anonymousSessionService.touchConnectedAgentsPresence(touchSessionId);
-      return this._writeJson(response, 200, {
-        ok: true,
-        sessionId: touchSessionId,
-        touched: Boolean(touched),
-      });
-    }
-
-
     if (request.method === 'GET' && apiKeysMatch) {
       this._assertSessionDataEnabled();
       const user = await this._requireAuthenticatedUser(this._extractBearerToken(request));
@@ -623,6 +588,26 @@ export class SyniqServer {
         authUserId: authUser?.id || null,
         baseUrl: this._buildBaseUrl(request),
       });
+
+      if (
+        this.sessionDataEnabled
+        && body.mode === 'prompt'
+        && body.sessionId
+        && isWorkspaceUuidSessionId(body.sessionId)
+        && payload?.connection?.session?.token
+      ) {
+        const handshake = buildHandshakePayload(
+          payload.connection.session,
+          payload.connection.session.token,
+          body.sessionId
+        );
+        if (handshake) {
+          const client = this.sessionStateRepository?.client || createSessionDataClient();
+          await persistConnectionHandshake(client, body.sessionId, handshake).catch(error => {
+            console.warn('[Syniq] Failed to persist connection handshake:', error?.message || error);
+          });
+        }
+      }
 
       return this._writeJson(response, 200, payload);
     }
@@ -873,7 +858,7 @@ export class SyniqServer {
     // ─── Agent Ingest (prompt-based connection) ────────────────────────
     if (request.method === 'POST' && ingestMatch) {
       const body = await this._readAndValidateJsonBody(request, ingestSchema);
-      const ingestRequest = this._resolvePromptIngestRequest(body, request);
+      const ingestRequest = await this._resolvePromptIngestRequest(body, request);
       const executionPayload = {
         sessionId: ingestRequest.sessionId,
         input: ingestRequest.task,
@@ -891,15 +876,12 @@ export class SyniqServer {
         await this._assertToolsRequestQuota(executionPayload.sessionId);
         if (this._wantsEventStream(request, url, body)) {
           this._emitAgentConnectedForSessionId(executionPayload.sessionId, 'prompt');
-          this._touchAgentPresenceForExecution(executionPayload.sessionId);
           return this._writeEventStream(response, executionPayload);
         }
 
         this._emitAgentConnectedForSessionId(executionPayload.sessionId, 'prompt');
-        this._touchAgentPresenceForExecution(executionPayload.sessionId);
         const payload = await this.connectionService.execute(executionPayload);
         await this._recordToolsRequest(executionPayload.sessionId, payload);
-        this._touchAgentPresenceForExecution(executionPayload.sessionId);
         return this._writeJson(response, 200, {
           ...payload,
           sessionId: executionPayload.sessionId,
@@ -937,15 +919,12 @@ export class SyniqServer {
         await this._assertToolsRequestQuota(executionPayload.sessionId);
         if (this._wantsEventStream(request, url, body)) {
           this._emitAgentConnectedForSessionId(executionPayload.sessionId, null);
-          this._touchAgentPresenceForExecution(executionPayload.sessionId);
           return this._writeEventStream(response, executionPayload);
         }
 
         this._emitAgentConnectedForSessionId(executionPayload.sessionId, null);
-        this._touchAgentPresenceForExecution(executionPayload.sessionId);
         const payload = await this.connectionService.execute(executionPayload);
         await this._recordToolsRequest(executionPayload.sessionId, payload);
-        this._touchAgentPresenceForExecution(executionPayload.sessionId);
         return this._writeJson(response, 200, payload);
       } catch (error) {
         this._writeError(response, error);
@@ -1321,7 +1300,7 @@ export class SyniqServer {
     return /^(1|true|yes)$/i.test(String(normalized || '').trim());
   }
 
-  _resolvePromptIngestRequest(body, request) {
+  async _resolvePromptIngestRequest(body, request) {
     if (!body || typeof body !== 'object') {
       throw createHttpError('Prompt ingest requires a JSON object body', 400);
     }
@@ -1339,7 +1318,15 @@ export class SyniqServer {
       throw createHttpError('Prompt ingest requires a session token or a token-prefixed task', 400);
     }
 
-    const session = this.connectionService?.sessionManager?.findSessionByToken?.(sessionToken);
+    const sessionManager = this.connectionService?.sessionManager;
+    let session = sessionManager?.findSessionByToken?.(sessionToken);
+
+    if (!session && this.sessionDataEnabled && sessionManager?.restoreSession) {
+      const client = this.sessionStateRepository?.client || createSessionDataClient();
+      const record = await findConnectionHandshakeByToken(client, sessionToken);
+      session = restoreConnectionSessionFromHandshake(sessionManager, record, sessionToken);
+    }
+
     if (!session) {
       throw createHttpError('Invalid or expired session token', 401);
     }
@@ -1354,8 +1341,20 @@ export class SyniqServer {
       throw createHttpError('Prompt ingest requires a non-empty task', 400);
     }
 
+    const requestedSessionId = typeof body.sessionId === 'string' ? body.sessionId.trim() : '';
+    let sessionId = session.id;
+    if (requestedSessionId) {
+      if (requestedSessionId === session.id) {
+        sessionId = requestedSessionId;
+      } else if (session.metadata?.workspaceSessionId === requestedSessionId) {
+        sessionId = session.id;
+      } else {
+        throw createHttpError('Prompt ingest sessionId does not match the session token', 400);
+      }
+    }
+
     return {
-      sessionId: body.sessionId || session.id,
+      sessionId,
       token: sessionToken,
       task,
     };
@@ -1498,21 +1497,7 @@ export class SyniqServer {
       this.anonymousSessionService?.markConnectedAgent?.(liveSession.id, agentPayload).catch(() => {
         return;
       });
-      return;
     }
-
-    this.anonymousSessionService?.touchConnectedAgentsPresence?.(liveSession.id).catch(() => {
-      return;
-    });
-  }
-
-  _touchAgentPresenceForExecution(sessionId) {
-    if (!sessionId) {
-      return;
-    }
-    this.anonymousSessionService?.touchConnectedAgentsPresence?.(sessionId).catch(() => {
-      return;
-    });
   }
 
   _writeError(response, error) {

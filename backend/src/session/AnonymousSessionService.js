@@ -18,6 +18,14 @@ function buildAnonymousToken() {
   return `${randomUUID()}_${timestampHash}`;
 }
 
+function normalizeVisitorAnchor(value) {
+  const anchor = String(value || '').trim();
+  if (!anchor || anchor.length < 8 || anchor.length > 128) {
+    return null;
+  }
+  return anchor;
+}
+
 function normalizeConnectedAgent(agent) {
   if (!agent || typeof agent !== 'object') {
     return null;
@@ -91,7 +99,81 @@ export class AnonymousSessionService {
     this.client = config.client || createSessionDataClient();
   }
 
-  async createAnonymousSession() {
+  async _backfillVisitorAnchor(sessionId, visitorAnchor) {
+    const anchor = normalizeVisitorAnchor(visitorAnchor);
+    if (!sessionId || !anchor) {
+      return;
+    }
+
+    try {
+      await this.client
+        .update(syniqSessions)
+        .set({
+          visitor_anchor: anchor,
+          updated_at: new Date(),
+        })
+        .where(eq(syniqSessions.id, sessionId));
+    } catch (error) {
+      logSessionError({
+        operation: 'anonymous_session.backfill_visitor_anchor',
+        sessionId,
+        error,
+      });
+    }
+  }
+
+  async attachVisitorAnchorToSession(sessionId, visitorAnchor) {
+    return this._backfillVisitorAnchor(sessionId, visitorAnchor);
+  }
+
+  async findLatestAnonymousSessionForVisitor(visitorAnchor) {
+    const anchor = normalizeVisitorAnchor(visitorAnchor);
+    if (!anchor) {
+      return null;
+    }
+
+    try {
+      const data = await this.client
+        .select()
+        .from(syniqSessions)
+        .where(eq(syniqSessions.visitor_anchor, anchor))
+        .orderBy(desc(syniqSessions.last_active_at))
+        .limit(1);
+
+      const row = firstResult(data);
+      if (!row || row.auth_id) {
+        return null;
+      }
+
+      return toDashboardSessionRecord(row);
+    } catch (error) {
+      logSessionError({
+        operation: 'anonymous_session.find_by_visitor_anchor',
+        sessionId: null,
+        error,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Reuse the latest anonymous workspace for this visitor when one exists so
+   * clearing agents or local storage cannot mint a fresh execution quota.
+   */
+  async createAnonymousSession(visitorAnchor = null) {
+    const anchor = normalizeVisitorAnchor(visitorAnchor);
+    if (anchor) {
+      const existing = await this.findLatestAnonymousSessionForVisitor(anchor);
+      if (existing?.anonymousToken) {
+        await this._backfillVisitorAnchor(existing.id, anchor);
+        return {
+          sessionId: existing.id,
+          anonymousToken: existing.anonymousToken,
+          resumed: true,
+        };
+      }
+    }
+
     const anonymousToken = buildAnonymousToken();
     const sessionId = randomUUID();
 
@@ -99,6 +181,7 @@ export class AnonymousSessionService {
       const data = await this.client.insert(syniqSessions).values({
         id: sessionId,
         anonymous_token: anonymousToken,
+        visitor_anchor: anchor,
       }).returning();
 
       const row = firstResult(data);
@@ -106,6 +189,7 @@ export class AnonymousSessionService {
       return {
         sessionId: row?.id || sessionId,
         anonymousToken: row?.anonymous_token || anonymousToken,
+        resumed: false,
       };
     } catch (error) {
       logSessionError({
@@ -346,10 +430,29 @@ export class AnonymousSessionService {
     }
 
     try {
+      const existingRows = await this.client
+        .select({
+          graph_state: syniqSessions.graph_state,
+        })
+        .from(syniqSessions)
+        .where(eq(syniqSessions.id, sessionId))
+        .limit(1);
+
+      const existingRow = firstResult(existingRows);
+      const nextGraphState = existingRow?.graph_state && typeof existingRow.graph_state === 'object'
+        ? {
+            ...existingRow.graph_state,
+            status: 'waiting',
+            connectedAgents: [],
+          }
+        : { status: 'waiting', connectedAgents: [] };
+
       const data = await this.client
         .update(syniqSessions)
         .set({
           connected_agents: [],
+          graph_state: nextGraphState,
+          status: 'active',
           last_active_at: new Date(),
           updated_at: new Date(),
         })

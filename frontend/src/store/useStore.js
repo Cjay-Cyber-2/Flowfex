@@ -556,10 +556,15 @@ const useStore = create((set, get) => ({
       isExecuting: false,
     }),
 
-  clearAgentAttachment: async () => {
-    const sessionId = get().activeSession?.id;
+  clearAgentAttachment: async (sessionIdOverride = null) => {
+    const sessionId = sessionIdOverride || get().activeSession?.id || null;
     if (!sessionId) {
-      return false;
+      get().addNotification({
+        type: 'error',
+        title: 'Cannot clear agent',
+        message: 'No workspace session is loaded yet. Refresh the page and try again.',
+      });
+      return { ok: false };
     }
 
     try {
@@ -574,38 +579,63 @@ const useStore = create((set, get) => ({
         body: JSON.stringify({ sessionId }),
       });
 
-      if (!response.ok) {
-        return false;
+      let payload = null;
+      try {
+        payload = await response.json();
+      } catch {
+        payload = null;
       }
 
-      set((state) => ({
-        connectedAgents: [],
-        isExecuting: false,
-        nodes: [],
-        edges: [],
-        approvalQueue: [],
-        selectedNode: null,
-        rightDrawerOpen: false,
-        activeSession: state.activeSession
-          ? {
-              ...state.activeSession,
-              status: 'waiting',
-              heartbeat: 'Waiting for agent',
-            }
-          : null,
-        sessions: state.activeSession
-          ? syncSessions(state.sessions, {
-              ...state.activeSession,
-              status: 'waiting',
-              heartbeat: 'Waiting for agent',
-            })
-          : state.sessions,
-      }));
+      if (!response.ok) {
+        const message = payload?.error?.message
+          || payload?.message
+          || 'Unable to clear the previous agent. Try again in a moment.';
+        get().addNotification({
+          type: 'error',
+          title: 'Clear failed',
+          message,
+        });
+        return { ok: false, error: message };
+      }
+
+      if (payload?.session) {
+        get().hydratePersistedSession(payload.session);
+      } else {
+        set((state) => ({
+          connectedAgents: [],
+          isExecuting: false,
+          nodes: [],
+          edges: [],
+          approvalQueue: [],
+          selectedNode: null,
+          rightDrawerOpen: false,
+          activeSession: state.activeSession
+            ? {
+                ...state.activeSession,
+                status: 'waiting',
+                heartbeat: 'Waiting for agent',
+              }
+            : null,
+          sessions: state.activeSession
+            ? syncSessions(state.sessions, {
+                ...state.activeSession,
+                status: 'waiting',
+                heartbeat: 'Waiting for agent',
+              })
+            : state.sessions,
+        }));
+      }
 
       requestUsageRefresh(sessionId);
-      return true;
-    } catch {
-      return false;
+      return { ok: true, session: payload?.session || null, quotaPreserved: payload?.quotaPreserved !== false };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to clear the previous agent.';
+      get().addNotification({
+        type: 'error',
+        title: 'Clear failed',
+        message,
+      });
+      return { ok: false, error: message };
     }
   },
 

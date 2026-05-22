@@ -108,10 +108,12 @@ function AnimatedLayerButton({ children, onClick, className = '' }) {
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { sessionReady, appState, refreshAppState } = useSessionContext();
+  const { session, sessionReady, appState, refreshAppState, syncBackendSession } = useSessionContext();
   const connectedAgents = useStore((state) => state.connectedAgents);
   const clearAgentAttachment = useStore((state) => state.clearAgentAttachment);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [clearingAgents, setClearingAgents] = useState(false);
+  const [staleBannerDismissed, setStaleBannerDismissed] = useState(false);
   const [connectionStage, setConnectionStage] = useState('idle');
   const transitionTimersRef = useRef([]);
   const autoTransitionStartedRef = useRef(false);
@@ -152,9 +154,40 @@ export default function Onboarding() {
     }
   }, [connectedAgents, handleConnected, sessionReady]);
 
-  const hasStaleAttachment = sessionReady
+  const hasStaleAttachment = !staleBannerDismissed
+    && sessionReady
     && !connectedAgents.some(isLiveConnectedAgent)
     && (connectedAgents.length > 0 || appState?.gates?.agentConnectedServer === true);
+
+  const handleClearAndReconnect = useCallback(async () => {
+    if (clearingAgents) {
+      return;
+    }
+
+    setClearingAgents(true);
+    try {
+      const result = await clearAgentAttachment(session?.id);
+      if (!result?.ok) {
+        return;
+      }
+
+      if (result.session) {
+        syncBackendSession(result.session);
+      }
+
+      setStaleBannerDismissed(true);
+      await refreshAppState();
+      setIsModalOpen(true);
+    } finally {
+      setClearingAgents(false);
+    }
+  }, [
+    clearingAgents,
+    clearAgentAttachment,
+    refreshAppState,
+    session?.id,
+    syncBackendSession,
+  ]);
 
   return (
     <div className="ob-root">
@@ -267,12 +300,10 @@ export default function Onboarding() {
                 <button
                   type="button"
                   className="btn btn-primary"
-                  onClick={async () => {
-                    await clearAgentAttachment();
-                    await refreshAppState();
-                  }}
+                  disabled={clearingAgents}
+                  onClick={handleClearAndReconnect}
                 >
-                  Clear and reconnect
+                  {clearingAgents ? 'Clearing…' : 'Clear and reconnect'}
                 </button>
               </div>
             ) : null}

@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { randomUUID } from 'node:crypto';
 import { URL } from 'node:url';
 import zlib from 'node:zlib';
 import { defaultConnectionService } from '../connection/index.js';
@@ -175,6 +176,24 @@ export class SyniqServer {
       : pathname;
   }
 
+  /**
+   * Better Auth is mounted at /api/auth. Some OAuth consoles and older clients
+   * still call /auth/* — rewrite those paths before handing off to the handler.
+   */
+  _resolveAuthPathname(pathname) {
+    if (!pathname) {
+      return null;
+    }
+    if (pathname === '/api/auth' || pathname.startsWith('/api/auth/')) {
+      return pathname;
+    }
+    if (pathname === '/auth' || pathname.startsWith('/auth/')) {
+      const suffix = pathname === '/auth' ? '' : pathname.slice('/auth'.length);
+      return `/api/auth${suffix}`;
+    }
+    return null;
+  }
+
   async _handleRequest(request, response) {
     const url = new URL(request.url, 'http://syniq.local');
     url.pathname = this._normalizePathname(url.pathname);
@@ -265,7 +284,11 @@ export class SyniqServer {
 
 
 
-    if (url.pathname.startsWith('/api/auth')) {
+    const authPathname = this._resolveAuthPathname(url.pathname);
+    if (authPathname) {
+      if (authPathname !== url.pathname) {
+        request.url = `${authPathname}${url.search || ''}`;
+      }
       try {
         await authHandler(request, response);
       } catch (err) {
@@ -296,7 +319,8 @@ export class SyniqServer {
 
     if (anonymousSessionCreateMatch) {
       this._assertSessionDataEnabled();
-      const payload = await this.anonymousSessionService.createAnonymousSession();
+      const visitorAnchor = this._ensureVisitorAnchor(request, response);
+      const payload = await this.anonymousSessionService.createAnonymousSession(visitorAnchor);
       const session = await this.anonymousSessionService.validateAnonymousSession(payload.anonymousToken);
 
       this._setCookie(response, 'fx_session', payload.anonymousToken, {
@@ -310,6 +334,8 @@ export class SyniqServer {
         ok: true,
         anonymousToken: payload.anonymousToken,
         session,
+        resumed: Boolean(payload.resumed),
+        quotaPreserved: true,
       });
     }
 
@@ -329,10 +355,14 @@ export class SyniqServer {
         });
       }
 
+      const visitorAnchor = this._ensureVisitorAnchor(request, response);
+      await this.anonymousSessionService.attachVisitorAnchorToSession(session.id, visitorAnchor);
+      const refreshed = await this.anonymousSessionService.validateAnonymousSession(anonymousToken);
+
       return this._writeJson(response, 200, {
         ok: true,
         anonymousToken,
-        session,
+        session: refreshed || session,
       });
     }
 
@@ -473,7 +503,7 @@ export class SyniqServer {
         });
       }
 
-      await this.anonymousSessionService.clearConnectedAgents(sessionId);
+      const clearedSession = await this.anonymousSessionService.clearConnectedAgents(sessionId);
 
       if (this.socketServer) {
         this.socketServer.emitAgentDisconnected(sessionId, null);
@@ -482,7 +512,9 @@ export class SyniqServer {
       return this._writeJson(response, 200, {
         ok: true,
         sessionId,
-        message: 'Agent attachment cleared. You can connect a new agent from onboarding.',
+        session: clearedSession,
+        quotaPreserved: true,
+        message: 'Agent attachment cleared. Your Syniq request quota is unchanged — connect a new agent when ready.',
       });
     }
 
@@ -1102,6 +1134,29 @@ export class SyniqServer {
     }
 
     throw createHttpError('You do not have access to this workspace session.', 403);
+  }
+
+  /**
+   * Stable httpOnly anchor for anonymous visitors. Reused across tab closes
+   * and local storage clears so quota cannot reset via a new session row.
+   */
+  _ensureVisitorAnchor(request, response) {
+    const existing = this._readCookie(request, 'fx_visitor');
+    const trimmed = typeof existing === 'string' ? existing.trim() : '';
+    if (trimmed.length >= 8 && trimmed.length <= 128) {
+      return trimmed;
+    }
+
+    const anchor = randomUUID();
+    this._setCookie(response, 'fx_visitor', anchor, {
+      httpOnly: true,
+      sameSite: this._resolveCookieSameSite(request),
+      secure: this._shouldUseSecureCookies(request),
+      path: '/',
+      maxAge: 60 * 60 * 24 * 400,
+    });
+
+    return anchor;
   }
 
   _readCookie(request, name) {

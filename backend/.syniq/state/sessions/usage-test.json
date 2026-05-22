@@ -1,0 +1,91 @@
+{
+  "sessionId": "usage-test",
+  "executionId": "orch_1779453504133_86800085",
+  "task": "Review this API design for security gaps",
+  "status": "failed",
+  "revision": 2,
+  "agent": null,
+  "sessionContext": null,
+  "createdAt": "2026-05-22T12:38:24.357Z",
+  "updatedAt": "2026-05-22T12:38:24.358Z",
+  "currentNodeId": null,
+  "pendingNodeId": null,
+  "completedNodeIds": [],
+  "blockedSkillIds": [],
+  "graph": {
+    "sessionId": "usage-test",
+    "executionId": "orch_1779453504133_86800085",
+    "nodes": [],
+    "edges": []
+  },
+  "outputs": {},
+  "errors": {
+    "syniq:no_relevant_capabilities": {
+      "message": "Syniq could not find any directly relevant skills or resources for this request.",
+      "type": "NoRelevantCapabilitiesError"
+    }
+  },
+  "branchChoices": {},
+  "trace": [],
+  "intent": {
+    "goal": "Review this API design for security gaps",
+    "capabilityCategories": [
+      "api",
+      "security",
+      "architecture"
+    ],
+    "suggestedExecutionSteps": [
+      {
+        "id": "step_3948f683c7",
+        "title": "Api execution step",
+        "objective": "Apply api capabilities to: Review this API design for security gaps",
+        "capabilityCategory": "api",
+        "requiresApproval": false
+      },
+      {
+        "id": "step_cc7c2f10f4",
+        "title": "Security execution step",
+        "objective": "Apply security capabilities to: Review this API design for security gaps",
+        "capabilityCategory": "security",
+        "requiresApproval": false
+      },
+      {
+        "id": "step_ae8f7da373",
+        "title": "Architecture execution step",
+        "objective": "Apply architecture capabilities to: Review this API design for security gaps",
+        "capabilityCategory": "architecture",
+        "requiresApproval": true
+      }
+    ],
+    "branchPoints": [],
+    "confidence": 0.42,
+    "constraints": []
+  },
+  "selection": {
+    "selectedSteps": [],
+    "decisionNodes": [],
+    "rankings": [
+      {
+        "stepId": "step_3948f683c7",
+        "stepTitle": "Api execution step",
+        "strategy": "deterministic-fallback",
+        "candidates": []
+      },
+      {
+        "stepId": "step_cc7c2f10f4",
+        "stepTitle": "Security execution step",
+        "strategy": "deterministic-fallback",
+        "candidates": []
+      },
+      {
+        "stepId": "step_ae8f7da373",
+        "stepTitle": "Architecture execution step",
+        "strategy": "deterministic-fallback",
+        "candidates": []
+      }
+    ],
+    "fallbackUsed": true
+  },
+  "graphUpdates": [],
+  "control": {}
+}

@@ -57,7 +57,7 @@ function TopBar() {
 
   const openConnectFlow = async () => {
     if (hasStaleAgent) {
-      await clearAgentAttachment();
+      await clearAgentAttachment(activeSession?.id);
     }
     setConnectModalOpen(true);
   };

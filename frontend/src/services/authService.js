@@ -2,6 +2,7 @@
 import { createAuthClient } from 'better-auth/client';
 import { jwtClient } from 'better-auth/client/plugins';
 import { getAppOrigin, getBackendOrigin } from '../utils/runtimeConfig';
+import { extractAuthErrorMessage, getAuthErrorMessage } from '../utils/authErrorMessages';
 
 function getAuthBaseUrl() {
   if (import.meta.env.VITE_API_DIRECT === '1' || import.meta.env.VITE_API_DIRECT === 'true') {
@@ -18,6 +19,11 @@ const authClient = createAuthClient({
 
 function buildAppUrl(pathname = '/app') {
   return new URL(pathname, `${getAppOrigin()}/`).toString();
+}
+
+function throwAuthError(error, fallbackMessage) {
+  const message = getAuthErrorMessage(extractAuthErrorMessage(error), fallbackMessage);
+  throw new Error(message);
 }
 
 // ─── Used by SessionContext ──────────────────────────────────────────
@@ -38,7 +44,10 @@ export async function getCurrentAuthSession() {
       await wait(90 * index);
     }
     const { data, error } = await authClient.getSession();
-    if (error || !data) {
+    if (error) {
+      continue;
+    }
+    if (!data) {
       continue;
     }
     const rawUser = data.user;
@@ -68,7 +77,7 @@ export async function signOut() {
 export async function signInWithEmail(email, password) {
   const { data, error } = await authClient.signIn.email({ email, password });
   if (error || !data) {
-    throw new Error(error?.message || 'Invalid credentials. Please try again.');
+    throwAuthError(error, 'Invalid credentials. Please try again.');
   }
   return {
     user: data.user,
@@ -85,7 +94,7 @@ export async function signUpWithEmail(email, password, name = '') {
     callbackURL: buildAppUrl('/app'),
   });
   if (error || !data) {
-    throw new Error(error?.message || 'Unable to create account. Please try again.');
+    throwAuthError(error, 'Unable to create account. Please try again.');
   }
   return { user: data.user, needsEmailConfirmation: false };
 }
@@ -97,26 +106,36 @@ export async function setSyniqProfileUsername(name) {
     syniqHandleChosen: true,
   });
   if (error) {
-    throw new Error(error.message || 'Unable to save your username.');
+    throwAuthError(error, 'Unable to save your username.');
   }
 }
 
 export async function signInWithGitHub(callbackPath = '/app', errorPath = '/signin') {
-  const { error } = await authClient.signIn.social({
+  const { data, error } = await authClient.signIn.social({
     provider: 'github',
     callbackURL: buildAppUrl(callbackPath),
     errorCallbackURL: buildAppUrl(errorPath),
   });
-  if (error) throw new Error(error.message);
+  if (error) {
+    throwAuthError(error, 'Unable to start GitHub sign-in.');
+  }
+  if (data?.url && typeof window !== 'undefined') {
+    window.location.assign(data.url);
+  }
 }
 
 export async function signInWithGoogle(callbackPath = '/app', errorPath = '/signin') {
-  const { error } = await authClient.signIn.social({
+  const { data, error } = await authClient.signIn.social({
     provider: 'google',
     callbackURL: buildAppUrl(callbackPath),
     errorCallbackURL: buildAppUrl(errorPath),
   });
-  if (error) throw new Error(error.message);
+  if (error) {
+    throwAuthError(error, 'Unable to start Google sign-in.');
+  }
+  if (data?.url && typeof window !== 'undefined') {
+    window.location.assign(data.url);
+  }
 }
 
 export async function requestPasswordReset(email, redirectPath = '/reset-password') {
@@ -125,7 +144,7 @@ export async function requestPasswordReset(email, redirectPath = '/reset-passwor
     redirectTo: buildAppUrl(redirectPath),
   });
   if (error) {
-    throw new Error(error.message || 'Unable to send the password reset email.');
+    throwAuthError(error, 'Unable to send the password reset email.');
   }
   return data || { status: true };
 }
@@ -136,7 +155,7 @@ export async function resetPassword(token, newPassword) {
     newPassword,
   });
   if (error) {
-    throw new Error(error.message || 'Unable to reset the password.');
+    throwAuthError(error, 'Unable to reset the password.');
   }
   return data || { status: true };
 }

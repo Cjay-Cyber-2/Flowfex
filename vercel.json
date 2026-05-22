@@ -3,6 +3,8 @@
   "outputDirectory": "frontend/dist",
   "rewrites": [
     { "source": "/api/:path*", "destination": "https://flowfex.onrender.com/api/:path*" },
+    { "source": "/auth/:path*", "destination": "https://flowfex.onrender.com/api/auth/:path*" },
+    { "source": "/auth", "destination": "https://flowfex.onrender.com/api/auth" },
     { "source": "/connect/:path*", "destination": "https://flowfex.onrender.com/api/connect/:path*" },
     { "source": "/connect", "destination": "https://flowfex.onrender.com/api/connect" },
     { "source": "/ingest", "destination": "https://flowfex.onrender.com/ingest" },

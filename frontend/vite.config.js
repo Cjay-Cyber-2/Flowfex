@@ -6,6 +6,11 @@ const backendTarget = 'http://localhost:4000';
 /** Dev/preview proxies — use path prefixes that never match /node_modules. */
 const devProxy = {
   '/api': { target: backendTarget, changeOrigin: true },
+  '/auth': {
+    target: backendTarget,
+    changeOrigin: true,
+    rewrite: (path) => path.replace(/^\/auth/, '/api/auth'),
+  },
   '/connect': { target: backendTarget, changeOrigin: true },
   '/ingest': { target: backendTarget, changeOrigin: true },
   '/sessions': { target: backendTarget, changeOrigin: true },

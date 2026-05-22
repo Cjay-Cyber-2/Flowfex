@@ -7,7 +7,7 @@ export const user = pgTable("user", {
   emailVerified: boolean('emailVerified').notNull(),
   image: text('image'),
   /** False until the user sets a Syniq handle (required after OAuth). Email sign-up sets true immediately. */
-  syniqHandleChosen: boolean('flowfexHandleChosen').notNull().default(false),
+  syniqHandleChosen: boolean('syniqHandleChosen').notNull().default(false),
   createdAt: timestamp('createdAt').notNull(),
   updatedAt: timestamp('updatedAt').notNull()
 });
@@ -53,6 +53,7 @@ export const syniqSessions = pgTable("sessions", {
   id: text("id").primaryKey(),
   auth_id: text("auth_id"),
   anonymous_token: text("anonymous_token"),
+  visitor_anchor: text("visitor_anchor"),
   name: text("name"),
   graph_state: jsonb("graph_state"),
   execution_pointer: text("execution_pointer"),

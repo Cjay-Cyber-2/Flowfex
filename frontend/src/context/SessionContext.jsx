@@ -469,6 +469,20 @@ export function SessionProvider({ children }) {
     await initialize({ forceAnonymous: true });
   }, [initialize]);
 
+  const syncBackendSession = useCallback((session) => {
+    if (!session?.id) {
+      return;
+    }
+
+    startTransition(() => {
+      setState((current) => ({
+        ...current,
+        session,
+      }));
+      hydratePersistedSession(session);
+    });
+  }, [hydratePersistedSession]);
+
   const refreshAppState = useCallback(async () => {
     try {
       const resolved = await fetchResolveAppState({
@@ -511,8 +525,9 @@ export function SessionProvider({ children }) {
     refreshSession: () => initialize(),
     refreshUsage: (sessionId = null) => refreshUsage(sessionId, state.accessToken),
     refreshAppState,
+    syncBackendSession,
     signOut,
-  }), [hasConnectedAgent, initialize, refreshAppState, refreshUsage, signOut, state]);
+  }), [hasConnectedAgent, initialize, refreshAppState, refreshUsage, signOut, state, syncBackendSession]);
 
   return (
     <SessionContext.Provider value={value}>

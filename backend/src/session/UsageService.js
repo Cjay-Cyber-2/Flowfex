@@ -1,7 +1,7 @@
 import { createSessionDataClient } from './sessionDataAccess.js';
 import { logSessionError } from './sessionLogger.js';
 import { syniqSessions, usageTracking } from '../db/schema.js';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, gte, inArray, sql } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
 import { isProAuthId } from './proTier.js';
 import { isLiveConnectedAgentServer } from './agentPresenceServer.js';
@@ -394,6 +394,7 @@ export class UsageService {
           id: syniqSessions.id,
           auth_id: syniqSessions.auth_id,
           anonymous_token: syniqSessions.anonymous_token,
+          visitor_anchor: syniqSessions.visitor_anchor,
           connected_agents: syniqSessions.connected_agents,
           created_at: syniqSessions.created_at,
           graph_state: syniqSessions.graph_state,
@@ -415,13 +416,30 @@ export class UsageService {
 
       let usageRows;
       if (tier === 'anonymous') {
+        let quotaSessionIds = [sessionId];
+        if (session.visitor_anchor) {
+          const siblingRows = await this.client
+            .select({ id: syniqSessions.id })
+            .from(syniqSessions)
+            .where(eq(syniqSessions.visitor_anchor, session.visitor_anchor));
+          const siblingIds = (Array.isArray(siblingRows) ? siblingRows : [])
+            .map((row) => row.id)
+            .filter(Boolean);
+          if (siblingIds.length > 0) {
+            quotaSessionIds = [...new Set(siblingIds)];
+          }
+        }
+
         usageRows = await this.client
           .select()
           .from(usageTracking)
           .where(
-            sql`${usageTracking.session_id} = ${sessionId} AND ${usageTracking.period_start} >= ${rollingWindowStart}`
+            and(
+              inArray(usageTracking.session_id, quotaSessionIds),
+              gte(usageTracking.period_start, rollingWindowStart)
+            )
           );
-        connectionSessionRows = session.anonymous_token
+        connectionSessionRows = quotaSessionIds.length > 0
           ? await this.client
               .select({
                 id: syniqSessions.id,
@@ -431,7 +449,7 @@ export class UsageService {
                 last_active_at: syniqSessions.last_active_at,
               })
               .from(syniqSessions)
-              .where(eq(syniqSessions.anonymous_token, session.anonymous_token))
+              .where(inArray(syniqSessions.id, quotaSessionIds))
           : [];
       } else {
         usageRows = await this.client

@@ -257,6 +257,7 @@ const useCrossSiteCookies = requiresCrossSiteCookies();
 // Initialize Better Auth
 export const auth = betterAuth({
   baseURL: resolveAuthBaseUrl(),
+  basePath: "/api/auth",
   trustedOrigins: collectTrustedOrigins(),
   database: drizzleAdapter(db, {
     provider: "pg", // PostgreSQL

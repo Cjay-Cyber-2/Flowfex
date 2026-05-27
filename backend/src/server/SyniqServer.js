@@ -320,7 +320,15 @@ export class SyniqServer {
     if (anonymousSessionCreateMatch) {
       this._assertSessionDataEnabled();
       const visitorAnchor = this._ensureVisitorAnchor(request, response);
-      const payload = await this.anonymousSessionService.createAnonymousSession(visitorAnchor);
+      let createBody = {};
+      try {
+        createBody = await this._readAndValidateJsonBody(request, anonymousCreateSchema);
+      } catch {
+        createBody = {};
+      }
+      const payload = await this.anonymousSessionService.createAnonymousSession(visitorAnchor, {
+        forceNew: createBody?.forceNew === true,
+      });
       const session = await this.anonymousSessionService.validateAnonymousSession(payload.anonymousToken);
 
       this._setCookie(response, 'fx_session', payload.anonymousToken, {

@@ -427,11 +427,16 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
     }
   }, [workspaceSessionId]);
 
-  const fetchConnection = useCallback(async (tab) => {
-    const request = requestForTab(tab);
-    if (!request) {
+  const fetchConnection = useCallback(async (tab, options = {}) => {
+    const baseRequest = requestForTab(tab);
+    if (!baseRequest) {
       return;
     }
+
+    const request = {
+      ...baseRequest,
+      sessionId: options.workspaceSessionId || baseRequest.sessionId,
+    };
 
     setLoadingTabs((current) => ({ ...current, [tab]: true }));
     setErrors((current) => ({ ...current, [tab]: null }));

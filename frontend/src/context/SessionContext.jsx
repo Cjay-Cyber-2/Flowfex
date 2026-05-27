@@ -523,6 +523,7 @@ export function SessionProvider({ children }) {
     ...state,
     hasConnectedAgent,
     refreshSession: () => initialize(),
+    rotateWorkspaceSession,
     refreshUsage: (sessionId = null) => refreshUsage(sessionId, state.accessToken),
     refreshAppState,
     syncBackendSession,

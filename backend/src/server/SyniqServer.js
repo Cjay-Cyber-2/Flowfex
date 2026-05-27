@@ -320,15 +320,7 @@ export class SyniqServer {
     if (anonymousSessionCreateMatch) {
       this._assertSessionDataEnabled();
       const visitorAnchor = this._ensureVisitorAnchor(request, response);
-      let createBody = {};
-      try {
-        createBody = await this._readAndValidateJsonBody(request, anonymousCreateSchema);
-      } catch {
-        createBody = {};
-      }
-      const payload = await this.anonymousSessionService.createAnonymousSession(visitorAnchor, {
-        forceNew: createBody?.forceNew === true,
-      });
+      const payload = await this.anonymousSessionService.createAnonymousSession(visitorAnchor);
       const session = await this.anonymousSessionService.validateAnonymousSession(payload.anonymousToken);
 
       this._setCookie(response, 'fx_session', payload.anonymousToken, {
@@ -1299,16 +1291,31 @@ export class SyniqServer {
     await this.usageService.assertExecutionAllowed({ sessionId });
   }
 
+  _resolveUsageSessionId(sessionId) {
+    if (!sessionId) {
+      return null;
+    }
+
+    const connectionSession = this.connectionService?.sessionManager?.getSession?.(sessionId);
+    if (connectionSession) {
+      return this._resolveWorkspaceSessionIdForConnection(connectionSession) || sessionId;
+    }
+
+    return sessionId;
+  }
+
   async _assertToolsRequestQuota(sessionId) {
-    if (!sessionId || !this.usageService) {
+    const usageSessionId = this._resolveUsageSessionId(sessionId);
+    if (!usageSessionId || !this.usageService) {
       return;
     }
 
-    await this.usageService.assertExecutionAllowed({ sessionId });
+    await this.usageService.assertExecutionAllowed({ sessionId: usageSessionId });
   }
 
   async _recordToolsRequest(sessionId, executionPayload = null) {
-    if (!sessionId || !this.usageService) {
+    const usageSessionId = this._resolveUsageSessionId(sessionId);
+    if (!usageSessionId || !this.usageService) {
       return;
     }
 
@@ -1317,11 +1324,11 @@ export class SyniqServer {
       || [];
     const nodesProcessed = Array.isArray(graphNodes) ? graphNodes.length : 0;
 
-    await this.usageService.recordExecution({ sessionId, nodesProcessed });
+    await this.usageService.recordExecution({ sessionId: usageSessionId, nodesProcessed });
 
     if (this.socketServer) {
-      this.socketServer.broadcastToSession(sessionId, 'execution.completed', {
-        sessionId,
+      this.socketServer.broadcastToSession(usageSessionId, 'execution.completed', {
+        sessionId: usageSessionId,
         timestamp: new Date().toISOString(),
       });
     }

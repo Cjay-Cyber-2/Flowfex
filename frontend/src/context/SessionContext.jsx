@@ -523,12 +523,11 @@ export function SessionProvider({ children }) {
     ...state,
     hasConnectedAgent,
     refreshSession: () => initialize(),
-    rotateWorkspaceSession,
     refreshUsage: (sessionId = null) => refreshUsage(sessionId, state.accessToken),
     refreshAppState,
     syncBackendSession,
     signOut,
-  }), [hasConnectedAgent, initialize, refreshAppState, refreshUsage, signOut, state, syncBackendSession]);
+  }), [hasConnectedAgent, initialize, refreshAppState, refreshUsage, rotateWorkspaceSession, signOut, state, syncBackendSession]);
 
   return (
     <SessionContext.Provider value={value}>

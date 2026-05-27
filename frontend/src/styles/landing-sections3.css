@@ -191,7 +191,7 @@
 
 .cam-title {
   font-family: var(--font-satoshi, 'Satoshi', sans-serif);
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 700;
   color: #EDE8DF;
   margin: 0 0 4px;
@@ -199,7 +199,7 @@
 
 .cam-subtitle {
   font-family: Inter, sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--color-bistre);
   margin: 0;
 }
@@ -207,7 +207,7 @@
 .cam-connect-headline {
   margin: 0 0 10px;
   font-family: Inter, sans-serif;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   line-height: 1.35;
   color: rgba(232, 237, 242, 0.92);
@@ -237,7 +237,7 @@
   padding: 7px 14px;
   border-radius: 8px;
   font-family: Inter, sans-serif;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
   cursor: pointer;
   border: 1px solid transparent;
@@ -261,7 +261,7 @@
 
 .cam-tab-desc {
   font-family: Inter, sans-serif;
-  font-size: 14px;
+  font-size: font-size: 16px;
   color: var(--color-bistre);
   margin: 0 0 14px;
 }
@@ -277,7 +277,9 @@
 
 .cam-code-block pre {
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  font-size: 13px;
+  font-size:   font-size: 15px;
+  line-height: 1.8;
+  color: rgba(237, 232, 223, 0.85);
   line-height: 1.8;
   color: rgba(237, 232, 223, 0.85);
   margin: 0;
@@ -313,7 +315,7 @@
 
 .cam-concealed-kicker {
   font-family: Inter, sans-serif;
-  font-size: 13px;
+  font-size: font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -323,7 +325,7 @@
 .cam-concealed-overlay p {
   margin: 0;
   font-family: Inter, sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.45;
   color: rgba(237, 232, 223, 0.82);
   max-width: 38ch;
@@ -337,7 +339,7 @@
   border: 1px solid rgba(0, 212, 170, 0.28);
   border-radius: 8px;
   font-family: Inter, sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--color-sinoper);
   cursor: pointer;
@@ -353,7 +355,8 @@
   border: 1px solid rgba(237, 232, 223, 0.15);
   border-radius: 10px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
+  font-size:   font-size: 14px;
+  color: rgba(237, 232, 223, 0.7);
   color: rgba(237, 232, 223, 0.7);
   padding: 0 14px;
   outline: none;
@@ -361,7 +364,7 @@
 
 .cam-text-link {
   font-family: Inter, sans-serif;
-  font-size: 13px;
+  font-size: font-size: 15px;
   color: var(--color-sinoper);
   text-decoration: none;
   background: none;
@@ -377,7 +380,7 @@
   border: 1px solid rgba(0, 212, 170, 0.14);
   background: rgba(8, 32, 28, 0.35);
   font-family: Inter, sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.55;
   color: rgba(232, 237, 242, 0.82);
 }
@@ -397,13 +400,13 @@
 
 .cam-security-note {
   font-family: Inter, sans-serif;
-  font-size: 12px;
+  font-size: font-size: 14px;
   color: var(--color-bistre);
   margin: 12px 0 0;
 }
 
 .cam-security-note strong {
-  font-size: 13px;
+  font-size: font-size: 15px;
   line-height: 1.45;
 }
 
@@ -458,7 +461,7 @@
   border: 1px solid rgba(237, 232, 223, 0.2);
   border-radius: 10px;
   font-family: Inter, sans-serif;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: rgba(237, 232, 223, 0.7);
   cursor: pointer;
@@ -476,7 +479,7 @@
   border: none;
   border-radius: 10px;
   font-family: Inter, sans-serif;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: #031014;
   cursor: pointer;
@@ -494,7 +497,7 @@
   align-items: center;
   gap: 8px;
   font-family: Inter, sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--color-bistre);
   line-height: 1.35;
   min-width: 0;
@@ -530,7 +533,9 @@
   }
 
   .cam-title {
-    font-size: 18px;
+    font-size:   .cam-title {
+    font-size: 22px;
+  }
   }
 
   .cam-tab-body {
@@ -550,7 +555,9 @@
   }
 
   .cam-sync-status {
-    font-size: 12px;
+    font-size:   .cam-sync-status {
+    font-size: 14px;
+  }
   }
 
   .cam-done-btn {
@@ -587,10 +594,15 @@
     width: 100%;
   }
   .cam-title {
-    font-size: 16px;
+    font-size:   .cam-title {
+    font-size: 20px;
+  }
   }
   .cam-tab {
     padding: 6px 10px;
-    font-size: 12px;
+    font-size:   .cam-tab {
+    padding: 6px 10px;
+    font-size: 14px;
+  }
   }
 }

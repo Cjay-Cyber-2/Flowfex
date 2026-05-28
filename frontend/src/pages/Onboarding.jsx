@@ -8,6 +8,12 @@ import PulseBeams from '../components/animations/PulseBeams';
 import useStore from '../store/useStore';
 import { useSessionContext } from '../context/SessionContext';
 import { isLiveConnectedAgent } from '../utils/agentPresence';
+import OnboardingAgentFlow from '../components/onboarding/OnboardingAgentFlow';
+import {
+  loadOnboardingProgress,
+  saveOnboardingProgress,
+  clearOnboardingProgress,
+} from '../utils/connectionRecommendations';
 import '../styles/onboarding.css';
 
 const ONBOARDING_BEAMS = [
@@ -111,6 +117,10 @@ export default function Onboarding() {
   const { session, sessionReady, appState, refreshAppState, syncBackendSession } = useSessionContext();
   const connectedAgents = useStore((state) => state.connectedAgents);
   const clearAgentAttachment = useStore((state) => state.clearAgentAttachment);
+  const savedProgress = loadOnboardingProgress();
+  const [step, setStep] = useState(savedProgress?.step || 'choose-agent');
+  const [selectedAgentId, setSelectedAgentId] = useState(savedProgress?.selectedAgentId || null);
+  const [modalInitialTab, setModalInitialTab] = useState('Prompt');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clearingAgents, setClearingAgents] = useState(false);
   const [staleBannerDismissed, setStaleBannerDismissed] = useState(false);
@@ -128,6 +138,7 @@ export default function Onboarding() {
       return;
     }
     autoTransitionStartedRef.current = true;
+    clearOnboardingProgress();
     clearTransitionTimers();
     setIsModalOpen(false);
     setConnectionStage('zooming');
@@ -177,6 +188,7 @@ export default function Onboarding() {
 
       setStaleBannerDismissed(true);
       await refreshAppState();
+      setStep('choose-agent');
       setIsModalOpen(true);
     } finally {
       setClearingAgents(false);
@@ -195,7 +207,13 @@ export default function Onboarding() {
 
       <header className="ob-topbar">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            if (step === 'recommend') {
+              setStep('choose-agent');
+              return;
+            }
+            navigate(-1);
+          }}
           className="btn btn-ghost"
           style={{ padding: '8px', minWidth: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}
           aria-label="Go back"
@@ -330,6 +348,7 @@ export default function Onboarding() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConnected={handleConnected}
+        initialTab={modalInitialTab}
       />
     </div>
   );

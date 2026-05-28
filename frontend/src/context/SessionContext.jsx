@@ -552,7 +552,7 @@ export function SessionProvider({ children }) {
   const value = useMemo(() => ({
     ...state,
     hasConnectedAgent,
-    refreshSession: () => initializeRef.current(),
+    refreshSession: () => initialize(),
     refreshUsage: (sessionId = null) => refreshUsage(sessionId, state.accessToken),
     refreshAppState,
     syncBackendSession,

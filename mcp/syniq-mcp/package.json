@@ -1,7 +1,7 @@
 {
-  "name": "@flowfex/syniq-mcp",
+  "name": "@syniq/syniq-mcp",
   "version": "1.0.0",
-  "description": "Model Context Protocol server for Syniq / Flowfex agent orchestration",
+  "description": "Model Context Protocol server for Syniq agent orchestration",
   "type": "module",
   "license": "MIT",
   "bin": {
@@ -18,6 +18,19 @@
   "engines": {
     "node": ">=18"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cjay-Cyber-2/Flowfex.git",
+    "directory": "mcp/syniq-mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/Cjay-Cyber-2/Flowfex/issues"
+  },
+  "homepage": "https://github.com/Cjay-Cyber-2/Flowfex/tree/main/mcp/syniq-mcp#readme",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^3.23.8"
@@ -25,8 +38,8 @@
   "keywords": [
     "mcp",
     "syniq",
-    "flowfex",
     "model-context-protocol",
-    "ai-agent"
+    "ai-agent",
+    "orchestration"
   ]
 }

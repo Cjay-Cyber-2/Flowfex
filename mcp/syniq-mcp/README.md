@@ -1,6 +1,6 @@
 # Syniq MCP Server
 
-Model Context Protocol (MCP) bridge for [Syniq / Flowfex](https://github.com/Cjay-Cyber-2/Flowfex). Agents that refuse raw HTTP (Kiro, strict IDE policies) can call Syniq through **MCP tools** instead of pasting a prompt block.
+Model Context Protocol (MCP) bridge for [Syniq](https://github.com/Cjay-Cyber-2/Flowfex/tree/main/mcp/syniq-mcp). Agents that refuse raw HTTP (Kiro, strict IDE policies) can call Syniq through **MCP tools** instead of pasting a prompt block.
 
 ## Tools
 
@@ -26,17 +26,19 @@ Merge into `.cursor/mcp.json` (or global MCP config):
   "mcpServers": {
     "syniq": {
       "command": "npx",
-      "args": ["-y", "@flowfex/syniq-mcp"],
+      "args": ["-y", "@syniq/syniq-mcp"],
       "env": {
-        "SYNIQ_PUBLIC_URL": "https://flowfex.onrender.com",
+        "SYNIQ_PUBLIC_URL": "https://YOUR-SYNIQ-API-ORIGIN",
         "SYNIQ_SESSION_ID": "sess_…",
         "SYNIQ_SESSION_TOKEN": "ffx_…",
-        "SYNIQ_INGEST_URL": "https://flowfex.onrender.com/ingest"
+        "SYNIQ_INGEST_URL": "https://YOUR-SYNIQ-API-ORIGIN/ingest"
       }
     }
   }
 }
 ```
+
+Replace `YOUR-SYNIQ-API-ORIGIN` with the API host shown in your Syniq MCP tab.
 
 ### Claude Desktop
 
@@ -49,7 +51,7 @@ Add the same `mcpServers.syniq` block to `claude_desktop_config.json`.
   "mcpServers": {
     "syniq": {
       "command": "node",
-      "args": ["/absolute/path/to/Flowfex/mcp/syniq-mcp/src/index.js"],
+      "args": ["/absolute/path/to/your-repo/mcp/syniq-mcp/src/index.js"],
       "env": {
         "SYNIQ_PUBLIC_URL": "http://127.0.0.1:4000",
         "SYNIQ_SESSION_ID": "sess_…",
@@ -76,7 +78,7 @@ Config file format (`~/.config/syniq/mcp.json` or `.syniq/mcp.json`):
 {
   "sessionId": "sess_…",
   "sessionToken": "ffx_…",
-  "publicUrl": "https://flowfex.onrender.com"
+  "publicUrl": "https://YOUR-SYNIQ-API-ORIGIN"
 }
 ```
 
@@ -95,6 +97,14 @@ Tell the model:
 cd mcp/syniq-mcp
 npm install
 SYNIQ_SESSION_ID=sess_xxx SYNIQ_SESSION_TOKEN=ffx_xxx SYNIQ_PUBLIC_URL=http://127.0.0.1:4000 npm start
+```
+
+## npm package
+
+Published as [`@syniq/syniq-mcp`](https://www.npmjs.com/package/@syniq/syniq-mcp).
+
+```bash
+npx -y @syniq/syniq-mcp
 ```
 
 ## License

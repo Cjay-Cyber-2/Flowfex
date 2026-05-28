@@ -35,7 +35,7 @@ export function buildSyniqMcpServerConfig({
     mcpServers: {
       syniq: {
         command: 'npx',
-        args: ['-y', '@flowfex/syniq-mcp'],
+        args: ['-y', '@syniq/syniq-mcp'],
         env,
       },
     },

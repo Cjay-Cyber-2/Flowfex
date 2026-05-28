@@ -445,7 +445,9 @@ function MCPTab({ connection, loading, onRefresh, error, limitState, isAuthentic
             <strong>API host:</strong> <code>{publicOrigin}</code> (ingest: <code>{ingestUrl}</code>)
           </li>
           <li>
-            <a href={MCP_FINISH_LINKS.readme} target="_blank" rel="noreferrer">Full Syniq MCP README</a>
+            <a href={MCP_FINISH_LINKS.npm} target="_blank" rel="noreferrer">npm package @syniq/syniq-mcp</a>
+            {' · '}
+            <a href={MCP_FINISH_LINKS.readme} target="_blank" rel="noreferrer">README</a>
           </li>
         </ul>
         <p className="cam-security-note" style={{ marginTop: 10 }}>

@@ -50,7 +50,7 @@ For Kiro, strict Cursor policies, and other agents that refuse prompt-based `fet
 cd mcp/syniq-mcp && npm install
 ```
 
-Copy the **MCP** tab config from the Syniq dashboard, or see [mcp/syniq-mcp/README.md](../mcp/syniq-mcp/README.md).
+Copy the **MCP** tab config from the Syniq dashboard, or install [`@syniq/syniq-mcp`](https://www.npmjs.com/package/@syniq/syniq-mcp) — see [mcp/syniq-mcp/README.md](../mcp/syniq-mcp/README.md).
 
 ## Features
 

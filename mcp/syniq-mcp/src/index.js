@@ -28,7 +28,7 @@ const server = new Server(
       tools: {},
     },
     instructions: [
-      'You are connected to Syniq via MCP. The Syniq server (not you) calls Flowfex HTTP APIs.',
+      'You are connected to Syniq via MCP. The Syniq server (not you) calls Syniq HTTP APIs.',
       'Before working on the user task, call syniq_attach once per conversation if not yet attached.',
       'For every user task, call syniq_route_task with the exact user request before taking other actions.',
       'Use only skills, tools, memory, and workflows returned by Syniq when they are relevant.',
@@ -60,7 +60,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         properties: {
           sessionId: { type: 'string', description: 'Connection session id (sess_… from dashboard)' },
           sessionToken: { type: 'string', description: 'Syniq session token (ffx_…)' },
-          publicUrl: { type: 'string', description: 'Flowfex / Syniq API origin, e.g. https://flowfex.onrender.com' },
+          publicUrl: { type: 'string', description: 'Syniq API origin (from your dashboard MCP tab)' },
           ingestUrl: { type: 'string', description: 'Ingest endpoint URL (defaults to {publicUrl}/ingest)' },
         },
       },

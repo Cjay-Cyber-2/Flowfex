@@ -78,7 +78,7 @@ const response = await fetch('/connect', {
 
 ## 4. MCP Server ✅
 
-**Package:** `mcp/syniq-mcp` (`@flowfex/syniq-mcp`)
+**Package:** `mcp/syniq-mcp` (`@syniq/syniq-mcp`)
 
 Agents that block HTTP from chat (Kiro, strict IDE policies) connect via MCP tools:
 

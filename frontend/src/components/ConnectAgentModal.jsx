@@ -21,6 +21,7 @@ const TABS = ['Prompt', 'MCP', 'Link', 'SDK', 'Live Channel'];
 const MCP_FINISH_LINKS = {
   cursor: 'https://docs.cursor.com/context/model-context-protocol',
   claude: 'https://modelcontextprotocol.io/quickstart/user',
+  npm: 'https://www.npmjs.com/package/@syniq/syniq-mcp',
   readme: 'https://github.com/Cjay-Cyber-2/Flowfex/blob/main/mcp/syniq-mcp/README.md',
 };
 

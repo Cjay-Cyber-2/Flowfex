@@ -11,7 +11,6 @@ import {
   signUpWithEmail,
 } from '../services/authService';
 import { getAuthErrorMessage } from '../utils/authErrorMessages';
-import { postAuthDashboardLocation, postAuthSocialCallbackPath } from '../utils/authNavigation';
 import '../styles/authPagesLayout.css';
 
 const getStrength = (pw) => {
@@ -94,7 +93,7 @@ function SignUp() {
 
     try {
       if (provider === 'google') {
-        await signInWithGoogle('/pricing', '/signup');
+        await signInWithGoogle(postAuthSocialCallbackPath(), '/signup');
         return;
       }
 

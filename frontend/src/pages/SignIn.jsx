@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Globe, Github } from 'lucide-react';
 import AuthBackdrop from '../components/auth/AuthBackdrop';
@@ -11,12 +11,10 @@ import {
   signInWithGoogle,
 } from '../services/authService';
 import { getAuthErrorMessage } from '../utils/authErrorMessages';
-import { postAuthDashboardLocation, postAuthSocialCallbackPath } from '../utils/authNavigation';
 import '../styles/authPagesLayout.css';
 
 function SignIn() {
   const navigate = useNavigate();
-  const location = useLocation();
   const [searchParams] = useSearchParams();
   const { configured, isAuthenticated, refreshSession, sessionReady } = useSessionContext();
   const [email, setEmail] = useState('');
@@ -25,15 +23,12 @@ function SignIn() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const socialErrorCode = searchParams.get('error');
-  const postAuthReason = location.state?.reason === 'anonymous_quota'
-    ? 'anonymous_quota'
-    : 'account_upgrade';
 
   useEffect(() => {
     if (sessionReady && isAuthenticated) {
-      navigate(postAuthDashboardLocation(postAuthReason), { replace: true });
+      navigate('/pricing', { replace: true });
     }
-  }, [isAuthenticated, navigate, postAuthReason, sessionReady]);
+  }, [isAuthenticated, navigate, sessionReady]);
 
   useEffect(() => {
     if (!socialErrorCode) {
@@ -64,11 +59,11 @@ function SignIn() {
 
     try {
       if (provider === 'google') {
-        await signInWithGoogle(postAuthSocialCallbackPath(), '/signin');
+        await signInWithGoogle('/pricing', '/signin');
         return;
       }
 
-      await signInWithGitHub(postAuthSocialCallbackPath(), '/signin');
+      await signInWithGitHub('/pricing', '/signin');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to start social sign-in.');
     }

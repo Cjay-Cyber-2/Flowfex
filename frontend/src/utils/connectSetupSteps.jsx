@@ -80,11 +80,7 @@ export const CONNECT_SETUP_STEPS = {
     },
     {
       parts: [
-        { text: 'In the agent chat, paste this message (copy it). The agent must call the ' },
-        { text: 'syniq_attach', highlight: true, mono: true },
-        { text: ' MCP tool — ' },
-        { text: 'not', highlight: true },
-        { text: ' a terminal command: ' },
+        { text: 'Copy the next message in step 6 and paste it directly into the agent chat.' },
       ],
     },
     {
@@ -192,6 +188,9 @@ function CopyChip({ text }) {
     </button>
   );
 }
+
+/** @deprecated Renamed to CONNECT_SETUP_STEPS — kept so stale imports fail softly in devtools only */
+export const CONNECTION_SETUP_STEPS = CONNECT_SETUP_STEPS;
 
 export function ConnectSetupStep({ step }) {
   if (!step?.parts) {

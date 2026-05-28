@@ -42,9 +42,19 @@ session = client.connect({'name': 'my-agent'}, mode='sdk')
 result = client.send('Analyze data')
 ```
 
+## MCP (IDE agents that block HTTP)
+
+For Kiro, strict Cursor policies, and other agents that refuse prompt-based `fetch` instructions, use the Syniq MCP server:
+
+```bash
+cd mcp/syniq-mcp && npm install
+```
+
+Copy the **MCP** tab config from the Syniq dashboard, or see [mcp/syniq-mcp/README.md](../mcp/syniq-mcp/README.md).
+
 ## Features
 
-- **Multiple Connection Modes**: prompt, sdk, link, live
+- **Multiple Connection Modes**: prompt, sdk, link, live, mcp
 - **Real-time Events**: WebSocket subscriptions for live updates
 - **Execution Control**: pause, resume, approve, reject
 - **Tool Execution**: Direct tool invocation or orchestration

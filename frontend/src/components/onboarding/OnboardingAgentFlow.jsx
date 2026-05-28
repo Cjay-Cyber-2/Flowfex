@@ -177,19 +177,7 @@ export default function OnboardingAgentFlow({
           <motion.div key="surface" className="ob-step-panel ob-step-panel--wide" {...panelMotion}>
             <p className="ob-eyebrow">Step 1 of 2</p>
             <h1 className="ob-headline">Where does your agent run?</h1>
-            <p className="ob-copy-subline ob-copy-subline--narrow">
-              Pick the surface that best matches how you work. We’ll tailor the connection next.
-            </p>
-            <p className="ob-scroll-hint" aria-hidden="true">
-              Scroll to see all agent types
-            </p>
-            <div
-              className="ob-step-scroll app-scroll-panel"
-              tabIndex={0}
-              role="region"
-              aria-label="Agent surface options"
-            >
-              <div className="ob-surface-grid">
+            <div className="ob-surface-grid" role="list">
               {AGENT_SURFACE_OPTIONS.map((option, index) => {
                 const Icon = SURFACE_ICONS[option.id] || Sparkles;
                 return (
@@ -213,7 +201,6 @@ export default function OnboardingAgentFlow({
                   </motion.button>
                 );
               })}
-              </div>
             </div>
             <button
               type="button"
@@ -229,27 +216,15 @@ export default function OnboardingAgentFlow({
           <motion.div key="method" className="ob-step-panel ob-step-panel--wide" {...panelMotion}>
             <p className="ob-eyebrow">Step 2 of 2</p>
             <h1 className="ob-headline">How should we connect?</h1>
-            <p className="ob-copy-subline ob-copy-subline--narrow">
-              {surface
-                ? `Best options for ${surface.label.toLowerCase()}. Choose one — we’ll show only that setup.`
-                : 'Choose the path that fits your environment.'}
-            </p>
-            <div
-              className="ob-step-scroll ob-step-scroll--methods app-scroll-panel"
-              tabIndex={0}
-              role="region"
-              aria-label="Connection method options"
-            >
-              <div className="ob-method-stack">
-                {profile.methods.map((option, index) => (
-                  <MethodCard
-                    key={option.method}
-                    option={option}
-                    index={index}
-                    onSelect={handleSelectMethod}
-                  />
-                ))}
-              </div>
+            <div className="ob-method-stack">
+              {profile.methods.map((option, index) => (
+                <MethodCard
+                  key={option.method}
+                  option={option}
+                  index={index}
+                  onSelect={handleSelectMethod}
+                />
+              ))}
             </div>
             <button
               type="button"

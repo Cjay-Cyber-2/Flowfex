@@ -40,6 +40,7 @@
   background-size: 28px 28px;
   opacity: 0.18;
   pointer-events: none;
+  transition: opacity 0.45s ease;
 }
 
 /* Top bar */
@@ -135,39 +136,48 @@
   margin-inline: auto;
 }
 
-.ob-scroll-hint {
-  width: 100%;
-  margin: -6px 0 2px;
-  font-family: var(--font-inter, Inter, sans-serif);
-  font-size: 12px;
-  font-weight: 500;
-  color: rgba(232, 237, 242, 0.5);
-}
-
-.ob-step-scroll {
-  position: relative;
-  width: 100%;
-  max-height: min(52vh, 520px);
-  padding: 4px 6px 8px 2px;
-  margin: 0;
-  border-radius: 18px;
-}
-
-.ob-step-scroll::after {
-  content: '';
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: block;
-  height: 32px;
-  margin-top: -32px;
+/* Blur decorative background when setup steps are open */
+.ob-flow-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent, rgba(8, 12, 16, 0.94));
+  opacity: 0;
+  background: rgba(6, 10, 14, 0.55);
+  backdrop-filter: blur(0);
+  -webkit-backdrop-filter: blur(0);
+  transition: opacity 0.45s ease, backdrop-filter 0.45s ease;
 }
 
-.ob-step-scroll--methods {
-  max-height: min(48vh, 440px);
+.ob-root--flow-active .ob-flow-backdrop {
+  opacity: 1;
+  backdrop-filter: blur(22px) saturate(0.85);
+  -webkit-backdrop-filter: blur(22px) saturate(0.85);
+}
+
+.ob-root--flow-active .ob-beams-layer {
+  filter: blur(14px);
+  opacity: 0.12;
+  transform: scale(1.04);
+}
+
+.ob-root--flow-active .ob-dotgrid {
+  opacity: 0.06;
+}
+
+.ob-center--flow {
+  justify-content: flex-start;
+}
+
+.ob-stack--flow {
+  margin-block: 0;
+  width: min(100%, 920px);
+  z-index: 2;
+}
+
+.ob-root--flow-active .ob-flow {
+  position: relative;
+  z-index: 2;
 }
 
 /* Progress stepper */
@@ -302,7 +312,9 @@
 
 /* Connection method cards */
 .ob-method-stack {
-  width: min(100%, 640px);
+  width: 100%;
+  max-width: 640px;
+  margin-inline: auto;
   display: grid;
   gap: 12px;
 }
@@ -548,6 +560,7 @@
   pointer-events: none;
   z-index: 0;
   opacity: 0.9;
+  transition: filter 0.45s ease, opacity 0.45s ease, transform 0.45s ease;
 }
 
 /* Ensure circle and text float above beams */
@@ -909,25 +922,7 @@
   mask: radial-gradient(circle, transparent 62%, black 64%, black 72%, transparent 75%);
 }
 
-@media (max-width: 900px) {
-  .ob-step-scroll {
-    max-height: min(46vh, 420px);
-  }
-
-  .ob-step-scroll--methods {
-    max-height: min(42vh, 380px);
-  }
-}
-
 @media (max-height: 740px) {
-  .ob-step-scroll {
-    max-height: min(40vh, 320px);
-  }
-
-  .ob-step-scroll--methods {
-    max-height: min(36vh, 280px);
-  }
-
   .ob-step-panel--hero {
     gap: 22px;
   }
@@ -941,11 +936,6 @@
 @media (max-width: 480px) {
   .ob-surface-grid {
     grid-template-columns: 1fr;
-  }
-
-  .ob-step-scroll {
-    max-height: min(50vh, 400px);
-    padding-right: 2px;
   }
 
   .ob-progress__label {

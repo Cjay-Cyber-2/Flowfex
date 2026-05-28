@@ -207,9 +207,12 @@ export default function Onboarding() {
     syncBackendSession,
   ]);
 
+  const isFlowStep = step !== 'welcome' && connectionStage === 'idle';
+
   return (
-    <div className="ob-root">
-      <div className="ob-dotgrid" />
+    <div className={`ob-root${isFlowStep ? ' ob-root--flow-active' : ''}`}>
+      <div className="ob-dotgrid" aria-hidden="true" />
+      <div className="ob-flow-backdrop" aria-hidden="true" />
 
       <header className="ob-topbar">
         <button
@@ -233,8 +236,8 @@ export default function Onboarding() {
         <div style={{ width: '40px' }} aria-hidden="true" />
       </header>
 
-      <main className="ob-center">
-        <div className="ob-beams-layer">
+      <main className={`ob-center${isFlowStep ? ' ob-center--flow' : ''}`}>
+        <div className="ob-beams-layer" aria-hidden={isFlowStep}>
           <PulseBeams
             beams={ONBOARDING_BEAMS}
             width={858}
@@ -318,7 +321,7 @@ export default function Onboarding() {
         </AnimatePresence>
 
         {connectionStage === 'idle' ? (
-          <div className="ob-stack">
+          <div className={`ob-stack${isFlowStep ? ' ob-stack--flow' : ''}`}>
             {hasStaleAttachment ? (
               <div className="ob-stale-agent-banner">
                 <p>

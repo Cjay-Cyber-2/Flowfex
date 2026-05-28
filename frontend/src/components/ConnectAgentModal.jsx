@@ -164,7 +164,7 @@ function ConnectionLimitPanel({
 }
 
 function ConnectionMethodShell({ method, children, actions, error }) {
-  const steps = CONNECTION_SETUP_STEPS[method] || [];
+  const steps = CONNECT_SETUP_STEPS[method] || [];
 
   return (
     <div className="cam-method">

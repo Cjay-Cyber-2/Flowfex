@@ -477,6 +477,25 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
         [tab]: payload,
       }));
     } catch (error) {
+      if (!options.retried && !isAuthenticated && isSessionDurationLimitError(error)) {
+        try {
+          const newSession = await rotateWorkspaceSession();
+          if (newSession?.id) {
+            syncBackendSession(newSession);
+            fetchAttemptedRef.current.delete(tab);
+            setConnections((current) => {
+              const next = { ...current };
+              delete next[tab];
+              return next;
+            });
+            await fetchConnection(tab, { workspaceSessionId: newSession.id, retried: true });
+            return;
+          }
+        } catch {
+          /* fall through */
+        }
+      }
+
       const limitMessage = error?.payload?.error?.details?.connectionBlockedLimit?.reason
         || error?.payload?.error?.details?.blockedLimit?.reason
         || null;
@@ -495,7 +514,51 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
     } finally {
       setLoadingTabs((current) => ({ ...current, [tab]: false }));
     }
-  }, [accessToken, apiFetchBase, requestForTab, session?.anonymousToken]);
+  }, [
+    accessToken,
+    apiFetchBase,
+    isAuthenticated,
+    requestForTab,
+    rotateWorkspaceSession,
+    session?.anonymousToken,
+    syncBackendSession,
+  ]);
+
+  const handleRefreshConnection = useCallback(async (tab) => {
+    const durationLimited =
+      sessionUsage?.blockedLimit?.limit === 'maxSessionDurationMinutes'
+      || sessionUsage?.connectionBlockedLimit?.limit === 'maxSessionDurationMinutes';
+
+    if (durationLimited && !isAuthenticated) {
+      const newSession = await rotateWorkspaceSession();
+      if (newSession?.id) {
+        syncBackendSession(newSession);
+        fetchAttemptedRef.current.delete(tab);
+        setConnections((current) => {
+          const next = { ...current };
+          delete next[tab];
+          return next;
+        });
+        await fetchConnection(tab, { workspaceSessionId: newSession.id, retried: true });
+        return;
+      }
+    }
+
+    fetchAttemptedRef.current.delete(tab);
+    setConnections((current) => {
+      const next = { ...current };
+      delete next[tab];
+      return next;
+    });
+    await fetchConnection(tab);
+  }, [
+    fetchConnection,
+    isAuthenticated,
+    rotateWorkspaceSession,
+    sessionUsage?.blockedLimit?.limit,
+    sessionUsage?.connectionBlockedLimit?.limit,
+    syncBackendSession,
+  ]);
 
   // Surface session-level request/attach exhaustion in the modal too so the
   // user sees the same sign-up wall whether they hit the cap from the

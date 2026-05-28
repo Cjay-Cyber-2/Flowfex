@@ -2,6 +2,11 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 
 const DEFAULT_TTL_SECONDS = 60 * 30;
 const MAX_TTL_SECONDS = 60 * 60 * 24;
+const WORKSPACE_SESSION_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isWorkspaceSessionId(value) {
+  return WORKSPACE_SESSION_ID_PATTERN.test(String(value || '').trim());
+}
 
 /**
  * In-memory session manager for external agent connections.
@@ -24,16 +29,31 @@ export class SessionManager {
       this.minimumTtlSeconds,
       this.maxTtlSeconds
     );
-    const id = typeof config.id === 'string' && config.id.trim().length > 0
+    const requestedId = typeof config.id === 'string' && config.id.trim().length > 0
       ? config.id.trim()
+      : null;
+    const metadata = { ...(config.metadata || {}) };
+    let workspaceSessionId = metadata.workspaceSessionId || null;
+
+    if (requestedId && isWorkspaceSessionId(requestedId)) {
+      workspaceSessionId = workspaceSessionId || requestedId;
+    }
+
+    const id = requestedId && !isWorkspaceSessionId(requestedId)
+      ? requestedId
       : `sess_${randomBytes(12).toString('hex')}`;
+
+    if (workspaceSessionId) {
+      metadata.workspaceSessionId = workspaceSessionId;
+    }
+
     const token = `ffx_${randomBytes(24).toString('hex')}`;
     const session = {
       id,
       connectionId: `conn_${randomBytes(8).toString('hex')}`,
       mode: config.mode || 'api',
       agent: normalizeAgent(config.agent),
-      metadata: config.metadata || {},
+      metadata,
       prompt: config.prompt || null,
       capabilities: Array.isArray(config.capabilities) ? config.capabilities : [],
       allowedToolIds: normalizeToolIds(config.allowedToolIds),

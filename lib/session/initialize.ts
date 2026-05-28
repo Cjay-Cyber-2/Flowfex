@@ -98,18 +98,34 @@ export function writeAnonymousToken(token: string | null, storage?: StorageLike 
 }
 
 export async function createAnonymousSession(
-  options: SessionRequestOptions = {}
+  options: SessionRequestOptions & { forceNew?: boolean } = {}
 ): Promise<SyniqAnonymousSessionResponse> {
   const response = await requestJson<SyniqAnonymousSessionResponse>(
     '/api/session/create-anonymous',
     {
       method: 'POST',
-      body: JSON.stringify({}),
+      body: JSON.stringify({
+        forceNew: options.forceNew === true,
+      }),
     },
     options
   );
   writeAnonymousToken(response.anonymousToken, options.storage);
   return response;
+}
+
+/**
+ * Mint a fresh anonymous workspace session (new SESSION_ID and token).
+ * Use when the prior workspace hit maxSessionDurationMinutes or attach limits.
+ */
+export async function rotateAnonymousWorkspaceSession(
+  options: SessionRequestOptions = {}
+): Promise<SyniqAnonymousSessionResponse> {
+  writeAnonymousToken(null, options.storage);
+  return createAnonymousSession({
+    ...options,
+    forceNew: true,
+  });
 }
 
 export async function validateAnonymousSession(

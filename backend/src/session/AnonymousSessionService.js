@@ -160,9 +160,10 @@ export class AnonymousSessionService {
    * Reuse the latest anonymous workspace for this visitor when one exists so
    * clearing agents or local storage cannot mint a fresh execution quota.
    */
-  async createAnonymousSession(visitorAnchor = null) {
+  async createAnonymousSession(visitorAnchor = null, options = {}) {
+    const forceNew = options?.forceNew === true;
     const anchor = normalizeVisitorAnchor(visitorAnchor);
-    if (anchor) {
+    if (!forceNew && anchor) {
       const existing = await this.findLatestAnonymousSessionForVisitor(anchor);
       if (existing?.anonymousToken) {
         await this._backfillVisitorAnchor(existing.id, anchor);

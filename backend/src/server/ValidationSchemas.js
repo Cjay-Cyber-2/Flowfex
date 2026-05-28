@@ -38,6 +38,10 @@ export const anonymousValidateSchema = z.object({
   anonymousToken: z.string().optional()
 });
 
+export const anonymousCreateSchema = z.object({
+  forceNew: z.boolean().optional(),
+}).passthrough();
+
 export const sessionUpgradeSchema = z.object({
   anonymousToken: z.string().optional(),
   accessToken: z.string().optional()

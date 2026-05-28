@@ -1,0 +1,52 @@
+/* Viewport-safe defaults for all app surfaces */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Shared scrollable panel (onboarding, modals, drawers) */
+.app-scroll-panel {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 212, 170, 0.4) rgba(8, 12, 16, 0.45);
+}
+
+.app-scroll-panel::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.app-scroll-panel::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(0, 212, 170, 0.35);
+}
+
+.app-scroll-panel::-webkit-scrollbar-track {
+  background: rgba(8, 12, 16, 0.35);
+  border-radius: 999px;
+}
+
+@media (max-width: 720px) {
+  .toast-container {
+    left: var(--space-4);
+    right: var(--space-4);
+    bottom: max(var(--space-4), env(safe-area-inset-bottom, 0px));
+  }
+}

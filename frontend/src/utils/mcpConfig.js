@@ -1,3 +1,5 @@
+import { isWorkspaceUuidSessionId } from '../../../shared/sessionIds.js';
+
 /**
  * Build MCP client config for Cursor, Claude Desktop, Kiro, etc.
  */
@@ -58,11 +60,15 @@ export function stringifyMcpConfig(config) {
 /** Workspace UUID + handshake token from the connect API (not the ephemeral connection id). */
 export function resolveMcpCredentialsFromConnection(connection, workspaceSessionId) {
   const conn = connection?.connection?.session;
-  const sessionId = conn?.metadata?.workspaceSessionId || workspaceSessionId || null;
-  const sessionToken = conn?.token || null;
+  const metadataWorkspaceId = conn?.metadata?.workspaceSessionId || null;
+  const sessionToken = typeof conn?.token === 'string' ? conn.token.trim() : '';
+
+  const resolvedWorkspaceId = [metadataWorkspaceId, workspaceSessionId]
+    .find((id) => isWorkspaceUuidSessionId(id)) || null;
+
   return {
-    sessionId,
-    sessionToken,
-    ready: Boolean(sessionId && sessionToken),
+    sessionId: resolvedWorkspaceId,
+    sessionToken: sessionToken || null,
+    ready: Boolean(resolvedWorkspaceId && sessionToken),
   };
 }

@@ -425,21 +425,29 @@ export class ConnectionService {
       : Array.isArray(session.recommendedToolIds)
         ? session.recommendedToolIds
         : [];
+    const includeToolSummaries = options.includeToolSummaries === true;
+    let allowedTools = [];
+    let recommendedTools = [];
+
+    if (includeToolSummaries) {
+      try {
+        allowedTools = visibleToolIds.length > 0
+          ? this.orchestrator.getAvailableTools({ toolIds: visibleToolIds })
+          : [];
+        recommendedTools = Array.isArray(session.recommendedToolIds) && session.recommendedToolIds.length > 0
+          ? this.orchestrator.getAvailableTools({ toolIds: session.recommendedToolIds })
+          : [];
+      } catch (error) {
+        console.warn('[ConnectionService] Tool summary serialization skipped:', error?.message || error);
+      }
+    }
+
     return {
       ...publicSessionView(session),
       allowedToolIds: visibleToolIds,
       recommendedToolIds: Array.isArray(session.recommendedToolIds) ? session.recommendedToolIds : [],
       ...(token ? { token } : {}),
-      allowedTools: visibleToolIds.length > 0
-        ? this.orchestrator.getAvailableTools({
-            toolIds: visibleToolIds
-          })
-        : [],
-      recommendedTools: Array.isArray(session.recommendedToolIds) && session.recommendedToolIds.length > 0
-        ? this.orchestrator.getAvailableTools({
-            toolIds: session.recommendedToolIds
-          })
-        : [],
+      ...(includeToolSummaries ? { allowedTools, recommendedTools } : {}),
       endpoints: {
         connect: `${baseUrl}/connect`,
         attach: `${baseUrl}/connect/live/${session.id}`,

@@ -620,20 +620,32 @@ export class UsageService {
    * Assert that adding another agent connection is allowed.
    */
   async assertAgentConnectionAllowed({ sessionId, apiKeyId = null }) {
-    const status = await this.getUsageStatus({ sessionId, apiKeyId });
-    if (!status) return true;
+    try {
+      const status = await this.getUsageStatus({ sessionId, apiKeyId });
+      if (!status) return true;
 
-    if (status.connectionBlockedLimit) {
-      this._emitLimitEvent(sessionId, 'limit:agent_blocked', {
-        tier: status.tier,
-        blockedLimit: status.connectionBlockedLimit,
-        usage: status.usage,
+      if (status.connectionBlockedLimit) {
+        this._emitLimitEvent(sessionId, 'limit:agent_blocked', {
+          tier: status.tier,
+          blockedLimit: status.connectionBlockedLimit,
+          usage: status.usage,
+        });
+
+        throw createConnectionLimitError(status, sessionId);
+      }
+
+      return true;
+    } catch (error) {
+      if (error?.code === 'limit_reached' || error?.details?.connectionBlockedLimit) {
+        throw error;
+      }
+      logSessionError({
+        operation: 'usage.assert_agent_connection',
+        sessionId,
+        error,
       });
-
-      throw createConnectionLimitError(status, sessionId);
+      return true;
     }
-
-    return true;
   }
 
   /**

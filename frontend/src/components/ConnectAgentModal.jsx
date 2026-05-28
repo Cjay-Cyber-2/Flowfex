@@ -99,6 +99,55 @@ function CopyBtn({ text, style, className = '' }) {
   );
 }
 
+function ConnectBootstrapPending({ message = 'Preparing connection details…' }) {
+  return (
+    <div className="cam-payload-card cam-payload-card--empty">
+      <p>{message}</p>
+    </div>
+  );
+}
+
+function ConnectBootstrapFailure({
+  method,
+  error,
+  loading,
+  onRefresh,
+  limitState,
+  limitKey,
+  isAuthenticated,
+  onSignUp,
+  onSignIn,
+  onClose,
+  onViewPricing,
+  onStartFreshSession,
+  pendingMessage = 'Preparing connection details…',
+}) {
+  if (limitState) {
+    return (
+      <ConnectionLimitPanel
+        isAuthenticated={isAuthenticated}
+        message={limitState}
+        limitKey={limitKey}
+        onSignUp={onSignUp}
+        onSignIn={onSignIn}
+        onClose={onClose}
+        onViewPricing={onViewPricing}
+        onStartFreshSession={onStartFreshSession}
+      />
+    );
+  }
+
+  return (
+    <ConnectionMethodShell
+      method={method}
+      error={error}
+      actions={<ConnectionRefreshAction loading={loading} label="Try again" onRefresh={onRefresh} />}
+    >
+      <ConnectBootstrapPending message={error || pendingMessage} />
+    </ConnectionMethodShell>
+  );
+}
+
 function ConcealedPayload({ text, title, emptyMessage = 'Preparing connection details…' }) {
   const [copied, copy] = useCopy();
   const [revealed, setRevealed] = useState(false);
@@ -248,14 +297,25 @@ function PromptTab({
     );
   }
 
-  if (!connection?.connection?.instructions?.prompt && loading) {
+  const hasPrompt = Boolean(connection?.connection?.instructions?.prompt);
+
+  if (!hasPrompt && (loading || error)) {
     return (
-      <div>
-        <p className="cam-tab-desc">Preparing a secure connection prompt for your agent...</p>
-        <div className="cam-payload-card cam-payload-card--empty">
-          <p>Generating session…</p>
-        </div>
-      </div>
+      <ConnectBootstrapFailure
+        method="Prompt"
+        error={error}
+        loading={loading}
+        onRefresh={onRefresh}
+        limitState={limitState}
+        limitKey={limitKey}
+        isAuthenticated={isAuthenticated}
+        onSignUp={onSignUp}
+        onSignIn={onSignIn}
+        onClose={onClose}
+        onViewPricing={onViewPricing}
+        onStartFreshSession={onStartFreshSession}
+        pendingMessage="Generating session…"
+      />
     );
   }
 
@@ -295,18 +355,29 @@ function LinkTab({
     );
   }
 
-  if (!connection?.connection?.link?.url && loading) {
+  const hasLink = Boolean(connection?.connection?.link?.url);
+
+  if (!hasLink && (loading || error)) {
     return (
-      <div>
-        <p className="cam-tab-desc">Generating a secure one-time connection link...</p>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 12, opacity: 0.6 }}>
-          <input readOnly value="Generating link..." className="cam-readonly-input" />
-        </div>
-      </div>
+      <ConnectBootstrapFailure
+        method="Link"
+        error={error}
+        loading={loading}
+        onRefresh={onRefresh}
+        limitState={limitState}
+        limitKey={limitKey}
+        isAuthenticated={isAuthenticated}
+        onSignUp={onSignUp}
+        onSignIn={onSignIn}
+        onClose={onClose}
+        onViewPricing={onViewPricing}
+        onStartFreshSession={onStartFreshSession}
+        pendingMessage="Generating secure link…"
+      />
     );
   }
 
-  const url = normalizeSessionConnectUrl(connection?.connection?.link?.url || CONNECT_LINK);
+  const url = normalizeSessionConnectUrl(connection?.connection?.link?.url);
   return (
     <ConnectionMethodShell
       method="Link"
@@ -342,14 +413,25 @@ function SDKTab({
     );
   }
 
-  if (!connection?.connection?.instructions?.sdkSnippet && loading) {
+  const hasSnippet = Boolean(connection?.connection?.instructions?.sdkSnippet);
+
+  if (!hasSnippet && (loading || error)) {
     return (
-      <div>
-        <p className="cam-tab-desc">Preparing SDK connection snippet...</p>
-        <div className="cam-payload-card cam-payload-card--empty">
-          <p>Generating unique session credentials…</p>
-        </div>
-      </div>
+      <ConnectBootstrapFailure
+        method="SDK"
+        error={error}
+        loading={loading}
+        onRefresh={onRefresh}
+        limitState={limitState}
+        limitKey={limitKey}
+        isAuthenticated={isAuthenticated}
+        onSignUp={onSignUp}
+        onSignIn={onSignIn}
+        onClose={onClose}
+        onViewPricing={onViewPricing}
+        onStartFreshSession={onStartFreshSession}
+        pendingMessage="Generating SDK credentials…"
+      />
     );
   }
 
@@ -384,14 +466,25 @@ function LiveChannelTab({
     );
   }
 
-  if (!connection?.connection?.instructions?.endpointPayload && loading) {
+  const hasEndpoint = Boolean(connection?.connection?.instructions?.endpointPayload);
+
+  if (!hasEndpoint && (loading || error)) {
     return (
-      <div>
-        <p className="cam-tab-desc">Preparing Live Channel connection payload...</p>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16, opacity: 0.6 }}>
-          <input readOnly value="Generating live channel snippet..." className="cam-readonly-input" />
-        </div>
-      </div>
+      <ConnectBootstrapFailure
+        method="Live Channel"
+        error={error}
+        loading={loading}
+        onRefresh={onRefresh}
+        limitState={limitState}
+        limitKey={limitKey}
+        isAuthenticated={isAuthenticated}
+        onSignUp={onSignUp}
+        onSignIn={onSignIn}
+        onClose={onClose}
+        onViewPricing={onViewPricing}
+        onStartFreshSession={onStartFreshSession}
+        pendingMessage="Generating live channel credentials…"
+      />
     );
   }
 
@@ -429,17 +522,25 @@ function MCPTab({
   }
 
   const credentials = resolveMcpCredentialsFromConnection(connection, workspaceSessionId);
-  const waitingForCredentials = loading || !credentials.ready;
+  const hasCredentials = credentials.ready;
 
-  if (waitingForCredentials) {
+  if (!hasCredentials && (loading || error || !connection)) {
     return (
-      <ConnectionMethodShell method="MCP" error={null} actions={null}>
-        <p className="cam-tab-desc">Preparing your personal MCP config with session ID and token…</p>
-        <div className="cam-payload-card cam-payload-card--empty">
-          <p>Waiting for session credentials…</p>
-        </div>
-        <ConnectionRefreshAction loading={loading} label="Refresh session" onRefresh={onRefresh} />
-      </ConnectionMethodShell>
+      <ConnectBootstrapFailure
+        method="MCP"
+        error={error}
+        loading={loading}
+        onRefresh={onRefresh}
+        limitState={limitState}
+        limitKey={limitKey}
+        isAuthenticated={isAuthenticated}
+        onSignUp={onSignUp}
+        onSignIn={onSignIn}
+        onClose={onClose}
+        onViewPricing={onViewPricing}
+        onStartFreshSession={onStartFreshSession}
+        pendingMessage="Waiting for session credentials…"
+      />
     );
   }
 
@@ -588,7 +689,11 @@ function ConnectAgentModal({
       const { hasBody, payload } = await readConnectResponse(response);
 
       if (!response.ok) {
-        const nextError = new Error(payload?.error?.message || 'Connection bootstrap failed');
+        const apiMessage = payload?.error?.message
+          || (response.status >= 500
+            ? 'Syniq could not prepare this connection. Try again in a moment.'
+            : 'Connection bootstrap failed');
+        const nextError = new Error(apiMessage);
         nextError.statusCode = response.status;
         nextError.payload = payload;
         throw nextError;
@@ -627,12 +732,13 @@ function ConnectAgentModal({
 
       setErrors((current) => ({
         ...current,
-        [tab]: formatConnectFetchError(error),
+        [tab]: error?.message || formatConnectFetchError(error),
       }));
+      fetchAttemptedRef.current.delete(tab);
     } finally {
       setLoadingTabs((current) => ({ ...current, [tab]: false }));
     }
-  }, [accessToken, apiFetchBase, requestForTab, session?.anonymousToken]);
+  }, [accessToken, apiFetchBase, requestForTab, session?.anonymousToken, workspaceSessionId]);
 
   // Surface session-level request/attach exhaustion in the modal too so the
   // user sees the same sign-up wall whether they hit the cap from the

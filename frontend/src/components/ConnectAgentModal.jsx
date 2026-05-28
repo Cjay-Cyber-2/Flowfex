@@ -55,6 +55,7 @@ const SOCKET_OPTIONS = {
   timeout: 20000,
   withCredentials: true,
   transports: ['websocket', 'polling'],
+  withCredentials: true,
 };
 
 function useCopy() {

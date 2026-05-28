@@ -1,6 +1,7 @@
 const DEFAULT_APP_ORIGIN = 'http://localhost:3000';
 const DEFAULT_BACKEND_ORIGIN = 'http://localhost:4000';
-const DEFAULT_VERCEL_PRODUCTION_BACKEND = 'https://flowfex.onrender.com';
+/** Render-hosted API when the SPA is on Vercel/static hosting without VITE_BACKEND_URL. */
+const DEFAULT_PRODUCTION_BACKEND_ORIGIN = 'https://flowfex.onrender.com';
 const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1']);
 
 function trimTrailingSlash(value) {
@@ -101,18 +102,19 @@ export function getBackendOrigin() {
 
   const location = getBrowserLocation();
   if (!location) {
-    return DEFAULT_BACKEND_ORIGIN;
+    return import.meta.env.PROD ? DEFAULT_PRODUCTION_BACKEND_ORIGIN : DEFAULT_BACKEND_ORIGIN;
   }
 
   if (isVercelAppHost(location.hostname)) {
-    return DEFAULT_VERCEL_PRODUCTION_BACKEND;
+    return DEFAULT_PRODUCTION_BACKEND_ORIGIN;
   }
 
   if (isLocalDevHost(location.hostname)) {
-    if (location.port === '3000' || location.port === '5173') {
-      return `${location.protocol}//${location.hostname}:4000`;
-    }
-    return DEFAULT_BACKEND_ORIGIN;
+    return `${location.protocol}//${location.hostname}:4000`;
+  }
+
+  if (import.meta.env.PROD) {
+    return DEFAULT_PRODUCTION_BACKEND_ORIGIN;
   }
 
   return location.origin;
@@ -128,11 +130,9 @@ export function normalizeSessionConnectUrl(value) {
   }
 
   try {
-    // If it's a valid absolute URL (like the one returned from the backend), preserve it!
     const parsed = new URL(value);
     return parsed.toString();
   } catch {
-    // If it's a relative path, resolve it against the backend origin
     if (value.startsWith('/connect/live/')) {
       return new URL(value, getBackendOrigin()).toString();
     }

@@ -16,9 +16,14 @@ const RECONNECT_CONFIG = {
   reconnectionDelay: 1000,
   reconnectionDelayMax: 30000,
   reconnectionAttempts: Infinity,
+<<<<<<< HEAD
   timeout: 20000,
   withCredentials: true,
   transports: ['websocket', 'polling'],
+=======
+  timeout: 10000,
+  withCredentials: true,
+>>>>>>> origin/cursor/auth-connection-rigid-1be3
 };
 
 class SyniqSocketClient {

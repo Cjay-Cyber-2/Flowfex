@@ -24,6 +24,7 @@ import {
 import { connectRequestSchema } from '../../../shared/connection-contracts.js';
 import { getAllowedBrowserOrigins, resolveAllowedCorsOrigin } from '../config/corsOrigins.js';
 import { buildCatalogStats } from '../skills/catalogStatsBuilder.js';
+import { isSyniqAttachOnlyTask } from '../../../shared/syniqIngestTasks.js';
 import { isWorkspaceUuidSessionId } from '../../../shared/sessionIds.js';
 import {
   buildHandshakePayload,
@@ -948,7 +949,7 @@ export class SyniqServer {
       }
 
       try {
-        await this._assertToolsRequestQuota(executionPayload.sessionId);
+        await this._assertToolsRequestQuota(executionPayload.sessionId, executionPayload.input);
         if (this._wantsEventStream(request, url, body)) {
           this._emitAgentConnectedForSessionId(executionPayload.sessionId, 'prompt');
           this._touchAgentPresenceForExecution(executionPayload.sessionId);
@@ -958,7 +959,7 @@ export class SyniqServer {
         this._emitAgentConnectedForSessionId(executionPayload.sessionId, 'prompt');
         this._touchAgentPresenceForExecution(executionPayload.sessionId);
         const payload = await this.connectionService.execute(executionPayload);
-        await this._recordToolsRequest(executionPayload.sessionId, payload);
+        await this._recordToolsRequest(executionPayload.sessionId, payload, executionPayload.input);
         this._touchAgentPresenceForExecution(executionPayload.sessionId);
         return this._writeJson(response, 200, {
           ...payload,
@@ -994,7 +995,7 @@ export class SyniqServer {
       }
 
       try {
-        await this._assertToolsRequestQuota(executionPayload.sessionId);
+        await this._assertToolsRequestQuota(executionPayload.sessionId, executionPayload.input);
         if (this._wantsEventStream(request, url, body)) {
           this._emitAgentConnectedForSessionId(executionPayload.sessionId, null);
           this._touchAgentPresenceForExecution(executionPayload.sessionId);
@@ -1004,7 +1005,7 @@ export class SyniqServer {
         this._emitAgentConnectedForSessionId(executionPayload.sessionId, null);
         this._touchAgentPresenceForExecution(executionPayload.sessionId);
         const payload = await this.connectionService.execute(executionPayload);
-        await this._recordToolsRequest(executionPayload.sessionId, payload);
+        await this._recordToolsRequest(executionPayload.sessionId, payload, executionPayload.input);
         this._touchAgentPresenceForExecution(executionPayload.sessionId);
         return this._writeJson(response, 200, payload);
       } catch (error) {
@@ -1331,7 +1332,11 @@ export class SyniqServer {
     return sessionId;
   }
 
-  async _assertToolsRequestQuota(sessionId) {
+  async _assertToolsRequestQuota(sessionId, input = null) {
+    if (isSyniqAttachOnlyTask(input)) {
+      return;
+    }
+
     const usageSessionId = this._resolveUsageSessionId(sessionId);
     if (!usageSessionId || !this.usageService) {
       return;
@@ -1340,7 +1345,12 @@ export class SyniqServer {
     await this.usageService.assertExecutionAllowed({ sessionId: usageSessionId });
   }
 
-  async _recordToolsRequest(sessionId, executionPayload = null) {
+  async _recordToolsRequest(sessionId, executionPayload = null, input = null) {
+    const taskInput = input ?? executionPayload?.input ?? executionPayload?.task ?? null;
+    if (isSyniqAttachOnlyTask(taskInput)) {
+      return;
+    }
+
     const usageSessionId = this._resolveUsageSessionId(sessionId);
     if (!usageSessionId || !this.usageService) {
       return;
@@ -1558,7 +1568,7 @@ export class SyniqServer {
       const payload = await this.connectionService.execute(executionPayload, {
         eventSink: sendEvent
       });
-      await this._recordToolsRequest(executionPayload.sessionId, payload);
+      await this._recordToolsRequest(executionPayload.sessionId, payload, executionPayload.input);
     } catch (error) {
       sendEvent({
         sequence: 0,

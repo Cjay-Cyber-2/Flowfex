@@ -470,7 +470,7 @@ function MCPTab({ connection, loading, onRefresh, error, limitState, isAuthentic
         </ul>
         <p className="cam-security-note" style={{ marginTop: 10 }}>
           When the agent connects, this page will show <strong>Connected</strong> and open your dashboard.
-          Each routed task counts toward your daily Syniq requests.
+          Only <strong>syniq_route_task</strong> counts toward your request limit — <strong>syniq_attach</strong> is free.
         </p>
       </div>
 

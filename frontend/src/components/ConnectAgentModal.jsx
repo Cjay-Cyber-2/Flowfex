@@ -13,15 +13,20 @@ import {
   resolveApiFetchBase,
   rewriteConnectPrompt,
 } from '../utils/runtimeConfig';
+import { buildSyniqMcpServerConfig, stringifyMcpConfig } from '../utils/mcpConfig';
 import '../styles/landing-sections3.css';
 
-const TABS = ['Prompt', 'Link', 'SDK', 'Live Channel'];
+const TABS = ['Prompt', 'MCP', 'Link', 'SDK', 'Live Channel'];
 
 /** Accurate agent-surface guidance per attach mode (from product FAQ + connection contracts). */
 const TAB_AGENT_HINTS = {
   Prompt: {
     bestFor: 'Any AI that accepts system or project instructions (IDE, chat, or custom harness)',
     howTo: 'Paste the Syniq contract into the connected assistant’s instructions, then send one attach ping.',
+  },
+  MCP: {
+    bestFor: 'Kiro, Cursor, Claude Desktop, and other MCP-capable agents that block raw HTTP from chat',
+    howTo: 'Copy the MCP server config into your agent’s MCP settings, restart the agent, then run syniq_attach once.',
   },
   Link: {
     bestFor: 'Browser-based or shareable attach flows (one-time handoff URL)',
@@ -363,7 +368,65 @@ function LiveChannelTab({ connection, loading, onRefresh, error, limitState, isA
   );
 }
 
-const TAB_CONTENT = { Prompt: PromptTab, Link: LinkTab, SDK: SDKTab, 'Live Channel': LiveChannelTab };
+
+function MCPTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose, onViewPricing }) {
+  if (limitState) {
+    return (
+      <ConnectionLimitPanel
+        isAuthenticated={isAuthenticated}
+        message={limitState}
+        onSignUp={onSignUp}
+        onSignIn={onSignIn}
+        onClose={onClose}
+        onViewPricing={onViewPricing}
+      />
+    );
+  }
+
+  if (!connection?.connection?.session?.token && loading) {
+    return (
+      <div>
+        <p className="cam-tab-desc">Preparing MCP server credentials for your agent...</p>
+        <div className="cam-code-block cam-code-block-concealed" style={{ opacity: 0.6 }}>
+          <pre aria-hidden="true">Generating session...</pre>
+        </div>
+      </div>
+    );
+  }
+
+  const session = connection?.connection?.session;
+  const publicOrigin = getBackendOrigin().replace(/\/+$/, '');
+  const ingestUrl = session?.endpoints?.ingest || `${publicOrigin}/ingest`;
+  const mcpText = stringifyMcpConfig(buildSyniqMcpServerConfig({
+    publicUrl: publicOrigin,
+    sessionId: session?.id,
+    sessionToken: session?.token,
+    ingestUrl,
+  }));
+
+  const devNote = import.meta.env.DEV
+    ? '\n\nLocal dev: use node with mcp/syniq-mcp/src/index.js — see mcp/syniq-mcp/README.md.'
+    : '';
+
+  return (
+    <div>
+      <ConnectionHeadline />
+      <ConnectionAgentHint tab="MCP" />
+      <ConnectionProofNote mode="MCP mode" />
+      <ConcealedPayload text={`${mcpText}${devNote}`} title="MCP config — copy to reveal" />
+      <p className="cam-security-note">
+        Add this block to <strong>Cursor</strong> (<code>.cursor/mcp.json</code>), <strong>Claude Desktop</strong>, or your agent&apos;s MCP settings.
+        After restart, ask the agent to call <strong>syniq_attach</strong>, then use <strong>syniq_route_task</strong> for each user message.
+      </p>
+      <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
+        <RefreshCw size={13} /> {loading ? 'Generating...' : 'Refresh Session'}
+      </button>
+      {error ? <p className="cam-security-note cam-security-note--error">{error}</p> : null}
+    </div>
+  );
+}
+
+const TAB_CONTENT = { Prompt: PromptTab, MCP: MCPTab, Link: LinkTab, SDK: SDKTab, 'Live Channel': LiveChannelTab };
 
 function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt' }) {
   const navigate = useNavigate();
@@ -401,6 +464,13 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
           mode: 'prompt',
           prompt: 'Attach this agent to Syniq for the full conversation and route every request through Syniq before acting.',
           agent: { name: 'Prompt Agent', type: 'prompt' },
+        };
+      case 'MCP':
+        return {
+          sessionId: workspaceSessionId,
+          mode: 'prompt',
+          prompt: 'Attach this agent to Syniq via MCP for the full conversation and route every request through Syniq before acting.',
+          agent: { name: 'MCP Agent', type: 'mcp' },
         };
       case 'Link':
         return {
@@ -477,25 +547,6 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
         [tab]: payload,
       }));
     } catch (error) {
-      if (!options.retried && !isAuthenticated && isSessionDurationLimitError(error)) {
-        try {
-          const newSession = await rotateWorkspaceSession();
-          if (newSession?.id) {
-            syncBackendSession(newSession);
-            fetchAttemptedRef.current.delete(tab);
-            setConnections((current) => {
-              const next = { ...current };
-              delete next[tab];
-              return next;
-            });
-            await fetchConnection(tab, { workspaceSessionId: newSession.id, retried: true });
-            return;
-          }
-        } catch {
-          /* fall through */
-        }
-      }
-
       const limitMessage = error?.payload?.error?.details?.connectionBlockedLimit?.reason
         || error?.payload?.error?.details?.blockedLimit?.reason
         || null;
@@ -514,51 +565,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
     } finally {
       setLoadingTabs((current) => ({ ...current, [tab]: false }));
     }
-  }, [
-    accessToken,
-    apiFetchBase,
-    isAuthenticated,
-    requestForTab,
-    rotateWorkspaceSession,
-    session?.anonymousToken,
-    syncBackendSession,
-  ]);
-
-  const handleRefreshConnection = useCallback(async (tab) => {
-    const durationLimited =
-      sessionUsage?.blockedLimit?.limit === 'maxSessionDurationMinutes'
-      || sessionUsage?.connectionBlockedLimit?.limit === 'maxSessionDurationMinutes';
-
-    if (durationLimited && !isAuthenticated) {
-      const newSession = await rotateWorkspaceSession();
-      if (newSession?.id) {
-        syncBackendSession(newSession);
-        fetchAttemptedRef.current.delete(tab);
-        setConnections((current) => {
-          const next = { ...current };
-          delete next[tab];
-          return next;
-        });
-        await fetchConnection(tab, { workspaceSessionId: newSession.id, retried: true });
-        return;
-      }
-    }
-
-    fetchAttemptedRef.current.delete(tab);
-    setConnections((current) => {
-      const next = { ...current };
-      delete next[tab];
-      return next;
-    });
-    await fetchConnection(tab);
-  }, [
-    fetchConnection,
-    isAuthenticated,
-    rotateWorkspaceSession,
-    sessionUsage?.blockedLimit?.limit,
-    sessionUsage?.connectionBlockedLimit?.limit,
-    syncBackendSession,
-  ]);
+  }, [accessToken, apiFetchBase, requestForTab, session?.anonymousToken]);
 
   // Surface session-level request/attach exhaustion in the modal too so the
   // user sees the same sign-up wall whether they hit the cap from the
@@ -592,6 +599,7 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
     setLimitMessages((current) => ({
       ...current,
       Prompt: current.Prompt || message,
+      MCP: current.MCP || message,
       Link: current.Link || message,
       SDK: current.SDK || message,
       'Live Channel': current['Live Channel'] || message,

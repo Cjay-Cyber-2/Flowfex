@@ -76,7 +76,24 @@ const response = await fetch('/connect', {
 
 ---
 
-## 4. SDK Layer ✅
+## 4. MCP Server ✅
+
+**Package:** `mcp/syniq-mcp` (`@flowfex/syniq-mcp`)
+
+Agents that block HTTP from chat (Kiro, strict IDE policies) connect via MCP tools:
+
+| Tool | Description |
+|------|-------------|
+| `syniq_attach` | Dashboard attach handshake |
+| `syniq_route_task` | Route user task through Syniq |
+| `syniq_configure` | Update credentials |
+| `syniq_connection_status` | Config + last usage footer |
+
+See [mcp/syniq-mcp/README.md](./mcp/syniq-mcp/README.md). Credentials come from the **MCP** tab in Connect Your Agent.
+
+---
+
+## 5. SDK Layer ✅
 
 ### JavaScript SDK (`sdk/js/`)
 

@@ -10,12 +10,12 @@ import { isLiveConnectedAgentServer } from './agentPresenceServer.js';
 
 export const SYNIQ_LIMITS = {
   anonymous: {
-    // The user-visible quota for an anonymous Syniq session is "6 requests
+    // The user-visible quota for an anonymous Syniq session is "15 requests
     // per 5-hour window after a verified attach". We keep maxConnectionsPerDay loose
     // so a real agent can re-attach across the day while the request quota
     // is the actual cap that drives the sign-up wall.
     maxConnectionsPerDay: 20,
-    maxExecutionsPerSession: 6,
+    maxExecutionsPerSession: 15,
     maxNodesPerSession: 50,
     maxSessionDurationMinutes: 60,
     maxConcurrentAgents: 1,
@@ -23,13 +23,13 @@ export const SYNIQ_LIMITS = {
     warningThreshold: 0.8,
   },
   authenticated: {
-    // Free authenticated tier gets 6 requests per 5-hour window. After they finish,
+    // Free authenticated tier gets 15 requests per 5-hour window. After they finish,
     // the dashboard pops the pricing card; payment unlocks the paid plan
     // (handled separately) — otherwise the quota renews the next day.
     // Keep the free tier to one active agent/session so multi-agent usage
     // stays a paid capability instead of an auth bypass.
     maxConnectionsPerDay: 20,
-    maxExecutionsPerDay: 6,
+    maxExecutionsPerDay: 15,
     maxNodesPerDay: 100,
     maxSessionDurationMinutes: 480,
     maxConcurrentAgents: 1,

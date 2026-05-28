@@ -606,3 +606,39 @@
   }
   }
 }
+
+.cam-mcp-steps {
+  margin: 0 0 14px;
+  padding-left: 1.25rem;
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  line-height: 1.65;
+  color: rgba(232, 237, 242, 0.88);
+}
+
+.cam-mcp-steps li {
+  margin-bottom: 6px;
+}
+
+.cam-mcp-finish {
+  margin: 14px 0 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 212, 170, 0.14);
+  background: rgba(8, 24, 22, 0.45);
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-bistre);
+}
+
+.cam-mcp-finish ul {
+  margin: 8px 0 0;
+  padding-left: 1.1rem;
+}
+
+.cam-mcp-finish a {
+  color: var(--color-sinoper, #00d4aa);
+  text-decoration: underline;
+}
+

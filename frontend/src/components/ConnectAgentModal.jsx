@@ -18,6 +18,12 @@ import '../styles/landing-sections3.css';
 
 const TABS = ['Prompt', 'MCP', 'Link', 'SDK', 'Live Channel'];
 
+const MCP_FINISH_LINKS = {
+  cursor: 'https://docs.cursor.com/context/model-context-protocol',
+  claude: 'https://modelcontextprotocol.io/quickstart/user',
+  readme: 'https://github.com/Cjay-Cyber-2/Flowfex/blob/main/mcp/syniq-mcp/README.md',
+};
+
 /** Accurate agent-surface guidance per attach mode (from product FAQ + connection contracts). */
 const TAB_AGENT_HINTS = {
   Prompt: {
@@ -25,8 +31,8 @@ const TAB_AGENT_HINTS = {
     howTo: 'Paste the Syniq contract into the connected assistant’s instructions, then send one attach ping.',
   },
   MCP: {
-    bestFor: 'Kiro, Cursor, Claude Desktop, and other MCP-capable agents that block raw HTTP from chat',
-    howTo: 'Copy the MCP server config into your agent’s MCP settings, restart the agent, then run syniq_attach once.',
+    bestFor: 'Kiro, Cursor, Claude Desktop, and other agents that use MCP instead of raw HTTP in chat',
+    howTo: 'Copy the config below into your agent’s MCP settings, restart, then run syniq_attach once.',
   },
   Link: {
     bestFor: 'Browser-based or shareable attach flows (one-time handoff URL)',
@@ -386,7 +392,7 @@ function MCPTab({ connection, loading, onRefresh, error, limitState, isAuthentic
   if (!connection?.connection?.session?.token && loading) {
     return (
       <div>
-        <p className="cam-tab-desc">Preparing MCP server credentials for your agent...</p>
+        <p className="cam-tab-desc">Getting your MCP connection ready…</p>
         <div className="cam-code-block cam-code-block-concealed" style={{ opacity: 0.6 }}>
           <pre aria-hidden="true">Generating session...</pre>
         </div>
@@ -405,7 +411,7 @@ function MCPTab({ connection, loading, onRefresh, error, limitState, isAuthentic
   }));
 
   const devNote = import.meta.env.DEV
-    ? '\n\nLocal dev: use node with mcp/syniq-mcp/src/index.js — see mcp/syniq-mcp/README.md.'
+    ? '\n\nLocal dev: point command at mcp/syniq-mcp/src/index.js — see repo README.'
     : '';
 
   return (
@@ -413,11 +419,41 @@ function MCPTab({ connection, loading, onRefresh, error, limitState, isAuthentic
       <ConnectionHeadline />
       <ConnectionAgentHint tab="MCP" />
       <ConnectionProofNote mode="MCP mode" />
+
+      <ol className="cam-mcp-steps">
+        <li>Copy the JSON below.</li>
+        <li>Paste it into your agent’s MCP settings file and save.</li>
+        <li>Restart the agent app completely.</li>
+        <li>In chat, ask it to run <strong>syniq_attach</strong> once.</li>
+        <li>For each user message, ask it to run <strong>syniq_route_task</strong> before replying.</li>
+      </ol>
+
       <ConcealedPayload text={`${mcpText}${devNote}`} title="MCP config — copy to reveal" />
-      <p className="cam-security-note">
-        Add this block to <strong>Cursor</strong> (<code>.cursor/mcp.json</code>), <strong>Claude Desktop</strong>, or your agent&apos;s MCP settings.
-        After restart, ask the agent to call <strong>syniq_attach</strong>, then use <strong>syniq_route_task</strong> for each user message.
-      </p>
+
+      <div className="cam-mcp-finish">
+        <strong>Finish setup (pick your agent)</strong>
+        <ul>
+          <li>
+            <strong>Cursor:</strong> save as <code>.cursor/mcp.json</code> in your project —{' '}
+            <a href={MCP_FINISH_LINKS.cursor} target="_blank" rel="noreferrer">Cursor MCP guide</a>
+          </li>
+          <li>
+            <strong>Claude Desktop:</strong> edit <code>claude_desktop_config.json</code> —{' '}
+            <a href={MCP_FINISH_LINKS.claude} target="_blank" rel="noreferrer">Claude MCP setup</a>
+          </li>
+          <li>
+            <strong>API host:</strong> <code>{publicOrigin}</code> (ingest: <code>{ingestUrl}</code>)
+          </li>
+          <li>
+            <a href={MCP_FINISH_LINKS.readme} target="_blank" rel="noreferrer">Full Syniq MCP README</a>
+          </li>
+        </ul>
+        <p className="cam-security-note" style={{ marginTop: 10 }}>
+          When the agent connects, this page will show <strong>Connected</strong> and open your dashboard.
+          Each routed task counts toward your daily Syniq requests.
+        </p>
+      </div>
+
       <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
         <RefreshCw size={13} /> {loading ? 'Generating...' : 'Refresh Session'}
       </button>

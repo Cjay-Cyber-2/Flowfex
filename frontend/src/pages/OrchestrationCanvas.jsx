@@ -59,7 +59,7 @@ function paymentGateHeadline(blockedLimit, connectionBlockedLimit, isAuthenticat
   const tier = blockedLimit?.tier || connectionBlockedLimit?.tier;
   if (key === 'maxExecutionsPerSession' || key === 'maxExecutionsPerDay') {
     if (!isAuthenticated || tier === 'anonymous') {
-      return 'You used all 6 free Syniq tools requests for this window.';
+      return 'You used all free Syniq tools requests for this window.';
     }
     return 'You used all free Syniq tools requests for this account window.';
   }
@@ -213,7 +213,7 @@ function OrchestrationCanvas() {
           {showAnonymousQuotaGate ? (
             <UsageGateBanner
               isAuthenticated={false}
-              title="You used all 6 free tools requests for this window"
+              title="You used all free tools requests for this window"
               message={blockedLimit?.reason || 'Create a free account to keep orchestrating, or wait for your quota to renew.'}
               onSignIn={() => navigate('/signin', { state: { from: location.pathname } })}
               onSignUp={() => navigate('/signup', { state: { from: location.pathname, reason: 'anonymous_quota' } })}
@@ -233,7 +233,7 @@ function OrchestrationCanvas() {
           {showFreeTierCard ? (
             <FreeTierPlanCard
               requestsLeft={requestsLeft}
-              requestLimit={requestLimit || 6}
+              requestLimit={requestLimit || 15}
               onDismiss={() => setFreeTierCardDismissed(true)}
               onUpgrade={() => navigate('/pricing')}
             />

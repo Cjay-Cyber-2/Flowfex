@@ -167,10 +167,6 @@ export default function OnboardingAgentFlow({
             >
               <SyniqLogoNew size={92} animated={false} />
             </motion.div>
-            <h1 className="ob-headline">Connect your agent to Syniq</h1>
-            <p className="ob-copy-subline ob-copy-subline--narrow">
-              Two quick questions. We’ll surface the connection path that fits your setup — nothing generic.
-            </p>
             <AnimatedLayerButton onClick={() => setStep('choose-surface')}>
               Connect Agent
             </AnimatedLayerButton>

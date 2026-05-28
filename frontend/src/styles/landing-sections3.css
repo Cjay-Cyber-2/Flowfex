@@ -205,12 +205,61 @@
 }
 
 .cam-connect-headline {
-  margin: 0 0 10px;
+  margin: 0 0 14px;
   font-family: Inter, sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.35;
-  color: rgba(232, 237, 242, 0.92);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: rgba(232, 237, 242, 0.82);
+}
+
+.cam-method-title {
+  margin: 0 0 12px;
+  font-family: var(--font-geist, Inter, sans-serif);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--color-velin);
+}
+
+.cam-method-steps {
+  margin: 0 0 18px;
+  padding-left: 1.15rem;
+  display: grid;
+  gap: 8px;
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(232, 237, 242, 0.78);
+}
+
+.cam-method-steps li {
+  padding-left: 4px;
+}
+
+.cam-method-steps li::marker {
+  color: var(--color-sinoper);
+  font-weight: 700;
+}
+
+.cam-method-attach {
+  display: grid;
+  gap: 10px;
+}
+
+.cam-link-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.cam-header--minimal {
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.cam-header__spacer {
+  flex: 1;
 }
 
 .cam-close {

@@ -18,35 +18,39 @@ import '../styles/landing-sections3.css';
 
 const TABS = ['Prompt', 'MCP', 'Link', 'SDK', 'Live Channel'];
 
-const MCP_FINISH_LINKS = {
-  cursor: 'https://docs.cursor.com/context/model-context-protocol',
-  claude: 'https://modelcontextprotocol.io/quickstart/user',
-  npm: 'https://www.npmjs.com/package/@syniq/syniq-mcp',
-  readme: 'https://github.com/Cjay-Cyber-2/Flowfex/blob/main/mcp/syniq-mcp/README.md',
-};
-
-/** Accurate agent-surface guidance per attach mode (from product FAQ + connection contracts). */
-const TAB_AGENT_HINTS = {
-  Prompt: {
-    bestFor: 'Any AI that accepts system or project instructions (IDE, chat, or custom harness)',
-    howTo: 'Paste the Syniq contract into the connected assistant’s instructions, then send one attach ping.',
-  },
-  MCP: {
-    bestFor: 'Cursor, Claude Desktop, Kiro, VS Code MCP extensions, and other MCP-capable assistants (not plain shell-only CLIs)',
-    howTo: 'Copy the JSON, paste into your agent MCP config, restart, then use syniq_attach once and syniq_route_task per message.',
-  },
-  Link: {
-    bestFor: 'Browser-based or shareable attach flows (one-time handoff URL)',
-    howTo: 'Open the link in the environment where the connected assistant runs so it registers this Syniq session.',
-  },
-  SDK: {
-    bestFor: 'Backend services, CLIs, and custom apps that call Syniq programmatically',
-    howTo: 'Run the snippet in your process so every user turn is posted to Syniq before the assistant acts.',
-  },
-  'Live Channel': {
-    bestFor: 'Always-on clients using socket or SSE (side panel, daemon, embedded runner)',
-    howTo: 'Point the streaming client at the live endpoint and keep the Syniq session open for the full run.',
-  },
+/** Short, direct setup steps per connection method (shown above the attach payload). */
+const CONNECTION_SETUP_STEPS = {
+  Prompt: [
+    'Copy the connection contract below.',
+    'Paste it into your agent’s system instructions, project rules, or custom prompt field — then save.',
+    'In that same chat, send one line: attach to Syniq for this session.',
+    'Leave this page open until Syniq confirms the agent connected.',
+  ],
+  MCP: [
+    'Copy the MCP configuration JSON below (your session credentials are already filled in).',
+    'Paste it into your agent’s MCP settings file — for example `.cursor/mcp.json` or Claude Desktop’s config.',
+    'Fully quit and restart the agent app.',
+    'In chat, tell the agent to run syniq_attach once at the start of the session.',
+    'For every user message after that, the agent must run syniq_route_task before it replies.',
+    'Stay on this page until Syniq shows connected.',
+  ],
+  Link: [
+    'Copy the secure link below (or open it in the browser tab where your agent runs).',
+    'Complete the one-time attach step in that window.',
+    'Return here and wait until Syniq verifies the connection.',
+  ],
+  SDK: [
+    'Copy the SDK snippet and run it inside your app, script, or terminal process.',
+    'The snippet registers this Syniq session before your agent handles user messages.',
+    'Keep the process running if your integration needs an active session.',
+    'Wait on this page until Syniq confirms connected.',
+  ],
+  'Live Channel': [
+    'Copy the live channel payload below.',
+    'Configure your always-on client to use that endpoint and keep the connection open.',
+    'Make sure the client completes the attach handshake for this session.',
+    'Wait here until Syniq confirms the live connection.',
+  ],
 };
 const SOCKET_OPTIONS = {
   reconnection: true,
@@ -168,34 +172,32 @@ function ConnectionLimitPanel({ isAuthenticated, message, onSignUp, onSignIn, on
   );
 }
 
-function ConnectionHeadline() {
+function ConnectionMethodShell({ method, children, actions, error }) {
+  const steps = CONNECTION_SETUP_STEPS[method] || [];
+
   return (
-    <p className="cam-connect-headline">
-      <strong style={{ color: 'var(--color-sinoper)' }}>→</strong> Your dashboard opens only after Syniq verifies a real agent connection for this session.
-    </p>
+    <div className="cam-method">
+      <h3 className="cam-method-title">{method} setup</h3>
+      <p className="cam-connect-headline">
+        Your dashboard opens only after Syniq verifies a real agent connection for this session.
+      </p>
+      <ol className="cam-method-steps">
+        {steps.map((step) => (
+          <li key={step}>{step}</li>
+        ))}
+      </ol>
+      <div className="cam-method-attach">{children}</div>
+      {actions}
+      {error ? <p className="cam-security-note cam-security-note--error">{error}</p> : null}
+    </div>
   );
 }
 
-function ConnectionProofNote({ mode }) {
+function ConnectionRefreshAction({ loading, label, onRefresh }) {
   return (
-    <p className="cam-security-note">
-      {mode}: this card only prepares credentials. Syniq waits for the agent to attach before routing you to the dashboard.
-    </p>
-  );
-}
-
-function ConnectionAgentHint({ tab }) {
-  const hint = TAB_AGENT_HINTS[tab];
-  if (!hint) {
-    return null;
-  }
-
-  return (
-    <p className="cam-agent-hint">
-      <strong>Best for:</strong> {hint.bestFor}
-      <span className="cam-agent-hint__sep"> · </span>
-      {hint.howTo}
-    </p>
+    <button type="button" className="cam-text-link" onClick={onRefresh} disabled={loading}>
+      <RefreshCw size={13} /> {loading ? 'Refreshing…' : label}
+    </button>
   );
 }
 
@@ -229,16 +231,13 @@ function PromptTab({ connection, loading, onRefresh, error, limitState, isAuthen
     || connection?.connection?.link?.url;
   const promptText = rewriteConnectPrompt(rawPrompt, sessionUrl);
   return (
-    <div>
-      <ConnectionHeadline />
-      <ConnectionAgentHint tab="Prompt" />
-      <ConnectionProofNote mode="Prompt mode" />
-      <ConcealedPayload text={promptText} title="Connection contract — copy to reveal" />
-      <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
-        <RefreshCw size={13} /> {loading ? 'Generating...' : 'Refresh Session'}
-      </button>
-      {error ? <p className="cam-security-note cam-security-note--error">{error}</p> : null}
-    </div>
+    <ConnectionMethodShell
+      method="Prompt"
+      error={error}
+      actions={<ConnectionRefreshAction loading={loading} label="Refresh session" onRefresh={onRefresh} />}
+    >
+      <ConcealedPayload text={promptText} title="Connection contract" />
+    </ConnectionMethodShell>
   );
 }
 
@@ -270,25 +269,19 @@ function LinkTab({ connection, loading, onRefresh, error, limitState, isAuthenti
   }
 
   const url = normalizeSessionConnectUrl(connection?.connection?.link?.url || CONNECT_LINK);
-  const hint = connection?.connection?.instructions?.summary
-    || 'Open this link once in the agent to attach.';
   return (
-    <div>
-      <ConnectionHeadline />
-      <ConnectionAgentHint tab="Link" />
-      <ConnectionProofNote mode="Link mode" />
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-        <input readOnly value={url} className="cam-readonly-input" />
-        <button className="cam-copy-btn" onClick={() => copy(url)}>
+    <ConnectionMethodShell
+      method="Link"
+      error={error}
+      actions={<ConnectionRefreshAction loading={loading} label="Regenerate link" onRefresh={onRefresh} />}
+    >
+      <div className="cam-link-row">
+        <input readOnly value={url} className="cam-readonly-input" aria-label="Attach link" />
+        <button type="button" className="cam-copy-btn" onClick={() => copy(url)}>
           {copied ? <CheckCheck size={14} /> : <Copy size={14} />}
         </button>
       </div>
-      <button className="cam-text-link" style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={onRefresh} disabled={loading}>
-        <RefreshCw size={13} /> {loading ? 'Generating Link...' : 'Regenerate Link'}
-      </button>
-      <p className="cam-security-note">{hint}</p>
-      {error ? <p className="cam-security-note cam-security-note--error">{error}</p> : null}
-    </div>
+    </ConnectionMethodShell>
   );
 }
 
@@ -319,16 +312,13 @@ function SDKTab({ connection, loading, onRefresh, error, limitState, isAuthentic
 
   const snippet = connection?.connection?.instructions?.sdkSnippet || CONNECT_SDK_SNIPPET;
   return (
-    <div>
-      <ConnectionHeadline />
-      <ConnectionAgentHint tab="SDK" />
-      <ConnectionProofNote mode="SDK mode" />
-      <ConcealedPayload text={snippet} title="SDK attach payload hidden until copied" />
-      <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
-        <RefreshCw size={13} /> {loading ? 'Generating SDK Session...' : 'Refresh Session'}
-      </button>
-      {error ? <p className="cam-security-note cam-security-note--error">{error}</p> : null}
-    </div>
+    <ConnectionMethodShell
+      method="SDK"
+      error={error}
+      actions={<ConnectionRefreshAction loading={loading} label="Refresh session" onRefresh={onRefresh} />}
+    >
+      <ConcealedPayload text={snippet} title="SDK snippet" />
+    </ConnectionMethodShell>
   );
 }
 
@@ -359,20 +349,13 @@ function LiveChannelTab({ connection, loading, onRefresh, error, limitState, isA
 
   const endpoint = connection?.connection?.instructions?.endpointPayload || CONNECT_LIVE_SNIPPET;
   return (
-    <div>
-      <ConnectionHeadline />
-      <ConnectionAgentHint tab="Live Channel" />
-      <ConnectionProofNote mode="Live channel" />
-      <ConcealedPayload text={endpoint} title="Live attach payload hidden until copied" />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span className="cam-pulse-dot" />
-        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--color-bistre)' }}>Ready for connection</span>
-      </div>
-      <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
-        <RefreshCw size={13} /> {loading ? 'Preparing Live Channel...' : 'Refresh Live Channel'}
-      </button>
-      {error ? <p className="cam-security-note cam-security-note--error">{error}</p> : null}
-    </div>
+    <ConnectionMethodShell
+      method="Live Channel"
+      error={error}
+      actions={<ConnectionRefreshAction loading={loading} label="Refresh live channel" onRefresh={onRefresh} />}
+    >
+      <ConcealedPayload text={endpoint} title="Live channel payload" />
+    </ConnectionMethodShell>
   );
 }
 
@@ -417,68 +400,13 @@ function MCPTab({ connection, loading, onRefresh, error, limitState, isAuthentic
     : '';
 
   return (
-    <div>
-      <ConnectionHeadline />
-      <ConnectionAgentHint tab="MCP" />
-      <ConnectionProofNote mode="MCP mode" />
-
-      <p className="cam-tab-desc cam-mcp-lead">
-        Uses the published npm server <strong>@syniq/syniq-mcp</strong>. Your session token stays in MCP env vars only — not in chat.
-      </p>
-
-      <ol className="cam-mcp-steps">
-        <li><strong>Copy</strong> the JSON below (includes your session id and token).</li>
-        <li><strong>Paste</strong> into your agent&apos;s MCP config file and save.</li>
-        <li><strong>Restart</strong> the agent app (full quit, not just a new chat).</li>
-        <li>In chat, tell the agent: run <strong>syniq_attach</strong> once at the start.</li>
-        <li>For every user message: run <strong>syniq_route_task</strong> with the exact message before answering.</li>
-      </ol>
-
-      <div className="cam-mcp-finish cam-mcp-agents">
-        <strong>Works with</strong>
-        <ul>
-          <li><strong>IDE agents:</strong> Cursor, Windsurf, Kiro (MCP enabled)</li>
-          <li><strong>Desktop chat:</strong> Claude Desktop, and other apps that support MCP servers</li>
-          <li><strong>CLI with MCP:</strong> tools that load <code>mcpServers</code> config (not a bare terminal with no MCP support)</li>
-        </ul>
-        <p className="cam-security-note" style={{ marginTop: 8, marginBottom: 0 }}>
-          A normal shell-only CLI cannot use MCP unless that product explicitly supports MCP. Use the <strong>SDK</strong> or <strong>Prompt</strong> tab for custom scripts instead.
-        </p>
-      </div>
-
-      <ConcealedPayload text={`${mcpText}${devNote}`} title="MCP config — copy to reveal" />
-
-      <div className="cam-mcp-finish">
-        <strong>Finish setup (pick your agent)</strong>
-        <ul>
-          <li>
-            <strong>Cursor:</strong> save as <code>.cursor/mcp.json</code> in your project —{' '}
-            <a href={MCP_FINISH_LINKS.cursor} target="_blank" rel="noreferrer">Cursor MCP guide</a>
-          </li>
-          <li>
-            <strong>Claude Desktop:</strong> edit <code>claude_desktop_config.json</code> —{' '}
-            <a href={MCP_FINISH_LINKS.claude} target="_blank" rel="noreferrer">Claude MCP setup</a>
-          </li>
-          <li>
-            <strong>API host:</strong> <code>{publicOrigin}</code> (ingest: <code>{ingestUrl}</code>)
-          </li>
-          <li>
-            <a href={MCP_FINISH_LINKS.npm} target="_blank" rel="noreferrer">npm package @syniq/syniq-mcp</a>
-            {' · '}
-            <a href={MCP_FINISH_LINKS.readme} target="_blank" rel="noreferrer">README</a>
-          </li>
-        </ul>
-        <p className="cam-security-note" style={{ marginTop: 10 }}>
-          When the agent connects, this page will show <strong>Connected</strong> and open your dashboard.
-          Only <strong>syniq_route_task</strong> counts toward your request limit — <strong>syniq_attach</strong> is free.
-        </p>
-      </div>
-
-      <button className="cam-text-link" onClick={onRefresh} disabled={loading}>
-        <RefreshCw size={13} /> {loading ? 'Generating...' : 'Refresh Session'}
-      </button>
-      {error ? <p className="cam-security-note cam-security-note--error">{error}</p> : null}
-    </div>
+    <ConnectionMethodShell
+      method="MCP"
+      error={error}
+      actions={<ConnectionRefreshAction loading={loading} label="Refresh session" onRefresh={onRefresh} />}
+    >
+      <ConcealedPayload text={`${mcpText}${devNote}`} title="MCP configuration" />
+    </ConnectionMethodShell>
   );
 }
 
@@ -911,18 +839,16 @@ function ConnectAgentModal({
               exit={{ y: 12, opacity: 0 }}
               transition={{ type: 'spring', damping: 28, stiffness: 340, mass: 0.8 }}
             >
-            <div className="cam-header">
-              <div>
-                <h2 className="cam-title">
-                  {lockedTab ? `${lockedTab} setup` : 'Connect your agent'}
-                </h2>
-                <p className="cam-subtitle">
-                  {lockedTab
-                    ? `Follow the steps below to attach via ${lockedTab}.`
-                    : 'Choose how this agent connects to Syniq.'}
-                </p>
-              </div>
-              <button className="cam-close" onClick={onClose} aria-label="Close"><X size={18} /></button>
+            <div className={`cam-header${lockedTab ? ' cam-header--minimal' : ''}`}>
+              {!lockedTab ? (
+                <div>
+                  <h2 className="cam-title">Connect your agent</h2>
+                  <p className="cam-subtitle">Pick a connection method.</p>
+                </div>
+              ) : (
+                <div className="cam-header__spacer" aria-hidden />
+              )}
+              <button type="button" className="cam-close" onClick={onClose} aria-label="Close"><X size={18} /></button>
             </div>
 
             {!lockedTab ? (
@@ -938,11 +864,7 @@ function ConnectAgentModal({
                   </button>
                 ))}
               </div>
-            ) : (
-              <div className="cam-locked-tab" aria-hidden>
-                {lockedTab}
-              </div>
-            )}
+            ) : null}
 
             <AnimatePresence mode="sync" initial={false}>
               <motion.div

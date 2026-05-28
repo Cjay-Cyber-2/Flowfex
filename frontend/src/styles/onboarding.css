@@ -106,7 +106,11 @@
 }
 
 .ob-step-panel--hero {
-  gap: 24px;
+  gap: 32px;
+}
+
+.ob-step-panel--hero .ob-circle {
+  margin-bottom: 4px;
 }
 
 .ob-step-panel--wide {

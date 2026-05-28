@@ -32,8 +32,8 @@ const TAB_AGENT_HINTS = {
     howTo: 'Paste the Syniq contract into the connected assistant’s instructions, then send one attach ping.',
   },
   MCP: {
-    bestFor: 'Kiro, Cursor, Claude Desktop, and other agents that use MCP instead of raw HTTP in chat',
-    howTo: 'Copy the config below into your agent’s MCP settings, restart, then run syniq_attach once.',
+    bestFor: 'Cursor, Claude Desktop, Kiro, VS Code MCP extensions, and other MCP-capable assistants (not plain shell-only CLIs)',
+    howTo: 'Copy the JSON, paste into your agent MCP config, restart, then use syniq_attach once and syniq_route_task per message.',
   },
   Link: {
     bestFor: 'Browser-based or shareable attach flows (one-time handoff URL)',
@@ -422,13 +422,29 @@ function MCPTab({ connection, loading, onRefresh, error, limitState, isAuthentic
       <ConnectionAgentHint tab="MCP" />
       <ConnectionProofNote mode="MCP mode" />
 
+      <p className="cam-tab-desc cam-mcp-lead">
+        Uses the published npm server <strong>@syniq/syniq-mcp</strong>. Your session token stays in MCP env vars only — not in chat.
+      </p>
+
       <ol className="cam-mcp-steps">
-        <li>Copy the JSON below.</li>
-        <li>Paste it into your agent’s MCP settings file and save.</li>
-        <li>Restart the agent app completely.</li>
-        <li>In chat, ask it to run <strong>syniq_attach</strong> once.</li>
-        <li>For each user message, ask it to run <strong>syniq_route_task</strong> before replying.</li>
+        <li><strong>Copy</strong> the JSON below (includes your session id and token).</li>
+        <li><strong>Paste</strong> into your agent&apos;s MCP config file and save.</li>
+        <li><strong>Restart</strong> the agent app (full quit, not just a new chat).</li>
+        <li>In chat, tell the agent: run <strong>syniq_attach</strong> once at the start.</li>
+        <li>For every user message: run <strong>syniq_route_task</strong> with the exact message before answering.</li>
       </ol>
+
+      <div className="cam-mcp-finish cam-mcp-agents">
+        <strong>Works with</strong>
+        <ul>
+          <li><strong>IDE agents:</strong> Cursor, Windsurf, Kiro (MCP enabled)</li>
+          <li><strong>Desktop chat:</strong> Claude Desktop, and other apps that support MCP servers</li>
+          <li><strong>CLI with MCP:</strong> tools that load <code>mcpServers</code> config (not a bare terminal with no MCP support)</li>
+        </ul>
+        <p className="cam-security-note" style={{ marginTop: 8, marginBottom: 0 }}>
+          A normal shell-only CLI cannot use MCP unless that product explicitly supports MCP. Use the <strong>SDK</strong> or <strong>Prompt</strong> tab for custom scripts instead.
+        </p>
+      </div>
 
       <ConcealedPayload text={`${mcpText}${devNote}`} title="MCP config — copy to reveal" />
 

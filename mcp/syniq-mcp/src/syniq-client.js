@@ -101,7 +101,9 @@ export function formatSyniqResponse(payload, { heading = 'Syniq response' } = {}
     sections.push('', '## Relevant Syniq resources', skillsBlock);
   }
 
-  sections.push('', '## Full JSON (for debugging)', '```json', JSON.stringify(payload, null, 2), '```');
+  if (process.env.SYNIQ_MCP_VERBOSE === '1' || process.env.SYNIQ_MCP_VERBOSE === 'true') {
+    sections.push('', '## Full JSON (verbose)', '```json', JSON.stringify(payload, null, 2), '```');
+  }
 
   return sections.join('\n');
 }

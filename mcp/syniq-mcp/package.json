@@ -5,7 +5,7 @@
   "type": "module",
   "license": "MIT",
   "bin": {
-    "syniq-mcp": "./src/index.js"
+    "syniq-mcp": "src/index.js"
   },
   "files": [
     "src",
@@ -28,8 +28,7 @@
   },
   "homepage": "https://github.com/Cjay-Cyber-2/Flowfex/tree/main/mcp/syniq-mcp#readme",
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",

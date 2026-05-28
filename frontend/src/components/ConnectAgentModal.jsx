@@ -541,6 +541,14 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
       return;
     }
 
+    if (!workspaceSessionId) {
+      setErrors((current) => ({
+        ...current,
+        [tab]: 'Workspace session is still loading. Wait a moment, then try again.',
+      }));
+      return;
+    }
+
     setLoadingTabs((current) => ({ ...current, [tab]: true }));
     setErrors((current) => ({ ...current, [tab]: null }));
     setLimitMessages((current) => ({ ...current, [tab]: null }));

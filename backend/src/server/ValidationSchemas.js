@@ -1,12 +1,13 @@
 import { z } from 'zod';
+import { SYNIQ_SESSION_ID_PATTERN } from '../../../shared/sessionIds.js';
 
 // ─── Shared Base Schemas ──────────────────────────────────────────────────────
 
-const sessionIdSchema = z.string().uuid({ message: "Invalid session ID format." });
-const connectionSessionIdSchema = z.union([
-  sessionIdSchema,
-  z.string().regex(/^sess_[a-f0-9]+$/i, { message: "Invalid connection session ID format." }),
-]);
+const sessionIdSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .regex(SYNIQ_SESSION_ID_PATTERN, { message: 'Invalid session ID format.' });
 const nodeIdSchema = z.string().min(1, { message: "Node ID is required." }).max(128);
 
 // ─── API Schemas ──────────────────────────────────────────────────────────────
@@ -27,7 +28,7 @@ export const connectSchema = z.object({
 export const ingestSchema = z.object({
   task: z.string().min(1, { message: "Task is required." }).max(8192),
   token: z.string().optional(),
-  sessionId: connectionSessionIdSchema.optional(),
+  sessionId: sessionIdSchema.optional(),
 });
 
 export const createApiKeySchema = z.object({
@@ -37,10 +38,6 @@ export const createApiKeySchema = z.object({
 export const anonymousValidateSchema = z.object({
   anonymousToken: z.string().optional()
 });
-
-export const anonymousCreateSchema = z.object({
-  forceNew: z.boolean().optional(),
-}).passthrough();
 
 export const sessionUpgradeSchema = z.object({
   anonymousToken: z.string().optional(),

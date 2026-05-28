@@ -8,7 +8,7 @@ import { ControlController } from '../control/ControlController.js';
 import { executionRateLimiter, controlRateLimiter, connectRateLimiter } from './RateLimiter.js';
 import { sessionLockManager } from '../session/SessionLockManager.js';
 import { defaultSessionStateRepository } from '../persistence/defaultSessionStateRepository.js';
-import { isSessionDataConfigured, resolveAuthenticatedUser } from '../session/sessionDataAccess.js';
+import { createSessionDataClient, isSessionDataConfigured, resolveAuthenticatedUser } from '../session/sessionDataAccess.js';
 import { AnonymousSessionService } from '../session/AnonymousSessionService.js';
 import { ApiKeyService } from '../session/ApiKeyService.js';
 import { UsageService } from '../session/UsageService.js';
@@ -24,6 +24,13 @@ import {
 import { connectRequestSchema } from '../../../shared/connection-contracts.js';
 import { getAllowedBrowserOrigins, resolveAllowedCorsOrigin } from '../config/corsOrigins.js';
 import { buildCatalogStats } from '../skills/catalogStatsBuilder.js';
+import { isWorkspaceUuidSessionId } from '../../../shared/sessionIds.js';
+import {
+  buildHandshakePayload,
+  findConnectionHandshakeByToken,
+  persistConnectionHandshake,
+  restoreConnectionSessionFromHandshake,
+} from '../connection/connectionSessionPersistence.js';
 
 const authHandler = toNodeHandler(auth);
 const DEBUG_REQUEST_LOGS = /^(1|true|yes)$/i.test(String(process.env.SYNIQ_DEBUG_REQUESTS || process.env.FLOWFEX_DEBUG_REQUESTS || '').trim());
@@ -657,6 +664,26 @@ export class SyniqServer {
         baseUrl: this._buildBaseUrl(request),
       });
 
+      if (
+        this.sessionDataEnabled
+        && body.mode === 'prompt'
+        && body.sessionId
+        && isWorkspaceUuidSessionId(body.sessionId)
+        && payload?.connection?.session?.token
+      ) {
+        const handshake = buildHandshakePayload(
+          payload.connection.session,
+          payload.connection.session.token,
+          body.sessionId
+        );
+        if (handshake) {
+          const client = this.sessionStateRepository?.client || createSessionDataClient();
+          await persistConnectionHandshake(client, body.sessionId, handshake).catch(error => {
+            console.warn('[Syniq] Failed to persist connection handshake:', error?.message || error);
+          });
+        }
+      }
+
       return this._writeJson(response, 200, payload);
     }
 
@@ -906,7 +933,7 @@ export class SyniqServer {
     // ─── Agent Ingest (prompt-based connection) ────────────────────────
     if (request.method === 'POST' && ingestMatch) {
       const body = await this._readAndValidateJsonBody(request, ingestSchema);
-      const ingestRequest = this._resolvePromptIngestRequest(body, request);
+      const ingestRequest = await this._resolvePromptIngestRequest(body, request);
       const executionPayload = {
         sessionId: ingestRequest.sessionId,
         input: ingestRequest.task,
@@ -1392,7 +1419,7 @@ export class SyniqServer {
     return /^(1|true|yes)$/i.test(String(normalized || '').trim());
   }
 
-  _resolvePromptIngestRequest(body, request) {
+  async _resolvePromptIngestRequest(body, request) {
     if (!body || typeof body !== 'object') {
       throw createHttpError('Prompt ingest requires a JSON object body', 400);
     }
@@ -1410,7 +1437,15 @@ export class SyniqServer {
       throw createHttpError('Prompt ingest requires a session token or a token-prefixed task', 400);
     }
 
-    const session = this.connectionService?.sessionManager?.findSessionByToken?.(sessionToken);
+    const sessionManager = this.connectionService?.sessionManager;
+    let session = sessionManager?.findSessionByToken?.(sessionToken);
+
+    if (!session && this.sessionDataEnabled && sessionManager?.restoreSession) {
+      const client = this.sessionStateRepository?.client || createSessionDataClient();
+      const record = await findConnectionHandshakeByToken(client, sessionToken);
+      session = restoreConnectionSessionFromHandshake(sessionManager, record, sessionToken);
+    }
+
     if (!session) {
       throw createHttpError('Invalid or expired session token', 401);
     }
@@ -1425,8 +1460,20 @@ export class SyniqServer {
       throw createHttpError('Prompt ingest requires a non-empty task', 400);
     }
 
+    const requestedSessionId = typeof body.sessionId === 'string' ? body.sessionId.trim() : '';
+    let sessionId = session.id;
+    if (requestedSessionId) {
+      if (requestedSessionId === session.id) {
+        sessionId = requestedSessionId;
+      } else if (session.metadata?.workspaceSessionId === requestedSessionId) {
+        sessionId = session.id;
+      } else {
+        throw createHttpError('Prompt ingest sessionId does not match the session token', 400);
+      }
+    }
+
     return {
-      sessionId: body.sessionId || session.id,
+      sessionId,
       token: sessionToken,
       task,
     };

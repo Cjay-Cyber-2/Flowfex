@@ -97,6 +97,53 @@ export class SessionManager {
     return cloneSession(session);
   }
 
+  restoreSession(config = {}, token) {
+    this.cleanupExpiredSessions();
+
+    if (typeof token !== 'string' || !token.startsWith('ffx_')) {
+      return null;
+    }
+
+    const id = typeof config.id === 'string' && config.id.trim().length > 0
+      ? config.id.trim()
+      : null;
+    if (!id) {
+      return null;
+    }
+
+    const expiresAt = config.expiresAt;
+    if (!expiresAt || Date.parse(expiresAt) <= Date.now()) {
+      return null;
+    }
+
+    const existing = this.findSessionByToken(token, { touch: true });
+    if (existing) {
+      return existing;
+    }
+
+    const session = {
+      id,
+      connectionId: config.connectionId || `conn_${randomBytes(8).toString('hex')}`,
+      mode: config.mode || 'prompt',
+      agent: normalizeAgent(config.agent),
+      metadata: config.metadata && typeof config.metadata === 'object' ? { ...config.metadata } : {},
+      prompt: config.prompt || null,
+      capabilities: Array.isArray(config.capabilities) ? [...config.capabilities] : [],
+      allowedToolIds: normalizeToolIds(config.allowedToolIds),
+      recommendedToolIds: normalizeToolIds(config.recommendedToolIds),
+      createdAt: config.createdAt || new Date().toISOString(),
+      connectedAt: config.connectedAt || null,
+      expiresAt,
+      lastSeenAt: config.lastSeenAt || new Date().toISOString(),
+      requestCount: Number.isFinite(config.requestCount) ? config.requestCount : 0,
+      revokedAt: config.revokedAt || null,
+      tokenHash: hashToken(token),
+    };
+
+    this.sessions.set(id, session);
+    return cloneSession(session);
+  }
+
   findSessionByToken(token, options = {}) {
     this.cleanupExpiredSessions();
 

@@ -15,6 +15,15 @@ const WORD_CYCLE_MS = 4800;
 
 const PARTICLE_SIDE = 2.65;
 
+function pickWordColor(index) {
+  const baseColor = SYNIQ_COLORS[index % SYNIQ_COLORS.length];
+  return {
+    r: Math.max(0, Math.min(255, baseColor.r + Math.floor(Math.random() * 26 - 13))),
+    g: Math.max(0, Math.min(255, baseColor.g + Math.floor(Math.random() * 26 - 13))),
+    b: Math.max(0, Math.min(255, baseColor.b + Math.floor(Math.random() * 26 - 13))),
+  };
+}
+
 class Particle {
   constructor(width, height) {
     const spawn = generateRandomPos(width, height);
@@ -26,8 +35,9 @@ class Particle {
     this.maxSpeed = Math.random() * 2.9 + 5.45;
     this.maxForce = 0.26;
     this.isKilled = false;
-    this.startColor = { r: 0, g: 0, b: 0 };
-    this.targetColor = { r: 0, g: 0, b: 0 };
+    const seed = pickWordColor(0);
+    this.startColor = { ...seed };
+    this.targetColor = { ...seed };
     this.colorWeight = 0;
     this.colorBlendRate = Math.random() * 0.025 + 0.02;
   }
@@ -63,11 +73,9 @@ class Particle {
     this.acc.y += steer.y;
     this.vel.x += this.acc.x;
     this.vel.y += this.acc.y;
-    // Higher damping = less oscillation when settling (reads smoother without extra frames cost)
     this.vel.x *= 0.977;
     this.vel.y *= 0.977;
 
-    // Color blend once per physics tick (drawing pass stays cheap batches only)
     if (this.colorWeight < 1) {
       this.colorWeight = Math.min(this.colorWeight + this.colorBlendRate, 1);
     }
@@ -77,7 +85,6 @@ class Particle {
     this.acc.y = 0;
   }
 
-  /** Packed RGB for batching rects with one fill operation per hue. */
   rgbPackedKey() {
     const r = Math.round(this.startColor.r + (this.targetColor.r - this.startColor.r) * this.colorWeight);
     const g = Math.round(this.startColor.g + (this.targetColor.g - this.startColor.g) * this.colorWeight);
@@ -121,15 +128,6 @@ function generateRandomPos(width, height, radiusScale = 1) {
   };
 }
 
-function pickWordColor(index) {
-  const baseColor = SYNIQ_COLORS[index % SYNIQ_COLORS.length];
-  return {
-    r: Math.max(0, Math.min(255, baseColor.r + Math.floor(Math.random() * 26 - 13))),
-    g: Math.max(0, Math.min(255, baseColor.g + Math.floor(Math.random() * 26 - 13))),
-    b: Math.max(0, Math.min(255, baseColor.b + Math.floor(Math.random() * 26 - 13))),
-  };
-}
-
 function createWordTargets(word, width, height) {
   const offscreen = document.createElement('canvas');
   offscreen.width = width;
@@ -145,10 +143,6 @@ function createWordTargets(word, width, height) {
 
   const pixels = offscreenContext.getImageData(0, 0, offscreen.width, offscreen.height).data;
   const targets = [];
-  // Smaller sample step gives denser, more legible text — matches the
-  // original Syniq animation density (every ~6 px) instead of the sparse
-  // step the section had drifted to.
-  // Step up slightly vs single-pixel-ish sampling → fewer sprites, smoother frame budget at large widths
   const sampleStep = Math.max(6, Math.floor(offscreen.width / 150));
 
   for (let y = 0; y < offscreen.height; y += sampleStep) {
@@ -160,7 +154,6 @@ function createWordTargets(word, width, height) {
     }
   }
 
-  // Shuffle so the morph fills the word organically instead of row by row.
   for (let i = targets.length - 1; i > 0; i -= 1) {
     const swap = Math.floor(Math.random() * (i + 1));
     const tmp = targets[i];
@@ -179,8 +172,6 @@ export function ParticleTextEffect({ words = ['907 Skills', '423 Agents', '64 Mu
   const colorIndexRef = useRef(0);
   const nextSwitchAtRef = useRef(0);
   const canvasSizeRef = useRef({ width: 0, height: 0 });
-  /** Keep simulation advancing off-screen — only skip expensive clears / fills while hidden. */
-  const visibleRef = useRef(true);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -188,7 +179,7 @@ export function ParticleTextEffect({ words = ['907 Skills', '423 Agents', '64 Mu
       return undefined;
     }
 
-    const context = canvas.getContext('2d', { alpha: true, desynchronized: true })
+    const context = canvas.getContext('2d', { alpha: true })
       ?? canvas.getContext('2d');
     if (!context) {
       return undefined;
@@ -198,9 +189,6 @@ export function ParticleTextEffect({ words = ['907 Skills', '423 Agents', '64 Mu
     function resizeCanvas() {
       const container = canvas.parentElement;
       const measured = container ? container.clientWidth : 0;
-      // Layout can momentarily report 0 (e.g. before fonts settle or while a
-      // hidden ancestor is hydrating). Fall back to a reasonable minimum so
-      // the particles never render against a zero-sized canvas.
       const width = Math.max(320, Math.min(measured || 960, 1040));
       const height = Math.max(160, Math.round(width * 0.34));
       const dpr = Math.min(window.devicePixelRatio || 1, DEVICE_PIXEL_RATIO_CAP);
@@ -224,6 +212,10 @@ export function ParticleTextEffect({ words = ['907 Skills', '423 Agents', '64 Mu
     function morphToWord(word) {
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
+      if (!width || !height) {
+        return;
+      }
+
       const targets = createWordTargets(word, width, height);
       const nextColor = pickWordColor(colorIndexRef.current);
       colorIndexRef.current += 1;
@@ -279,9 +271,8 @@ export function ParticleTextEffect({ words = ['907 Skills', '423 Agents', '64 Mu
 
       particles.length = writeIndex;
 
-      if (visibleRef.current && width > 0 && height > 0) {
+      if (width > 0 && height > 0) {
         context.clearRect(0, 0, width, height);
-        /** @type Map<number, number[]> key = rgb packed coords flat [x,y,...] */
         const buckets = new Map();
 
         for (let particleIndex = 0; particleIndex < particles.length; particleIndex += 1) {
@@ -320,6 +311,13 @@ export function ParticleTextEffect({ words = ['907 Skills', '423 Agents', '64 Mu
       animationRef.current = window.requestAnimationFrame(animate);
     }
 
+    const startAnimationLoop = () => {
+      if (animationRef.current) {
+        window.cancelAnimationFrame(animationRef.current);
+      }
+      animationRef.current = window.requestAnimationFrame(animate);
+    };
+
     const bootAnimation = () => {
       if (cancelled) {
         return;
@@ -331,10 +329,7 @@ export function ParticleTextEffect({ words = ['907 Skills', '423 Agents', '64 Mu
       particlesRef.current = [];
       morphToWord(words[0]);
       nextSwitchAtRef.current = performance.now() + WORD_CYCLE_MS;
-
-      if (!animationRef.current) {
-        animationRef.current = window.requestAnimationFrame(animate);
-      }
+      startAnimationLoop();
     };
 
     bootAnimation();
@@ -360,39 +355,21 @@ export function ParticleTextEffect({ words = ['907 Skills', '423 Agents', '64 Mu
 
     window.addEventListener('resize', handleResize);
 
-    // ResizeObserver catches container width changes that the window
-    // resize event misses (e.g. flex/grid reflow after fonts settle).
     let resizeObserver = null;
     if (typeof ResizeObserver !== 'undefined' && canvas.parentElement) {
       resizeObserver = new ResizeObserver(handleResize);
       resizeObserver.observe(canvas.parentElement);
     }
 
-    /** Pause painting off-screen cheaply while keeping RAF + morph timing alive */
-    let visibilityObserver = null;
-    if (typeof IntersectionObserver !== 'undefined') {
-      visibilityObserver = new IntersectionObserver(
-        (entries) => {
-          const hit = entries[0];
-          visibleRef.current = hit ? hit.isIntersecting || hit.intersectionRatio > 0 : true;
-        },
-        { root: null, rootMargin: '80px', threshold: 0.04 },
-      );
-      visibilityObserver.observe(canvas);
-    }
-
     return () => {
       cancelled = true;
       if (animationRef.current) {
         window.cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
       }
       window.removeEventListener('resize', handleResize);
       if (resizeObserver) {
         resizeObserver.disconnect();
-      }
-
-      if (visibilityObserver) {
-        visibilityObserver.disconnect();
       }
     };
   }, [words]);

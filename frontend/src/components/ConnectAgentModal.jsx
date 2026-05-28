@@ -517,6 +517,9 @@ function ConnectAgentModal({
   const TabContent = TAB_CONTENT[activeTab];
   const isPaidAccount = appState?.identity?.billing === 'pro';
   const workspaceSessionId = activeSession?.id || session?.id || null;
+  const resolvedTab = lockedTab && TABS.includes(lockedTab)
+    ? lockedTab
+    : (initialTab && TABS.includes(initialTab) ? initialTab : 'Prompt');
 
   const requestForTab = useCallback((tab) => {
     switch (tab) {
@@ -761,10 +764,6 @@ function ConnectAgentModal({
     }
     fetchAttemptedRef.current = new Set();
   }, [workspaceSessionId]);
-
-  const resolvedTab = lockedTab && TABS.includes(lockedTab)
-    ? lockedTab
-    : (initialTab && TABS.includes(initialTab) ? initialTab : 'Prompt');
 
   useEffect(() => {
     if (!isOpen) {

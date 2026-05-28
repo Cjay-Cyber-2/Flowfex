@@ -118,8 +118,14 @@ export default function Onboarding() {
   const connectedAgents = useStore((state) => state.connectedAgents);
   const clearAgentAttachment = useStore((state) => state.clearAgentAttachment);
   const savedProgress = loadOnboardingProgress();
-  const [step, setStep] = useState(savedProgress?.step || 'choose-agent');
-  const [selectedAgentId, setSelectedAgentId] = useState(savedProgress?.selectedAgentId || null);
+  const savedStep = savedProgress?.step;
+  const resumeStep = savedStep === 'choose-method' || savedStep === 'choose-surface'
+    ? savedStep
+    : 'welcome';
+  const [step, setStep] = useState(resumeStep);
+  const [selectedSurfaceId, setSelectedSurfaceId] = useState(
+    savedProgress?.selectedSurfaceId || savedProgress?.selectedAgentId || null,
+  );
   const [modalInitialTab, setModalInitialTab] = useState('Prompt');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clearingAgents, setClearingAgents] = useState(false);
@@ -188,7 +194,7 @@ export default function Onboarding() {
 
       setStaleBannerDismissed(true);
       await refreshAppState();
-      setStep('choose-agent');
+      setStep('welcome');
       setIsModalOpen(true);
     } finally {
       setClearingAgents(false);
@@ -208,8 +214,12 @@ export default function Onboarding() {
       <header className="ob-topbar">
         <button
           onClick={() => {
-            if (step === 'recommend') {
-              setStep('choose-agent');
+            if (step === 'choose-method') {
+              setStep('choose-surface');
+              return;
+            }
+            if (step === 'choose-surface') {
+              setStep('welcome');
               return;
             }
             navigate(-1);
@@ -328,15 +338,18 @@ export default function Onboarding() {
             <OnboardingAgentFlow
               step={step}
               setStep={setStep}
-              selectedAgentId={selectedAgentId}
-              setSelectedAgentId={setSelectedAgentId}
+              selectedSurfaceId={selectedSurfaceId}
+              setSelectedSurfaceId={setSelectedSurfaceId}
               AnimatedLayerButton={AnimatedLayerButton}
               onOpenConnect={(tab) => {
                 if (tab) {
                   setModalInitialTab(tab);
-                  saveOnboardingProgress({ step: 'connect', selectedAgentId, recommendedMethod: tab });
+                  saveOnboardingProgress({
+                    step: 'setup',
+                    selectedSurfaceId,
+                    recommendedMethod: tab,
+                  });
                 }
-                setStep('connect');
                 setIsModalOpen(true);
               }}
             />
@@ -349,6 +362,7 @@ export default function Onboarding() {
         onClose={() => setIsModalOpen(false)}
         onConnected={handleConnected}
         initialTab={modalInitialTab}
+        lockedTab={isModalOpen ? modalInitialTab : null}
       />
     </div>
   );

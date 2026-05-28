@@ -98,6 +98,243 @@
   gap: 28px;
 }
 
+.ob-flow {
+  width: min(100%, 960px);
+  display: grid;
+  justify-items: center;
+  gap: 20px;
+}
+
+.ob-step-panel--hero {
+  gap: 24px;
+}
+
+.ob-step-panel--wide {
+  width: min(100%, 920px);
+}
+
+.ob-copy-subline--narrow {
+  max-width: 520px;
+}
+
+/* Progress stepper */
+.ob-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.ob-progress__segment {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 212, 170, 0.1);
+  background: rgba(8, 12, 16, 0.5);
+  opacity: 0.55;
+  transition: opacity 0.25s, border-color 0.25s, background 0.25s;
+}
+
+.ob-progress__segment--active,
+.ob-progress__segment--done {
+  opacity: 1;
+  border-color: rgba(0, 212, 170, 0.28);
+  background: rgba(0, 212, 170, 0.08);
+}
+
+.ob-progress__segment--active .ob-progress__dot {
+  background: var(--color-sinoper);
+  color: #031014;
+  box-shadow: 0 0 20px rgba(0, 212, 170, 0.45);
+}
+
+.ob-progress__dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(232, 237, 242, 0.75);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ob-progress__label {
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(232, 237, 242, 0.72);
+}
+
+.ob-progress__segment--active .ob-progress__label {
+  color: var(--color-velin);
+}
+
+/* Agent surface cards */
+.ob-surface-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.ob-surface-card {
+  position: relative;
+  text-align: left;
+  padding: 16px 44px 16px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 212, 170, 0.12);
+  background: linear-gradient(160deg, rgba(10, 18, 24, 0.92), rgba(8, 12, 16, 0.88));
+  cursor: pointer;
+  transition: border-color 0.22s, box-shadow 0.22s, transform 0.22s;
+}
+
+.ob-surface-card:hover {
+  border-color: rgba(0, 212, 170, 0.38);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+}
+
+.ob-surface-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  background: rgba(0, 212, 170, 0.12);
+  color: var(--color-sinoper);
+}
+
+.ob-surface-card__label {
+  display: block;
+  font-family: var(--font-geist, sans-serif);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-velin);
+  margin-bottom: 5px;
+}
+
+.ob-surface-card__desc {
+  display: block;
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(232, 237, 242, 0.68);
+}
+
+.ob-surface-card__arrow {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(0, 212, 170, 0.55);
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.ob-surface-card:hover .ob-surface-card__arrow {
+  opacity: 1;
+  transform: translate(4px, -50%);
+}
+
+/* Connection method cards */
+.ob-method-stack {
+  width: min(100%, 640px);
+  display: grid;
+  gap: 12px;
+}
+
+.ob-method-card {
+  width: 100%;
+  text-align: left;
+  padding: 20px 22px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 212, 170, 0.14);
+  background: linear-gradient(165deg, rgba(9, 22, 20, 0.94), rgba(8, 12, 16, 0.92));
+  cursor: pointer;
+  transition: border-color 0.22s, box-shadow 0.22s;
+}
+
+.ob-method-card:hover {
+  border-color: rgba(0, 212, 170, 0.42);
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.32);
+}
+
+.ob-method-card--recommended {
+  border-color: rgba(0, 212, 170, 0.36);
+  box-shadow:
+    0 0 0 1px rgba(0, 212, 170, 0.08),
+    0 24px 52px rgba(0, 212, 170, 0.08);
+}
+
+.ob-method-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.ob-method-card__title {
+  font-family: var(--font-geist, sans-serif);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-velin);
+}
+
+.ob-method-card__badge {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(0, 212, 170, 0.16);
+  border: 1px solid rgba(0, 212, 170, 0.35);
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-sinoper);
+}
+
+.ob-method-card__tagline {
+  margin: 0 0 10px;
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(232, 237, 242, 0.88);
+}
+
+.ob-method-card__reason {
+  margin: 0 0 14px;
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(232, 237, 242, 0.62);
+}
+
+.ob-method-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(0, 212, 170, 0.75);
+}
+
+.ob-method-card__chevron {
+  color: var(--color-sinoper);
+}
+
 .ob-step-panel {
   width: min(100%, 920px);
   display: grid;
@@ -614,6 +851,14 @@
 }
 
 @media (max-width: 480px) {
+  .ob-surface-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ob-progress__label {
+    display: none;
+  }
+
   .ob-topbar {
     padding: 0 16px;
     height: 64px;

@@ -484,7 +484,13 @@ function MCPTab({ connection, loading, onRefresh, error, limitState, isAuthentic
 
 const TAB_CONTENT = { Prompt: PromptTab, MCP: MCPTab, Link: LinkTab, SDK: SDKTab, 'Live Channel': LiveChannelTab };
 
-function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt' }) {
+function ConnectAgentModal({
+  isOpen,
+  onClose,
+  onConnected,
+  initialTab = 'Prompt',
+  lockedTab = null,
+}) {
   const navigate = useNavigate();
   const addAgent = useStore((state) => state.addAgent);
   const activeSession = useStore((state) => state.activeSession);
@@ -683,10 +689,10 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
       return;
     }
 
-    if (TABS.includes(initialTab)) {
-      setActiveTab(initialTab);
+    if (TABS.includes(resolvedTab)) {
+      setActiveTab(resolvedTab);
     }
-  }, [initialTab, isOpen]);
+  }, [resolvedTab, isOpen]);
 
   const finalizeConnection = useCallback(async (tab, eventData = null) => {
     const connection = connections[tab];
@@ -756,9 +762,13 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
     fetchAttemptedRef.current = new Set();
   }, [workspaceSessionId]);
 
+  const resolvedTab = lockedTab && TABS.includes(lockedTab)
+    ? lockedTab
+    : (initialTab && TABS.includes(initialTab) ? initialTab : 'Prompt');
+
   useEffect(() => {
     if (!isOpen) {
-      setActiveTab(initialTab && TABS.includes(initialTab) ? initialTab : 'Prompt');
+      setActiveTab(resolvedTab);
       setConnections({});
       setSyncState('idle');
       setErrors({});
@@ -767,6 +777,10 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
       fetchAttemptedRef.current = new Set();
       finalizedConnectionKeysRef.current = new Set();
       return undefined;
+    }
+
+    if (lockedTab && TABS.includes(lockedTab) && activeTab !== lockedTab) {
+      setActiveTab(lockedTab);
     }
 
     const connectionSession = connections[activeTab]?.connection?.session;
@@ -900,23 +914,36 @@ function ConnectAgentModal({ isOpen, onClose, onConnected, initialTab = 'Prompt'
             >
             <div className="cam-header">
               <div>
-                <h2 className="cam-title">Connect Your Agent</h2>
-                <p className="cam-subtitle">Choose how this agent connects to Syniq.</p>
+                <h2 className="cam-title">
+                  {lockedTab ? `${lockedTab} setup` : 'Connect your agent'}
+                </h2>
+                <p className="cam-subtitle">
+                  {lockedTab
+                    ? `Follow the steps below to attach via ${lockedTab}.`
+                    : 'Choose how this agent connects to Syniq.'}
+                </p>
               </div>
-              <button className="cam-close" onClick={onClose}><X size={18} /></button>
+              <button className="cam-close" onClick={onClose} aria-label="Close"><X size={18} /></button>
             </div>
 
-            <div className="cam-tabs">
-              {TABS.map(tab => (
-                <button
-                  key={tab}
-                  className={`cam-tab ${activeTab === tab ? 'active' : ''}`}
-                  onClick={() => setActiveTab(tab)}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
+            {!lockedTab ? (
+              <div className="cam-tabs">
+                {TABS.map((tab) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    className={`cam-tab ${activeTab === tab ? 'active' : ''}`}
+                    onClick={() => setActiveTab(tab)}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="cam-locked-tab" aria-hidden>
+                {lockedTab}
+              </div>
+            )}
 
             <AnimatePresence mode="sync" initial={false}>
               <motion.div

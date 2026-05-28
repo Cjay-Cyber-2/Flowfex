@@ -14,6 +14,7 @@ import {
   rewriteConnectPrompt,
 } from '../utils/runtimeConfig';
 import { buildSyniqMcpServerConfig, stringifyMcpConfig } from '../utils/mcpConfig';
+import { rotateAnonymousWorkspaceSession } from '../../../lib/session/initialize';
 import '../styles/landing-sections3.css';
 
 const TABS = ['Prompt', 'MCP', 'Link', 'SDK', 'Live Channel'];
@@ -136,20 +137,37 @@ function ConcealedPayload({ text, title }) {
   );
 }
 
-function ConnectionLimitPanel({ isAuthenticated, message, onSignUp, onSignIn, onClose, onViewPricing }) {
+function ConnectionLimitPanel({
+  isAuthenticated,
+  message,
+  limitKey,
+  onSignUp,
+  onSignIn,
+  onClose,
+  onViewPricing,
+  onStartFreshSession,
+}) {
+  const headline = limitKey === 'maxExecutionsPerSession'
+    ? 'Free request limit reached'
+    : limitKey === 'maxConnectionsPerDay'
+      ? 'Daily attach limit reached'
+      : limitKey === 'maxConcurrentAgents'
+        ? 'Agent slot in use'
+        : 'Connection unavailable';
+
   if (isAuthenticated) {
     return (
       <div style={{ display: 'grid', gap: 12 }}>
         <div className="cam-security-note" style={{ padding: '14px 16px', borderRadius: 16, border: '1px solid rgba(0, 212, 170, 0.18)', background: 'rgba(8, 32, 28, 0.55)' }}>
           <strong style={{ display: 'block', marginBottom: 6, color: 'var(--color-velin)' }}>
-            You have used today's free connections
+            {headline}
           </strong>
           <span>{message || 'Your authenticated dashboard stays open. Wait for the daily reset, or upgrade for more connections.'}</span>
         </div>
 
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <button className="cam-done-btn" onClick={onViewPricing}>Upgrade Plan</button>
-          <button className="cam-copy-btn" onClick={onClose}>Wait For Reset</button>
+          <button type="button" className="cam-done-btn" onClick={onViewPricing}>Upgrade Plan</button>
+          <button type="button" className="cam-copy-btn" onClick={onClose}>Wait For Reset</button>
         </div>
       </div>
     );
@@ -159,14 +177,17 @@ function ConnectionLimitPanel({ isAuthenticated, message, onSignUp, onSignIn, on
     <div style={{ display: 'grid', gap: 12 }}>
       <div className="cam-security-note" style={{ padding: '14px 16px', borderRadius: 16, border: '1px solid rgba(0, 212, 170, 0.24)', background: 'rgba(8, 32, 28, 0.55)' }}>
         <strong style={{ display: 'block', marginBottom: 6, color: 'var(--color-velin)' }}>
-          Anonymous connection limit reached
+          {headline}
         </strong>
         <span>{message}</span>
       </div>
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <button className="cam-done-btn" onClick={onSignUp}>Sign Up</button>
-        <button className="cam-copy-btn" onClick={onSignIn}>Sign In</button>
+        {onStartFreshSession ? (
+          <button type="button" className="cam-done-btn" onClick={onStartFreshSession}>Start fresh session</button>
+        ) : null}
+        <button type="button" className="cam-done-btn" onClick={onSignUp}>Sign Up</button>
+        <button type="button" className="cam-copy-btn" onClick={onSignIn}>Sign In</button>
       </div>
     </div>
   );
@@ -201,16 +222,21 @@ function ConnectionRefreshAction({ loading, label, onRefresh }) {
   );
 }
 
-function PromptTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose, onViewPricing }) {
+function PromptTab({
+  connection, loading, onRefresh, error, limitState, limitKey,
+  isAuthenticated, onSignUp, onSignIn, onClose, onViewPricing, onStartFreshSession,
+}) {
   if (limitState) {
     return (
       <ConnectionLimitPanel
         isAuthenticated={isAuthenticated}
         message={limitState}
+        limitKey={limitKey}
         onSignUp={onSignUp}
         onSignIn={onSignIn}
         onClose={onClose}
         onViewPricing={onViewPricing}
+        onStartFreshSession={onStartFreshSession}
       />
     );
   }
@@ -241,7 +267,10 @@ function PromptTab({ connection, loading, onRefresh, error, limitState, isAuthen
   );
 }
 
-function LinkTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose, onViewPricing }) {
+function LinkTab({
+  connection, loading, onRefresh, error, limitState, limitKey,
+  isAuthenticated, onSignUp, onSignIn, onClose, onViewPricing, onStartFreshSession,
+}) {
   const [copied, copy] = useCopy();
 
   if (limitState) {
@@ -249,10 +278,12 @@ function LinkTab({ connection, loading, onRefresh, error, limitState, isAuthenti
       <ConnectionLimitPanel
         isAuthenticated={isAuthenticated}
         message={limitState}
+        limitKey={limitKey}
         onSignUp={onSignUp}
         onSignIn={onSignIn}
         onClose={onClose}
         onViewPricing={onViewPricing}
+        onStartFreshSession={onStartFreshSession}
       />
     );
   }
@@ -285,16 +316,21 @@ function LinkTab({ connection, loading, onRefresh, error, limitState, isAuthenti
   );
 }
 
-function SDKTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose, onViewPricing }) {
+function SDKTab({
+  connection, loading, onRefresh, error, limitState, limitKey,
+  isAuthenticated, onSignUp, onSignIn, onClose, onViewPricing, onStartFreshSession,
+}) {
   if (limitState) {
     return (
       <ConnectionLimitPanel
         isAuthenticated={isAuthenticated}
         message={limitState}
+        limitKey={limitKey}
         onSignUp={onSignUp}
         onSignIn={onSignIn}
         onClose={onClose}
         onViewPricing={onViewPricing}
+        onStartFreshSession={onStartFreshSession}
       />
     );
   }
@@ -322,16 +358,21 @@ function SDKTab({ connection, loading, onRefresh, error, limitState, isAuthentic
   );
 }
 
-function LiveChannelTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose, onViewPricing }) {
+function LiveChannelTab({
+  connection, loading, onRefresh, error, limitState, limitKey,
+  isAuthenticated, onSignUp, onSignIn, onClose, onViewPricing, onStartFreshSession,
+}) {
   if (limitState) {
     return (
       <ConnectionLimitPanel
         isAuthenticated={isAuthenticated}
         message={limitState}
+        limitKey={limitKey}
         onSignUp={onSignUp}
         onSignIn={onSignIn}
         onClose={onClose}
         onViewPricing={onViewPricing}
+        onStartFreshSession={onStartFreshSession}
       />
     );
   }
@@ -360,16 +401,21 @@ function LiveChannelTab({ connection, loading, onRefresh, error, limitState, isA
 }
 
 
-function MCPTab({ connection, loading, onRefresh, error, limitState, isAuthenticated, onSignUp, onSignIn, onClose, onViewPricing }) {
+function MCPTab({
+  connection, loading, onRefresh, error, limitState, limitKey,
+  isAuthenticated, onSignUp, onSignIn, onClose, onViewPricing, onStartFreshSession,
+}) {
   if (limitState) {
     return (
       <ConnectionLimitPanel
         isAuthenticated={isAuthenticated}
         message={limitState}
+        limitKey={limitKey}
         onSignUp={onSignUp}
         onSignIn={onSignIn}
         onClose={onClose}
         onViewPricing={onViewPricing}
+        onStartFreshSession={onStartFreshSession}
       />
     );
   }
@@ -429,6 +475,7 @@ function ConnectAgentModal({
     isAuthenticated,
     refreshUsage,
     refreshAppState,
+    refreshSession,
     session,
     usage: sessionUsage,
     hasConnectedAgent,
@@ -438,6 +485,7 @@ function ConnectAgentModal({
   const [connections, setConnections] = useState({});
   const [errors, setErrors] = useState({});
   const [limitMessages, setLimitMessages] = useState({});
+  const [limitKeys, setLimitKeys] = useState({});
   const [loadingTabs, setLoadingTabs] = useState({});
   const [syncState, setSyncState] = useState('idle');
   const fetchAttemptedRef = useRef(new Set());
@@ -548,14 +596,17 @@ function ConnectAgentModal({
         [tab]: payload,
       }));
     } catch (error) {
-      const limitMessage = error?.payload?.error?.details?.connectionBlockedLimit?.reason
-        || error?.payload?.error?.details?.blockedLimit?.reason
-        || null;
+      const connectionLimit = error?.payload?.error?.details?.connectionBlockedLimit;
+      const limitMessage = connectionLimit?.reason || null;
 
       if (limitMessage) {
         setLimitMessages((current) => ({
           ...current,
           [tab]: limitMessage,
+        }));
+        setLimitKeys((current) => ({
+          ...current,
+          [tab]: connectionLimit?.limit || null,
         }));
       }
 
@@ -576,15 +627,16 @@ function ConnectAgentModal({
       return undefined;
     }
 
-    const reqReason =
-      sessionUsage?.blockedLimit?.reason
-      || sessionUsage?.connectionBlockedLimit?.reason
-      || null;
+    const executionLimit = sessionUsage?.blockedLimit?.limit === 'maxExecutionsPerSession'
+      ? sessionUsage.blockedLimit
+      : null;
+    const connectionLimit = sessionUsage?.connectionBlockedLimit || null;
 
-    // Anonymous visitors are allowed exactly one verified attach. If one
-    // already exists we surface the sign-in/sign-up wall directly inside
-    // the modal so they cannot try to attach a second agent without
-    // upgrading.
+    const reqReason = connectionLimit?.reason
+      || executionLimit?.reason
+      || null;
+    const reqLimitKey = connectionLimit?.limit || executionLimit?.limit || null;
+
     const anonymousAlreadyAttached = !isAuthenticated && hasConnectedAgent
       ? 'You already have one anonymous Syniq attach today. Sign in to manage multiple agents on a paid plan.'
       : null;
@@ -593,27 +645,46 @@ function ConnectAgentModal({
       : null;
 
     const message = reqReason || anonymousAlreadyAttached || authenticatedSingleAgentLimit;
+    const limitKey = reqLimitKey
+      || (anonymousAlreadyAttached ? 'maxConcurrentAgents' : null)
+      || (authenticatedSingleAgentLimit ? 'maxConcurrentAgents' : null);
+
     if (!message) {
+      setLimitMessages({});
+      setLimitKeys({});
       return undefined;
     }
 
-    setLimitMessages((current) => ({
-      ...current,
-      Prompt: current.Prompt || message,
-      MCP: current.MCP || message,
-      Link: current.Link || message,
-      SDK: current.SDK || message,
-      'Live Channel': current['Live Channel'] || message,
-    }));
+    const nextMessages = {};
+    const nextKeys = {};
+    TABS.forEach((tab) => {
+      nextMessages[tab] = message;
+      nextKeys[tab] = limitKey;
+    });
+    setLimitMessages(nextMessages);
+    setLimitKeys(nextKeys);
     return undefined;
   }, [
     isOpen,
     isAuthenticated,
     hasConnectedAgent,
-    sessionUsage?.blockedLimit?.reason,
-    sessionUsage?.connectionBlockedLimit?.reason,
+    sessionUsage?.blockedLimit,
+    sessionUsage?.connectionBlockedLimit,
     isPaidAccount,
   ]);
+
+  const handleStartFreshSession = useCallback(async () => {
+    try {
+      await rotateAnonymousWorkspaceSession({ apiBaseUrl: resolveApiFetchBase() });
+      await refreshSession();
+      setLimitMessages({});
+      setLimitKeys({});
+      setErrors({});
+      fetchAttemptedRef.current = new Set();
+    } catch {
+      /* ignore */
+    }
+  }, [refreshSession]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -879,11 +950,13 @@ function ConnectAgentModal({
                   onRefresh={() => fetchConnection(activeTab)}
                   error={errors[activeTab]}
                   limitState={limitMessages[activeTab]}
+                  limitKey={limitKeys[activeTab]}
                   isAuthenticated={isAuthenticated}
                   onSignUp={handleSignUp}
                   onSignIn={handleSignIn}
                   onClose={onClose}
                   onViewPricing={handleViewPricing}
+                  onStartFreshSession={!isAuthenticated ? handleStartFreshSession : undefined}
                 />
               </motion.div>
             </AnimatePresence>

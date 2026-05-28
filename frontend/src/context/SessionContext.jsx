@@ -13,6 +13,7 @@ import {
   fetchRecentAuthenticatedSession,
   initializeSyniqSession,
   readAnonymousToken,
+  rotateAnonymousWorkspaceSession,
   writeAnonymousToken,
 } from '../../../lib/session/initialize';
 import { upgradeAnonymousSession } from '../../../lib/session/upgrade';
@@ -277,11 +278,36 @@ export function SessionProvider({ children }) {
         if (resolvedAppState?.ok && resolvedAppState.usage) {
           usageFromResolve = resolvedAppState.usage;
         }
-        if (resolvedAppState?.ok && resolvedAppState?.lifecycle?.clearAnonymousTokenSuggested) {
-          writeAnonymousToken(null);
-        }
       } catch (err) {
         resolvedAppStateError = err instanceof Error ? err.message : 'Unable to resolve app state.';
+      }
+
+      const shouldRotateAnonymousWorkspace = !auth.user
+        && (
+          resolvedAppState?.lifecycle?.clearAnonymousTokenSuggested === true
+          || usageFromResolve?.blockedLimit?.limit === 'maxSessionDurationMinutes'
+        );
+
+      if (shouldRotateAnonymousWorkspace) {
+        try {
+          const rotated = await rotateAnonymousWorkspaceSession({ apiBaseUrl });
+          if (rotated?.session) {
+            backendSession = rotated.session;
+          }
+          try {
+            resolvedAppState = await fetchResolveAppState({
+              apiBaseUrl: apiFetchBase,
+              accessToken: auth.accessToken,
+            });
+            if (resolvedAppState?.ok && resolvedAppState.usage) {
+              usageFromResolve = resolvedAppState.usage;
+            }
+          } catch {
+            /* keep rotated session */
+          }
+        } catch {
+          writeAnonymousToken(null);
+        }
       }
 
       startTransition(() => {

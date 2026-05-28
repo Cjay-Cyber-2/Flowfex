@@ -4,7 +4,7 @@ import { syniqSessions, usageTracking } from '../db/schema.js';
 import { and, eq, gte, inArray, sql } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
 import { isProAuthId } from './proTier.js';
-import { isLiveConnectedAgentServer } from './agentPresenceServer.js';
+import { isLiveConnectedAgentServer, sessionHasLiveAgentFromRecord } from './agentPresenceServer.js';
 
 // ─── Policy Definitions ──────────────────────────────────────────────────────
 
@@ -112,6 +112,9 @@ function computeSessionDurationSeconds({ tier, session, summedUsage, nowMs }) {
   const agents = Array.isArray(session?.connected_agents) ? session.connected_agents : [];
   if (anchorMs === null && agents.length > 0) {
     for (const agent of agents) {
+      if (!isLiveConnectedAgentServer(agent)) {
+        continue;
+      }
       const t = parseTimestamp(agent?.connectedAt || agent?.lastSeen || agent?.syncedAt);
       if (t !== null && (anchorMs === null || t < anchorMs)) {
         anchorMs = t;
@@ -204,7 +207,7 @@ function countConcurrentAgents(sessionRow, tier) {
  * Determine which limit is blocked, if any.
  * Returns { status, tier, limit, reason, currentValue, limitValue } or null.
  */
-function buildBlockedLimit(tier, usage, limits) {
+function buildBlockedLimit(tier, usage, limits, { hasLiveAgent = false } = {}) {
   // Execution limits
   if (tier === 'anonymous' && usage.executionsCount >= limits.maxExecutionsPerSession) {
     return {
@@ -253,17 +256,20 @@ function buildBlockedLimit(tier, usage, limits) {
     };
   }
 
-  // Duration limit
-  const durationMinutes = usage.sessionDurationSeconds / 60;
-  if (durationMinutes >= limits.maxSessionDurationMinutes) {
-    return {
-      status: 'blocked',
-      tier,
-      limit: 'maxSessionDurationMinutes',
-      reason: 'This session has reached its allowed duration.',
-      currentValue: Math.floor(durationMinutes),
-      limitValue: limits.maxSessionDurationMinutes,
-    };
+  // Duration limit applies only while an agent is actively connected — never
+  // block fresh attach/connect on stale session rows or dead agent metadata.
+  if (hasLiveAgent) {
+    const durationMinutes = usage.sessionDurationSeconds / 60;
+    if (durationMinutes >= limits.maxSessionDurationMinutes) {
+      return {
+        status: 'blocked',
+        tier,
+        limit: 'maxSessionDurationMinutes',
+        reason: 'This session has reached its allowed duration. Start a new session to connect again.',
+        currentValue: Math.floor(durationMinutes),
+        limitValue: limits.maxSessionDurationMinutes,
+      };
+    }
   }
 
   return null;
@@ -487,12 +493,21 @@ export class UsageService {
       });
       const concurrentAgents = countConcurrentAgents(session, tier);
       const connectionsCount = countRecentConnections(normalizedConnectionRows, rollingWindowStart, tier);
+      const hasLiveAgent = sessionHasLiveAgentFromRecord({
+        connected_agents: session.connected_agents,
+        connectedAgents: session.connected_agents,
+      });
+
+      let sessionDurationSeconds = computedDurationSeconds;
+      if (tier === 'anonymous' && !hasLiveAgent) {
+        sessionDurationSeconds = 0;
+      }
 
       const usage = {
         connectionsCount,
         executionsCount: summedUsage.executionsCount,
         nodesProcessed: summedUsage.nodesProcessed,
-        sessionDurationSeconds: computedDurationSeconds,
+        sessionDurationSeconds,
         concurrentAgents,
       };
 
@@ -506,7 +521,7 @@ export class UsageService {
 
       const resetWindowMs = QUOTA_WINDOW_MS;
 
-      const blockedLimit = buildBlockedLimit(tier, usage, limits);
+      const blockedLimit = buildBlockedLimit(tier, usage, limits, { hasLiveAgent });
       const connectionBlockedLimit = buildConnectionBlockedLimit(tier, usage, limits);
       const warningLimit = blockedLimit || connectionBlockedLimit ? null : buildWarningLimit(tier, usage, limits);
 

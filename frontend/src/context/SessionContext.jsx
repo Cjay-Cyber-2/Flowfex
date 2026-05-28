@@ -557,7 +557,7 @@ export function SessionProvider({ children }) {
     refreshAppState,
     syncBackendSession,
     signOut,
-  }), [hasConnectedAgent, initialize, refreshAppState, refreshUsage, rotateWorkspaceSession, signOut, state, syncBackendSession]);
+  }), [hasConnectedAgent, initialize, refreshAppState, refreshUsage, signOut, state, syncBackendSession]);
 
   return (
     <SessionContext.Provider value={value}>

@@ -133,6 +133,7 @@ export default function Onboarding() {
   const [connectionStage, setConnectionStage] = useState('idle');
   const transitionTimersRef = useRef([]);
   const autoTransitionStartedRef = useRef(false);
+  const centerScrollRef = useRef(null);
 
   const clearTransitionTimers = useCallback(() => {
     transitionTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
@@ -236,7 +237,7 @@ export default function Onboarding() {
         <div style={{ width: '40px' }} aria-hidden="true" />
       </header>
 
-      <main className={`ob-center${isFlowStep ? ' ob-center--flow' : ''}`}>
+      <main ref={centerScrollRef} className={`ob-center${isFlowStep ? ' ob-center--flow' : ''}`}>
         <div className="ob-beams-layer" aria-hidden={isFlowStep}>
           <PulseBeams
             beams={ONBOARDING_BEAMS}
@@ -343,6 +344,7 @@ export default function Onboarding() {
               setStep={setStep}
               selectedSurfaceId={selectedSurfaceId}
               setSelectedSurfaceId={setSelectedSurfaceId}
+              scrollContainerRef={centerScrollRef}
               AnimatedLayerButton={AnimatedLayerButton}
               onOpenConnect={(tab) => {
                 if (tab) {

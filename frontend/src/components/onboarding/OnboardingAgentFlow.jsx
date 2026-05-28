@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowRight,
   Check,
+  ChevronDown,
   ChevronRight,
   Globe,
   Layers,
@@ -76,6 +77,74 @@ function StepProgress({ step }) {
   );
 }
 
+function ScrollMoreHint({ active, scrollContainerRef, sentinelRef }) {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (!active) {
+      setVisible(false);
+      return undefined;
+    }
+
+    const root = scrollContainerRef?.current;
+    const sentinel = sentinelRef?.current;
+    if (!root || !sentinel) {
+      return undefined;
+    }
+
+    const update = () => {
+      const canScroll = root.scrollHeight > root.clientHeight + 12;
+      if (!canScroll) {
+        setVisible(false);
+        return;
+      }
+      const viewportBottom = root.getBoundingClientRect().bottom;
+      const sentinelTop = sentinel.getBoundingClientRect().top;
+      setVisible(sentinelTop > viewportBottom - 32);
+    };
+
+    update();
+
+    const observer = new IntersectionObserver(update, {
+      root,
+      threshold: [0, 0.15, 0.5, 1],
+      rootMargin: '0px 0px -24px 0px',
+    });
+    observer.observe(sentinel);
+
+    root.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+
+    return () => {
+      observer.disconnect();
+      root.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [active, scrollContainerRef, sentinelRef]);
+
+  return (
+    <AnimatePresence>
+      {visible ? (
+        <motion.div
+          className="ob-scroll-more-hint"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 6 }}
+          transition={{ duration: 0.28 }}
+          aria-hidden="true"
+        >
+          <span className="ob-scroll-more-hint__fade" />
+          <span className="ob-scroll-more-hint__pill">
+            <ChevronDown className="ob-scroll-more-hint__chevron" size={18} strokeWidth={2.25} />
+            <span className="ob-scroll-more-hint__label">More below</span>
+            <ChevronDown className="ob-scroll-more-hint__chevron ob-scroll-more-hint__chevron--lag" size={18} strokeWidth={2.25} />
+          </span>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
 function MethodCard({ option, onSelect, index }) {
   return (
     <motion.button
@@ -111,9 +180,12 @@ export default function OnboardingAgentFlow({
   setStep,
   selectedSurfaceId,
   setSelectedSurfaceId,
+  scrollContainerRef,
   onOpenConnect,
   AnimatedLayerButton,
 }) {
+  const surfaceListEndRef = useRef(null);
+
   const surface = useMemo(
     () => (selectedSurfaceId ? getAgentSurfaceById(selectedSurfaceId) : null),
     [selectedSurfaceId],
@@ -202,6 +274,12 @@ export default function OnboardingAgentFlow({
                 );
               })}
             </div>
+            <div ref={surfaceListEndRef} className="ob-scroll-sentinel" aria-hidden="true" />
+            <ScrollMoreHint
+              active={step === 'choose-surface'}
+              scrollContainerRef={scrollContainerRef}
+              sentinelRef={surfaceListEndRef}
+            />
             <button
               type="button"
               className="btn btn-ghost ob-back-link"

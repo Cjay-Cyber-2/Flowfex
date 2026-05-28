@@ -241,6 +241,94 @@
   color: var(--color-velin);
 }
 
+.ob-scroll-sentinel {
+  width: 100%;
+  height: 1px;
+  margin: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.ob-scroll-more-hint {
+  position: fixed;
+  left: 50%;
+  bottom: max(18px, env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.ob-scroll-more-hint__fade {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: min(100vw, 560px);
+  height: 88px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(8, 12, 16, 0.55) 42%,
+    rgba(8, 12, 16, 0.94) 100%
+  );
+}
+
+.ob-scroll-more-hint__pill {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 212, 170, 0.35);
+  background: rgba(8, 14, 20, 0.92);
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.45),
+    0 0 24px rgba(0, 212, 170, 0.12);
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-sinoper);
+}
+
+.ob-scroll-more-hint__label {
+  padding: 0 2px;
+}
+
+.ob-scroll-more-hint__chevron {
+  color: var(--color-sinoper);
+  animation: ob-scroll-chevron-bounce 1.35s ease-in-out infinite;
+}
+
+.ob-scroll-more-hint__chevron--lag {
+  animation-delay: 0.2s;
+  opacity: 0.65;
+}
+
+@keyframes ob-scroll-chevron-bounce {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.55;
+  }
+  45% {
+    transform: translateY(5px);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ob-scroll-more-hint__chevron {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 /* Agent surface cards */
 .ob-surface-grid {
   width: 100%;

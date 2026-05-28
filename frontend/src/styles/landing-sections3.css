@@ -159,9 +159,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
   z-index: 1001;
   pointer-events: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .cam-modal {
@@ -243,7 +245,19 @@
 }
 
 .cam-step-highlight-wrap {
-  display: inline;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  max-width: 100%;
+}
+
+.cam-step-highlight-wrap--copyable {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 .cam-step-highlight {
@@ -261,17 +275,17 @@
 }
 
 .cam-step-copy {
-  margin-left: 8px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 212, 170, 0.28);
-  background: rgba(0, 212, 170, 0.1);
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 212, 170, 0.35);
+  background: rgba(0, 212, 170, 0.14);
   color: var(--color-sinoper);
   font-family: Inter, sans-serif;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
-  vertical-align: middle;
+  flex-shrink: 0;
 }
 
 .cam-step-copy:hover {
@@ -295,6 +309,108 @@
 .cam-method-attach {
   display: grid;
   gap: 10px;
+}
+
+.cam-payload-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 212, 170, 0.22);
+  background: #080C10;
+}
+
+.cam-payload-card--empty {
+  border-style: dashed;
+  border-color: rgba(237, 232, 223, 0.18);
+  color: rgba(232, 237, 242, 0.65);
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+}
+
+.cam-payload-card--empty p {
+  margin: 0;
+}
+
+.cam-payload-card__intro {
+  display: grid;
+  gap: 4px;
+}
+
+.cam-payload-card__title {
+  font-family: Inter, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-sinoper);
+}
+
+.cam-payload-card__intro p {
+  margin: 0;
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  color: rgba(232, 237, 242, 0.78);
+}
+
+.cam-payload-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid rgba(0, 212, 170, 0.45);
+  border-radius: 10px;
+  background: rgba(0, 212, 170, 0.18);
+  font-family: Inter, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-sinoper);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.cam-payload-copy-btn:hover {
+  background: rgba(0, 212, 170, 0.28);
+  border-color: rgba(0, 212, 170, 0.6);
+}
+
+.cam-payload-preview {
+  position: relative;
+  max-height: 132px;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid rgba(237, 232, 223, 0.12);
+  background: rgba(8, 12, 16, 0.6);
+  padding: 10px 12px;
+}
+
+.cam-payload-preview pre {
+  margin: 0;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(237, 232, 223, 0.55);
+  white-space: pre-wrap;
+  word-break: break-word;
+  filter: blur(9px);
+  user-select: none;
+  pointer-events: none;
+}
+
+.cam-payload-preview--revealed {
+  max-height: none;
+  overflow: auto;
+}
+
+.cam-payload-preview--revealed pre {
+  filter: none;
+  user-select: text;
+  pointer-events: auto;
+  color: rgba(237, 232, 223, 0.88);
 }
 
 .cam-link-row {
@@ -368,14 +484,20 @@
 
 .cam-tab-body {
   min-height: 0;
-  flex: 0 1 auto;
-  overflow: visible;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding-bottom: 12px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 212, 170, 0.4) rgba(8, 12, 16, 0.45);
 }
 
 .cam-tab-desc {
   font-family: Inter, sans-serif;
-  font-size: font-size: 16px;
+  font-size: 16px;
   color: var(--color-bistre);
   margin: 0 0 14px;
 }
@@ -391,9 +513,7 @@
 
 .cam-code-block pre {
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  font-size:   font-size: 15px;
-  line-height: 1.8;
-  color: rgba(237, 232, 223, 0.85);
+  font-size: 15px;
   line-height: 1.8;
   color: rgba(237, 232, 223, 0.85);
   margin: 0;
@@ -429,7 +549,7 @@
 
 .cam-concealed-kicker {
   font-family: Inter, sans-serif;
-  font-size: font-size: 13px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -462,6 +582,11 @@
 
 .cam-copy-btn:hover { background: rgba(0, 212, 170, 0.22); }
 
+.cam-copy-btn--compact {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .cam-readonly-input {
   flex: 1;
   height: 44px;
@@ -469,8 +594,7 @@
   border: 1px solid rgba(237, 232, 223, 0.15);
   border-radius: 10px;
   font-family: 'JetBrains Mono', monospace;
-  font-size:   font-size: 14px;
-  color: rgba(237, 232, 223, 0.7);
+  font-size: 14px;
   color: rgba(237, 232, 223, 0.7);
   padding: 0 14px;
   outline: none;
@@ -478,7 +602,7 @@
 
 .cam-text-link {
   font-family: Inter, sans-serif;
-  font-size: font-size: 15px;
+  font-size: 15px;
   color: var(--color-sinoper);
   text-decoration: none;
   background: none;
@@ -514,13 +638,13 @@
 
 .cam-security-note {
   font-family: Inter, sans-serif;
-  font-size: font-size: 14px;
+  font-size: 14px;
   color: var(--color-bistre);
   margin: 12px 0 0;
 }
 
 .cam-security-note strong {
-  font-size: font-size: 15px;
+  font-size: 15px;
   line-height: 1.45;
 }
 
@@ -647,9 +771,7 @@
   }
 
   .cam-title {
-    font-size:   .cam-title {
     font-size: 22px;
-  }
   }
 
   .cam-tab-body {
@@ -661,6 +783,15 @@
     max-height: 128px;
   }
 
+  .cam-payload-preview {
+    max-height: 108px;
+  }
+
+  .cam-payload-copy-btn {
+    min-height: 48px;
+    font-size: 16px;
+  }
+
   .cam-footer {
     flex-direction: column;
     align-items: stretch;
@@ -669,9 +800,7 @@
   }
 
   .cam-sync-status {
-    font-size:   .cam-sync-status {
     font-size: 14px;
-  }
   }
 
   .cam-done-btn {
@@ -708,16 +837,12 @@
     width: 100%;
   }
   .cam-title {
-    font-size:   .cam-title {
     font-size: 20px;
   }
-  }
+
   .cam-tab {
     padding: 6px 10px;
-    font-size:   .cam-tab {
-    padding: 6px 10px;
     font-size: 14px;
-  }
   }
 }
 

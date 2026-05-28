@@ -85,23 +85,58 @@ async function readConnectResponse(response) {
   }
 }
 
-function CopyBtn({ text, style }) {
+function CopyBtn({ text, style, className = '' }) {
   const [copied, copy] = useCopy();
   return (
-    <button className="cam-copy-btn" style={style} onClick={() => copy(text)}>
+    <button
+      type="button"
+      className={`cam-copy-btn${className ? ` ${className}` : ''}`}
+      style={style}
+      onClick={() => copy(text)}
+    >
       {copied ? <><CheckCheck size={14} style={{ marginRight: 5 }} />Copied</> : <><Copy size={14} style={{ marginRight: 5 }} />Copy</>}
     </button>
   );
 }
 
-function ConcealedPayload({ text, title }) {
+function ConcealedPayload({ text, title, emptyMessage = 'Preparing connection details…' }) {
+  const [copied, copy] = useCopy();
+  const [revealed, setRevealed] = useState(false);
+
+  if (!text?.trim()) {
+    return (
+      <div className="cam-payload-card cam-payload-card--empty">
+        <p>{emptyMessage}</p>
+      </div>
+    );
+  }
+
+  const handleCopy = () => {
+    copy(text);
+    setRevealed(true);
+  };
+
   return (
-    <div className="cam-code-block cam-code-block-concealed">
-      <pre aria-hidden="true">{text}</pre>
-      <div className="cam-concealed-overlay">
-        <span className="cam-concealed-kicker">{title}</span>
-        <p>Copy to reveal, then paste into your agent.</p>
-        <CopyBtn text={text} />
+    <div className="cam-payload-card">
+      <div className="cam-payload-card__intro">
+        <span className="cam-payload-card__title">{title}</span>
+        <p>Click Copy, then paste into your agent.</p>
+      </div>
+      <button type="button" className="cam-payload-copy-btn" onClick={handleCopy}>
+        {copied ? (
+          <>
+            <CheckCheck size={16} />
+            Copied — paste into your agent
+          </>
+        ) : (
+          <>
+            <Copy size={16} />
+            Copy
+          </>
+        )}
+      </button>
+      <div className={`cam-payload-preview${revealed ? ' cam-payload-preview--revealed' : ''}`}>
+        <pre>{text}</pre>
       </div>
     </div>
   );
@@ -217,8 +252,8 @@ function PromptTab({
     return (
       <div>
         <p className="cam-tab-desc">Preparing a secure connection prompt for your agent...</p>
-        <div className="cam-code-block cam-code-block-concealed" style={{ opacity: 0.6 }}>
-          <pre aria-hidden="true">Generating session...</pre>
+        <div className="cam-payload-card cam-payload-card--empty">
+          <p>Generating session…</p>
         </div>
       </div>
     );
@@ -280,8 +315,8 @@ function LinkTab({
     >
       <div className="cam-link-row">
         <input readOnly value={url} className="cam-readonly-input" aria-label="Attach link" />
-        <button type="button" className="cam-copy-btn" onClick={() => copy(url)}>
-          {copied ? <CheckCheck size={14} /> : <Copy size={14} />}
+        <button type="button" className="cam-copy-btn cam-copy-btn--compact" onClick={() => copy(url)}>
+          {copied ? <><CheckCheck size={14} style={{ marginRight: 4 }} />Copied</> : <><Copy size={14} style={{ marginRight: 4 }} />Copy</>}
         </button>
       </div>
     </ConnectionMethodShell>
@@ -311,8 +346,8 @@ function SDKTab({
     return (
       <div>
         <p className="cam-tab-desc">Preparing SDK connection snippet...</p>
-        <div className="cam-code-block cam-code-block-concealed" style={{ opacity: 0.6 }}>
-          <pre aria-hidden="true">Generating unique session credentials...</pre>
+        <div className="cam-payload-card cam-payload-card--empty">
+          <p>Generating unique session credentials…</p>
         </div>
       </div>
     );
@@ -400,8 +435,8 @@ function MCPTab({
     return (
       <ConnectionMethodShell method="MCP" error={null} actions={null}>
         <p className="cam-tab-desc">Preparing your personal MCP config with session ID and token…</p>
-        <div className="cam-code-block cam-code-block-concealed" style={{ opacity: 0.6 }}>
-          <pre aria-hidden="true">Waiting for session credentials…</pre>
+        <div className="cam-payload-card cam-payload-card--empty">
+          <p>Waiting for session credentials…</p>
         </div>
         <ConnectionRefreshAction loading={loading} label="Refresh session" onRefresh={onRefresh} />
       </ConnectionMethodShell>
@@ -922,7 +957,7 @@ function ConnectAgentModal({
                 key={activeTab}
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="cam-tab-body"
+                className="cam-tab-body app-scroll-panel"
               >
                 <TabContent
                   connection={connections[activeTab]}

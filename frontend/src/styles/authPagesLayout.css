@@ -4,7 +4,8 @@
   box-sizing: border-box;
   min-height: 100dvh;
   height: 100dvh;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -39,7 +40,8 @@
   box-sizing: border-box;
   width: min(404px, calc(100vw - 24px));
   max-height: calc(100dvh - max(12px, env(safe-area-inset-top)) - max(12px, env(safe-area-inset-bottom)));
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   background: rgba(13, 19, 27, 0.92);

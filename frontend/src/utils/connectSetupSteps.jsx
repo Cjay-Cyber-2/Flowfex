@@ -201,8 +201,11 @@ export function ConnectSetupStep({ step }) {
     <>
       {step.parts.map((part, index) => {
         if (part.highlight) {
+          const wrapClass = part.copy
+            ? 'cam-step-highlight-wrap cam-step-highlight-wrap--copyable'
+            : 'cam-step-highlight-wrap';
           return (
-            <span key={`${part.text}-${index}`} className="cam-step-highlight-wrap">
+            <span key={`${part.text}-${index}`} className={wrapClass}>
               <span className={`cam-step-highlight${part.mono ? ' cam-step-highlight--mono' : ''}`}>
                 {part.mono ? `"${part.text}"` : part.text}
               </span>

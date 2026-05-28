@@ -642,3 +642,12 @@
   text-decoration: underline;
 }
 
+
+.cam-mcp-lead {
+  margin: 0 0 12px;
+  line-height: 1.6;
+}
+
+.cam-mcp-agents {
+  margin-bottom: 14px;
+}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Globe, Github } from 'lucide-react';
 import AuthBackdrop from '../components/auth/AuthBackdrop';
@@ -11,6 +11,7 @@ import {
   signUpWithEmail,
 } from '../services/authService';
 import { getAuthErrorMessage } from '../utils/authErrorMessages';
+import { postAuthDashboardLocation, postAuthSocialCallbackPath } from '../utils/authNavigation';
 import '../styles/authPagesLayout.css';
 
 const getStrength = (pw) => {
@@ -22,6 +23,7 @@ const getStrength = (pw) => {
 
 function SignUp() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const { configured, isAuthenticated, refreshSession, sessionReady } = useSessionContext();
   const [email, setEmail] = useState('');
@@ -36,12 +38,13 @@ function SignUp() {
   const socialErrorCode = searchParams.get('error');
 
   const strength = getStrength(password);
+  const postAuthReason = location.state?.reason === 'anonymous_quota' ? 'anonymous_quota' : 'account_upgrade';
 
   useEffect(() => {
     if (sessionReady && isAuthenticated) {
-      navigate('/pricing', { replace: true });
+      navigate(postAuthDashboardLocation(postAuthReason), { replace: true });
     }
-  }, [isAuthenticated, navigate, sessionReady]);
+  }, [isAuthenticated, navigate, postAuthReason, sessionReady]);
 
   useEffect(() => {
     if (!socialErrorCode) {
@@ -78,7 +81,7 @@ function SignUp() {
         setNoticeMessage('Check your inbox to confirm your email, then come back to sign in.');
       } else {
         await refreshSession();
-        navigate('/pricing', { replace: true });
+        navigate(postAuthDashboardLocation(postAuthReason), { replace: true });
       }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to create your account.');
@@ -97,7 +100,7 @@ function SignUp() {
         return;
       }
 
-      await signInWithGitHub('/pricing', '/signup');
+      await signInWithGitHub(postAuthSocialCallbackPath(), '/signup');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to start social sign-in.');
     }

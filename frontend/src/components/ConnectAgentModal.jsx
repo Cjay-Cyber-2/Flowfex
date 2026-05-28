@@ -13,46 +13,16 @@ import {
   resolveApiFetchBase,
   rewriteConnectPrompt,
 } from '../utils/runtimeConfig';
-import { buildSyniqMcpServerConfig, stringifyMcpConfig } from '../utils/mcpConfig';
+import {
+  buildSyniqMcpServerConfig,
+  resolveMcpCredentialsFromConnection,
+  stringifyMcpConfig,
+} from '../utils/mcpConfig';
+import { CONNECT_SETUP_STEPS, ConnectSetupStep } from '../utils/connectSetupSteps';
 import { rotateAnonymousWorkspaceSession } from '../../../lib/session/initialize';
 import '../styles/landing-sections3.css';
 
 const TABS = ['Prompt', 'MCP', 'Link', 'SDK', 'Live Channel'];
-
-/** Short, direct setup steps per connection method (shown above the attach payload). */
-const CONNECTION_SETUP_STEPS = {
-  Prompt: [
-    'Copy the connection contract below.',
-    'Paste it into your agent’s system instructions, project rules, or custom prompt field — then save.',
-    'In that same chat, send one line: attach to Syniq for this session.',
-    'Leave this page open until Syniq confirms the agent connected.',
-  ],
-  MCP: [
-    'Copy the MCP configuration JSON below (your session credentials are already filled in).',
-    'Paste it into your agent’s MCP settings file — for example `.cursor/mcp.json` or Claude Desktop’s config.',
-    'Fully quit and restart the agent app.',
-    'In chat, tell the agent to run syniq_attach once at the start of the session.',
-    'For every user message after that, the agent must run syniq_route_task before it replies.',
-    'Stay on this page until Syniq shows connected.',
-  ],
-  Link: [
-    'Copy the secure link below (or open it in the browser tab where your agent runs).',
-    'Complete the one-time attach step in that window.',
-    'Return here and wait until Syniq verifies the connection.',
-  ],
-  SDK: [
-    'Copy the SDK snippet and run it inside your app, script, or terminal process.',
-    'The snippet registers this Syniq session before your agent handles user messages.',
-    'Keep the process running if your integration needs an active session.',
-    'Wait on this page until Syniq confirms connected.',
-  ],
-  'Live Channel': [
-    'Copy the live channel payload below.',
-    'Configure your always-on client to use that endpoint and keep the connection open.',
-    'Make sure the client completes the attach handshake for this session.',
-    'Wait here until Syniq confirms the live connection.',
-  ],
-};
 const SOCKET_OPTIONS = {
   reconnection: true,
   reconnectionDelay: 1000,
@@ -203,8 +173,10 @@ function ConnectionMethodShell({ method, children, actions, error }) {
         Your dashboard opens only after Syniq verifies a real agent connection for this session.
       </p>
       <ol className="cam-method-steps">
-        {steps.map((step) => (
-          <li key={step}>{step}</li>
+        {steps.map((step, index) => (
+          <li key={`step-${index}`}>
+            <ConnectSetupStep step={step} />
+          </li>
         ))}
       </ol>
       <div className="cam-method-attach">{children}</div>
@@ -404,6 +376,7 @@ function LiveChannelTab({
 function MCPTab({
   connection, loading, onRefresh, error, limitState, limitKey,
   isAuthenticated, onSignUp, onSignIn, onClose, onViewPricing, onStartFreshSession,
+  workspaceSessionId,
 }) {
   if (limitState) {
     return (
@@ -420,29 +393,33 @@ function MCPTab({
     );
   }
 
-  if (!connection?.connection?.session?.token && loading) {
+  const credentials = resolveMcpCredentialsFromConnection(connection, workspaceSessionId);
+  const waitingForCredentials = loading || !credentials.ready;
+
+  if (waitingForCredentials) {
     return (
-      <div>
-        <p className="cam-tab-desc">Getting your MCP connection ready…</p>
+      <ConnectionMethodShell method="MCP" error={null} actions={null}>
+        <p className="cam-tab-desc">Preparing your personal MCP config with session ID and token…</p>
         <div className="cam-code-block cam-code-block-concealed" style={{ opacity: 0.6 }}>
-          <pre aria-hidden="true">Generating session...</pre>
+          <pre aria-hidden="true">Waiting for session credentials…</pre>
         </div>
-      </div>
+        <ConnectionRefreshAction loading={loading} label="Refresh session" onRefresh={onRefresh} />
+      </ConnectionMethodShell>
     );
   }
 
-  const session = connection?.connection?.session;
   const publicOrigin = getBackendOrigin().replace(/\/+$/, '');
-  const ingestUrl = session?.endpoints?.ingest || `${publicOrigin}/ingest`;
-  const mcpText = stringifyMcpConfig(buildSyniqMcpServerConfig({
+  const ingestUrl = connection?.connection?.session?.endpoints?.ingest || `${publicOrigin}/ingest`;
+  const mcpConfig = buildSyniqMcpServerConfig({
     publicUrl: publicOrigin,
-    sessionId: session?.id,
-    sessionToken: session?.token,
+    sessionId: credentials.sessionId,
+    sessionToken: credentials.sessionToken,
     ingestUrl,
-  }));
+  });
+  const mcpText = stringifyMcpConfig(mcpConfig);
 
   const devNote = import.meta.env.DEV
-    ? '\n\nLocal dev: point command at mcp/syniq-mcp/src/index.js — see repo README.'
+    ? '\n\n// Local dev: replace command with node mcp/syniq-mcp/src/index.js'
     : '';
 
   return (
@@ -451,6 +428,9 @@ function MCPTab({
       error={error}
       actions={<ConnectionRefreshAction loading={loading} label="Refresh session" onRefresh={onRefresh} />}
     >
+      <p className="cam-credential-note">
+        Session ID and token are inside the JSON under <code>env</code> — copy the whole block.
+      </p>
       <ConcealedPayload text={`${mcpText}${devNote}`} title="MCP configuration" />
     </ConnectionMethodShell>
   );
@@ -951,6 +931,7 @@ function ConnectAgentModal({
                   error={errors[activeTab]}
                   limitState={limitMessages[activeTab]}
                   limitKey={limitKeys[activeTab]}
+                  workspaceSessionId={workspaceSessionId}
                   isAuthenticated={isAuthenticated}
                   onSignUp={handleSignUp}
                   onSignIn={handleSignIn}

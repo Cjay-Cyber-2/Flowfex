@@ -40,6 +40,18 @@ function loadConfigFile() {
     try {
       const raw = readFileSync(path, 'utf8');
       const parsed = JSON.parse(raw);
+      const envBlock = parsed?.mcpServers?.syniq?.env;
+      if (envBlock && typeof envBlock === 'object') {
+        return {
+          path,
+          config: {
+            publicUrl: envBlock.SYNIQ_PUBLIC_URL,
+            sessionId: envBlock.SYNIQ_SESSION_ID || envBlock.SESSION_ID,
+            sessionToken: envBlock.SYNIQ_SESSION_TOKEN || envBlock.SESSION_TOKEN,
+            ingestUrl: envBlock.SYNIQ_INGEST_URL,
+          },
+        };
+      }
       return { path, config: parsed?.syniq || parsed?.mcp?.syniq || parsed };
     } catch {
       continue;

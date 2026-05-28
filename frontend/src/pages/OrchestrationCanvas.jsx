@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import CanvasRenderer from '../components/canvas/CanvasRenderer';
 import LeftRail from '../components/layout/LeftRail';
 import RightDrawer from '../components/layout/RightDrawer';
@@ -15,6 +15,7 @@ import {
   markPricingWallSeen,
   quotaCycleKey,
 } from '../utils/quotaNavigation';
+import { resolveProductIdentityState, shouldShowPricingWall } from '../identity/resolveProductIdentityState';
 import '../styles/canvas.css';
 
 function UsageGateBanner({ isAuthenticated, title, message, onSignIn, onSignUp }) {
@@ -59,7 +60,10 @@ function paymentGateHeadline(blockedLimit, connectionBlockedLimit, isAuthenticat
   const tier = blockedLimit?.tier || connectionBlockedLimit?.tier;
   if (key === 'maxExecutionsPerSession' || key === 'maxExecutionsPerDay') {
     if (!isAuthenticated || tier === 'anonymous') {
-      return 'You used all free Syniq tools requests for this window.';
+      return 'You used all 15 free Syniq tools requests for this window.';
+    }
+    if (blockedLimit?.limitValue === 0) {
+      return 'Your Syniq account needs Pro to run new tool and skill requests.';
     }
     return 'You used all free Syniq tools requests for this account window.';
   }
@@ -78,44 +82,10 @@ function paymentGateHeadline(blockedLimit, connectionBlockedLimit, isAuthenticat
   return 'Syniq limits are blocking new work.';
 }
 
-function FreeTierPlanCard({ requestsLeft, requestLimit, onUpgrade, onDismiss }) {
-  return (
-    <div style={{
-      marginBottom: 16,
-      padding: '18px 20px',
-      borderRadius: 20,
-      border: '1px solid rgba(0, 212, 170, 0.18)',
-      background:
-        'linear-gradient(180deg, rgba(9, 24, 21, 0.92), rgba(8, 12, 16, 0.88))',
-      boxShadow: '0 24px 54px rgba(0, 0, 0, 0.24)',
-      display: 'grid',
-      gap: 12,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-        <div>
-          <strong style={{ display: 'block', marginBottom: 6, color: 'var(--color-velin)', fontSize: 18 }}>
-            Free account active
-          </strong>
-          <span style={{ color: 'rgba(232, 237, 242, 0.8)', fontSize: 14, lineHeight: 1.6 }}>
-            You are signed in. This tier includes {requestLimit} Syniq requests per 5-hour window. Upgrade for
-            uninterrupted pulls after the quota is exhausted.
-          </span>
-        </div>
-        <button type="button" className="btn btn-ghost" onClick={onDismiss}>Dismiss</button>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-        <span style={{ color: 'var(--color-bistre)', fontSize: 14 }}>
-          Requests remaining: <strong style={{ color: 'var(--color-velin)' }}>{Math.max(0, requestsLeft)}</strong>
-        </span>
-        <button type="button" className="btn btn-primary" onClick={onUpgrade}>View plans</button>
-      </div>
-    </div>
-  );
-}
-
 function OrchestrationCanvas() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { isAuthenticated, sessionReady, usage, appState, refreshUsage } = useSessionContext();
   const {
     activeSession,
@@ -127,57 +97,41 @@ function OrchestrationCanvas() {
     nodes,
     setConnectModalOpen,
   } = useStore();
-  const [freeTierCardDismissed, setFreeTierCardDismissed] = useState(false);
   const [pricingWallDismissed, setPricingWallDismissed] = useState(false);
 
   useEffect(() => {
-    if (!sessionReady) {
-      return;
-    }
-
+    if (!sessionReady) return;
     bootstrapWorkspace();
   }, [bootstrapWorkspace, sessionReady]);
 
   useEffect(() => {
-    if (!sessionReady || !activeSession?.id) {
-      return;
-    }
-
+    if (!sessionReady || !activeSession?.id) return;
     hydrateSessionState(activeSession.id);
   }, [activeSession?.id, hydrateSessionState, sessionReady]);
 
   useEffect(() => {
-    if (!sessionReady || !activeSession?.id) {
-      return undefined;
-    }
-
-    refreshUsage(activeSession.id).catch(() => {
-      return;
-    });
-
+    if (!sessionReady || !activeSession?.id) return undefined;
+    refreshUsage(activeSession.id).catch(() => {});
     const intervalId = window.setInterval(() => {
-      refreshUsage(activeSession.id).catch(() => {
-        return;
-      });
+      refreshUsage(activeSession.id).catch(() => {});
     }, 2000);
-
     return () => window.clearInterval(intervalId);
   }, [activeSession?.id, refreshUsage, sessionReady]);
 
   const liveConnectedAgents = useMemo(
     () => filterLiveConnectedAgents(connectedAgents),
-    [connectedAgents]
+    [connectedAgents],
   );
 
   const currentNode = useMemo(
     () => nodes.find((node) => node.state === 'approval') || nodes.find((node) => node.state === 'active'),
-    [nodes]
+    [nodes],
   );
+
   const requestLimit = usage?.limits?.maxExecutionsPerSession
-    || usage?.limits?.maxExecutionsPerDay
-    || null;
+    ?? usage?.limits?.maxExecutionsPerDay
+    ?? null;
   const requestsToday = usage?.usage?.executionsCount || 0;
-  const requestsLeft = requestLimit ? requestLimit - requestsToday : 0;
   const blockedLimit = usage?.blockedLimit || null;
   const connectionBlockedLimit = usage?.connectionBlockedLimit || null;
   const anyBlockReason = blockedLimit?.reason || connectionBlockedLimit?.reason || null;
@@ -185,37 +139,57 @@ function OrchestrationCanvas() {
   const gateHeadline = paymentGateHeadline(blockedLimit, connectionBlockedLimit, isAuthenticated);
   const cycleKey = quotaCycleKey(usage);
   const isPro = appState?.identity?.billing === 'pro';
+  const freeTierHasNoRequests = isAuthenticated && !isPro && usage?.limits?.maxExecutionsPerDay === 0;
+  const forcePricingFromAuth = Boolean(location.state?.showPricingWall)
+    || searchParams.get('upgrade') === '1';
+
+  const identityState = resolveProductIdentityState({
+    sessionReady,
+    isAuthenticated,
+    appState,
+    usage,
+    hasConnectedAgent: liveConnectedAgents.length > 0,
+  });
 
   const showAnonymousQuotaGate = !isAuthenticated && executionQuotaExhausted;
-  const showAuthenticatedBanner = isAuthenticated && Boolean(anyBlockReason) && !isPro && !executionQuotaExhausted;
-  const showAuthenticatedPricingWall = isAuthenticated
-    && executionQuotaExhausted
+  const showAuthenticatedBanner = isAuthenticated
+    && Boolean(anyBlockReason)
     && !isPro
-    && !pricingWallDismissed;
-  const showFreeTierCard = isAuthenticated
-    && appState?.identity?.billing === 'free'
-    && !freeTierCardDismissed
-    && !executionQuotaExhausted;
+    && !executionQuotaExhausted
+    && !freeTierHasNoRequests;
+  const showAuthenticatedPricingWall = isAuthenticated
+    && !isPro
+    && !pricingWallDismissed
+    && (shouldShowPricingWall(identityState) || executionQuotaExhausted || forcePricingFromAuth);
 
   useEffect(() => {
-    setFreeTierCardDismissed(false);
     setPricingWallDismissed(false);
   }, [activeSession?.id, appState?.identity?.billing, cycleKey]);
+
+  useEffect(() => {
+    if (forcePricingFromAuth) setPricingWallDismissed(false);
+  }, [forcePricingFromAuth]);
+
+  const pricingHeadline = forcePricingFromAuth && location.state?.reason === 'anonymous_quota'
+    ? 'Your workspace is saved — upgrade to keep orchestrating'
+    : gateHeadline;
+
+  const pricingMessage = blockedLimit?.reason || anyBlockReason || (freeTierHasNoRequests
+    ? 'Signed-in Syniq accounts do not include free tool requests. Choose Pro to continue, or wait if your billing window is renewing.'
+    : 'Upgrade for uninterrupted Syniq tools requests, or wait for your quota window to renew.');
 
   return (
     <div className="orchestration-canvas-page">
       <TopBar />
-
       <div className="canvas-layout">
         <LeftRail />
-
         <main className="canvas-main-shell">
           {showAnonymousQuotaGate ? (
             <UsageGateBanner
               isAuthenticated={false}
-              title="You used all free tools requests for this window"
-              message={blockedLimit?.reason || 'Create a free account to keep orchestrating, or wait for your quota to renew.'}
-              onSignIn={() => navigate('/signin', { state: { from: location.pathname } })}
+              title="You used all 15 free tools requests for this window"
+              message={blockedLimit?.reason || 'Sign up to save your workspace, then upgrade to Pro to keep orchestrating — or wait about 5 hours for your guest quota to renew.'}
+              onSignIn={() => navigate('/signin', { state: { from: location.pathname, reason: 'anonymous_quota' } })}
               onSignUp={() => navigate('/signup', { state: { from: location.pathname, reason: 'anonymous_quota' } })}
             />
           ) : null}
@@ -227,15 +201,6 @@ function OrchestrationCanvas() {
               message={anyBlockReason}
               onSignIn={() => navigate('/signin')}
               onSignUp={() => navigate('/signup')}
-            />
-          ) : null}
-
-          {showFreeTierCard ? (
-            <FreeTierPlanCard
-              requestsLeft={requestsLeft}
-              requestLimit={requestLimit || 15}
-              onDismiss={() => setFreeTierCardDismissed(true)}
-              onUpgrade={() => navigate('/pricing')}
             />
           ) : null}
 
@@ -252,10 +217,14 @@ function OrchestrationCanvas() {
               <span className="canvas-surface-pill-label">Connected agents</span>
               <strong>{liveConnectedAgents.length}</strong>
             </div>
-            {requestLimit ? (
+            {requestLimit !== null && requestLimit !== undefined ? (
               <div className="canvas-surface-pill">
                 <span className="canvas-surface-pill-label">Tools request</span>
-                <strong>{requestsToday} / {requestLimit}</strong>
+                <strong>
+                  {freeTierHasNoRequests && !isPro
+                    ? 'Upgrade required'
+                    : `${requestsToday} / ${requestLimit}`}
+                </strong>
               </div>
             ) : null}
           </div>
@@ -269,7 +238,6 @@ function OrchestrationCanvas() {
             <span>{liveConnectedAgents.length} agent{liveConnectedAgents.length === 1 ? '' : 's'} · {nodes.length} graph nodes</span>
           </div>
         </main>
-
         <RightDrawer />
       </div>
 
@@ -278,8 +246,8 @@ function OrchestrationCanvas() {
       {showAuthenticatedPricingWall ? (
         <QuotaPricingOverlay
           variant="authenticated"
-          headline={gateHeadline}
-          message={blockedLimit?.reason || anyBlockReason || 'Upgrade for uninterrupted Syniq tools requests, or wait for your quota window to renew.'}
+          headline={pricingHeadline}
+          message={pricingMessage}
           resetAt={usage?.resetAt}
           onDismiss={() => {
             markPricingWallSeen(cycleKey);

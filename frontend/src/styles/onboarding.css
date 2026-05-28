@@ -98,6 +98,150 @@
   gap: 28px;
 }
 
+.ob-step-panel {
+  width: min(100%, 920px);
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  padding-bottom: 24px;
+}
+
+.ob-circle--compact {
+  width: 120px;
+  height: 120px;
+}
+
+.ob-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-sinoper);
+}
+
+.ob-agent-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.ob-agent-card {
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 212, 170, 0.14);
+  background: rgba(8, 14, 20, 0.72);
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.ob-agent-card:hover {
+  border-color: rgba(0, 212, 170, 0.42);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+}
+
+.ob-agent-card__label {
+  display: block;
+  font-family: var(--font-geist, sans-serif);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-velin);
+  margin-bottom: 6px;
+}
+
+.ob-agent-card__desc {
+  display: block;
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(232, 237, 242, 0.72);
+}
+
+.ob-recommend-card {
+  width: min(100%, 560px);
+  padding: 22px 24px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 212, 170, 0.22);
+  background: linear-gradient(165deg, rgba(9, 28, 24, 0.92), rgba(8, 12, 16, 0.9));
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.32);
+  text-align: left;
+}
+
+.ob-recommend-card__reason {
+  margin: 0 0 14px;
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 14px;
+  line-height: 1.65;
+  color: rgba(232, 237, 242, 0.86);
+}
+
+.ob-recommend-meta {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 12px;
+  color: rgba(232, 237, 242, 0.62);
+}
+
+.ob-advanced-wrap {
+  width: min(100%, 560px);
+  margin-top: 4px;
+}
+
+.ob-advanced-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: rgba(232, 237, 242, 0.7);
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px 0;
+}
+
+.ob-chevron--open {
+  transform: rotate(180deg);
+}
+
+.ob-method-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ob-method-chip {
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 212, 170, 0.18);
+  background: rgba(8, 12, 16, 0.8);
+  color: var(--color-velin);
+  font-family: var(--font-inter, Inter, sans-serif);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.ob-method-chip--active {
+  border-color: var(--color-sinoper);
+  background: rgba(0, 212, 170, 0.12);
+}
+
+.ob-back-link {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
 /* PulseBeams SVG layer — sits behind the centre circle */
 .ob-beams-layer {
   position: absolute;

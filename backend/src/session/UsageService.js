@@ -10,7 +10,7 @@ import { isLiveConnectedAgentServer } from './agentPresenceServer.js';
 
 export const SYNIQ_LIMITS = {
   anonymous: {
-    // The user-visible quota for an anonymous Syniq session is "15 requests
+    // The user-visible quota for an anonymous Syniq session is "6 requests
     // per 5-hour window after a verified attach". We keep maxConnectionsPerDay loose
     // so a real agent can re-attach across the day while the request quota
     // is the actual cap that drives the sign-up wall.
@@ -23,13 +23,13 @@ export const SYNIQ_LIMITS = {
     warningThreshold: 0.8,
   },
   authenticated: {
-    // Free authenticated tier gets 15 requests per 5-hour window. After they finish,
+    // Free authenticated tier gets 6 requests per 5-hour window. After they finish,
     // the dashboard pops the pricing card; payment unlocks the paid plan
     // (handled separately) — otherwise the quota renews the next day.
     // Keep the free tier to one active agent/session so multi-agent usage
     // stays a paid capability instead of an auth bypass.
     maxConnectionsPerDay: 20,
-    maxExecutionsPerDay: 15,
+    maxExecutionsPerDay: 0,
     maxNodesPerDay: 100,
     maxSessionDurationMinutes: 480,
     maxConcurrentAgents: 1,
@@ -216,14 +216,18 @@ function buildBlockedLimit(tier, usage, limits) {
       limitValue: limits.maxExecutionsPerSession,
     };
   }
-  if (tier !== 'anonymous' && usage.executionsCount >= (limits.maxExecutionsPerDay || Infinity)) {
+  if (tier !== 'anonymous' && usage.executionsCount >= (limits.maxExecutionsPerDay ?? Infinity)) {
+    const limitValue = limits.maxExecutionsPerDay;
+    const reason = limitValue === 0
+      ? 'Your Syniq account does not include free tool or skill requests. Upgrade to Pro to continue orchestrating, or wait if you already have a paid plan renewing.'
+      : 'You have reached the 5-hour Syniq skill and tool request allowance for this account. Upgrade to Pro or wait for the quota window to renew.';
     return {
       status: 'blocked',
       tier,
       limit: 'maxExecutionsPerDay',
-      reason: 'You have reached the 5-hour Syniq skill and tool request allowance for this account. Upgrade to Pro or wait for the quota window to renew.',
+      reason,
       currentValue: usage.executionsCount,
-      limitValue: limits.maxExecutionsPerDay,
+      limitValue,
     };
   }
 

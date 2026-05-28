@@ -85,12 +85,16 @@ export function enforceUsageLimits(
   }
 
   if ('maxExecutionsPerDay' in limits && usage.executionsCount >= limits.maxExecutionsPerDay) {
+    const limitValue = limits.maxExecutionsPerDay;
+    const reason = limitValue === 0
+      ? 'Your Syniq account does not include free tool or skill requests. Upgrade to Pro to continue orchestrating.'
+      : 'You have reached the 5-hour Syniq skill and tool request allowance for this account.';
     return block(
       tier,
       'maxExecutionsPerDay',
       usage.executionsCount,
-      limits.maxExecutionsPerDay,
-      'You have reached the 24-hour Syniq skill and tool request allowance for this account.'
+      limitValue,
+      reason
     );
   }
 

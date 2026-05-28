@@ -185,7 +185,7 @@ const PLANS = [
     monthlyPrice: 0,
     yearlyPrice: 0,
     features: [
-      '6 Syniq skill or tool requests per 5-hour window',
+      '15 guest Syniq skill or tool requests per 5-hour window (sign in to save your workspace; Pro required to continue)',
       '1 connected agent',
       'Prompt, link, SDK, and live attach',
       'Map and Flow supervision',

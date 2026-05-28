@@ -11,6 +11,7 @@ import {
   signUpWithEmail,
 } from '../services/authService';
 import { getAuthErrorMessage } from '../utils/authErrorMessages';
+import { postAuthDashboardLocation, postAuthSocialCallbackPath } from '../utils/authNavigation';
 import '../styles/authPagesLayout.css';
 
 const getStrength = (pw) => {

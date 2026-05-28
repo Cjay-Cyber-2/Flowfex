@@ -290,7 +290,7 @@ export default function Onboarding() {
         </AnimatePresence>
 
         {connectionStage === 'idle' ? (
-          <div className="ob-stack ob-stack--minimal">
+          <div className="ob-stack">
             {hasStaleAttachment ? (
               <div className="ob-stale-agent-banner">
                 <p>
@@ -307,16 +307,21 @@ export default function Onboarding() {
                 </button>
               </div>
             ) : null}
-            <motion.div
-              className="ob-circle"
-              animate={{ scale: [1, 1.06, 1], opacity: [0.88, 1, 0.88] }}
-              transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              <SyniqLogoNew size={92} animated={false} />
-            </motion.div>
-            <AnimatedLayerButton onClick={() => setIsModalOpen(true)}>
-              Connect Agent
-            </AnimatedLayerButton>
+            <OnboardingAgentFlow
+              step={step}
+              setStep={setStep}
+              selectedAgentId={selectedAgentId}
+              setSelectedAgentId={setSelectedAgentId}
+              AnimatedLayerButton={AnimatedLayerButton}
+              onOpenConnect={(tab) => {
+                if (tab) {
+                  setModalInitialTab(tab);
+                  saveOnboardingProgress({ step: 'connect', selectedAgentId, recommendedMethod: tab });
+                }
+                setStep('connect');
+                setIsModalOpen(true);
+              }}
+            />
           </div>
         ) : null}
       </main>

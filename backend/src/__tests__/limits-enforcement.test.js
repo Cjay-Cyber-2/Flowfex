@@ -423,11 +423,9 @@ async function testWarningDetection() {
   assertNull(statusBefore.warningLimit, 'No warning at 66% usage');
   assertNull(statusBefore.blockedLimit, 'Not blocked at 66% usage');
 
-  // Use authenticated tier — drive usage to 80% of the configured daily cap.
-  const authId = 'test-warning-' + Date.now();
-  const session2 = await createTestSession(authId);
-  const dailyMax = SYNIQ_LIMITS.authenticated.maxExecutionsPerDay;
-  const warningTrigger = Math.max(1, Math.floor(dailyMax * 0.8));
+  const session2 = await createTestSession();
+  const sessionMax = SYNIQ_LIMITS.anonymous.maxExecutionsPerSession;
+  const warningTrigger = Math.max(1, Math.floor(sessionMax * 0.8));
   for (let i = 0; i < warningTrigger; i++) {
     await usageService.recordExecution({ sessionId: session2.sessionId, nodesProcessed: 1 });
   }
@@ -435,7 +433,7 @@ async function testWarningDetection() {
   const statusApproaching = await usageService.getUsageStatus({ sessionId: session2.sessionId });
   assertTruthy(statusApproaching.warningLimit, 'Warning at 80% of execution limit');
   assertEq(statusApproaching.warningLimit.status, 'approaching', 'Warning status is approaching');
-  assertEq(statusApproaching.warningLimit.limit, 'maxExecutionsPerDay', 'Warning on correct limit');
+  assertEq(statusApproaching.warningLimit.limit, 'maxExecutionsPerSession', 'Warning on correct limit');
   assertNull(statusApproaching.blockedLimit, 'Not yet blocked');
 
   return [session.sessionId, session2.sessionId];

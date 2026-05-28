@@ -8,7 +8,7 @@ export interface SyniqAnonymousLimits {
 
 export interface SyniqAuthenticatedLimits {
   readonly maxConnectionsPerDay: 20;
-  readonly maxExecutionsPerDay: 15;
+  readonly maxExecutionsPerDay: 0;
   readonly maxNodesPerDay: 100;
   readonly maxSessionDurationMinutes: 480;
   readonly maxConcurrentAgents: 5;
@@ -24,7 +24,7 @@ export const SYNIQ_LIMITS = {
   },
   authenticated: {
     maxConnectionsPerDay: 20,
-    maxExecutionsPerDay: 15,
+    maxExecutionsPerDay: 0,
     maxNodesPerDay: 100,
     maxSessionDurationMinutes: 480,
     maxConcurrentAgents: 5,

@@ -137,13 +137,15 @@ function ConnectBootstrapFailure({
     );
   }
 
+  const cardMessage = loading && !error ? pendingMessage : (error || pendingMessage);
+
   return (
     <ConnectionMethodShell
       method={method}
-      error={error}
+      error={loading ? null : error}
       actions={<ConnectionRefreshAction loading={loading} label="Try again" onRefresh={onRefresh} />}
     >
-      <ConnectBootstrapPending message={error || pendingMessage} />
+      <ConnectBootstrapPending message={cardMessage} />
     </ConnectionMethodShell>
   );
 }
@@ -734,7 +736,6 @@ function ConnectAgentModal({
         ...current,
         [tab]: error?.message || formatConnectFetchError(error),
       }));
-      fetchAttemptedRef.current.delete(tab);
     } finally {
       setLoadingTabs((current) => ({ ...current, [tab]: false }));
     }
@@ -1068,7 +1069,10 @@ function ConnectAgentModal({
                 <TabContent
                   connection={connections[activeTab]}
                   loading={loadingTabs[activeTab]}
-                  onRefresh={() => fetchConnection(activeTab)}
+                  onRefresh={() => {
+                    fetchAttemptedRef.current.delete(activeTab);
+                    fetchConnection(activeTab);
+                  }}
                   error={errors[activeTab]}
                   limitState={limitMessages[activeTab]}
                   limitKey={limitKeys[activeTab]}

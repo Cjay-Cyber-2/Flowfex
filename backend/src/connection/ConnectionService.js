@@ -12,6 +12,7 @@ import {
   LIVE_CHANNEL_PROTOCOLS,
   connectRequestSchema,
 } from '../../../shared/connection-contracts.js';
+import { isWorkspaceUuidSessionId } from '../../../shared/sessionIds.js';
 import {
   isMandatorySkillId,
   mergeMandatoryToolIds,

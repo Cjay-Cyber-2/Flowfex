@@ -25,8 +25,8 @@ Merge into `.cursor/mcp.json` (or global MCP config):
 {
   "mcpServers": {
     "syniq": {
-      "command": "npx",
-      "args": ["-y", "@syniq/syniq-mcp"],
+      "command": "bash",
+      "args": ["-lc", "exec npx -y @syniq/syniq-mcp"],
       "env": {
         "SYNIQ_PUBLIC_URL": "https://YOUR-SYNIQ-API-ORIGIN",
         "SYNIQ_SESSION_ID": "sess_…",
@@ -37,6 +37,8 @@ Merge into `.cursor/mcp.json` (or global MCP config):
   }
 }
 ```
+
+On Windows, use `"command": "cmd"` and `"args": ["/d", "/s", "/c", "npx -y @syniq/syniq-mcp"]` instead. Cursor and other IDE hosts often spawn MCP with a minimal `PATH`, so a login shell avoids `spawn npx ENOENT` when Node is installed via nvm.
 
 Replace `YOUR-SYNIQ-API-ORIGIN` with the API host shown in your Syniq MCP tab.
 

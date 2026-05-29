@@ -1,5 +1,36 @@
 import { isWorkspaceUuidSessionId } from '../../../shared/sessionIds.js';
 
+const SYNIQ_MCP_PACKAGE = '@syniq/syniq-mcp';
+
+/**
+ * Cursor and other IDE hosts often spawn MCP with a minimal PATH (no nvm/npx).
+ * Use a login shell on Unix so npx resolves from the user's normal Node install.
+ */
+export function resolveMcpLaunchSpec({
+  useLocalPackage = false,
+  localPackageEntry = null,
+  platform = typeof navigator !== 'undefined' ? navigator.userAgent : '',
+} = {}) {
+  if (useLocalPackage && localPackageEntry) {
+    return {
+      command: 'node',
+      args: [localPackageEntry],
+    };
+  }
+
+  if (/Win/i.test(platform)) {
+    return {
+      command: 'cmd',
+      args: ['/d', '/s', '/c', `npx -y ${SYNIQ_MCP_PACKAGE}`],
+    };
+  }
+
+  return {
+    command: 'bash',
+    args: ['-lc', `exec npx -y ${SYNIQ_MCP_PACKAGE}`],
+  };
+}
+
 /**
  * Build MCP client config for Cursor, Claude Desktop, Kiro, etc.
  */
@@ -10,6 +41,7 @@ export function buildSyniqMcpServerConfig({
   ingestUrl,
   useLocalPackage = false,
   localPackageEntry = null,
+  platform,
 }) {
   const normalizedPublic = String(publicUrl || '').replace(/\/+$/, '');
   const normalizedIngest = String(ingestUrl || `${normalizedPublic}/ingest`).replace(/\/+$/, '');
@@ -27,23 +59,12 @@ export function buildSyniqMcpServerConfig({
     SYNIQ_INGEST_URL: normalizedIngest,
   };
 
-  if (useLocalPackage && localPackageEntry) {
-    return {
-      mcpServers: {
-        syniq: {
-          command: 'node',
-          args: [localPackageEntry],
-          env,
-        },
-      },
-    };
-  }
+  const launch = resolveMcpLaunchSpec({ useLocalPackage, localPackageEntry, platform });
 
   return {
     mcpServers: {
       syniq: {
-        command: 'npx',
-        args: ['-y', '@syniq/syniq-mcp'],
+        ...launch,
         env,
       },
     },

@@ -152,7 +152,6 @@ function ConnectBootstrapFailure({
 
 function ConcealedPayload({ text, title, emptyMessage = 'Preparing connection details…' }) {
   const [copied, copy] = useCopy();
-  const [revealed, setRevealed] = useState(false);
 
   if (!text?.trim()) {
     return (
@@ -162,18 +161,13 @@ function ConcealedPayload({ text, title, emptyMessage = 'Preparing connection de
     );
   }
 
-  const handleCopy = () => {
-    copy(text);
-    setRevealed(true);
-  };
-
   return (
     <div className="cam-payload-card">
       <div className="cam-payload-card__intro">
         <span className="cam-payload-card__title">{title}</span>
-        <p>Click Copy, then paste into your agent.</p>
+        <p>Click Copy, then paste into your agent. Credentials stay hidden here.</p>
       </div>
-      <button type="button" className="cam-payload-copy-btn" onClick={handleCopy}>
+      <button type="button" className="cam-payload-copy-btn" onClick={() => copy(text)}>
         {copied ? (
           <>
             <CheckCheck size={16} />
@@ -186,7 +180,7 @@ function ConcealedPayload({ text, title, emptyMessage = 'Preparing connection de
           </>
         )}
       </button>
-      <div className={`cam-payload-preview${revealed ? ' cam-payload-preview--revealed' : ''}`}>
+      <div className="cam-payload-preview" aria-hidden="true">
         <pre>{text}</pre>
       </div>
     </div>

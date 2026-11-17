@@ -139,25 +139,33 @@ function resolveStepTitle(stepTitle, toolName) {
     }
     return truncate(stepTitle || toolName || 'Syniq skill', 28);
 }
+/** Most a thin plan may be padded by. Beyond this the graph stops being a plan. */
+const MAX_SUPPLEMENTAL_STEPS = 8;
+/**
+ * Supplements must score at least this fraction of the best candidate.
+ * Relative rather than absolute because retrieval scores are not calibrated
+ * across tasks — an absolute floor either admits noise on strong queries or
+ * starves weak ones.
+ */
+const SUPPLEMENTAL_RELATIVE_FLOOR = 0.5;
 function supplementSelectedStepsFromRetrieval(selectedSteps, retrieval, intent, maxSkills, minimumSelectionScore) {
     const selectedToolIds = new Set(selectedSteps.map(step => step.toolId));
-    const pool = Array.isArray(retrieval.merged) ? retrieval.merged : [];
-    const supplementalFloor = Math.max(0.1, minimumSelectionScore - 0.04);
+    const pool = (Array.isArray(retrieval.merged) ? retrieval.merged : [])
+        .filter(candidate => !isMandatorySkillId(candidate.toolId));
+    const topScore = pool.reduce((best, candidate) => Math.max(best, candidate.score), 0);
+    const supplementalFloor = Math.max(minimumSelectionScore, topScore * SUPPLEMENTAL_RELATIVE_FLOOR);
+    let added = 0;
     for (const candidate of pool) {
-        if (selectedSteps.length >= maxSkills) {
+        if (selectedSteps.length >= maxSkills || added >= MAX_SUPPLEMENTAL_STEPS) {
             break;
         }
         if (selectedToolIds.has(candidate.toolId)) {
             continue;
         }
-        // Compulsory skills top the retrieval pool, so without this they get
-        // claimed here as untagged task steps and never marked as baseline.
-        if (isMandatorySkillId(candidate.toolId)) {
-            continue;
-        }
         if (candidate.score < supplementalFloor) {
             continue;
         }
+        added += 1;
         selectedToolIds.add(candidate.toolId);
         selectedSteps.push({
             id: stableId('plan', 'supplement', candidate.toolId),

@@ -76,8 +76,12 @@ export class CapabilityRetriever {
 
     const globalQuery = stringifyForSearch(intent.goal);
     if (globalQuery) {
+      // Catalog-wide pass: deliberately uncategorised. Passing a category here
+      // filtered the goal query down to that one category, so a task whose
+      // skills live elsewhere (tests, security, data) could never surface them
+      // — the category loop above is the only other source of candidates.
       const globalRetrieval = this.safeSemanticRetrieval(globalQuery, {
-        category: 'general',
+        category: null,
         allowedToolIds: options.allowedToolIds,
         topK: Math.max(topKPerCategory, 12),
         minScore,
@@ -137,7 +141,8 @@ export class CapabilityRetriever {
   private safeSemanticRetrieval(
     query: string,
     options: {
-      category: string;
+      /** null searches the whole catalog instead of one category. */
+      category: string | null;
       allowedToolIds?: string[];
       topK: number;
       minScore: number;
@@ -146,7 +151,10 @@ export class CapabilityRetriever {
     try {
       const availableCategories = this.registry.getCategories?.() || [];
       const filters: { category?: string; toolIds?: string[] } = {};
-      if (availableCategories.some(category => category.toLowerCase() === options.category.toLowerCase())) {
+      if (
+        options.category
+        && availableCategories.some(category => category.toLowerCase() === options.category!.toLowerCase())
+      ) {
         filters.category = options.category;
       }
       if (options.allowedToolIds?.length) {

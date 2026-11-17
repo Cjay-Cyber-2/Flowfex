@@ -1,4 +1,8 @@
-const DEFAULT_DIMENSIONS = 256;
+// Feature hashing collides when the bucket count is small relative to the
+// vocabulary. The catalog carries ~900 documents whose tokens, bigrams, and
+// synonym expansions run to hundreds of terms each, so 256 buckets smeared
+// unrelated skills together. 1024 costs ~7MB across the catalog.
+const DEFAULT_DIMENSIONS = 1024;
 
 const STOP_WORDS = new Set([
   'a',
@@ -113,21 +117,20 @@ export class EmbeddingService {
 
 export const defaultEmbeddingService = new EmbeddingService();
 
+/**
+ * Builds the text a tool is indexed by.
+ *
+ * Only include text that carries meaning about what the tool DOES. Operational
+ * metadata — file paths, trust/validation flags, quality scores, raw JSON
+ * schemas, handler descriptors — used to be embedded here too, and since every
+ * term competes for the same hash buckets, path fragments and JSON punctuation
+ * diluted the signal from the name and description.
+ */
 export function buildToolEmbeddingText(tool) {
   const tags = tool.metadata?.tags || [];
   const category = tool.metadata?.category || 'uncategorized';
   const subcategory = tool.metadata?.subcategory || '';
-  const sourcePath = tool.metadata?.sourcePath || '';
-  const sourceType = tool.metadata?.sourceType || '';
-  const sourceClassification = tool.metadata?.sourceClassification || '';
-  const trustLevel = tool.metadata?.trustLevel || '';
-  const validationStatus = tool.metadata?.validationStatus || '';
-  const qualityScore = tool.metadata?.qualityScore ?? '';
   const usage = tool.metadata?.usage || '';
-  const inputSchema = stringifyStructuredValue(tool.metadata?.inputSchema);
-  const outputSchema = stringifyStructuredValue(tool.metadata?.outputSchema);
-  const executionHandler = stringifyStructuredValue(tool.metadata?.executionHandler);
-  const approvalRequired = tool.metadata?.approvalRequired === true ? 'approval required' : 'approval optional';
   const prompt = typeof tool.prompt === 'string' ? tool.prompt.slice(0, 1200) : '';
 
   return [
@@ -135,19 +138,8 @@ export function buildToolEmbeddingText(tool) {
     tool.name,
     tool.description,
     `category ${category}`,
-    `subcategory ${subcategory}`,
-    `source ${tool.metadata?.source || ''}`,
-    `sourcePath ${sourcePath}`,
-    `sourceType ${sourceType}`,
-    `sourceClassification ${sourceClassification}`,
-    `trustLevel ${trustLevel}`,
-    `validationStatus ${validationStatus}`,
-    `qualityScore ${qualityScore}`,
-    `usage ${usage}`,
-    `inputSchema ${inputSchema}`,
-    `outputSchema ${outputSchema}`,
-    `executionHandler ${executionHandler}`,
-    approvalRequired,
+    subcategory ? `subcategory ${subcategory}` : '',
+    usage ? `usage ${usage}` : '',
     `keywords ${(tool.keywords || []).join(' ')}`,
     `tags ${tags.join(' ')}`,
     prompt
@@ -244,18 +236,3 @@ function hash(value) {
   return hashValue | 0;
 }
 
-function stringifyStructuredValue(value) {
-  if (typeof value === 'string') {
-    return value;
-  }
-
-  if (!value) {
-    return '';
-  }
-
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return String(value);
-  }
-}

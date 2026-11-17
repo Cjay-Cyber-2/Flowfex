@@ -19,10 +19,11 @@ import {
   getNodeBox,
 } from '../../utils/graphViewport';
 import {
+  BASELINE_GROUP_ID,
+  buildDisplayGraph,
   getBaselineHullBounds,
   getMinimapViewportRect,
   isCompactGraphScale,
-  partitionGraphNodes,
 } from '../../utils/graphLayout';
 import './CanvasRenderer.css';
 
@@ -160,26 +161,31 @@ function CanvasRenderer() {
   const [hoveredEdge, setHoveredEdge] = useState(null);
   const [spacePressed, setSpacePressed] = useState(false);
 
+  const [baselineExpanded, setBaselineExpanded] = useState(false);
+
+  const { nodes: displayNodes, edges: displayEdges, baselineGroup } = useMemo(
+    () => buildDisplayGraph(nodes, edges, { collapsed: !baselineExpanded }),
+    [baselineExpanded, edges, nodes]
+  );
+
   const nodeMap = useMemo(
     () =>
-      nodes.reduce((result, node) => {
+      displayNodes.reduce((result, node) => {
         result[node.id] = node;
         return result;
       }, {}),
-    [nodes]
+    [displayNodes]
   );
 
-  const { baseline: baselineNodes, task: taskNodes } = useMemo(
-    () => partitionGraphNodes(nodes),
-    [nodes]
-  );
-
+  // Only hull the baseline while it is expanded — collapsed it has its own chip.
   const baselineHull = useMemo(
-    () => getBaselineHullBounds(baselineNodes),
-    [baselineNodes]
+    () => (baselineGroup && !baselineGroup.collapsed
+      ? getBaselineHullBounds(baselineGroup.nodes)
+      : null),
+    [baselineGroup]
   );
 
-  const graphBounds = useMemo(() => getGraphBounds(nodes), [nodes]);
+  const graphBounds = useMemo(() => getGraphBounds(displayNodes), [displayNodes]);
 
   const minimap = useMemo(
     () => getMinimapViewportRect(transform, viewportSize, graphBounds),
@@ -193,23 +199,26 @@ function CanvasRenderer() {
       return selectedNode;
     }
     return (
-      nodes.find((node) => node.state === 'approval')
-      || nodes.find((node) => node.state === 'active')
-      || nodes.find((node) => node.state === 'paused')
-      || nodes.find((node) => node.state === 'queued')
+      displayNodes.find((node) => node.state === 'approval')
+      || displayNodes.find((node) => node.state === 'active')
+      || displayNodes.find((node) => node.state === 'paused')
+      || displayNodes.find((node) => node.state === 'queued')
       || null
     );
-  }, [nodes, selectedNode]);
+  }, [displayNodes, selectedNode]);
 
-  const showGraphDock = nodes.length > 0 && (isExecuting || approvalQueue.length > 0 || primaryActionableNode);
+  const showGraphDock = displayNodes.length > 0 && (isExecuting || approvalQueue.length > 0 || primaryActionableNode);
   const dockFocusNode = primaryActionableNode
-    || nodes.find((node) => node.state === 'active')
-    || nodes.find((node) => node.state === 'approval')
-    || nodes[0]
+    || displayNodes.find((node) => node.state === 'active')
+    || displayNodes.find((node) => node.state === 'approval')
+    || displayNodes[0]
     || null;
 
   useEffect(() => {
     if (!primaryActionableNode || selectedNode?.id === primaryActionableNode.id) {
+      return;
+    }
+    if (primaryActionableNode.id === BASELINE_GROUP_ID) {
       return;
     }
     if (primaryActionableNode.state === 'approval' && !selectedNode) {
@@ -232,24 +241,24 @@ function CanvasRenderer() {
   }, []);
 
   const fitView = useCallback(() => {
-    if (!nodes.length) return;
+    if (!displayNodes.length) return;
     setTransform(
-      fitTransformToGraph(nodes, viewportSize, {
+      fitTransformToGraph(displayNodes, viewportSize, {
         minScale: MIN_SCALE,
         maxScale: MAX_SCALE,
         padding: 72,
       })
     );
-  }, [nodes, viewportSize.height, viewportSize.width]);
+  }, [displayNodes, viewportSize.height, viewportSize.width]);
 
   useEffect(() => {
-    if (!nodes.length || viewportSize.width === 0 || viewportSize.height === 0) return;
-    const bounds = getGraphBounds(nodes);
-    const signature = `${nodes.length}:${bounds.width}:${bounds.height}:${nodes.map((n) => `${n.id}@${n.x},${n.y}`).join('|')}`;
+    if (!displayNodes.length || viewportSize.width === 0 || viewportSize.height === 0) return;
+    const bounds = getGraphBounds(displayNodes);
+    const signature = `${displayNodes.length}:${bounds.width}:${bounds.height}:${displayNodes.map((n) => `${n.id}@${n.x},${n.y}`).join('|')}`;
     if (autoFitRef.current === signature) return;
     fitView();
     autoFitRef.current = signature;
-  }, [fitView, nodes, viewportSize.width, viewportSize.height]);
+  }, [fitView, displayNodes, viewportSize.width, viewportSize.height]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -411,9 +420,13 @@ function CanvasRenderer() {
             <text
               x={baselineHull.minX + 16}
               y={baselineHull.minY + 22}
-              className="graph-baseline-hull-label"
+              className="graph-baseline-hull-label is-interactive"
+              onClick={(event) => {
+                event.stopPropagation();
+                setBaselineExpanded(false);
+              }}
             >
-              Syniq baseline ({baselineNodes.length})
+              Syniq baseline ({baselineGroup?.count ?? 0}) · collapse
             </text>
           </g>
         ) : null}
@@ -446,7 +459,7 @@ function CanvasRenderer() {
         </defs>
 
         <g transform={`translate(${transform.x} ${transform.y}) scale(${transform.scale})`}>
-          {edges.map((edge) => {
+          {displayEdges.map((edge) => {
             const fromNode = nodeMap[edge.from];
             const toNode = nodeMap[edge.to];
             if (!fromNode || !toNode) return null;
@@ -495,11 +508,12 @@ function CanvasRenderer() {
             );
           })}
 
-          {nodes.map((node) => {
+          {displayNodes.map((node) => {
             const { width, height } = getNodeDimensions(node);
             const center = getNodeCenter(node);
             const emphasized = isNodeEmphasized(node, canvasMode);
             const isSelected = selectedNode?.id === node.id;
+            const isBaselineGroup = node.id === BASELINE_GROUP_ID;
 
             return (
               <g
@@ -509,9 +523,29 @@ function CanvasRenderer() {
                   emphasized ? '' : 'is-dim'
                 } ${isSelected ? 'is-selected' : ''} ${compactView || node.config?.compact ? 'is-compact' : ''} ${
                   node.config?.group === 'baseline' ? 'is-baseline' : ''
-                }`}
-                onClick={() => selectNode(node.id)}
+                } ${isBaselineGroup ? 'is-baseline-group' : ''}`}
+                onClick={() => (isBaselineGroup ? setBaselineExpanded(true) : selectNode(node.id))}
               >
+                {isBaselineGroup ? (
+                  <>
+                    <rect
+                      className="graph-node-stack graph-node-stack--back"
+                      x={node.x + 12}
+                      y={node.y - 10}
+                      width={width - 24}
+                      height={height}
+                      rx="24"
+                    />
+                    <rect
+                      className="graph-node-stack graph-node-stack--mid"
+                      x={node.x + 6}
+                      y={node.y - 5}
+                      width={width - 12}
+                      height={height}
+                      rx="24"
+                    />
+                  </>
+                ) : null}
                 {node.shape === 'diamond' ? (
                   <polygon
                     points={`${center.x},${node.y} ${node.x + width},${center.y} ${center.x},${node.y + height} ${node.x},${center.y}`}
@@ -626,7 +660,7 @@ function CanvasRenderer() {
         </div>
       ) : null}
 
-      {minimap && nodes.length > 4 ? (
+      {minimap && displayNodes.length > 4 ? (
         <div className="graph-minimap" aria-hidden="true">
           <svg width={minimap.mapW} height={minimap.mapH} viewBox={`0 0 ${minimap.mapW} ${minimap.mapH}`}>
             <rect
@@ -636,7 +670,7 @@ function CanvasRenderer() {
               width={minimap.bounds.width * minimap.scale}
               height={minimap.bounds.height * minimap.scale}
             />
-            {nodes.map((node) => {
+            {displayNodes.map((node) => {
               const box = getNodeBox(node);
               return (
                 <rect
@@ -710,6 +744,7 @@ function CanvasRenderer() {
 }
 
 function formatNodeCaption(node) {
+  if (node.config?.collapsed) return 'Always applied · click to expand';
   if (node.state === 'approval') return 'Operator checkpoint';
   if (node.confidence) return `${node.confidence}% confidence`;
   return node.type;

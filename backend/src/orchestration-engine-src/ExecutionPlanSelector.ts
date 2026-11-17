@@ -11,7 +11,7 @@ import type {
   ToolRegistryLike,
 } from './contracts.js';
 import { includesLoosePhrase, overlapScore, stableId, truncate } from './utils.js';
-import { injectMandatoryIntoSelection } from '../skills/mandatorySkills.js';
+import { injectMandatoryIntoSelection, isMandatorySkillId } from '../skills/mandatorySkills.js';
 
 export class ExecutionPlanSelector {
   private readonly logger: EngineLogger;
@@ -218,6 +218,11 @@ function supplementSelectedStepsFromRetrieval(
       break;
     }
     if (selectedToolIds.has(candidate.toolId)) {
+      continue;
+    }
+    // Compulsory skills top the retrieval pool, so without this they get
+    // claimed here as untagged task steps and never marked as baseline.
+    if (isMandatorySkillId(candidate.toolId)) {
       continue;
     }
     if (candidate.score < supplementalFloor) {

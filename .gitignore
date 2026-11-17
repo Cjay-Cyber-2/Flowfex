@@ -1,5 +1,12 @@
 mcp/syniq-mcp/node_modules/
 
+# Local tooling
+.claude/
+
+# Intermediate output of frontend/scripts/prepare-scroll-frames.mjs — regenerated
+# on every `npm run dev`. The served copy in frontend/public/frames-clean stays tracked.
+/frames-clean/
+
 # Local secrets — never commit real credentials
 .env
 .env.local

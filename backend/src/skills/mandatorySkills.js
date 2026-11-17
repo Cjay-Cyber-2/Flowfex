@@ -230,6 +230,12 @@ export function injectMandatoryIntoSelection(selectedSteps, retrieval, intent, r
 
   for (const toolId of mandatoryIds) {
     if (present.has(toolId)) {
+      // Already selected by ranking/supplementing — tag it so the graph can
+      // still group it as baseline instead of showing it as a task step.
+      const existing = steps.find(step => step.toolId === toolId);
+      if (existing) {
+        existing.mandatory = true;
+      }
       continue;
     }
 

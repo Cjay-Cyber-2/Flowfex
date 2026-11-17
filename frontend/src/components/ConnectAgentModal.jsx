@@ -595,6 +595,10 @@ function ConnectAgentModal({
   const [syncState, setSyncState] = useState('idle');
   const fetchAttemptedRef = useRef(new Set());
   const finalizedConnectionKeysRef = useRef(new Set());
+  // Effects below reach these through refs so a new callback identity never
+  // re-runs them — re-running tears down and reopens the live socket.
+  const fetchConnectionRef = useRef(null);
+  const finalizeConnectionRef = useRef(null);
   const TabContent = TAB_CONTENT[activeTab];
   const isPaidAccount = appState?.identity?.billing === 'pro';
   const workspaceSessionId = activeSession?.id || session?.id || null;
@@ -840,6 +844,17 @@ function ConnectAgentModal({
     await refreshAppState().catch(() => null);
   }, [addAgent, connections, onClose, onConnected, refreshAppState, refreshUsage, workspaceSessionId]);
 
+  fetchConnectionRef.current = fetchConnection;
+  finalizeConnectionRef.current = finalizeConnection;
+
+  // Primitives, so the effects below do not re-run just because a wrapper
+  // object got a new identity.
+  const activeConnectionSession = connections[activeTab]?.connection?.session || null;
+  const activeConnectionSessionId = activeConnectionSession?.id || null;
+  const activeConnectionToken = activeConnectionSession?.token || null;
+  const hasActiveConnection = Boolean(connections[activeTab]);
+  const isActiveTabLoading = Boolean(loadingTabs[activeTab]);
+
   const handleSignUp = useCallback(() => {
     onClose();
     navigate('/signup');
@@ -860,11 +875,11 @@ function ConnectAgentModal({
       return;
     }
 
-    if (!connections[activeTab] && !loadingTabs[activeTab] && !fetchAttemptedRef.current.has(activeTab)) {
+    if (!hasActiveConnection && !isActiveTabLoading && !fetchAttemptedRef.current.has(activeTab)) {
       fetchAttemptedRef.current.add(activeTab);
-      fetchConnection(activeTab);
+      fetchConnectionRef.current?.(activeTab);
     }
-  }, [activeTab, connections, fetchConnection, isOpen, loadingTabs, workspaceSessionId]);
+  }, [activeTab, hasActiveConnection, isActiveTabLoading, isOpen, workspaceSessionId]);
 
   useEffect(() => {
     if (workspaceSessionId) {
@@ -875,12 +890,16 @@ function ConnectAgentModal({
 
   useEffect(() => {
     if (!isOpen) {
+      // Reset through the functional form and keep the existing object when it
+      // is already empty. Returning a fresh {} unconditionally gave `connections`
+      // a new identity on every run, which changed this effect's own deps and
+      // re-triggered it forever while the modal sat mounted but closed.
       setActiveTab(resolvedTab);
-      setConnections({});
       setSyncState('idle');
-      setErrors({});
-      setLimitMessages({});
-      setLoadingTabs({});
+      setConnections((current) => (Object.keys(current).length ? {} : current));
+      setErrors((current) => (Object.keys(current).length ? {} : current));
+      setLimitMessages((current) => (Object.keys(current).length ? {} : current));
+      setLoadingTabs((current) => (Object.keys(current).length ? {} : current));
       fetchAttemptedRef.current = new Set();
       finalizedConnectionKeysRef.current = new Set();
       return undefined;
@@ -890,8 +909,7 @@ function ConnectAgentModal({
       setActiveTab(lockedTab);
     }
 
-    const connectionSession = connections[activeTab]?.connection?.session;
-    const socketSessionId = workspaceSessionId || connectionSession?.id;
+    const socketSessionId = workspaceSessionId || activeConnectionSessionId;
     if (!socketSessionId || !socketBase) {
       setSyncState('idle');
       return undefined;
@@ -910,13 +928,13 @@ function ConnectAgentModal({
 
       const eventSessionId = eventData.sessionId;
       const matchesWorkspace = workspaceSessionId && eventSessionId === workspaceSessionId;
-      const matchesConnection = connectionSession?.id && eventSessionId === connectionSession.id;
+      const matchesConnection = activeConnectionSessionId && eventSessionId === activeConnectionSessionId;
       if (!matchesWorkspace && !matchesConnection) {
         return;
       }
 
       setSyncState('connected');
-      window.setTimeout(() => finalizeConnection(activeTab, eventData), 320);
+      window.setTimeout(() => finalizeConnectionRef.current?.(activeTab, eventData), 320);
     });
 
     socket.on('connect_error', () => {
@@ -926,7 +944,7 @@ function ConnectAgentModal({
     return () => {
       socket.disconnect();
     };
-  }, [activeTab, socketBase, connections, finalizeConnection, initialTab, isOpen, workspaceSessionId]);
+  }, [activeTab, activeConnectionSessionId, lockedTab, resolvedTab, socketBase, isOpen, workspaceSessionId]);
 
   /** HTTP fallback: if agent:connected is missed (WS timing, proxies), poll session after an 8s grace window. */
   useEffect(() => {
@@ -934,9 +952,9 @@ function ConnectAgentModal({
       return undefined;
     }
 
-    const sess = connections[activeTab]?.connection?.session;
-    const token = sess?.token;
-    if (!sess?.id || !token) {
+    const sessionId = activeConnectionSessionId;
+    const token = activeConnectionToken;
+    if (!sessionId || !token) {
       return undefined;
     }
 
@@ -950,7 +968,7 @@ function ConnectAgentModal({
         return;
       }
       try {
-        const response = await fetch(`${baseUrl}/sessions/${sess.id}`, {
+        const response = await fetch(`${baseUrl}/sessions/${sessionId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: 'application/json',
@@ -961,8 +979,8 @@ function ConnectAgentModal({
         }
         const payload = await response.json();
         if (payload?.session?.connectedAt && !cancelled) {
-          finalizeConnection(activeTab, {
-            sessionId: sess.id,
+          finalizeConnectionRef.current?.(activeTab, {
+            sessionId,
             agentId: payload.session.agent?.id,
             agentName: payload.session.agent?.name,
             connectionType: activeTab,
@@ -1000,7 +1018,7 @@ function ConnectAgentModal({
         window.clearInterval(intervalId);
       }
     };
-  }, [activeTab, apiFetchBase, connections, finalizeConnection, initialTab, isOpen, syncState]);
+  }, [activeTab, activeConnectionSessionId, activeConnectionToken, apiFetchBase, isOpen, syncState]);
 
   return (
     <AnimatePresence initial={false}>

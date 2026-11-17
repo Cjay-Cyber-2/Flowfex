@@ -306,10 +306,9 @@ function addEdge(edges, outgoingEdges, incomingEdgeIdByNode, edge) {
 }
 function computeGraphLayout(selectedSteps, stepNodeIdByStepId) {
     const layoutByNodeId = new Map();
-    const mandatory = selectedSteps.filter((step) => step.mandatory);
-    const task = selectedSteps.filter((step) => !step.mandatory);
+    const mandatory = selectedSteps.filter(step => Boolean(step.mandatory));
+    const task = selectedSteps.filter(step => !step.mandatory);
     const baselineCols = Math.min(MAX_NODES_PER_ROW, Math.max(4, Math.ceil(Math.sqrt(Math.max(mandatory.length, 1)))));
-
     mandatory.forEach((step, index) => {
         const col = index % baselineCols;
         const row = Math.floor(index / baselineCols);
@@ -323,12 +322,10 @@ function computeGraphLayout(selectedSteps, stepNodeIdByStepId) {
             group: 'baseline',
         });
     });
-
     const baselineRows = Math.max(1, Math.ceil(mandatory.length / baselineCols));
     const taskStartY = BASELINE_BAND_Y + baselineRows * COMPACT_SPACING_Y + 96;
     const taskCols = Math.min(MAX_NODES_PER_ROW, Math.max(4, Math.ceil(Math.sqrt(Math.max(task.length, 1)))));
     const taskSpacingX = task.length > 10 ? 200 : NODE_SPACING_X;
-
     task.forEach((step, index) => {
         const row = Math.floor(index / taskCols);
         const col = index % taskCols;
@@ -343,7 +340,6 @@ function computeGraphLayout(selectedSteps, stepNodeIdByStepId) {
             group: 'task',
         });
     });
-
     for (const step of selectedSteps) {
         const graphNodeId = stepNodeIdByStepId.get(step.stepId);
         if (!graphNodeId || layoutByNodeId.has(graphNodeId)) {
@@ -358,10 +354,8 @@ function computeGraphLayout(selectedSteps, stepNodeIdByStepId) {
             group: 'task',
         });
     }
-
     return layoutByNodeId;
 }
-
 function findNextVisibleSkillNodeId(selectedSteps, stepNodeIdByStepId, exclusiveAlternateStepIds, currentStepIndex) {
     for (let index = currentStepIndex + 1; index < selectedSteps.length; index += 1) {
         const nextStep = selectedSteps[index];

@@ -32,24 +32,22 @@ async function withEnv(overrides, fn) {
 
 await test('CORS origins are normalized from production env values', async () => {
   await withEnv({
-    ALLOWED_ORIGINS: 'https:// flowfex.vercel.app, https://flowfex.onrender.com/, *',
-    FLOWFEX_APP_URL: 'https://flowfex.vercel.app/app',
-    FLOWFEX_PUBLIC_ORIGIN: 'https://flowfex.onrender.com',
+    ALLOWED_ORIGINS: 'https:// syniq.vercel.app, https://syniq-backend.onrender.com/, *',
+    SYNIQ_APP_URL: 'https://syniq.vercel.app/app',
+    SYNIQ_PUBLIC_ORIGIN: 'https://syniq-backend.onrender.com',
   }, () => {
     const origins = getAllowedBrowserOrigins();
-    assert.ok(origins.includes('https://flowfex.vercel.app'));
-    assert.ok(origins.includes('https://flowfex.onrender.com'));
-    assert.equal(resolveAllowedCorsOrigin('https://flowfex.vercel.app'), 'https://flowfex.vercel.app');
-    assert.equal(resolveAllowedCorsOrigin('https://not-flowfex.example'), null);
+    assert.ok(origins.includes('https://syniq.vercel.app'));
+    assert.ok(origins.includes('https://syniq-backend.onrender.com'));
+    assert.equal(resolveAllowedCorsOrigin('https://syniq.vercel.app'), 'https://syniq.vercel.app');
+    assert.equal(resolveAllowedCorsOrigin('https://not-syniq.example'), null);
   });
 });
 
-await test('Flowfex env aliases take precedence over legacy Syniq aliases', async () => {
+await test('Syniq env aliases are honored by ConnectionService', async () => {
   await withEnv({
     BETTER_AUTH_URL: undefined,
-    FLOWFEX_PUBLIC_ORIGIN: 'https://flowfex.onrender.com',
-    SYNIQ_PUBLIC_ORIGIN: 'https://syniq.onrender.com',
-    FLOWFEX_LINK_SECRET: 'flowfex-secret',
+    SYNIQ_PUBLIC_ORIGIN: 'https://syniq-backend.onrender.com',
     SYNIQ_LINK_SECRET: 'syniq-secret',
   }, () => {
     const service = new ConnectionService({
@@ -58,14 +56,14 @@ await test('Flowfex env aliases take precedence over legacy Syniq aliases', asyn
       sessionManager: {},
     });
 
-    assert.equal(service.publicBaseUrl, 'https://flowfex.onrender.com');
-    assert.equal(service.linkSecret, 'flowfex-secret');
+    assert.equal(service.publicBaseUrl, 'https://syniq-backend.onrender.com');
+    assert.equal(service.linkSecret, 'syniq-secret');
   });
 });
 
 await test('legacy /auth paths are rewritten to /api/auth', async () => {
   await withEnv({
-    ALLOWED_ORIGINS: 'https://flowfex.vercel.app',
+    ALLOWED_ORIGINS: 'https://syniq.vercel.app',
   }, async () => {
     const server = new SyniqServer({
       host: '127.0.0.1',
@@ -90,7 +88,7 @@ await test('legacy /auth paths are rewritten to /api/auth', async () => {
 
 await test('auth preflight returns 204 with credentialed CORS headers', async () => {
   await withEnv({
-    ALLOWED_ORIGINS: 'https://flowfex.vercel.app',
+    ALLOWED_ORIGINS: 'https://syniq.vercel.app',
   }, async () => {
     const server = new SyniqServer({
       host: '127.0.0.1',
@@ -106,13 +104,13 @@ await test('auth preflight returns 204 with credentialed CORS headers', async ()
     const address = await server.start();
     try {
       const response = await requestOptions(address.port, '/api/auth/sign-in/email', {
-        origin: 'https://flowfex.vercel.app',
+        origin: 'https://syniq.vercel.app',
         requestMethod: 'POST',
         requestHeaders: 'content-type',
       });
 
       assert.equal(response.statusCode, 204);
-      assert.equal(response.headers['access-control-allow-origin'], 'https://flowfex.vercel.app');
+      assert.equal(response.headers['access-control-allow-origin'], 'https://syniq.vercel.app');
       assert.equal(response.headers['access-control-allow-credentials'], 'true');
     } finally {
       await server.stop();

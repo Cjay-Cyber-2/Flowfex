@@ -1,4 +1,4 @@
-# Flowfex Landing Page - GODMODE Sections
+# Syniq Landing Page - GODMODE Sections
 ## Implementation Tasks
 
 ## Task 1: Setup and Dependencies

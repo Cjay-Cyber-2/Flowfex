@@ -5,9 +5,9 @@ import { ExecutionRunner } from './ExecutionRunner.js';
 import { OrchestrationEventBridge } from './OrchestrationEventBridge.js';
 import { SessionStateStore } from './SessionStateStore.js';
 import { TaskIntentPlanner } from './TaskIntentPlanner.js';
+import { buildExecutionId } from './utils.js';
 import { resolveMandatorySkillIds } from '../skills/mandatorySkills.js';
 import { buildSyniqUsageFromMandatoryIds, buildSyniqUsageSummary } from '../skills/syniqUsageSummary.js';
-import { buildExecutionId } from './utils.js';
 export class OrchestrationEngine {
     registry;
     llm;
@@ -127,10 +127,7 @@ export class OrchestrationEngine {
             const snapshot = this.stateStore.getSnapshot(context.sessionId);
             const syniqUsage = selection.selectedSteps.length > 0
                 ? buildSyniqUsageSummary(selection.selectedSteps)
-                : buildSyniqUsageFromMandatoryIds(
-                    retrieval.mandatorySkillIds || resolveMandatorySkillIds(this.registry),
-                    this.registry
-                );
+                : buildSyniqUsageFromMandatoryIds(retrieval.mandatorySkillIds || resolveMandatorySkillIds(this.registry), this.registry);
             return {
                 executionId,
                 sessionId: context.sessionId,
@@ -191,10 +188,7 @@ export class OrchestrationEngine {
         const snapshot = this.stateStore.getSnapshot(context.sessionId);
         const syniqUsage = selection.selectedSteps.length > 0
             ? buildSyniqUsageSummary(selection.selectedSteps)
-            : buildSyniqUsageFromMandatoryIds(
-                retrieval.mandatorySkillIds || resolveMandatorySkillIds(this.registry),
-                this.registry
-            );
+            : buildSyniqUsageFromMandatoryIds(retrieval.mandatorySkillIds || resolveMandatorySkillIds(this.registry), this.registry);
         this.emitFinalExecutionDiagnostic(bridge, {
             task: context.task,
             status: execution.status,
@@ -281,10 +275,7 @@ export class OrchestrationEngine {
         const nextSnapshot = this.stateStore.getSnapshot(snapshot.sessionId);
         const syniqUsage = (snapshot.selection?.selectedSteps || []).length > 0
             ? buildSyniqUsageSummary(snapshot.selection.selectedSteps)
-            : buildSyniqUsageFromMandatoryIds(
-                snapshot.selection?.mandatorySkillIds || resolveMandatorySkillIds(this.registry),
-                this.registry
-            );
+            : buildSyniqUsageFromMandatoryIds(snapshot.selection?.mandatorySkillIds || resolveMandatorySkillIds(this.registry), this.registry);
         this.emitFinalExecutionDiagnostic(bridge, {
             task: snapshot.task,
             status: execution.status,

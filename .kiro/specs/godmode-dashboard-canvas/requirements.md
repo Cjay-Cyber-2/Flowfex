@@ -1,4 +1,4 @@
-# GODMODE FLOWFEX — Dashboard Canvas Requirements
+# GODMODE SYNIQ — Dashboard Canvas Requirements
 ## Part 3 of 3: The Center Canvas Deep Specification
 
 ---
@@ -150,7 +150,7 @@ The canvas is not a diagram tool. It is not a flowchart editor. It is a **window
 ### US-10: Responsive Behavior
 **As a** user on tablet  
 **I want** the canvas to adapt intelligently  
-**So that** I can still use Flowfex effectively
+**So that** I can still use Syniq effectively
 
 **Acceptance Criteria**:
 - Tablet (768px-1024px): left panel collapses to icons

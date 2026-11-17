@@ -68,14 +68,14 @@ export interface SessionSnapshot {
     errors: Record<string, unknown>;
 }
 export type EventHandler = (data: unknown) => void;
-export declare class FlowfexClient {
+export declare class SyniqClient {
     private baseUrl;
     private session;
     private socket;
     private listeners;
     constructor(baseUrl?: string);
     /**
-     * Connect to Flowfex and create a session
+     * Connect to Syniq and create a session
      */
     connect(agent: AgentConfig, options?: ConnectOptions): Promise<Session>;
     /**
@@ -119,10 +119,10 @@ export declare class FlowfexClient {
     private _connectSocket;
     private _attachSession;
 }
-export declare class FlowfexError extends Error {
+export declare class SyniqError extends Error {
     statusCode: number;
     constructor(message: string, statusCode: number);
 }
-export declare function connect(baseUrl?: string): FlowfexClient;
-export default FlowfexClient;
+export declare function connect(baseUrl?: string): SyniqClient;
+export default SyniqClient;
 //# sourceMappingURL=index.d.ts.map

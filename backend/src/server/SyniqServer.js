@@ -34,7 +34,7 @@ import {
 } from '../connection/connectionSessionPersistence.js';
 
 const authHandler = toNodeHandler(auth);
-const DEBUG_REQUEST_LOGS = /^(1|true|yes)$/i.test(String(process.env.SYNIQ_DEBUG_REQUESTS || process.env.FLOWFEX_DEBUG_REQUESTS || '').trim());
+const DEBUG_REQUEST_LOGS = /^(1|true|yes)$/i.test(String(process.env.SYNIQ_DEBUG_REQUESTS || '').trim());
 
 /**
  * Minimal HTTP surface for external agent connections.
@@ -1783,7 +1783,7 @@ export class SyniqServer {
   }
 
   _buildBaseUrl(request) {
-    const configuredOrigin = process.env.BETTER_AUTH_URL || process.env.FLOWFEX_PUBLIC_ORIGIN || process.env.SYNIQ_PUBLIC_ORIGIN || this.connectionService?.publicBaseUrl || null;
+    const configuredOrigin = process.env.BETTER_AUTH_URL || process.env.SYNIQ_PUBLIC_ORIGIN || this.connectionService?.publicBaseUrl || null;
     if (configuredOrigin) {
       return configuredOrigin.replace(/\/+$/, '');
     }

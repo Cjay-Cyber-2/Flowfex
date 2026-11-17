@@ -1,4 +1,4 @@
-# Flowfex Landing Page - GODMODE Sections
+# Syniq Landing Page - GODMODE Sections
 ## Design Document
 
 ## Architecture Overview
@@ -633,7 +633,7 @@ const logos = [
 ```javascript
 const testimonials = [
   {
-    quote: "Flowfex changed how we build with AI. We can finally see what our agents are doing in real-time.",
+    quote: "Syniq changed how we build with AI. We can finally see what our agents are doing in real-time.",
     keyPhrase: "see what our agents are doing",
     author: "Sarah Chen",
     role: "Engineering Lead",
@@ -659,7 +659,7 @@ const testimonials = [
 ### Code Snippets
 ```javascript
 const codeSnippets = {
-  prompt: `You are connected to Flowfex orchestration.
+  prompt: `You are connected to Syniq orchestration.
 
 When you need approval for a decision:
 1. Explain your reasoning
@@ -668,26 +668,26 @@ When you need approval for a decision:
 
 All your actions will be visible in the live graph.`,
   
-  javascript: `import { Flowfex } from '@flowfex/sdk';
+  javascript: `import { Syniq } from '@syniq/sdk';
 
-const flowfex = new Flowfex({
-  apiKey: process.env.FLOWFEX_API_KEY
+const syniq = new Syniq({
+  apiKey: process.env.SYNIQ_API_KEY
 });
 
 // Connect your agent
-await flowfex.connect({
+await syniq.connect({
   name: 'My Agent',
   mode: 'live'
 });`,
   
-  python: `from flowfex import Flowfex
+  python: `from syniq import Syniq
 
-flowfex = Flowfex(
-    api_key=os.getenv('FLOWFEX_API_KEY')
+syniq = Syniq(
+    api_key=os.getenv('SYNIQ_API_KEY')
 )
 
 # Connect your agent
-await flowfex.connect(
+await syniq.connect(
     name='My Agent',
     mode='live'
 )`
@@ -700,7 +700,7 @@ const pricingTiers = [
   {
     name: 'Free',
     price: 0,
-    description: 'For trying out Flowfex',
+    description: 'For trying out Syniq',
     features: [
       '100 orchestration steps/month',
       '1 connected agent',
@@ -748,12 +748,12 @@ const pricingTiers = [
 ```javascript
 const faqs = [
   {
-    question: 'What agents does Flowfex work with?',
-    answer: 'Flowfex works with any agent framework or custom agent. Connect via prompt, SDK, link, or live socket. We support Claude, GPT-4, AutoGPT, LangChain, and custom implementations.'
+    question: 'What agents does Syniq work with?',
+    answer: 'Syniq works with any agent framework or custom agent. Connect via prompt, SDK, link, or live socket. We support Claude, GPT-4, AutoGPT, LangChain, and custom implementations.'
   },
   {
     question: 'How does the prompt connection work?',
-    answer: 'Simply paste our connection prompt into your agent\'s system instructions. The agent will automatically report its actions to Flowfex, creating a live visualization of its execution.'
+    answer: 'Simply paste our connection prompt into your agent\'s system instructions. The agent will automatically report its actions to Syniq, creating a live visualization of its execution.'
   },
   {
     question: 'Is sign-up required?',

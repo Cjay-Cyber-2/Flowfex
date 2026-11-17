@@ -1,11 +1,11 @@
 ---
-title: Flowfex Architecture Reel
-source: Derived from Flowfex frontend tokens and repo docs
+title: Syniq Architecture Reel
+source: Derived from Syniq frontend tokens and repo docs
 ---
 
 # Brand Direction
 
-Flowfex should feel like a premium orchestration console inside a luminous void: high-contrast, technical, precise, and alive with signal motion.
+Syniq should feel like a premium orchestration console inside a luminous void: high-contrast, technical, precise, and alive with signal motion.
 
 For this version, the motion direction is specifically Apple-style product film:
 - restrained

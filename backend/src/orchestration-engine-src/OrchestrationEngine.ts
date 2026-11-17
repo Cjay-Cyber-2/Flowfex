@@ -16,6 +16,8 @@ import { OrchestrationEventBridge } from './OrchestrationEventBridge.js';
 import { SessionStateStore } from './SessionStateStore.js';
 import { TaskIntentPlanner } from './TaskIntentPlanner.js';
 import { buildExecutionId } from './utils.js';
+import { resolveMandatorySkillIds } from '../skills/mandatorySkills.js';
+import { buildSyniqUsageFromMandatoryIds, buildSyniqUsageSummary } from '../skills/syniqUsageSummary.js';
 
 export class OrchestrationEngine {
   private readonly registry: ToolRegistryLike;
@@ -109,6 +111,9 @@ export class OrchestrationEngine {
     const selection = this.selector.selectPlan(planning.intent, retrieval, {
       sessionId: context.sessionId,
       executionId,
+      registry: this.registry,
+      maxSkills: context.maxGraphSkills ?? 40,
+      minimumSelectionScore: context.minimumSelectionScore ?? 0.12,
     });
     const buildResult = this.graphBuilder.buildGraph(selection, {
       sessionId: context.sessionId,
@@ -146,6 +151,12 @@ export class OrchestrationEngine {
       });
 
       const snapshot = this.stateStore.getSnapshot(context.sessionId) as NonNullable<ReturnType<typeof this.stateStore.getSnapshot>>;
+      const syniqUsage = selection.selectedSteps.length > 0
+        ? buildSyniqUsageSummary(selection.selectedSteps)
+        : buildSyniqUsageFromMandatoryIds(
+            retrieval.mandatorySkillIds || resolveMandatorySkillIds(this.registry),
+            this.registry
+          );
 
       return {
         executionId,
@@ -161,6 +172,7 @@ export class OrchestrationEngine {
         trace: snapshot.trace || [],
         finalResult: null,
         output: null,
+        syniqUsage,
         error,
         duration: Date.now() - startedAt,
         timestamp: new Date(startedAt).toISOString(),
@@ -207,6 +219,12 @@ export class OrchestrationEngine {
       bridge,
     });
     const snapshot = this.stateStore.getSnapshot(context.sessionId);
+    const syniqUsage = selection.selectedSteps.length > 0
+      ? buildSyniqUsageSummary(selection.selectedSteps)
+      : buildSyniqUsageFromMandatoryIds(
+          retrieval.mandatorySkillIds || resolveMandatorySkillIds(this.registry),
+          this.registry
+        );
     this.emitFinalExecutionDiagnostic(bridge, {
       task: context.task,
       status: execution.status,
@@ -215,6 +233,7 @@ export class OrchestrationEngine {
       selectionStrategy: selection.rankings[0]?.strategy
         || (retrieval.strategy === 'mixed' ? 'keyword-fallback' : retrieval.strategy),
       fallbackUsed: retrieval.fallbackUsed || selection.fallbackUsed,
+      syniqUsage,
     });
 
     return {
@@ -225,6 +244,7 @@ export class OrchestrationEngine {
       intent: planning.intent,
       graph: buildResult.graph,
       snapshot: snapshot as NonNullable<typeof snapshot>,
+      syniqUsage,
       selectedTool: selection.selectedSteps[0]
         ? {
             id: selection.selectedSteps[0].toolId,
@@ -307,6 +327,12 @@ export class OrchestrationEngine {
       emitGraphCreated: false,
     });
     const nextSnapshot = this.stateStore.getSnapshot(snapshot.sessionId);
+    const syniqUsage = (snapshot.selection?.selectedSteps || []).length > 0
+      ? buildSyniqUsageSummary(snapshot.selection.selectedSteps)
+      : buildSyniqUsageFromMandatoryIds(
+          (snapshot.selection as { mandatorySkillIds?: string[] })?.mandatorySkillIds || resolveMandatorySkillIds(this.registry),
+          this.registry
+        );
 
     this.emitFinalExecutionDiagnostic(bridge, {
       task: snapshot.task,
@@ -315,6 +341,7 @@ export class OrchestrationEngine {
       error: execution.error,
       selectionStrategy: snapshot.selection.rankings[0]?.strategy || 'deterministic-fallback',
       fallbackUsed: snapshot.selection.fallbackUsed === true,
+      syniqUsage,
     });
 
     return {
@@ -325,6 +352,7 @@ export class OrchestrationEngine {
       intent: snapshot.intent,
       graph: nextSnapshot?.graph || snapshot.graph,
       snapshot: nextSnapshot as NonNullable<typeof nextSnapshot>,
+      syniqUsage,
       selectedTool: snapshot.selection.selectedSteps[0]
         ? {
             id: snapshot.selection.selectedSteps[0].toolId,
@@ -360,6 +388,7 @@ export class OrchestrationEngine {
       error: OrchestrationRunResult['error'];
       selectionStrategy: string;
       fallbackUsed: boolean;
+      syniqUsage?: import('../skills/syniqUsageSummary.js').SyniqUsageSummary;
     }
   ): void {
     const finalEventType = details.status === 'error'

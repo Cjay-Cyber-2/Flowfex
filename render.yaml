@@ -12,9 +12,7 @@ services:
         sync: false
       - key: SYNIQ_PUBLIC_ORIGIN
         sync: false
-      - key: FLOWFEX_PUBLIC_ORIGIN
-        sync: false
-      - key: FLOWFEX_APP_URL
+      - key: SYNIQ_APP_URL
         sync: false
       - key: ALLOWED_ORIGINS
         sync: false
@@ -26,8 +24,6 @@ services:
         generateValue: true
       - key: SYNIQ_LINK_SECRET
         generateValue: true
-      - key: FLOWFEX_LINK_SECRET
-        sync: false
       - key: RESEND_API_KEY
         sync: false
       - key: EMAIL_FROM

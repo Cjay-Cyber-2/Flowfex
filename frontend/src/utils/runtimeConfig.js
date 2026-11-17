@@ -1,7 +1,7 @@
 const DEFAULT_APP_ORIGIN = 'http://localhost:3000';
 const DEFAULT_BACKEND_ORIGIN = 'http://localhost:4000';
 /** Render-hosted API when the SPA is on Vercel/static hosting without VITE_BACKEND_URL. */
-const DEFAULT_PRODUCTION_BACKEND_ORIGIN = 'https://flowfex.onrender.com';
+const DEFAULT_PRODUCTION_BACKEND_ORIGIN = 'https://syniq-backend.onrender.com';
 const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1']);
 
 function trimTrailingSlash(value) {
@@ -51,7 +51,7 @@ export function getAppOrigin() {
   return DEFAULT_APP_ORIGIN;
 }
 
-const VERCEL_APP_HOSTS = new Set(['syniq.vercel.app', 'flowfex.vercel.app']);
+const VERCEL_APP_HOSTS = new Set(['syniq.vercel.app']);
 
 function isLocalDevHost(hostname) {
   return LOCAL_HOSTNAMES.has(hostname);

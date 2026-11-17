@@ -1,4 +1,4 @@
-import type { CapabilityRetrievalResult, EngineLogger, PlanSelectionResult, TaskIntent } from './contracts.js';
+import type { CapabilityRetrievalResult, EngineLogger, PlanSelectionResult, TaskIntent, ToolRegistryLike } from './contracts.js';
 export declare class ExecutionPlanSelector {
     private readonly logger;
     constructor(config: {
@@ -9,5 +9,7 @@ export declare class ExecutionPlanSelector {
         executionId: string;
         maxSkills?: number;
         minimumSelectionScore?: number;
+        registry?: ToolRegistryLike;
+        supplementFromRetrieval?: boolean;
     }): PlanSelectionResult;
 }

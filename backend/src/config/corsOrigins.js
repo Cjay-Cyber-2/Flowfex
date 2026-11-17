@@ -9,10 +9,9 @@ const DEFAULT_ORIGINS = [
   'http://127.0.0.1:3000',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-  'https://flowfex.vercel.app',
-  'https://flowfex.onrender.com',
   'https://syniq.vercel.app',
   'https://syniq.onrender.com',
+  'https://syniq-backend.onrender.com',
 ];
 
 function normalizeOrigin(value) {
@@ -52,14 +51,12 @@ function parseOriginList(raw) {
 
 function collectEnvOriginCandidates() {
   return [
-    process.env.FLOWFEX_APP_URL,
     process.env.SYNIQ_APP_URL,
     process.env.FRONTEND_URL,
     process.env.FRONTEND_ORIGIN,
     process.env.APP_URL,
     process.env.VITE_APP_URL,
     process.env.BETTER_AUTH_URL,
-    process.env.FLOWFEX_PUBLIC_ORIGIN,
     process.env.SYNIQ_PUBLIC_ORIGIN,
     process.env.RENDER_EXTERNAL_URL,
   ]

@@ -17,7 +17,7 @@ export const CONNECT_SETUP_STEPS = {
       parts: [
         { text: 'Click ' },
         { text: 'Copy', highlight: true, mono: true },
-        { text: ' below to reveal the connection contract, then copy the full block.' },
+        { text: ' below to copy the connection contract without showing it on screen.' },
       ],
     },
     {
@@ -48,11 +48,11 @@ export const CONNECT_SETUP_STEPS = {
       parts: [
         { text: 'Click ' },
         { text: 'Copy', highlight: true, mono: true },
-        { text: ' below to reveal your MCP JSON. It already includes your ' },
+        { text: ' below to copy your MCP JSON. It already includes your ' },
         { text: 'SYNIQ_SESSION_ID', highlight: true, mono: true },
         { text: ' and ' },
         { text: 'SYNIQ_SESSION_TOKEN', highlight: true, mono: true },
-        { text: ' for this visit.' },
+        { text: ' for this visit, while keeping them blurred here.' },
       ],
     },
     {
@@ -106,7 +106,7 @@ export const CONNECT_SETUP_STEPS = {
       parts: [
         { text: 'Click ' },
         { text: 'Copy', highlight: true, mono: true },
-        { text: ' next to the link below (or open it in the browser where your agent runs).' },
+        { text: ' below to copy the secure attach link (or open it in the browser where your agent runs).' },
       ],
     },
     {
@@ -125,7 +125,7 @@ export const CONNECT_SETUP_STEPS = {
       parts: [
         { text: 'Click ' },
         { text: 'Copy', highlight: true, mono: true },
-        { text: ' below to reveal the code snippet for this session.' },
+        { text: ' below to copy the code snippet for this session.' },
       ],
     },
     {
@@ -152,7 +152,7 @@ export const CONNECT_SETUP_STEPS = {
       parts: [
         { text: 'Click ' },
         { text: 'Copy', highlight: true, mono: true },
-        { text: ' below to reveal the live-channel payload.' },
+        { text: ' below to copy the live-channel payload.' },
       ],
     },
     {

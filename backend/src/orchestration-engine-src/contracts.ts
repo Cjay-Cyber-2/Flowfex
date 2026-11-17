@@ -226,6 +226,7 @@ export interface CapabilityRetrievalResult {
   merged: CapabilityCandidate[];
   strategy: 'semantic' | 'deterministic-fallback' | 'mixed';
   fallbackUsed: boolean;
+  mandatorySkillIds?: string[];
 }
 
 export interface StepSelectionAlternative {
@@ -249,6 +250,7 @@ export interface SelectedExecutionStep {
   score: number;
   reasoning: string;
   alternatives: StepSelectionAlternative[];
+  mandatory?: boolean;
 }
 
 export interface DecisionPlanNode {
@@ -446,6 +448,8 @@ export interface OrchestrationExecutionContext {
   socketServer?: SocketServerLike | null;
   topK?: number;
   minScore?: number;
+  maxGraphSkills?: number;
+  minimumSelectionScore?: number;
 }
 
 export interface OrchestrationEventRecord {
@@ -507,4 +511,5 @@ export interface OrchestrationRunResult {
   error: ExecutionErrorInfo | null;
   duration: number;
   timestamp: string;
+  syniqUsage?: import('../skills/syniqUsageSummary.js').SyniqUsageSummary;
 }

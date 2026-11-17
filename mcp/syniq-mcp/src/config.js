@@ -3,8 +3,8 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 
 const ENV_KEYS = {
-  publicUrl: ['SYNIQ_PUBLIC_URL', 'FLOWFEX_PUBLIC_ORIGIN', 'SYNIQ_PUBLIC_ORIGIN', 'BETTER_AUTH_URL'],
-  ingestUrl: ['SYNIQ_INGEST_URL', 'FLOWFEX_INGEST_URL'],
+  publicUrl: ['SYNIQ_PUBLIC_URL', 'SYNIQ_PUBLIC_ORIGIN', 'BETTER_AUTH_URL'],
+  ingestUrl: ['SYNIQ_INGEST_URL'],
   sessionId: ['SYNIQ_SESSION_ID', 'SESSION_ID'],
   sessionToken: ['SYNIQ_SESSION_TOKEN', 'SYNIQ_TOKEN'],
 };

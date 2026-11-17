@@ -12,7 +12,6 @@ neonConfig.webSocketConstructor = ws;
 const DEFAULT_AUTH_BASE_URL = "http://localhost:4000";
 const DEFAULT_TRUSTED_ORIGINS = [
   "https://syniq.vercel.app",
-  "https://flowfex.vercel.app",
   "http://localhost:3000",
   "http://127.0.0.1:3000",
   "http://localhost:5173",
@@ -55,7 +54,6 @@ function normalizeUrl(value, { originOnly = false } = {}) {
 function resolveAuthBaseUrl() {
   return normalizeUrl(
     process.env.BETTER_AUTH_URL
-      || process.env.FLOWFEX_PUBLIC_ORIGIN
       || process.env.SYNIQ_PUBLIC_ORIGIN
       || process.env.RENDER_EXTERNAL_URL
       || DEFAULT_AUTH_BASE_URL,
@@ -65,8 +63,7 @@ function resolveAuthBaseUrl() {
 
 function resolveFrontendAppOrigin() {
   return normalizeUrl(
-    process.env.FLOWFEX_APP_URL
-      || process.env.SYNIQ_APP_URL
+    process.env.SYNIQ_APP_URL
       || process.env.FRONTEND_URL
       || process.env.FRONTEND_ORIGIN
       || process.env.APP_URL
@@ -97,14 +94,12 @@ function collectTrustedOrigins() {
   const trusted = new Set(DEFAULT_TRUSTED_ORIGINS);
   const baseUrl = resolveAuthBaseUrl();
   const envCandidates = [
-    process.env.FLOWFEX_APP_URL,
     process.env.SYNIQ_APP_URL,
     process.env.FRONTEND_URL,
     process.env.FRONTEND_ORIGIN,
     process.env.APP_URL,
     process.env.VITE_APP_URL,
     process.env.BETTER_AUTH_URL,
-    process.env.FLOWFEX_PUBLIC_ORIGIN,
     process.env.SYNIQ_PUBLIC_ORIGIN,
     process.env.RENDER_EXTERNAL_URL,
     process.env.VERCEL_URL,

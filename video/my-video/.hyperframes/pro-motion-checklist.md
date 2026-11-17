@@ -1,6 +1,6 @@
 # Professional Motion Design Checklist
 
-This is the checklist for rebuilding the Flowfex video. It is based on how strong motion designers structure explanatory work.
+This is the checklist for rebuilding the Syniq video. It is based on how strong motion designers structure explanatory work.
 
 1. One message per beat.
    Each scene communicates one idea only. No scene should try to sell, explain architecture, and show product proof at the same time.
@@ -34,7 +34,7 @@ This is the checklist for rebuilding the Flowfex video. It is based on how stron
 
 ## How This Version Applies the Checklist
 
-- Scene 1 explains what Flowfex is.
+- Scene 1 explains what Syniq is.
 - Scene 2 explains the connection model.
 - Scene 3 explains the repo architecture.
 - Scene 4 explains the runtime orchestration path.

@@ -334,8 +334,6 @@ function LinkTab({
   connection, loading, onRefresh, error, limitState, limitKey,
   isAuthenticated, onSignUp, onSignIn, onClose, onViewPricing, onStartFreshSession,
 }) {
-  const [copied, copy] = useCopy();
-
   if (limitState) {
     return (
       <ConnectionLimitPanel
@@ -380,12 +378,7 @@ function LinkTab({
       error={error}
       actions={<ConnectionRefreshAction loading={loading} label="Regenerate link" onRefresh={onRefresh} />}
     >
-      <div className="cam-link-row">
-        <input readOnly value={url} className="cam-readonly-input" aria-label="Attach link" />
-        <button type="button" className="cam-copy-btn cam-copy-btn--compact" onClick={() => copy(url)}>
-          {copied ? <><CheckCheck size={14} style={{ marginRight: 4 }} />Copied</> : <><Copy size={14} style={{ marginRight: 4 }} />Copy</>}
-        </button>
-      </div>
+      <ConcealedPayload text={url} title="Attach link" />
     </ConnectionMethodShell>
   );
 }

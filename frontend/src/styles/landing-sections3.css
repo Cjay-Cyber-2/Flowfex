@@ -401,18 +401,6 @@
   pointer-events: none;
 }
 
-.cam-payload-preview--revealed {
-  max-height: none;
-  overflow: auto;
-}
-
-.cam-payload-preview--revealed pre {
-  filter: none;
-  user-select: text;
-  pointer-events: auto;
-  color: rgba(237, 232, 223, 0.88);
-}
-
 .cam-link-row {
   display: flex;
   gap: 8px;

@@ -1,5 +1,5 @@
-import { injectMandatoryIntoSelection } from '../skills/mandatorySkills.js';
 import { includesLoosePhrase, overlapScore, stableId, truncate } from './utils.js';
+import { injectMandatoryIntoSelection } from '../skills/mandatorySkills.js';
 export class ExecutionPlanSelector {
     logger;
     constructor(config) {
@@ -64,31 +64,25 @@ export class ExecutionPlanSelector {
         if (supplementFromRetrieval) {
             supplementSelectedStepsFromRetrieval(selectedSteps, retrieval, intent, maxSkills, minimumSelectionScore);
         }
-        const mandatorySteps = injectMandatoryIntoSelection(
-            selectedSteps,
-            retrieval,
-            intent,
-            options.registry,
-            { maxSkills }
-        );
+        let finalSteps = selectedSteps;
+        const mandatorySteps = injectMandatoryIntoSelection(selectedSteps, retrieval, intent, options.registry, { maxSkills });
         if (mandatorySteps !== selectedSteps) {
-            selectedSteps.length = 0;
-            selectedSteps.push(...mandatorySteps);
+            finalSteps = mandatorySteps;
             fallbackUsed = true;
         }
-        const decisionNodes = resolveDecisionNodes(intent, selectedSteps);
+        const decisionNodes = resolveDecisionNodes(intent, finalSteps);
         this.logger.info({
             event: 'orchestration.plan.selected',
             message: 'Execution plan selected from retrieved capabilities',
             sessionId: options.sessionId,
             executionId: options.executionId,
-            selectedSkillCount: selectedSteps.length,
+            selectedSkillCount: finalSteps.length,
             decisionCount: decisionNodes.length,
             fallbackUsed,
-            selectedToolIds: selectedSteps.map(step => step.toolId),
+            selectedToolIds: finalSteps.map(step => step.toolId),
         });
         return {
-            selectedSteps,
+            selectedSteps: finalSteps,
             decisionNodes,
             rankings,
             fallbackUsed,
@@ -145,12 +139,10 @@ function resolveStepTitle(stepTitle, toolName) {
     }
     return truncate(stepTitle || toolName || 'Syniq skill', 28);
 }
-
 function supplementSelectedStepsFromRetrieval(selectedSteps, retrieval, intent, maxSkills, minimumSelectionScore) {
-    const selectedToolIds = new Set(selectedSteps.map((step) => step.toolId));
+    const selectedToolIds = new Set(selectedSteps.map(step => step.toolId));
     const pool = Array.isArray(retrieval.merged) ? retrieval.merged : [];
     const supplementalFloor = Math.max(0.1, minimumSelectionScore - 0.04);
-
     for (const candidate of pool) {
         if (selectedSteps.length >= maxSkills) {
             break;
@@ -161,7 +153,6 @@ function supplementSelectedStepsFromRetrieval(selectedSteps, retrieval, intent, 
         if (candidate.score < supplementalFloor) {
             continue;
         }
-
         selectedToolIds.add(candidate.toolId);
         selectedSteps.push({
             id: stableId('plan', 'supplement', candidate.toolId),
@@ -178,7 +169,6 @@ function supplementSelectedStepsFromRetrieval(selectedSteps, retrieval, intent, 
         });
     }
 }
-
 function buildSelectionReason(step, candidate, score) {
     return truncate(`${candidate.toolName} scored ${score.toFixed(2)} for ${step.capabilityCategory} because it aligns with "${step.objective}" and carries ${candidate.strategy} retrieval support.`, 220);
 }

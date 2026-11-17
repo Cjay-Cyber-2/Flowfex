@@ -1,4 +1,4 @@
-# GODMODE FLOWFEX — Dashboard Canvas Implementation Tasks
+# GODMODE SYNIQ — Dashboard Canvas Implementation Tasks
 ## Production-Grade Execution Plan
 
 ---
@@ -580,4 +580,4 @@
 
 ---
 
-**"The canvas is the soul of Flowfex. Make it breathe."**
+**"The canvas is the soul of Syniq. Make it breathe."**

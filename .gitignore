@@ -1,1 +1,9 @@
 mcp/syniq-mcp/node_modules/
+
+# Local secrets — never commit real credentials
+.env
+.env.local
+**/.env
+**/.env.local
+!.env.example
+!**/.env.example

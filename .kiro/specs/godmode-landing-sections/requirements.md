@@ -1,4 +1,4 @@
-# Flowfex Landing Page - GODMODE Sections
+# Syniq Landing Page - GODMODE Sections
 ## Requirements Document
 
 ## Overview
@@ -6,9 +6,9 @@ Implement the missing landing page sections (6-9) to achieve Igloo/ActiveTheory 
 
 ## User Stories
 
-### As a visitor to the Flowfex landing page
+### As a visitor to the Syniq landing page
 - I want to see social proof from trusted companies so I feel confident using the product
-- I want to see how developers integrate Flowfex so I understand the technical approach
+- I want to see how developers integrate Syniq so I understand the technical approach
 - I want to understand pricing options so I can plan my usage
 - I want answers to common questions so I don't have to contact support
 
@@ -134,7 +134,7 @@ Each card contains:
 
 #### FR-4.4: FAQ Content
 Questions include:
-- What agents does Flowfex work with?
+- What agents does Syniq work with?
 - How does the prompt connection work?
 - Is sign-up required?
 - What happens when trial limit is reached?

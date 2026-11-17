@@ -1,4 +1,4 @@
-# GODMODE FLOWFEX — Dashboard Canvas Design
+# GODMODE SYNIQ — Dashboard Canvas Design
 ## Visual Architecture & Component Specification
 
 ---
@@ -7,7 +7,7 @@
 
 **"Watching something think."**
 
-The canvas is the soul of Flowfex. Every pixel, every animation, every interaction must serve one purpose: making invisible AI orchestration visible, beautiful, and controllable.
+The canvas is the soul of Syniq. Every pixel, every animation, every interaction must serve one purpose: making invisible AI orchestration visible, beautiful, and controllable.
 
 ---
 

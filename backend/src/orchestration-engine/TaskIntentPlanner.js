@@ -185,7 +185,6 @@ function buildFallbackTitle(category, index) {
     }
     return `${label} follow-up`;
 }
-
 function formatCategoryLabel(category) {
     return String(category || 'general')
         .replace(/[-_]+/g, ' ')

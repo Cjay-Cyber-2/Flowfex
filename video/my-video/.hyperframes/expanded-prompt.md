@@ -1,4 +1,4 @@
-# Flowfex Architecture Reel
+# Syniq Architecture Reel
 
 Style block:
 - Palette: `#080c10`, `#111820`, `#20303a`, `#00d4aa`, `#7ffff0`, `#46bda9`, `#e8edf2`, `#8a96a3`
@@ -16,17 +16,17 @@ Global rules:
 - Use the same dark canvas across all scenes
 - Avoid generic startup gradients and centered slide layouts
 
-## Scene 1: What Flowfex Is
+## Scene 1: What Syniq Is
 
 Concept:
-Flowfex appears like a control surface waking up. The viewer should instantly understand that this is not a chat UI, but a visual AI orchestration system with signal moving through infrastructure.
+Syniq appears like a control surface waking up. The viewer should instantly understand that this is not a chat UI, but a visual AI orchestration system with signal moving through infrastructure.
 
 Mood direction:
 Editorial tech trailer. Calm confidence with a hard systems edge.
 
 Depth layers:
 - BG: radial glow, grid lattice, ghost word `ORCHESTRATE`
-- MG: giant Flowfex wordmark, subtitle, architecture blurb
+- MG: giant Syniq wordmark, subtitle, architecture blurb
 - FG: mode pills, scan labels, stat card
 
 Animation choreography:
@@ -109,7 +109,7 @@ Transition out:
 ## Scene 5: Product Proof and Close
 
 Concept:
-The abstract architecture resolves into the actual Flowfex product. The viewer sees the real UI framed like a live console, while the left side distills the repo’s purpose and stack.
+The abstract architecture resolves into the actual Syniq product. The viewer sees the real UI framed like a live console, while the left side distills the repo’s purpose and stack.
 
 Mood direction:
 Confident product payoff. Premium but not sentimental.

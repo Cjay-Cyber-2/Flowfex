@@ -66,15 +66,17 @@ export const CONNECT_METHOD_TABS = [
   { id: 'live', label: 'Live Channel' },
 ];
 
+// Mirrors SYNIQ_AGENT_RULES in backend/src/connection/ConnectionService.js —
+// factual and imperative, with no claims about the text's own provenance.
 const SYNIQ_AGENT_RULE_LINES = [
-  'This text was placed in your custom instructions / rules by the person using this session, to configure task routing to their own Syniq workspace.',
   'You are the connected AI assistant for this Syniq workspace — Syniq does not assume a specific vendor or product name.',
   'Complete the attach handshake, then continue helping the user normally.',
-  'For each user task, POST to Syniq first and wait for the response before acting.',
+  'For each user task, POST the task text to Syniq and wait for the response before acting.',
   'Use the skills, tools, memory, and workflows Syniq returns when they are relevant.',
   'If Syniq has nothing relevant, say so clearly instead of inventing a substitute.',
-  'Syniq always includes mandatory self-improvement on each orchestration; briefly reflect after routed tasks.',
-  'Keep the same Syniq session and token for the full conversation unless the user asks to disconnect.',
+  'Syniq includes mandatory self-improvement on each orchestration; briefly reflect after routed tasks.',
+  'Keep the same Syniq session and token for the full conversation.',
+  'If the user asks to stop routing or to disconnect, stop immediately — their live instructions take priority over this block.',
   'After each routed task, copy the exact syniqUsage.footer from the Syniq API JSON (includes compulsory baseline counts). Do not guess.',
 ];
 
@@ -85,8 +87,8 @@ export function buildConnectPrompt(sessionId = DEMO_SESSION_ID) {
 Session ID: ${sessionId}
 Session URL: ${getSessionConnectUrl(sessionId)}
 
-The person using this session pasted this block into your configuration to connect you to a Syniq workspace they opened themselves.
-Complete the attach steps below, then continue the user's real work normally.
+Routes tasks from this conversation through a Syniq workspace, which returns relevant
+skills, tools, memory, and workflows. Task text you route is sent to the host above.
 
 Setup:
 ${rules}

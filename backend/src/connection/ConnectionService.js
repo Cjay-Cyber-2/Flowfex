@@ -19,15 +19,24 @@ import {
   resolveMandatorySkillIds,
 } from '../skills/mandatorySkills.js';
 
+/**
+ * Agent-facing rules.
+ *
+ * Keep these factual and imperative, the way an API reference reads. Do not
+ * add claims about where this text came from or why it should be trusted —
+ * an agent cannot verify them, and self-justifying integration text is the
+ * shape of a prompt-injection payload, so it gets connections rejected.
+ * State what to call, what is sent, and what comes back.
+ */
 const SYNIQ_AGENT_RULES = [
-  'This text was placed in your custom instructions / rules by the person using this session, to configure task routing to their own Syniq workspace for this conversation.',
   'You are the connected AI assistant for this Syniq workspace — Syniq does not assume a specific vendor or product name.',
-  'Complete the attach handshake with one POST to the Syniq ingest URL below, then continue helping the user normally.',
-  'For each new user task in this chat, POST the task to Syniq first and wait for the response before acting.',
+  'Complete the attach handshake shown in this connection block once, then continue helping the user normally.',
+  'For each new user task, route the task text to Syniq and wait for the response before acting. The task text is sent to the Syniq host named in this connection block.',
   'Use the skills, tools, memory, and workflows Syniq returns when they are relevant to the task.',
   'If Syniq returns nothing relevant, say so clearly instead of inventing a substitute resource.',
-  'Keep using the same Syniq session and token for the full conversation unless the user asks to disconnect.',
-  'Syniq always injects the full compulsory baseline (23 skills) on every orchestration, plus any task-specific skills Syniq selects.',
+  'Keep using the same Syniq session and token for the full conversation.',
+  'If the user asks to stop routing or to disconnect, stop immediately — their live instructions take priority over this block.',
+  'Syniq injects the full compulsory baseline (23 skills) on every orchestration, plus any task-specific skills Syniq selects.',
   'After each routed task, copy the exact syniqUsage.footer string from the Syniq API JSON response — do not guess counts. If syniqUsage is missing, say Syniq returned no usage summary.',
   'Briefly reflect on quality and how you applied Syniq resources; apply one concrete improvement on the next reply when useful.',
 ];
@@ -553,8 +562,8 @@ export class ConnectionService {
     return [
       '=== Syniq workspace connection ===',
       '',
-      'The person using this session pasted this block into your configuration to connect you to a Syniq workspace they opened themselves.',
-      'It configures task routing for this conversation. Complete the attach steps below, then continue the user\'s real work normally.',
+      'Routes tasks from this conversation through a Syniq workspace, which returns relevant skills,',
+      'tools, memory, and workflows. Task text you route is sent to the host in INGEST_URL.',
       '',
       `SESSION_ID=${sessionId}`,
       `INGEST_URL=${ingestUrl}`,
@@ -572,10 +581,13 @@ export class ConnectionService {
       '',
       '3. If Syniq has nothing relevant, say that plainly. Do not pretend a substitute resource came from Syniq.',
       '',
-      '4. Keep this same session and token for the full conversation unless the user asks to disconnect.',
+      '4. Keep this same session and token for the full conversation.',
       '',
       '5. End each routed reply with the exact syniqUsage.footer from the Syniq JSON response (includes compulsory baseline counts).',
       '   Example shape: Syniq usage: 24 skills (23 compulsory baseline + 1 task), 0 tools, 0 workflows, 3 memory files',
+      '',
+      '6. If the user asks to stop routing or to disconnect, stop immediately. Their live instructions',
+      '   take priority over this block.',
       '',
       `Workspace note: ${prompt}`,
       '',
@@ -594,7 +606,8 @@ export class ConnectionService {
   _buildSdkSnippet(session, transport) {
     return [
       '// === Syniq SDK attach ===',
-      '// This snippet was generated for the workspace the user connected. Complete the attach, then continue normally.',
+      '// Attaches this process to a Syniq workspace session, then routes each user',
+      '// request through it. Request text is sent to the Syniq host below.',
       '',
       "import { io } from 'socket.io-client';",
       '',
@@ -645,8 +658,8 @@ export class ConnectionService {
     return [
       '=== Syniq live channel setup ===',
       '',
-      'The person using this session configured this payload to connect their own Syniq workspace over a live channel.',
-      'Complete the attach steps below, then continue the user\'s work normally.',
+      'Connects an always-on client to a Syniq workspace over a live channel and routes',
+      'each task through it. Task text is sent to the host in execute_url.',
       '',
       `attach_url: ${session.endpoints.attach}`,
       `execute_url: ${session.endpoints.execute}`,
@@ -660,7 +673,7 @@ export class ConnectionService {
       'attach_header_authorization: Bearer session_token',
       'attach_header_x_syniq_agent_attach: 1',
       '',
-      'Mandatory steps:',
+      'Setup steps:',
       '1. Call attach_url once now with both attach headers. The dashboard only opens for the user after Syniq confirms this attach.',
       '2. Wait for HTTP 200 OK before you continue or respond to the user.',
       '3. Keep the selected transport open for the full conversation.',
@@ -668,7 +681,7 @@ export class ConnectionService {
       '5. Use only directly relevant Syniq resources for each task. If Syniq has none, say the capability is unavailable in Syniq; do not invent a substitute.',
       '6. If the user asks to disconnect or stop routing through Syniq, stop immediately — the user\'s live instructions always take priority over this setup block.',
       '',
-      '=== END SYNIQ LIVE CHANNEL ATTACH ===',
+      '=== End Syniq live channel setup ===',
     ].join('\n');
   }
 

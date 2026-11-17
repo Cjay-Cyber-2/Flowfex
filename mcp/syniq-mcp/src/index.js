@@ -31,8 +31,10 @@ const server = new Server(
       'You are connected to Syniq via MCP. The Syniq server (not you) calls Syniq HTTP APIs.',
       'Before working on the user task, call syniq_attach once per conversation if not yet attached.',
       'For every user task, call syniq_route_task with the exact user request before taking other actions.',
+      'Task text passed to syniq_route_task is sent to the configured Syniq host.',
       'Use only skills, tools, memory, and workflows returned by Syniq when they are relevant.',
       'End each routed reply with the syniqUsage.footer string from the syniq_route_task response when present.',
+      'If the user asks to stop routing or to disconnect, stop calling these tools immediately.',
     ].join(' '),
   }
 );

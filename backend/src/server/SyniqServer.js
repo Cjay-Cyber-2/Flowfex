@@ -10,6 +10,7 @@ import { sessionLockManager } from '../session/SessionLockManager.js';
 import { defaultSessionStateRepository } from '../persistence/defaultSessionStateRepository.js';
 import { createSessionDataClient, isSessionDataConfigured, resolveAuthenticatedUser } from '../session/sessionDataAccess.js';
 import { AnonymousSessionService } from '../session/AnonymousSessionService.js';
+import { TOKEN_PATTERN, isSessionToken } from '../../../shared/sessionTokens.js';
 import { ApiKeyService } from '../session/ApiKeyService.js';
 import { UsageService } from '../session/UsageService.js';
 import { AppStateResolutionService } from '../session/AppStateResolutionService.js';
@@ -1291,13 +1292,13 @@ export class SyniqServer {
 
   /**
    * Agent tools-request quota is enforced on ingest/execute (one completed
-   * agent task = one tools request). Catalog reads assert limits for `ffx_`
+   * agent task = one tools request). Catalog reads assert limits for session
    * tokens but do not increment usage. Browser catalog loads use Better Auth
    * JWT or anonymous cookies and do not touch agent quota.
    */
   _resolveAgentSkillUsageSessionId(request) {
     const bearer = this._extractBearerToken(request);
-    if (typeof bearer !== 'string' || !bearer.startsWith('ffx_')) {
+    if (!isSessionToken(bearer)) {
       return null;
     }
 
@@ -1496,8 +1497,8 @@ export class SyniqServer {
 
     const normalizedTask = task.replace(/\r\n/g, '\n');
     const patterns = [
-      /^\s*\[\[\s*SYNIQ_SESSION_TOKEN\s*:\s*(ffx_[a-f0-9]+)\s*\]\]\s*\n?([\s\S]*)$/i,
-      /^\s*SYNIQ_SESSION_TOKEN\s*:\s*(ffx_[a-f0-9]+)\s*\n+([\s\S]*)$/i,
+      new RegExp(`^\\s*\\[\\[\\s*SYNIQ_SESSION_TOKEN\\s*:\\s*(${TOKEN_PATTERN})\\s*\\]\\]\\s*\\n?([\\s\\S]*)$`, 'i'),
+      new RegExp(`^\\s*SYNIQ_SESSION_TOKEN\\s*:\\s*(${TOKEN_PATTERN})\\s*\\n+([\\s\\S]*)$`, 'i'),
     ];
 
     for (const pattern of patterns) {

@@ -1,4 +1,5 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import { ISSUED_TOKEN_PREFIX, isSessionToken } from '../../../shared/sessionTokens.js';
 
 const DEFAULT_TTL_SECONDS = 60 * 30;
 const MAX_TTL_SECONDS = 60 * 60 * 24;
@@ -47,7 +48,7 @@ export class SessionManager {
       metadata.workspaceSessionId = workspaceSessionId;
     }
 
-    const token = `ffx_${randomBytes(24).toString('hex')}`;
+    const token = `${ISSUED_TOKEN_PREFIX}${randomBytes(24).toString('hex')}`;
     const session = {
       id,
       connectionId: `conn_${randomBytes(8).toString('hex')}`,
@@ -100,7 +101,7 @@ export class SessionManager {
   restoreSession(config = {}, token) {
     this.cleanupExpiredSessions();
 
-    if (typeof token !== 'string' || !token.startsWith('ffx_')) {
+    if (!isSessionToken(token)) {
       return null;
     }
 

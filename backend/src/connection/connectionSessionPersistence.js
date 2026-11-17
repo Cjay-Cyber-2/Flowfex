@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { syniqSessions } from '../db/schema.js';
 import { publicSessionView } from './SessionManager.js';
+import { isSessionToken } from '../../../shared/sessionTokens.js';
 
 function firstResult(data) {
   return Array.isArray(data) ? data[0] || null : data || null;
@@ -16,7 +17,7 @@ function isHandshakeActive(handshake) {
     return false;
   }
 
-  return typeof handshake.token === 'string' && handshake.token.startsWith('ffx_');
+  return isSessionToken(handshake.token);
 }
 
 /**
@@ -77,7 +78,7 @@ export async function persistConnectionHandshake(client, workspaceSessionId, han
 }
 
 export async function findConnectionHandshakeByToken(client, token) {
-  if (!client || typeof token !== 'string' || !token.startsWith('ffx_')) {
+  if (!client || !isSessionToken(token)) {
     return null;
   }
 

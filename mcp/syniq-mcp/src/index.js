@@ -61,7 +61,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         type: 'object',
         properties: {
           sessionId: { type: 'string', description: 'Connection session id (sess_… from dashboard)' },
-          sessionToken: { type: 'string', description: 'Syniq session token (ffx_…)' },
+          sessionToken: { type: 'string', description: 'Syniq session token (syq_…)' },
           publicUrl: { type: 'string', description: 'Syniq API origin (from your dashboard MCP tab)' },
           ingestUrl: { type: 'string', description: 'Ingest endpoint URL (defaults to {publicUrl}/ingest)' },
         },
